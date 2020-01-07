@@ -1,0 +1,41 @@
+{
+  "name": "@coderich/dataloader",
+  "author": "Richard Livolsi (coderich)",
+  "version": "0.0.1",
+  "description": "DataLoader",
+  "main": "index.js",
+  "license": "MIT",
+  "files": [
+    "src/",
+    "index.js"
+  ],
+  "scripts": {
+    "start": "node ./src/server",
+    "test": "ratchet test",
+    "lint": "ratchet lint",
+    "ratchet": "ratchet",
+    "uuid": "uuid"
+  },
+  "dependencies": {
+    "axios": "^0.19.0",
+    "change-case": "^4.1.0",
+    "dataloader": "^2.0.0",
+    "deepmerge": "^4.2.2",
+    "fill-range": "^7.0.1",
+    "lodash": "^4.17.15",
+    "micromatch": "^4.0.2",
+    "mongodb": "^3.3.5",
+    "neo4j-driver": "^4.0.0",
+    "object-hash": "^2.0.1",
+    "picomatch": "^2.1.1",
+    "redis": "^2.8.0",
+    "uuid": "^3.3.3",
+    "validator": "^12.1.0"
+  },
+  "devDependencies": {
+    "@coderich/ratchet": "^1.2.5",
+    "mongodb-memory-server": "^6.0.2",
+    "neodb": "^3.0.0",
+    "redis-mock": "^0.47.0"
+  }
+}
