@@ -7,7 +7,12 @@
   "license": "MIT",
   "files": [
     "src/",
-    "index.js"
+    "errors.js",
+    "index.js",
+    "rules.js",
+    "schema.js",
+    "transforms.js",
+    "types.js"
   ],
   "scripts": {
     "start": "node ./src/server",

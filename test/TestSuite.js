@@ -2,9 +2,9 @@
 // const Redis = require('redis-mock');
 const { MongoMemoryServer } = require('mongodb-memory-server');
 const { timeout } = require('../src/service/app.service');
-const Schema = require('../src/data/Schema');
+const Schema = require('../src/core/Schema');
+const DataLoader = require('../src/core/DataLoader');
 const { schema, stores } = require('./schema');
-const DataLoader = require('../src/data/DataLoader');
 
 let dataLoader;
 let richard;

@@ -1,8 +1,8 @@
 const DataLoader = require('dataloader');
-const { FullQueryBuilder, QueryBuilder } = require('./QueryBuilder');
-const QueryFetcher = require('./QueryFetcher');
-const Query = require('./Query');
-const Model = require('./Model');
+const { FullQueryBuilder, QueryBuilder } = require('../data/QueryBuilder');
+const QueryFetcher = require('../data/QueryFetcher');
+const Query = require('../data/Query');
+const Model = require('../data/Model');
 const { hashObject } = require('../service/app.service');
 
 module.exports = class {

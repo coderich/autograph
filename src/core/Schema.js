@@ -1,4 +1,4 @@
-const Model = require('./Model');
+const Model = require('../data/Model');
 const RedisDriver = require('../driver/RedisDriver');
 const MongoDriver = require('../driver/MongoDriver');
 const { Neo4jDriver, Neo4jRestDriver } = require('../driver/Neo4jDriver');
