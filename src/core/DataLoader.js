@@ -1,3 +1,35 @@
+// node('Person').id().one(); // get
+// node('Person').where().many(); // find
+// node('Person').where().count(); // count
+// node('Person').data().save(); // create
+// node('Person').id().data().save(); // update
+// node('Person').id().remove(); // delete
+// node('Person').where().data().save({ multi: true }); // multi-update (otherwise throw) [not yet supported]
+
+// const api = {
+//   id,
+//   data,
+//   select,
+//   where,
+//   sort,
+//   limit,
+//   first,
+//   after,
+//   last,
+//   before,
+
+//   one,
+//   many,
+//   count,
+
+//   save,
+//   remove,
+
+//   min,
+//   max,
+//   avg,
+// }
+
 const DataLoader = require('dataloader');
 const { FullQueryBuilder, QueryBuilder } = require('../data/QueryBuilder');
 const QueryFetcher = require('../data/QueryFetcher');
@@ -53,16 +85,6 @@ module.exports = class {
   clearAll() {
     this.loader.clearAll();
     return this;
-  }
-
-  idValue(model, id) {
-    model = this.toModel(model);
-    return model.idValue(id);
-  }
-
-  idField(model) {
-    model = this.toModel(model);
-    return model.idField();
   }
 
   toModel(model) {

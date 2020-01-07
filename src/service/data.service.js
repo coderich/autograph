@@ -114,11 +114,11 @@ exports.normalizeModelWhere = (loader, model, data) => {
       } else if (Array.isArray(value)) {
         prev[key] = value.map((val) => {
           if (isPlainObject(val)) return exports.normalizeModelWhere(loader, ref, val);
-          if (isIdValue(val)) return loader.idValue(ref, val);
+          if (isIdValue(val)) return ref.idValue(val);
           return val;
         });
       } else {
-        prev[key] = loader.idValue(ref, value);
+        prev[key] = ref.idValue(value);
       }
     } else if (Array.isArray(value)) {
       prev[key] = value.map(val => exports.applyFieldValueTransform(field, val));
@@ -145,16 +145,16 @@ exports.normalizeModelData = (loader, model, data) => {
         if (field.isEmbedded() || field.isVirtual()) {
           prev[key] = value.map(v => exports.normalizeModelData(loader, ref, v));
         } else if (type.isSet) {
-          prev[key] = uniq(value).map(v => loader.idValue(ref, v));
+          prev[key] = uniq(value).map(v => ref.idValue(v));
         } else {
-          prev[key] = value.map(v => loader.idValue(ref, v));
+          prev[key] = value.map(v => ref.idValue(v));
         }
       } else {
         prev[key] = value.map(v => exports.applyFieldValueTransform(field, v));
         if (type.isSet) prev[key] = uniq(prev[key]);
       }
     } else if (ref) {
-      prev[key] = loader.idValue(ref, value);
+      prev[key] = ref.idValue(value);
     } else {
       prev[key] = exports.applyFieldValueTransform(field, value);
     }
@@ -170,7 +170,7 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
   //
   lookups2D[index] = lookups2D[index] || {
     parentFieldAlias: fieldAlias,
-    parentModelName: mName,
+    parentModel: model,
     parentFields: fields,
     parentDataRefs: new Set(model.getDataRefFields().map(f => f.getDataRef())),
     lookups: [],
@@ -194,7 +194,7 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
             const scalars = [];
             const norm = value.map((v) => {
               if (isPlainObject(v)) return v;
-              if (field.isVirtual() && isIdValue(v)) return { [loader.idField(ref)]: v };
+              if (field.isVirtual() && isIdValue(v)) return { [ref.idField()]: v };
               scalars.push(v);
               return null;
             }).filter(v => v);
@@ -204,7 +204,7 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
           }
 
           if (field.isVirtual()) {
-            exports.resolveModelWhereClause(loader, ref, { [loader.idField(ref)]: value }, field.getAlias(key), lookups2D, index + 1);
+            exports.resolveModelWhereClause(loader, ref, { [ref.idField()]: value }, field.getAlias(key), lookups2D, index + 1);
             return prev;
           }
         }
@@ -223,8 +223,8 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
     return promiseChain(lookups2D.reverse().map(({ lookups }, index2D) => {
       return () => Promise.all(lookups.map(async ({ modelName, query }) => {
         const parentLookup = lookups2D[index2D + 1] || { parentDataRefs: new Set() };
-        const { parentModelName, parentFields, parentDataRefs } = parentLookup;
-        const { parentModelName: currentModelName, parentFields: currentFields, parentFieldAlias: currentFieldAlias } = lookups2D[index2D];
+        const { parentModel, parentFields, parentDataRefs } = parentLookup;
+        const { parentModel: currentModel, parentFields: currentFields, parentFieldAlias: currentFieldAlias } = lookups2D[index2D];
 
         return loader.find(modelName).where(query).exec().then((results) => {
           if (parentDataRefs.has(modelName)) {
@@ -239,14 +239,14 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
                     const cAlias = cField.getAlias(field.getVirtualRef());
 
                     Object.assign(lookup.query, {
-                      [loader.idField(parentModelName)]: results.map((result) => {
+                      [parentModel.idField()]: results.map((result) => {
                         const cValue = result[cAlias];
-                        return loader.idValue(parentModelName, cValue);
+                        return parentModel.idValue(cValue);
                       }),
                     });
                   } else {
                     Object.assign(lookup.query, {
-                      [currentFieldAlias]: results.map(result => loader.idValue(currentModelName, result.id)),
+                      [currentFieldAlias]: results.map(result => currentModel.idValue(result.id)),
                     });
                   }
                 }
