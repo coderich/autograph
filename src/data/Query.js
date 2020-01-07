@@ -3,7 +3,7 @@ const { keyPaths } = require('../service/app.service');
 
 module.exports = class Query {
   constructor(model, query = {}) {
-    const { fields, where = {}, sortBy = {}, pagination = {}, limit } = query;
+    const { fields, where = {}, sortBy = {}, limit, pagination = {} } = query;
 
     // Fields
     const modelFields = model.getScalarFields();

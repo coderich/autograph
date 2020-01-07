@@ -1,5 +1,6 @@
 const { mergeDeep } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
+const { NotFoundError } = require('../service/error.service');
 const {
   ensureModel,
   ensureModelArrayTypes,
@@ -18,12 +19,14 @@ module.exports = class QueryFetcher {
     this.loader = loader;
   }
 
-  get(query, id) {
+  get(query, id, required) {
     const { loader } = this;
     const model = query.getModel();
 
     return createSystemEvent('Query', { method: 'get', model, loader, query }, async () => {
       const doc = await model.get(id);
+      if (!doc && required) throw new NotFoundError(`${model} Not Found`);
+      if (!doc) return null;
       return model.hydrate(loader, doc, { fields: query.getSelectFields() });
     });
   }
@@ -35,7 +38,7 @@ module.exports = class QueryFetcher {
 
     return createSystemEvent('Query', { method: 'query', model, loader, query }, async () => {
       // const results = await loader.find(model, { ...query.toObject(), fields, sortBy: {}, limit: 0, pagination: {} });
-      const results = await loader.find(`${model}`).select(fields).where(query.getWhere()).exec();
+      const results = await loader(model).select(fields).where(query.getWhere()).many({ find: true });
       const filteredData = filterDataByCounts(loader, model, results, countFields);
       const sortedResults = sortData(filteredData, sortFields);
       const limitedResults = sortedResults.slice(0, limit > 0 ? limit : undefined);
@@ -72,7 +75,7 @@ module.exports = class QueryFetcher {
       const resolvedWhere = await resolveModelWhereClause(loader, model, where);
 
       if (countPaths.length) {
-        const results = await loader.query(`${model}`).where(resolvedWhere).select(countFields).exec();
+        const results = await loader(model).where(resolvedWhere).select(countFields).many();
         const filteredData = filterDataByCounts(loader, model, results, countFields);
         return filteredData.length;
       }
@@ -81,7 +84,7 @@ module.exports = class QueryFetcher {
     });
   }
 
-  async create(query, data) {
+  async create(query, data = {}) {
     const { loader } = this;
     const model = query.getModel();
     ensureModelArrayTypes(loader, model, data);
@@ -94,7 +97,7 @@ module.exports = class QueryFetcher {
     });
   }
 
-  async update(query, id, data) {
+  async update(query, id, data = {}) {
     const { loader } = this;
     const model = query.getModel();
     const doc = await ensureModel(loader, model, id);

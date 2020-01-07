@@ -4,7 +4,7 @@ const { NotFoundError, BadRequestError } = require('../service/error.service');
 const { uniq, globToRegexp, isScalarValue, isPlainObject, promiseChain, isIdValue, keyPaths } = require('../service/app.service');
 
 exports.ensureModel = (loader, model, id) => {
-  return loader.get(model, id).exec().then((doc) => {
+  return loader(model).id(id).one().then((doc) => {
     if (!doc) throw new NotFoundError(`${model} Not Found`);
     return doc;
   });
@@ -226,7 +226,7 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
         const { parentModel, parentFields, parentDataRefs } = parentLookup;
         const { parentModel: currentModel, parentFields: currentFields, parentFieldAlias: currentFieldAlias } = lookups2D[index2D];
 
-        return loader.find(modelName).where(query).exec().then((results) => {
+        return loader(modelName).where(query).many({ find: true }).then((results) => {
           if (parentDataRefs.has(modelName)) {
             parentLookup.lookups.forEach((lookup) => {
               // Anything with type `modelName` should be added to query
@@ -269,7 +269,7 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
 
 exports.resolveReferentialIntegrity = async (loader, model, id) => {
   // const onDeletes = parser.getModelOnDeletes(model);
-  const doc = await loader.get(model, id).exec();
+  const doc = await loader(model).id(id).one();
   return doc;
 };
 

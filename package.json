@@ -16,7 +16,7 @@
   ],
   "scripts": {
     "start": "node ./src/server",
-    "test": "ratchet test",
+    "test": "ratchet test --runInBand",
     "lint": "ratchet lint",
     "ratchet": "ratchet",
     "uuid": "uuid"

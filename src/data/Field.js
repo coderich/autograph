@@ -16,7 +16,7 @@ module.exports = class Field {
 
     if (this.isVirtual()) {
       where[this.getVirtualRef()] = doc.id;
-      return loader.count(fieldRef).where(where).exec();
+      return loader(fieldRef).where(where).count();
     }
 
     if (!Object.keys(where).length) {
@@ -24,8 +24,8 @@ module.exports = class Field {
     }
 
     const ids = (doc[this.getName()] || []);
-    where[loader.idField(fieldRef)] = ids;
-    return loader.count(fieldRef).where(where).exec();
+    where[fieldRef.idField()] = ids;
+    return loader(fieldRef).where(where).count();
   }
 
   resolve(loader, doc, q = {}) {
@@ -41,20 +41,20 @@ module.exports = class Field {
     if (Array.isArray(dataType)) {
       if (this.isVirtual()) {
         query.where[this.getVirtualField().getAlias()] = doc.id;
-        return loader.find(dataType[0]).query(query).exec();
+        return loader(dataType[0]).query(query).many({ find: true });
       }
       const valueIds = (value || []).map(v => (isScalarValue(v) ? v : v.id));
-      return Promise.all(valueIds.map(id => loader.get(dataType[0], id, this.isRequired()).exec().catch(() => null)));
+      return Promise.all(valueIds.map(id => loader(dataType[0]).id(id).one()));
     }
 
     // Object Resolvers
     if (this.isVirtual()) {
       query.where[this.getVirtualField().getAlias()] = doc.id;
-      return loader.find(dataType).query(query).exec().then(results => results[0]);
+      return loader(dataType).query(query).one({ find: true });
     }
 
     const id = isScalarValue(value) ? value : value.id;
-    return loader.get(dataType, id, this.isRequired()).exec();
+    return loader(dataType).id(id).one({ required: this.isRequired() });
   }
 
   //

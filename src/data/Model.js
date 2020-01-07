@@ -63,6 +63,8 @@ module.exports = class Model {
   }
 
   async hydrate(loader, results, query = {}) {
+    if (results == null) return null;
+
     const { fields = {} } = query;
     const isArray = Array.isArray(results);
     const modelFields = this.getFields().map(f => f.getName());
