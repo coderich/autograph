@@ -30,7 +30,7 @@ module.exports = class QueryBuilder {
     this.remove = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'remove', args);
   }
 
-  static makeTheCall(exec, model, query, cmd, ...args) {
+  static makeTheCall(exec, model, query, cmd, args) {
     const { id, data, where } = query;
 
     switch (cmd) {

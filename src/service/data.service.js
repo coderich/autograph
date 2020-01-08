@@ -1,14 +1,7 @@
 const _ = require('lodash');
 const { ObjectID } = require('mongodb');
-const { NotFoundError, BadRequestError } = require('../service/error.service');
+const { BadRequestError } = require('../service/error.service');
 const { uniq, globToRegexp, isScalarValue, isPlainObject, promiseChain, isIdValue, keyPaths } = require('../service/app.service');
-
-exports.ensureModel = (model, id) => {
-  return model.get(id).then((doc) => {
-    if (!doc) throw new NotFoundError(`${model} Not Found`);
-    return doc;
-  });
-};
 
 exports.validateModelData = (loader, model, data, oldData, op) => {
   const promises = [];
@@ -41,7 +34,7 @@ exports.validateModelData = (loader, model, data, oldData, op) => {
         if (field.isEmbedded()) {
           promises.push(...value.map(v => exports.validateModelData(loader, ref, v, oldData, op)));
         } else {
-          promises.push(...value.map(v => exports.ensureModel(ref, v)));
+          promises.push(...value.map(v => loader(ref).id(v).one({ required: true })));
           value.forEach(v => rules.forEach(rule => rule(v, oldData, op, path)));
         }
       } else {
@@ -51,7 +44,7 @@ exports.validateModelData = (loader, model, data, oldData, op) => {
       if (field.isEmbedded()) {
         promises.push(exports.validateModelData(loader, ref, value, oldData, op));
       } else {
-        promises.push(exports.ensureModel(ref, value));
+        promises.push(loader(ref).id(value).one({ required: true }));
       }
     }
   });

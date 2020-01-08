@@ -2,7 +2,6 @@ const { mergeDeep } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
 const { NotFoundError } = require('../service/error.service');
 const {
-  ensureModel,
   ensureModelArrayTypes,
   validateModelData,
   normalizeModelData,
@@ -100,7 +99,7 @@ module.exports = class QueryFetcher {
   async update(query, id, data = {}) {
     const { loader } = this;
     const model = query.getModel();
-    const doc = await ensureModel(model, id);
+    const doc = await loader(model).id(id).one({ required: true });
     ensureModelArrayTypes(loader, model, data);
     normalizeModelData(loader, model, data);
     await validateModelData(loader, model, data, doc, 'update');
@@ -115,7 +114,7 @@ module.exports = class QueryFetcher {
   async delete(query, id) {
     const { loader } = this;
     const model = query.getModel();
-    const doc = await ensureModel(model, id);
+    const doc = await loader(model).id(id).one({ required: true });
 
     return createSystemEvent('Mutation', { method: 'delete', model, loader, id }, () => {
       return resolveReferentialIntegrity(loader, model, id).then(async () => {

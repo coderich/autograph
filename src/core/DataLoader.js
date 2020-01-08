@@ -17,14 +17,15 @@ module.exports = class {
       cacheKeyFn: ({ method, model, query, args }) => hashObject({ method, model: `${model}`, query: query.toObject(), args }),
     });
 
-    const exec = (key) => {
+    const exec = async (key) => {
       const { method, model, query: q, args } = key;
       const query = new Query(toModel(model), q);
 
       switch (method) {
         case 'create': case 'update': case 'delete': {
-          // loader.clearAll();
-          return fetcher[method](query, ...args);
+          const results = await fetcher[method](query, ...args);
+          loader.clearAll();
+          return results;
         }
         default: {
           return loader.load({ method, model, query, args });
