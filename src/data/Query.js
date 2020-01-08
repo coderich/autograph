@@ -73,6 +73,13 @@ module.exports = class Query {
   }
 
   toObject() {
-    return this.query;
+    return {
+      ...this.query,
+      pagination: {},
+      selectFields: this.selectFields,
+      countFields: this.countFields,
+      countPaths: this.countPaths,
+      sortFields: this.sortFields,
+    };
   }
 };

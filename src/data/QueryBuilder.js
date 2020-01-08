@@ -17,7 +17,7 @@ module.exports = class QueryBuilder {
     this.before = (before) => { query.before = before; return this; };
 
     // want to keep?
-    this.query = (q) => { Object.assign(query, q); return this; };
+    this.query = (q) => { Object.assign(query, _.cloneDeep(q)); return this; };
 
     // Terminal commands
     this.one = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'one', args);

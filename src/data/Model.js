@@ -63,8 +63,6 @@ module.exports = class Model {
   }
 
   async hydrate(loader, results, query = {}) {
-    if (results == null) return null;
-
     const { fields = {} } = query;
     const isArray = Array.isArray(results);
     const modelFields = this.getFields().map(f => f.getName());
@@ -73,13 +71,15 @@ module.exports = class Model {
     results = isArray ? results : [results];
 
     const data = await Promise.all(results.map(async (doc) => {
+      if (doc == null) return doc;
+
       // Resolve all values
       const [fieldValues, countValues] = await Promise.all([
         Promise.all(fieldEntries.map(async ([field, subFields]) => {
           const [arg = {}] = (fields[field].__arguments || []).filter(el => el.query).map(el => el.query.value); // eslint-disable-line
-          const ref = this.getField(field).getDataRef();
+          const ref = this.getField(field).getModelRef();
           const resolved = await this.getField(field).resolve(loader, doc, { ...query, ...arg });
-          if (Object.keys(subFields).length && ref) return this.schema.getModel(ref).hydrate(loader, resolved, { ...query, ...arg, fields: subFields });
+          if (Object.keys(subFields).length && ref) return ref.hydrate(loader, resolved, { ...query, ...arg, fields: subFields });
           return resolved;
         })),
         Promise.all(countEntries.map(async ([field, subFields]) => {

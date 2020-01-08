@@ -427,12 +427,10 @@ module.exports = (name, db = 'mongo') => {
 
 
     describe('Data Normalization', () => {
-      test('uniq', async (done) => {
+      test('uniq', async () => {
         richard = await node('Person').id(richard.id).data({ name: 'richard', friends: [christie.id, christie.id, christie.id] }).save();
         expect(richard.name).toEqual('Richard');
         expect(richard.friends).toEqual([christie.id]);
-        node.dispose();
-        done();
       });
     });
 

@@ -26,6 +26,7 @@ module.exports = class QueryFetcher {
     return createSystemEvent('Query', { method: 'get', model, loader, query }, async () => {
       const doc = await model.get(id);
       if (!doc && required) throw new NotFoundError(`${model} Not Found`);
+      if (doc == null) return null;
       return model.hydrate(loader, doc, { fields: query.getSelectFields() });
     });
   }
