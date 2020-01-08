@@ -299,11 +299,9 @@ exports.paginateResults = (results = [], pagination = {}) => {
   const totalCount = results.length;
   const cursors = results.map(result => result.$$cursor);
   const afterIndex = cursors.findIndex(cursor => cursor >= after); // Want edges after this index
-  const anchor = cursors.reverse().find(cursor => cursor <= before);
-  let beforeIndex = cursors.reverse().findIndex(cursor => cursor === anchor);
+  let beforeIndex = cursors.findIndex(cursor => cursor >= before); // Want edges after this index
   if (beforeIndex === -1) beforeIndex = Infinity; // Want edges before this index
-  // console.log(pagination, afterIndex, beforeIndex, anchor);
-  const edges = results.slice(afterIndex + 1, beforeIndex -1);
+  const edges = results.slice(afterIndex + 1, beforeIndex);
   const hasPreviousPage = Boolean(last ? (edges.length > last) : (after && afterIndex));
   const hasNextPage = Boolean(first !== Infinity ? (edges.length > first) : (before && beforeIndex < results.length));
   const slice = edges.slice(0, first).slice(-last);

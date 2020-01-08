@@ -529,7 +529,7 @@ module.exports = (name, db = 'mongo') => {
         expect(await node('Book').sortBy({ name: 'asc' }).last(2)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }, { id: mobyDick.id, name: 'Moby Dick' }]);
         expect(await node('Book').sortBy({ name: 'asc' }).after(healthBook.$$cursor).first(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
         expect(await node('Book').sortBy({ name: 'asc' }).after(healthBook.$$cursor).last(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
-        // expect(await node('Book').sortBy({ name: 'asc' }).before(healthBook.$$cursor).first(1)).toMatchObject([]);
+        expect(await node('Book').sortBy({ name: 'asc' }).before(healthBook.$$cursor).first(1)).toMatchObject([]);
         expect(await node('Book').sortBy({ name: 'asc' }).before(healthBook.$$cursor).last(1)).toMatchObject([]);
       });
     });
