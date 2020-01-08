@@ -1,7 +1,7 @@
 const _ = require('lodash');
 
 module.exports = class QueryBuilder {
-  constructor(exec, model) {
+  constructor(model, loader) {
     const query = {};
 
     // Composable query
@@ -18,54 +18,54 @@ module.exports = class QueryBuilder {
     this.query = (q) => { Object.assign(query, _.cloneDeep(q)); return this; };
 
     // Terminal commands
-    this.one = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'one', args);
-    this.many = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'many', args);
-    this.first = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'first', args);
-    this.last = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'last', args);
-    this.count = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'count', args);
-    this.min = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'min', args);
-    this.max = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'max', args);
-    this.avg = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'avg', args);
-    this.save = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'save', args);
-    this.remove = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'remove', args);
+    this.one = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'one', args);
+    this.many = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'many', args);
+    this.first = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'first', args);
+    this.last = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'last', args);
+    this.count = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'count', args);
+    this.min = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'min', args);
+    this.max = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'max', args);
+    this.avg = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'avg', args);
+    this.save = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'save', args);
+    this.remove = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'remove', args);
   }
 
-  static makeTheCall(exec, model, query, cmd, args) {
+  static makeTheCall(loader, model, query, cmd, args) {
     const { id, data, where, before, after } = query;
 
     switch (cmd) {
       case 'one': {
         if (id) {
           const { required } = _.get(args, '0', {});
-          return exec({ method: 'get', model, query, args: [id, required] });
+          return loader.load({ method: 'get', model, query, args: [id, required] });
         }
         const { find } = _.get(args, '0', {});
         const method = find ? 'find' : 'query';
-        return exec({ method, model, query, args: [] }).then(results => results[0]);
+        return loader.load({ method, model, query, args: [] }).then(results => results[0]);
       }
       case 'many': {
         const { find } = _.get(args, '0', {});
         const method = find ? 'find' : 'query';
-        return exec({ method, model, query, args: [] });
+        return loader.load({ method, model, query, args: [] });
       }
       case 'first': case 'last': {
         const num = _.get(args, '0');
         const pagination = { before, after, [cmd]: num };
-        return exec({ method: 'query', model, query: Object.assign(query, { pagination }), args: [] });
+        return loader.load({ method: 'query', model, query: Object.assign(query, { pagination }), args: [] });
       }
       case 'min': case 'max': case 'avg': {
         return 0;
       }
       case 'count': {
-        return exec({ method: 'count', model, query, args: [] });
+        return loader.load({ method: 'count', model, query, args: [] });
       }
       case 'save': {
-        if (id) return exec({ method: 'update', model, query, args: [id, data] });
+        if (id) return loader.load({ method: 'update', model, query, args: [id, data] });
         if (where) throw new Error('Multi update not yet supported');
-        return exec({ method: 'create', model, query, args: [data] });
+        return loader.load({ method: 'create', model, query, args: [data] });
       }
       case 'remove': {
-        if (id) return exec({ method: 'delete', model, query, args: [id] });
+        if (id) return loader.load({ method: 'delete', model, query, args: [id] });
         if (where) throw new Error('Multi delete not yet supported');
         throw new Error('Multi delete not yet supported');
       }

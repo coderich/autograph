@@ -37,7 +37,7 @@ module.exports = class QueryFetcher {
 
     return createSystemEvent('Query', { method: 'query', model, loader, query }, async () => {
       // const results = await loader.find(model, { ...query.toObject(), fields, sortBy: {}, limit: 0, pagination: {} });
-      const results = await loader(model).select(fields).where(query.getWhere()).many({ find: true });
+      const results = await loader.match(model).select(fields).where(query.getWhere()).many({ find: true });
       const filteredData = filterDataByCounts(loader, model, results, countFields);
       const sortedResults = sortData(filteredData, sortFields);
       const limitedResults = sortedResults.slice(0, limit > 0 ? limit : undefined);
@@ -74,7 +74,7 @@ module.exports = class QueryFetcher {
       const resolvedWhere = await resolveModelWhereClause(loader, model, where);
 
       if (countPaths.length) {
-        const results = await loader(model).where(resolvedWhere).select(countFields).many();
+        const results = await loader.match(model).where(resolvedWhere).select(countFields).many();
         const filteredData = filterDataByCounts(loader, model, results, countFields);
         return filteredData.length;
       }
@@ -99,7 +99,7 @@ module.exports = class QueryFetcher {
   async update(query, id, data = {}) {
     const { loader } = this;
     const model = query.getModel();
-    const doc = await loader(model).id(id).one({ required: true });
+    const doc = await loader.match(model).id(id).one({ required: true });
     ensureModelArrayTypes(loader, model, data);
     normalizeModelData(loader, model, data);
     await validateModelData(loader, model, data, doc, 'update');
@@ -114,7 +114,7 @@ module.exports = class QueryFetcher {
   async delete(query, id) {
     const { loader } = this;
     const model = query.getModel();
-    const doc = await loader(model).id(id).one({ required: true });
+    const doc = await loader.match(model).id(id).one({ required: true });
 
     return createSystemEvent('Mutation', { method: 'delete', model, loader, id }, () => {
       return resolveReferentialIntegrity(loader, model, id).then(async () => {

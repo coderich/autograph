@@ -34,7 +34,7 @@ exports.validateModelData = (loader, model, data, oldData, op) => {
         if (field.isEmbedded()) {
           promises.push(...value.map(v => exports.validateModelData(loader, ref, v, oldData, op)));
         } else {
-          promises.push(...value.map(v => loader(ref).id(v).one({ required: true })));
+          promises.push(...value.map(v => loader.match(ref).id(v).one({ required: true })));
           value.forEach(v => rules.forEach(rule => rule(v, oldData, op, path)));
         }
       } else {
@@ -44,7 +44,7 @@ exports.validateModelData = (loader, model, data, oldData, op) => {
       if (field.isEmbedded()) {
         promises.push(exports.validateModelData(loader, ref, value, oldData, op));
       } else {
-        promises.push(loader(ref).id(value).one({ required: true }));
+        promises.push(loader.match(ref).id(value).one({ required: true }));
       }
     }
   });
@@ -219,7 +219,7 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
         const { parentModel, parentFields, parentDataRefs } = parentLookup;
         const { parentModel: currentModel, parentFields: currentFields, parentFieldAlias: currentFieldAlias } = lookups2D[index2D];
 
-        return loader(modelName).where(query).many({ find: true }).then((results) => {
+        return loader.match(modelName).where(query).many({ find: true }).then((results) => {
           if (parentDataRefs.has(modelName)) {
             parentLookup.lookups.forEach((lookup) => {
               // Anything with type `modelName` should be added to query
@@ -262,7 +262,7 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
 
 exports.resolveReferentialIntegrity = async (loader, model, id) => {
   // const onDeletes = parser.getModelOnDeletes(model);
-  const doc = await loader(model).id(id).one();
+  const doc = await loader.match(model).id(id).one();
   return doc;
 };
 

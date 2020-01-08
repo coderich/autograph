@@ -7,37 +7,46 @@ const { hashObject } = require('../service/app.service');
 
 module.exports = class {
   constructor(schema) {
-    let fetcher;
-
-    const toModel = model => (model instanceof Model ? model : schema.getModel(model));
-
-    const loader = new DataLoader((keys) => {
-      return Promise.all(keys.map(({ method, model, query, args }) => fetcher[method](query, ...args)));
-    }, {
+    this.schema = schema;
+    this.fetcher = new QueryFetcher(this);
+    this.loader = new DataLoader(keys => Promise.all(keys.map(({ method, query, args }) => this.fetcher[method](query, ...args))), {
       cacheKeyFn: ({ method, model, query, args }) => hashObject({ method, model: `${model}`, query: query.toObject(), args }),
     });
+  }
 
-    const exec = async (key) => {
-      const { method, model, query: q, args } = key;
-      const query = new Query(toModel(model), q);
+  async load(key) {
+    const { method, model, query: q, args } = key;
+    const query = new Query(this.toModel(model), q);
 
-      switch (method) {
-        case 'create': case 'update': case 'delete': {
-          const results = await fetcher[method](query, ...args);
-          loader.clearAll();
-          return results;
-        }
-        default: {
-          return loader.load({ method, model, query, args });
-        }
+    switch (method) {
+      case 'create': case 'update': case 'delete': {
+        const results = await this.fetcher[method](query, ...args);
+        this.loader.clearAll();
+        return results;
       }
-    };
+      default: {
+        return this.loader.load({ method, model, query, args });
+      }
+    }
+  }
 
-    // Api
-    const node = model => new QueryBuilder(exec, toModel(model));
-    node.dispose = () => loader.clearAll();
-    node.toModel = toModel;
-    fetcher = new QueryFetcher(node);
-    return node;
+  clear(key) {
+    return this.loader.clear(key);
+  }
+
+  clearAll() {
+    return this.loader.clearAll();
+  }
+
+  prime(key, value) {
+    return this.loader.prime(key, value);
+  }
+
+  match(model) {
+    return new QueryBuilder(this.toModel(model), this);
+  }
+
+  toModel(model) {
+    return model instanceof Model ? model : this.schema.getModel(model);
   }
 };
