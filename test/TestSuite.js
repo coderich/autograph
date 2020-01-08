@@ -48,7 +48,7 @@ module.exports = (name, db = 'mongo') => {
           break;
         }
         case 'neo4j': {
-          stores.default.type = 'neo4j';
+          stores.default.type = 'neo4jDriver';
           stores.default.uri = 'bolt://localhost';
           break;
         }
@@ -509,10 +509,28 @@ module.exports = (name, db = 'mongo') => {
     });
 
 
-    describe('Query (counts)', () => {
+    describe('Query (by counts)', () => {
       test('Person', async () => {
         expect(await node('Person').where({ countAuthored: '2' }).many()).toMatchObject([]);
         expect((await node('Person').where({ countAuthored: '1' }).many()).length).toBe(2);
+      });
+    });
+
+
+    describe('Query (crazy stuff)', () => {
+      test('sortBy', async () => {
+        expect(await node('Book').sortBy({ name: 'asc' }).one()).toMatchObject({ id: healthBook.id, name: 'Health And Wellness' });
+        expect(await node('Book').sortBy({ name: 'desc' }).one()).toMatchObject({ id: mobyDick.id, name: 'Moby Dick' });
+        expect(await node('Book').sortBy({ name: 'desc' }).first(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
+        expect(await node('Book').sortBy({ name: 'desc' }).last(1)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }]);
+        expect(await node('Book').sortBy({ name: 'asc' }).first(1)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }]);
+        expect(await node('Book').sortBy({ name: 'asc' }).last(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
+        expect(await node('Book').sortBy({ name: 'asc' }).first(2)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }, { id: mobyDick.id, name: 'Moby Dick' }]);
+        expect(await node('Book').sortBy({ name: 'asc' }).last(2)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }, { id: mobyDick.id, name: 'Moby Dick' }]);
+        expect(await node('Book').sortBy({ name: 'asc' }).after(healthBook.$$cursor).first(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
+        expect(await node('Book').sortBy({ name: 'asc' }).after(healthBook.$$cursor).last(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
+        // expect(await node('Book').sortBy({ name: 'asc' }).before(healthBook.$$cursor).first(1)).toMatchObject([]);
+        expect(await node('Book').sortBy({ name: 'asc' }).before(healthBook.$$cursor).last(1)).toMatchObject([]);
       });
     });
   });

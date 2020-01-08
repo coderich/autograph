@@ -11,10 +11,8 @@ module.exports = class QueryBuilder {
     this.where = (where) => { query.where = where; return this; };
     this.sortBy = (sortBy) => { query.sortBy = sortBy; return this; };
     this.limit = (limit) => { query.limit = limit; return this; };
-    this.first = (first) => { query.first = first; return this; };
-    this.after = (after) => { query.after = after; return this; };
-    this.last = (last) => { query.last = last; return this; };
     this.before = (before) => { query.before = before; return this; };
+    this.after = (after) => { query.after = after; return this; };
 
     // want to keep?
     this.query = (q) => { Object.assign(query, _.cloneDeep(q)); return this; };
@@ -22,6 +20,8 @@ module.exports = class QueryBuilder {
     // Terminal commands
     this.one = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'one', args);
     this.many = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'many', args);
+    this.first = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'first', args);
+    this.last = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'last', args);
     this.count = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'count', args);
     this.min = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'min', args);
     this.max = (...args) => QueryBuilder.makeTheCall(exec, model, query, 'max', args);
@@ -31,7 +31,7 @@ module.exports = class QueryBuilder {
   }
 
   static makeTheCall(exec, model, query, cmd, args) {
-    const { id, data, where } = query;
+    const { id, data, where, before, after } = query;
 
     switch (cmd) {
       case 'one': {
@@ -47,6 +47,11 @@ module.exports = class QueryBuilder {
         const { find } = _.get(args, '0', {});
         const method = find ? 'find' : 'query';
         return exec({ method, model, query, args: [] });
+      }
+      case 'first': case 'last': {
+        const num = _.get(args, '0');
+        const pagination = { before, after, [cmd]: num };
+        return exec({ method: 'query', model, query: Object.assign(query, { pagination }), args: [] });
       }
       case 'min': case 'max': case 'avg': {
         return 0;

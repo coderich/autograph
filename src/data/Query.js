@@ -11,7 +11,6 @@ module.exports = class Query {
     const finalSelectFields = { ...where, ...sortBy, ...selectFields };
 
     // Sorting
-    sortBy.id = 'ASC';
     const sortFields = keyPaths(sortBy).reduce((prev, path) => {
       if (path.indexOf('count') === 0 || path.indexOf('.count') === 0) return Object.assign(prev, { [path]: _.get(sortBy, path) });
       const $path = path.split('.').map(s => `$${s}`).join('.');
@@ -75,7 +74,7 @@ module.exports = class Query {
   toObject() {
     return {
       ...this.query,
-      pagination: {},
+      pagination: this.pagination,
       selectFields: this.selectFields,
       countFields: this.countFields,
       countPaths: this.countPaths,
