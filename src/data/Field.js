@@ -44,7 +44,7 @@ module.exports = class Field {
         return loader(dataType[0]).query(query).many({ find: true });
       }
       const valueIds = (value || []).map(v => (isScalarValue(v) ? v : v.id));
-      return Promise.all(valueIds.map(id => loader(dataType[0]).id(id).one()));
+      return Promise.all(valueIds.map(id => loader(dataType[0]).id(id).one({ required: this.isRequired() }).catch(e => null)));
     }
 
     // Object Resolvers

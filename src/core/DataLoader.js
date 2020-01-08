@@ -12,8 +12,9 @@ module.exports = class {
     const toModel = model => (model instanceof Model ? model : schema.getModel(model));
 
     const loader = new DataLoader((keys) => {
-      return Promise.all(keys.map(({ method, model, query, args }) => fetcher[method](new Query(toModel(model), query), ...args)));
+      return Promise.all(keys.map(({ method, model, query, args }) => fetcher[method].call(fetcher, new Query(toModel(model), query), ...args)));
     }, {
+      cache: false,
       cacheKeyFn: ({ method, model, query, args }) => hashObject({ method, model: `${model}`, query, args }),
     });
 
@@ -21,7 +22,7 @@ module.exports = class {
       const { method, model, query, args } = key;
 
       switch (method) {
-        case 'create': case 'update': case 'delete': return fetcher[method](new Query(toModel(model), query), ...args);
+        case 'create': case 'update': case 'delete': return fetcher[method].call(fetcher, new Query(toModel(model), query), ...args);
         default: return loader.load(key);
       }
     };

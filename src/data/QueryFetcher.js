@@ -26,7 +26,6 @@ module.exports = class QueryFetcher {
     return createSystemEvent('Query', { method: 'get', model, loader, query }, async () => {
       const doc = await model.get(id);
       if (!doc && required) throw new NotFoundError(`${model} Not Found`);
-      if (!doc) return null;
       return model.hydrate(loader, doc, { fields: query.getSelectFields() });
     });
   }
@@ -100,7 +99,7 @@ module.exports = class QueryFetcher {
   async update(query, id, data = {}) {
     const { loader } = this;
     const model = query.getModel();
-    const doc = await ensureModel(loader, model, id);
+    const doc = await ensureModel(model, id);
     ensureModelArrayTypes(loader, model, data);
     normalizeModelData(loader, model, data);
     await validateModelData(loader, model, data, doc, 'update');
@@ -115,7 +114,7 @@ module.exports = class QueryFetcher {
   async delete(query, id) {
     const { loader } = this;
     const model = query.getModel();
-    const doc = await ensureModel(loader, model, id);
+    const doc = await ensureModel(model, id);
 
     return createSystemEvent('Mutation', { method: 'delete', model, loader, id }, () => {
       return resolveReferentialIntegrity(loader, model, id).then(async () => {

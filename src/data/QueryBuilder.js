@@ -5,7 +5,7 @@ module.exports = class QueryBuilder {
     const query = {};
 
     // Composable query
-    this.id = (id) => { query.id = id; return this; };
+    this.id = (id) => { query.id = `${id}`; return this; };
     this.data = (data) => { query.data = data; return this; };
     this.select = (fields) => { query.fields = fields; return this; };
     this.where = (where) => { query.where = where; return this; };
