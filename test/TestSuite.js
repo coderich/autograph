@@ -517,8 +517,10 @@ module.exports = (name, db = 'mongo') => {
     });
 
 
-    describe('Query (crazy stuff)', () => {
+    describe('Query (slice n dice)', () => {
       test('sortBy', async () => {
+        const [health, moby] = await loader.match('Book').sortBy({ name: 'asc' }).many();
+        const [healthCursor, mobyCursor] = [health.$$cursor, moby.$$cursor];
         expect(await loader.match('Book').sortBy({ name: 'asc' }).one()).toMatchObject({ id: healthBook.id, name: 'Health And Wellness' });
         expect(await loader.match('Book').sortBy({ name: 'desc' }).one()).toMatchObject({ id: mobyDick.id, name: 'Moby Dick' });
         expect(await loader.match('Book').sortBy({ name: 'desc' }).first(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
@@ -527,10 +529,14 @@ module.exports = (name, db = 'mongo') => {
         expect(await loader.match('Book').sortBy({ name: 'asc' }).last(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
         expect(await loader.match('Book').sortBy({ name: 'asc' }).first(2)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }, { id: mobyDick.id, name: 'Moby Dick' }]);
         expect(await loader.match('Book').sortBy({ name: 'asc' }).last(2)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }, { id: mobyDick.id, name: 'Moby Dick' }]);
-        expect(await loader.match('Book').sortBy({ name: 'asc' }).after(healthBook.$$cursor).first(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
-        expect(await loader.match('Book').sortBy({ name: 'asc' }).after(healthBook.$$cursor).last(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
-        expect(await loader.match('Book').sortBy({ name: 'asc' }).before(healthBook.$$cursor).first(1)).toMatchObject([]);
-        expect(await loader.match('Book').sortBy({ name: 'asc' }).before(healthBook.$$cursor).last(1)).toMatchObject([]);
+        expect(await loader.match('Book').sortBy({ name: 'asc' }).after(healthCursor).first(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
+        expect(await loader.match('Book').sortBy({ name: 'asc' }).after(healthCursor).last(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
+        expect(await loader.match('Book').sortBy({ name: 'asc' }).before(healthCursor).first(1)).toMatchObject([]);
+        expect(await loader.match('Book').sortBy({ name: 'asc' }).before(healthCursor).last(1)).toMatchObject([]);
+        expect(await loader.match('Book').sortBy({ name: 'asc' }).after(mobyCursor).first(1)).toMatchObject([]);
+        expect(await loader.match('Book').sortBy({ name: 'asc' }).after(mobyCursor).last(1)).toMatchObject([]);
+        expect(await loader.match('Book').sortBy({ name: 'asc' }).before(mobyCursor).first(1)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }]);
+        expect(await loader.match('Book').sortBy({ name: 'asc' }).before(mobyCursor).last(1)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }]);
       });
     });
   });

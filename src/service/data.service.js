@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { ObjectID } = require('mongodb');
 const { BadRequestError } = require('../service/error.service');
-const { uniq, globToRegexp, isScalarValue, isPlainObject, promiseChain, isIdValue, keyPaths } = require('../service/app.service');
+const { uniq, globToRegexp, isScalarValue, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID } = require('../service/app.service');
 
 exports.validateModelData = (loader, model, data, oldData, op) => {
   const promises = [];
@@ -285,7 +285,12 @@ exports.sortData = (data, sortBy) => {
     orders: [],
   });
 
-  return _.orderBy(data, info.iteratees.concat('$id'), info.orders.concat('asc'));
+  return _.orderBy(data, info.iteratees.concat('$id'), info.orders.concat('asc')).map((doc, i) => {
+    const cursor = toGUID(i, doc.$id);
+    if (!Object.prototype.hasOwnProperty.call(doc, '$$cursor')) return Object.defineProperty(doc, '$$cursor', { writable: true, value: cursor });
+    doc.$$cursor = cursor;
+    return doc;
+  });
 };
 
 exports.filterDataByCounts = (loader, model, data, countPaths) => {
@@ -298,9 +303,9 @@ exports.paginateResults = (results = [], pagination = {}) => {
 
   const totalCount = results.length;
   const cursors = results.map(result => result.$$cursor);
-  const afterIndex = cursors.findIndex(cursor => cursor >= after); // Want edges after this index
-  let beforeIndex = cursors.findIndex(cursor => cursor >= before); // Want edges after this index
-  if (beforeIndex === -1) beforeIndex = Infinity; // Want edges before this index
+  const afterIndex = cursors.findIndex(cursor => Boolean(cursor >= after)); // Want edges after this index
+  let beforeIndex = cursors.findIndex(cursor => Boolean(cursor >= before)); // Want edges before this index
+  if (beforeIndex === -1) beforeIndex = Infinity;
   const edges = results.slice(afterIndex + 1, beforeIndex);
   const hasPreviousPage = Boolean(last ? (edges.length > last) : (after && afterIndex));
   const hasNextPage = Boolean(first !== Infinity ? (edges.length > first) : (before && beforeIndex < results.length));

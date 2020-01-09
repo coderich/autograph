@@ -1,6 +1,6 @@
 const DataLoader = require('dataloader');
 const QueryBuilder = require('../data/QueryBuilder');
-const QueryFetcher = require('../data/QueryFetcher');
+const QueryWorker = require('../data/QueryWorker');
 const Query = require('../data/Query');
 const Model = require('../data/Model');
 const { hashObject } = require('../service/app.service');
@@ -8,8 +8,8 @@ const { hashObject } = require('../service/app.service');
 module.exports = class {
   constructor(schema) {
     this.schema = schema;
-    this.fetcher = new QueryFetcher(this);
-    this.loader = new DataLoader(keys => Promise.all(keys.map(({ method, query, args }) => this.fetcher[method](query, ...args))), {
+    this.worker = new QueryWorker(this);
+    this.loader = new DataLoader(keys => Promise.all(keys.map(({ method, query, args }) => this.worker[method](query, ...args))), {
       cacheKeyFn: ({ method, model, query, args }) => hashObject({ method, model: `${model}`, query: query.toObject(), args }),
     });
   }
@@ -20,7 +20,7 @@ module.exports = class {
 
     switch (method) {
       case 'create': case 'update': case 'delete': {
-        const results = await this.fetcher[method](query, ...args);
+        const results = await this.worker[method](query, ...args);
         this.loader.clearAll();
         return results;
       }

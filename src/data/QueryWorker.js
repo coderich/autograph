@@ -13,7 +13,7 @@ const {
   paginateResults,
 } = require('../service/data.service');
 
-module.exports = class QueryFetcher {
+module.exports = class QueryWorker {
   constructor(loader) {
     this.loader = loader;
   }
@@ -36,7 +36,6 @@ module.exports = class QueryFetcher {
     const [limit, fields, countFields, sortFields, pagination] = [query.getLimit(), query.getSelectFields(), query.getCountFields(), query.getSortFields(), query.getPagination()];
 
     return createSystemEvent('Query', { method: 'query', model, loader, query }, async () => {
-      // const results = await loader.find(model, { ...query.toObject(), fields, sortBy: {}, limit: 0, pagination: {} });
       const results = await loader.match(model).select(fields).where(query.getWhere()).many({ find: true });
       const filteredData = filterDataByCounts(loader, model, results, countFields);
       const sortedResults = sortData(filteredData, sortFields);

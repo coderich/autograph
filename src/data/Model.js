@@ -52,12 +52,13 @@ module.exports = class Model {
   }
 
   toObject(docs) {
-    return map(docs, (doc) => {
+    return map(docs, (doc, i) => {
       const guid = toGUID(this.getName(), doc.id);
+      // const cursor = toGUID(i, guid);
 
       return Object.defineProperties(doc, {
         $id: { value: guid },
-        $$cursor: { value: guid },
+        // $$cursor: { value: cursor },
       });
     });
   }
