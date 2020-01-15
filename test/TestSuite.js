@@ -513,6 +513,8 @@ module.exports = (name, db = 'mongo') => {
       test('Person', async () => {
         expect(await loader.match('Person').where({ countAuthored: '2' }).many()).toMatchObject([]);
         expect((await loader.match('Person').where({ countAuthored: '1' }).many()).length).toBe(2);
+        expect((await loader.match('Person').where({ authored: { countChapters: '2' } }).many())).toMatchObject([{ id: christie.id }]);
+        expect((await loader.match('Person').where({ authored: { countChapters: '0' } }).many())).toMatchObject([{ id: richard.id }]);
       });
     });
 

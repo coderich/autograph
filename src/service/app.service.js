@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const UUID = require('uuid/v4');
 const PicoMatch = require('picomatch');
 const FillRange = require('fill-range');
@@ -21,6 +22,15 @@ exports.globToRegex = (glob, options = {}) => PicoMatch.makeRe(glob, { maxLength
 exports.globToRegexp = (glob, options = {}) => PicoMatch.toRegex(exports.globToRegex(glob, options));
 exports.toGUID = (model, id) => Buffer.from(`${model},${id}`).toString('base64');
 exports.fromGUID = guid => Buffer.from(`${guid}`, 'base64').toString('ascii').split(',');
+
+exports.getDeep = (obj, path, defaultValue) => {
+  const results = [];
+  const [prop, ...rest] = path.split('.');
+  const value = _.get(obj, prop);
+  if (Array.isArray(value)) return results.concat(_.flatten(value.map(v => exports.getDeep(v, rest.join('.'), defaultValue))));
+  if (rest.length) return results.concat(exports.getDeep(value, rest.join('.'), defaultValue));
+  return results.concat(value === undefined ? defaultValue : value);
+};
 
 exports.map = (mixed, fn) => {
   if (mixed == null) return mixed;

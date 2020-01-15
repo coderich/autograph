@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { keyPaths } = require('../service/app.service');
+const { keyPaths, mergeDeep } = require('../service/app.service');
 
 module.exports = class Query {
   constructor(model, query = {}) {
@@ -8,7 +8,7 @@ module.exports = class Query {
     // Fields
     const modelFields = model.getScalarFields();
     const selectFields = fields || modelFields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: {} }), {});
-    const finalSelectFields = { ...where, ...sortBy, ...selectFields };
+    const finalSelectFields = mergeDeep(where, sortBy, selectFields);
 
     // Sorting
     const sortFields = keyPaths(sortBy).reduce((prev, path) => {

@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { ObjectID } = require('mongodb');
 const { BadRequestError } = require('../service/error.service');
-const { uniq, globToRegexp, isScalarValue, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID } = require('../service/app.service');
+const { uniq, globToRegexp, isScalarValue, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
 
 exports.validateModelData = (loader, model, data, oldData, op) => {
   const promises = [];
@@ -294,7 +294,13 @@ exports.sortData = (data, sortBy) => {
 };
 
 exports.filterDataByCounts = (loader, model, data, countPaths) => {
-  return data.filter(doc => Object.entries(countPaths).every(([path, value]) => String(_.get(doc, path, '')).match(globToRegexp(value))));
+  const pathValue = (doc, path) => {
+    const realPath = path.split('.').map(s => (s.indexOf('count') === 0 ? s : `$${s}`)).join('.');
+    const realVals = getDeep(doc, realPath);
+    return realVals;
+  };
+
+  return data.filter(doc => Object.entries(countPaths).every(([path, value]) => pathValue(doc, path).some(el => String(el).match(globToRegexp(value)))));
 };
 
 exports.paginateResults = (results = [], pagination = {}) => {
