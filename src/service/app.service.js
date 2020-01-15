@@ -43,9 +43,8 @@ exports.map = (mixed, fn) => {
 exports.keyPaths = (obj, keys = [], path) => {
   return Object.entries(obj).reduce((prev, [key, value]) => {
     const keyPath = path ? `${path}.${key}` : key;
-    prev.push(keyPath);
     if (exports.isPlainObject(value)) return exports.keyPaths(value, prev, keyPath);
-    return prev;
+    return prev.concat(keyPath);
   }, keys);
 };
 

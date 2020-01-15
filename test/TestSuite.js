@@ -515,14 +515,13 @@ module.exports = (name, db = 'mongo') => {
         expect((await loader.match('Person').where({ countAuthored: '1' }).many()).length).toBe(2);
         expect((await loader.match('Person').where({ authored: { countChapters: '2' } }).many())).toMatchObject([{ id: christie.id }]);
         expect((await loader.match('Person').where({ authored: { countChapters: '0' } }).many())).toMatchObject([{ id: richard.id }]);
+        expect((await loader.match('Person').where({ authored: { chapters: { countPages: '2' } } }).many())).toMatchObject([{ id: christie.id }]);
       });
     });
 
 
-    describe('Query (slice n dice)', () => {
+    describe('Query (sortBy sliced results)', () => {
       test('sortBy', async () => {
-        const [health, moby] = await loader.match('Book').sortBy({ name: 'asc' }).many();
-        const [healthCursor, mobyCursor] = [health.$$cursor, moby.$$cursor];
         expect(await loader.match('Book').sortBy({ name: 'asc' }).one()).toMatchObject({ id: healthBook.id, name: 'Health And Wellness' });
         expect(await loader.match('Book').sortBy({ name: 'desc' }).one()).toMatchObject({ id: mobyDick.id, name: 'Moby Dick' });
         expect(await loader.match('Book').sortBy({ name: 'desc' }).first(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
@@ -531,6 +530,14 @@ module.exports = (name, db = 'mongo') => {
         expect(await loader.match('Book').sortBy({ name: 'asc' }).last(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
         expect(await loader.match('Book').sortBy({ name: 'asc' }).first(2)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }, { id: mobyDick.id, name: 'Moby Dick' }]);
         expect(await loader.match('Book').sortBy({ name: 'asc' }).last(2)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }, { id: mobyDick.id, name: 'Moby Dick' }]);
+      });
+    });
+
+
+    describe('Query (sortBy with Cursors)', () => {
+      test('sortBy', async () => {
+        const [health, moby] = await loader.match('Book').sortBy({ name: 'asc' }).many();
+        const [healthCursor, mobyCursor] = [health.$$cursor, moby.$$cursor];
         expect(await loader.match('Book').sortBy({ name: 'asc' }).after(healthCursor).first(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
         expect(await loader.match('Book').sortBy({ name: 'asc' }).after(healthCursor).last(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
         expect(await loader.match('Book').sortBy({ name: 'asc' }).before(healthCursor).first(1)).toMatchObject([]);
@@ -541,5 +548,13 @@ module.exports = (name, db = 'mongo') => {
         expect(await loader.match('Book').sortBy({ name: 'asc' }).before(mobyCursor).last(1)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }]);
       });
     });
+
+
+    // describe('Query (sortBy deep)', () => {
+    //   test('sortBy', async () => {
+    //     expect(await loader.match('Book').sortBy({ authored: { chapters: { name: 'asc' } } }).many()).toMatchObject([{ id: mobyDick.id }, { id: healthBook.id }]);
+    //     expect(await loader.match('Book').sortBy({ authored: { chapters: { name: 'desc' } } }).many()).toMatchObject([{ id: healthBook.id }, { id: mobyDick.id }]);
+    //   });
+    // });
   });
 };

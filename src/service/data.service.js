@@ -270,12 +270,6 @@ exports.sortData = (data, sortBy) => {
   const paths = keyPaths(sortBy);
 
   const info = paths.reduce((prev, path, i) => {
-    const nextPath = paths[i + 1] || '';
-    const prevPath = paths[i - 1] || '';
-
-    if (nextPath.indexOf(`${path}.`) === 0) return prev;
-    if (prevPath.indexOf(path) === 0) return prev; // Work to do here (nested path)
-
     const order = _.get(sortBy, path, 'asc').toLowerCase();
     prev.iteratees.push(path);
     prev.orders.push(order);
