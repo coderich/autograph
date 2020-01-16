@@ -114,6 +114,7 @@ module.exports = (name, db = 'mongo') => {
         page2 = await loader.match('Page').data({ number: 2, chapter: chapter1.id, verbage: 'Now you know.' }).save();
         page3 = await loader.match('Page').data({ number: 1, chapter: chapter2.id, verbage: 'Ready for more?' }).save();
         page4 = await loader.match('Page').data({ number: 2, chapter: chapter2.id, verbage: 'The end.' }).save();
+        await loader.match('Page').data({ number: 3, chapter: chapter2.id, verbage: 'The real end.' }).save();
         expect(page1.id).toBeDefined();
         expect(page2.id).toBeDefined();
         expect(page3.id).toBeDefined();
@@ -240,9 +241,9 @@ module.exports = (name, db = 'mongo') => {
       });
 
       test('Page', async () => {
-        expect((await loader.match('Page').many({ find: true })).length).toBe(4);
+        expect((await loader.match('Page').many({ find: true })).length).toBe(5);
         expect((await loader.match('Page').where({ chapter: chapter1.id }).many({ find: true })).length).toBe(2);
-        expect((await loader.match('Page').where({ chapter: chapter2.id }).many({ find: true })).length).toBe(2);
+        expect((await loader.match('Page').where({ chapter: chapter2.id }).many({ find: true })).length).toBe(3);
         expect((await loader.match('Page').where({ number: 1 }).many({ find: true })).sort(sorter)).toMatchObject([
           { id: page1.id, chapter: chapter1.id },
           { id: page3.id, chapter: chapter2.id },
@@ -302,9 +303,9 @@ module.exports = (name, db = 'mongo') => {
       });
 
       test('Page', async () => {
-        expect(await loader.match('Page').count()).toBe(4);
+        expect(await loader.match('Page').count()).toBe(5);
         expect(await loader.match('Page').where({ chapter: chapter1.id }).count()).toBe(2);
-        expect(await loader.match('Page').where({ chapter: chapter2.id }).count()).toBe(2);
+        expect(await loader.match('Page').where({ chapter: chapter2.id }).count()).toBe(3);
         expect(await loader.match('Page').where({ number: 1 }).count()).toBe(2);
         expect(await loader.match('Page').where({ number: '2' }).count()).toBe(2);
       });
@@ -554,6 +555,10 @@ module.exports = (name, db = 'mongo') => {
       test('sortBy', async () => {
         expect(await loader.match('Person').sortBy({ authored: { chapters: { name: 'asc' } } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
         expect(await loader.match('Person').sortBy({ authored: { chapters: { name: 'desc' } } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        expect(await loader.match('Person').sortBy({ authored: { chapters: { countPages: 'asc' } } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        expect(await loader.match('Person').sortBy({ authored: { chapters: { countPages: 'desc' } } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+        expect(await loader.match('Chapter').sortBy({ countPages: 'asc', name: 'desc' }).many()).toMatchObject([{ name: 'Chapter1' }, { name: 'Chapter2' }]);
+        expect(await loader.match('Chapter').sortBy({ countPages: 'desc', name: 'desc' }).many()).toMatchObject([{ name: 'Chapter2' }, { name: 'Chapter1' }]);
       });
     });
   });

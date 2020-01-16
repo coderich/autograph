@@ -12,8 +12,7 @@ module.exports = class Query {
 
     // Sorting
     const sortFields = keyPaths(sortBy).reduce((prev, path) => {
-      if (path.indexOf('count') === 0 || path.indexOf('.count') === 0) return Object.assign(prev, { [path]: _.get(sortBy, path) });
-      const $path = path.split('.').map(s => `$${s}`).join('.');
+      const $path = path.split('.').map(s => (s.indexOf('count') === 0 || s.indexOf('.count') === 0 ? s : `$${s}`)).join('.');
       return Object.assign(prev, { [$path]: _.get(sortBy, path) });
     }, {});
 

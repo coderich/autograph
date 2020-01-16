@@ -27,7 +27,7 @@ exports.getDeep = (obj, path, defaultValue) => {
   const results = [];
   const [prop, ...rest] = path.split('.');
   const value = _.get(obj, prop);
-  if (Array.isArray(value)) return results.concat(_.flatten(value.map(v => exports.getDeep(v, rest.join('.'), defaultValue))));
+  if (Array.isArray(value) && value.length) return results.concat(_.flatten(value.map(v => exports.getDeep(v, rest.join('.'), defaultValue))));
   if (rest.length) return results.concat(exports.getDeep(value, rest.join('.'), defaultValue));
   return results.concat(value === undefined ? defaultValue : value);
 };
