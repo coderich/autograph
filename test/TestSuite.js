@@ -550,11 +550,11 @@ module.exports = (name, db = 'mongo') => {
     });
 
 
-    // describe('Query (sortBy deep)', () => {
-    //   test('sortBy', async () => {
-    //     expect(await loader.match('Book').sortBy({ authored: { chapters: { name: 'asc' } } }).many()).toMatchObject([{ id: mobyDick.id }, { id: healthBook.id }]);
-    //     expect(await loader.match('Book').sortBy({ authored: { chapters: { name: 'desc' } } }).many()).toMatchObject([{ id: healthBook.id }, { id: mobyDick.id }]);
-    //   });
-    // });
+    describe('Query (sortBy deep)', () => {
+      test('sortBy', async () => {
+        expect(await loader.match('Person').sortBy({ authored: { chapters: { name: 'asc' } } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+        expect(await loader.match('Person').sortBy({ authored: { chapters: { name: 'desc' } } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+      });
+    });
   });
 };

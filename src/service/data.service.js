@@ -271,7 +271,13 @@ exports.sortData = (data, sortBy) => {
 
   const info = paths.reduce((prev, path, i) => {
     const order = _.get(sortBy, path, 'asc').toLowerCase();
-    prev.iteratees.push(path);
+
+    prev.iteratees.push((doc) => {
+      const vals = getDeep(doc, path, '').sort();
+      const tuple = [vals[0], vals[vals.length - 1]];
+      return order === 'asc' ? tuple[0] : tuple[1];
+    });
+
     prev.orders.push(order);
     return prev;
   }, {
