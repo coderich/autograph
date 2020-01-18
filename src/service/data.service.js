@@ -261,7 +261,10 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
 };
 
 exports.resolveReferentialIntegrity = async (loader, model, id) => {
-  // const onDeletes = parser.getModelOnDeletes(model);
+  model.referentialIntegrity().forEach(({ model: ref, field }) => {
+    console.log(`${ref}`, `${field}`, field.getOnDelete(), field.isArray());
+  });
+
   const doc = await loader.match(model).id(id).one();
   return doc;
 };

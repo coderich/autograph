@@ -6,7 +6,6 @@ module.exports = class QueryBuilder {
 
     // Composable query
     this.id = (id) => { query.id = `${id}`; return this; };
-    this.data = (data) => { query.data = data; return this; };
     this.select = (fields) => { query.fields = fields; return this; };
     this.where = (where) => { query.where = where; return this; };
     this.sortBy = (sortBy) => { query.sortBy = sortBy; return this; };
@@ -27,11 +26,22 @@ module.exports = class QueryBuilder {
     this.max = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'max', args);
     this.avg = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'avg', args);
     this.save = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'save', args);
+    this.push = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'push', args);
+    this.pull = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'pull', args);
     this.remove = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'remove', args);
+
+    // Food for thought...
+    this.archive = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'archive', args); // Soft Delete
+    this.stream = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'stream', args); // Stream records 1 by 1
+    this.driver = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'driver', args); // Access raw underlying driver
+    this.native = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'native', args); // Perhaps write a native query and hide the driver?
+    this.meta = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'meta', args); // Provider additional options to query
+    this.sum = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'sum', args); // Would sum be different than count?
+    this.rollup = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'rollup', args); // Like sum, but for nested attributes (eg. Person.rollupAuthoredChaptersPages)
   }
 
   static makeTheCall(loader, model, query, cmd, args) {
-    const { id, data, where, before, after } = query;
+    const { id, where, before, after } = query;
 
     switch (cmd) {
       case 'one': {
@@ -59,17 +69,21 @@ module.exports = class QueryBuilder {
       case 'count': {
         return loader.load({ method: 'count', model, query, args: [] });
       }
+      case 'push': case 'pull': {
+        return Promise.reject(new Error('Not yet supported'));
+      }
       case 'save': {
+        const data = _.get(args, '0', {});
         if (id) return loader.load({ method: 'update', model, query, args: [id, data] });
-        if (where) throw new Error('Multi update not yet supported');
+        if (where) return Promise.reject(new Error('Multi update not yet supported'));
         return loader.load({ method: 'create', model, query, args: [data] });
       }
       case 'remove': {
         if (id) return loader.load({ method: 'delete', model, query, args: [id] });
-        if (where) throw new Error('Multi delete not yet supported');
-        throw new Error('Multi delete not yet supported');
+        if (where) return Promise.reject(new Error('Multi delete not yet supported'));
+        return Promise.reject(new Error('Multi delete not yet supported'));
       }
-      default: throw new Error(`Unknown command: ${cmd}`);
+      default: return Promise.reject(new Error(`Unknown command: ${cmd}`));
     }
   }
 };

@@ -77,23 +77,23 @@ module.exports = (name, db = 'mongo') => {
 
     describe('Create', () => {
       test('Person', async () => {
-        richard = await loader.match('Person').data({ name: 'Richard', emailAddress: 'rich@coderich.com' }).save();
+        richard = await loader.match('Person').save({ name: 'Richard', emailAddress: 'rich@coderich.com' });
         expect(richard.id).toBeDefined();
         expect(richard.name).toBe('Richard');
 
-        christie = await loader.match('Person').data({ name: 'Christie', emailAddress: 'christie@gmail.com', friends: [richard.id] }).save();
+        christie = await loader.match('Person').save({ name: 'Christie', emailAddress: 'christie@gmail.com', friends: [richard.id] });
         expect(christie.id).toBeDefined();
         expect(christie.friends).toEqual([richard.id]);
       });
 
       test('Book', async () => {
-        mobyDick = await loader.match('Book').data({ name: 'moby dick', price: 9.99, bids: [1.99, 1.20, 5.00], bestSeller: true, author: richard.id }).save();
+        mobyDick = await loader.match('Book').save({ name: 'moby dick', price: 9.99, bids: [1.99, 1.20, 5.00], bestSeller: true, author: richard.id });
         expect(mobyDick.id).toBeDefined();
         expect(mobyDick.name).toBe('Moby Dick');
         expect(mobyDick.price).toBe(9.99);
         expect(mobyDick.author).toBe(richard.id);
 
-        healthBook = await loader.match('Book').data({ name: 'Health and Wellness', bids: [5.00, 9.00, 12.50], price: '29.99', author: christie.id }).save();
+        healthBook = await loader.match('Book').save({ name: 'Health and Wellness', bids: [5.00, 9.00, 12.50], price: '29.99', author: christie.id });
         expect(healthBook.id).toBeDefined();
         expect(healthBook.name).toEqual('Health And Wellness');
         expect(healthBook.price).toEqual(29.99);
@@ -101,8 +101,8 @@ module.exports = (name, db = 'mongo') => {
       });
 
       test('Chapter', async () => {
-        chapter1 = await loader.match('Chapter').data({ name: 'chapter1', book: healthBook.id }).save();
-        chapter2 = await loader.match('Chapter').data({ name: 'chapter2', book: healthBook.id }).save();
+        chapter1 = await loader.match('Chapter').save({ name: 'chapter1', book: healthBook.id });
+        chapter2 = await loader.match('Chapter').save({ name: 'chapter2', book: healthBook.id });
         expect(chapter1.id).toBeDefined();
         expect(chapter1.name).toEqual('Chapter1');
         expect(chapter2.id).toBeDefined();
@@ -110,11 +110,11 @@ module.exports = (name, db = 'mongo') => {
       });
 
       test('Page', async () => {
-        page1 = await loader.match('Page').data({ number: 1, chapter: chapter1.id, verbage: 'This is the introduction, of sorts.' }).save();
-        page2 = await loader.match('Page').data({ number: 2, chapter: chapter1.id, verbage: 'Now you know.' }).save();
-        page3 = await loader.match('Page').data({ number: 1, chapter: chapter2.id, verbage: 'Ready for more?' }).save();
-        page4 = await loader.match('Page').data({ number: 2, chapter: chapter2.id, verbage: 'The end.' }).save();
-        await loader.match('Page').data({ number: 3, chapter: chapter2.id, verbage: 'The real end.' }).save();
+        page1 = await loader.match('Page').save({ number: 1, chapter: chapter1.id, verbage: 'This is the introduction, of sorts.' });
+        page2 = await loader.match('Page').save({ number: 2, chapter: chapter1.id, verbage: 'Now you know.' });
+        page3 = await loader.match('Page').save({ number: 1, chapter: chapter2.id, verbage: 'Ready for more?' });
+        page4 = await loader.match('Page').save({ number: 2, chapter: chapter2.id, verbage: 'The end.' });
+        await loader.match('Page').save({ number: 3, chapter: chapter2.id, verbage: 'The real end.' });
         expect(page1.id).toBeDefined();
         expect(page2.id).toBeDefined();
         expect(page3.id).toBeDefined();
@@ -122,9 +122,9 @@ module.exports = (name, db = 'mongo') => {
       });
 
       test('Building', async () => {
-        bookBuilding = await loader.match('Building').data({ year: 1990, type: 'business', tenants: christie.id }).save();
-        libraryBuilding = await loader.match('Building').data({ type: 'business', tenants: christie.id }).save();
-        apartmentBuilding = await loader.match('Building').data({ type: 'home', tenants: [richard.id, christie.id], landlord: richard.id }).save();
+        bookBuilding = await loader.match('Building').save({ year: 1990, type: 'business', tenants: christie.id });
+        libraryBuilding = await loader.match('Building').save({ type: 'business', tenants: christie.id });
+        apartmentBuilding = await loader.match('Building').save({ type: 'home', tenants: [richard.id, christie.id], landlord: richard.id });
         expect(bookBuilding.id).toBeDefined();
         expect(bookBuilding.year).toEqual(1990);
         expect(libraryBuilding.id).toBeDefined();
@@ -135,8 +135,8 @@ module.exports = (name, db = 'mongo') => {
       });
 
       test('BookStore', async () => {
-        bookstore1 = await loader.match('BookStore').data({ name: 'Best Books Ever', books: [mobyDick.id, mobyDick.id, healthBook.id], building: bookBuilding }).save();
-        bookstore2 = await loader.match('BookStore').data({ name: 'New Books', books: [mobyDick.id], building: bookBuilding }).save();
+        bookstore1 = await loader.match('BookStore').save({ name: 'Best Books Ever', books: [mobyDick.id, mobyDick.id, healthBook.id], building: bookBuilding });
+        bookstore2 = await loader.match('BookStore').save({ name: 'New Books', books: [mobyDick.id], building: bookBuilding });
         expect(bookstore1.id).toBeDefined();
         expect(bookstore1.books.length).toEqual(3);
         expect(bookstore1.building.type).toEqual('business');
@@ -146,7 +146,7 @@ module.exports = (name, db = 'mongo') => {
       });
 
       test('Library', async () => {
-        library = await loader.match('Library').data({ name: 'Public Library', books: [mobyDick.id, healthBook.id, healthBook.id], building: libraryBuilding }).save();
+        library = await loader.match('Library').save({ name: 'Public Library', books: [mobyDick.id, healthBook.id, healthBook.id], building: libraryBuilding });
         expect(library.id).toBeDefined();
         expect(library.books.length).toEqual(3);
         expect(library.building.type).toEqual('business');
@@ -334,30 +334,30 @@ module.exports = (name, db = 'mongo') => {
     describe('Data Validation', () => {
       test('Person', async () => {
         await expect(loader.match('Person').save()).rejects.toThrow();
-        await expect(loader.match('Person').data({ name: 'Richard' }).save()).rejects.toThrow();
-        await expect(loader.match('Person').data({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: ['nobody'] }).save()).rejects.toThrow();
-        await expect(loader.match('Person').data({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: [richard.id, 'nobody'] }).save()).rejects.toThrow();
-        await expect(loader.match('Person').data({ name: 'NewGuy', emailAddress: 'newguygmail.com' }).save()).rejects.toThrow();
-        await expect(loader.match('Person').id(richard.id).data({ name: 'Christie' }).save()).rejects.toThrow();
-        await expect(loader.match('Person').id(richard.id).data({ name: 'christie' }).save()).rejects.toThrow();
-        await expect(loader.match('Person').id(richard.id).data({ name: null }).save()).rejects.toThrow();
-        await expect(loader.match('Person').id('nobody').data({ name: 'NewGuy' }).save()).rejects.toThrow();
-        await expect(loader.match('Person').id(richard.id).data({ friends: [richard.id] }).save()).rejects.toThrow();
+        await expect(loader.match('Person').save({ name: 'Richard' })).rejects.toThrow();
+        await expect(loader.match('Person').save({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: ['nobody'] })).rejects.toThrow();
+        await expect(loader.match('Person').save({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: [richard.id, 'nobody'] })).rejects.toThrow();
+        await expect(loader.match('Person').save({ name: 'NewGuy', emailAddress: 'newguygmail.com' })).rejects.toThrow();
+        await expect(loader.match('Person').id(richard.id).save({ name: 'Christie' })).rejects.toThrow();
+        await expect(loader.match('Person').id(richard.id).save({ name: 'christie' })).rejects.toThrow();
+        await expect(loader.match('Person').id(richard.id).save({ name: null })).rejects.toThrow();
+        await expect(loader.match('Person').id('nobody').save({ name: 'NewGuy' })).rejects.toThrow();
+        await expect(loader.match('Person').id(richard.id).save({ friends: [richard.id] })).rejects.toThrow();
       });
 
       test('Book', async () => {
         await expect(loader.match('Book').save()).rejects.toThrow();
-        await expect(loader.match('Book').data({ name: 'The Bible' }).save()).rejects.toThrow();
-        await expect(loader.match('Book').data({ name: 'The Bible', author: 'Moses' }).save()).rejects.toThrow();
-        await expect(loader.match('Book').data({ name: 'The Bible', author: richard.id }).save()).rejects.toThrow();
-        await expect(loader.match('Book').data({ name: 'The Bible', price: 1.99 }).save()).rejects.toThrow();
-        await expect(loader.match('Book').data({ name: 'The Bible', price: 1.99, author: mobyDick.id }).save()).rejects.toThrow();
-        await expect(loader.match('Book').data({ name: 'The Bible', price: 1.99, author: [christie.id] }).save()).rejects.toThrow();
-        await expect(loader.match('Book').data({ name: 'the bible', price: 1.99, author: christie.id }).save()).rejects.toThrow();
-        await expect(loader.match('Book').data({ name: 'Great Book', price: -1, author: christie.id }).save()).rejects.toThrow();
-        await expect(loader.match('Book').data({ name: 'Best Book', price: 101, author: christie.id }).save()).rejects.toThrow();
-        await expect(loader.match('Book').id(mobyDick.id).data({ author: christie.id }).save()).rejects.toThrow();
-        await expect(loader.match('Book').id(mobyDick.id).data({ author: richard.id }).save()).resolves;
+        await expect(loader.match('Book').save({ name: 'The Bible' })).rejects.toThrow();
+        await expect(loader.match('Book').save({ name: 'The Bible', author: 'Moses' })).rejects.toThrow();
+        await expect(loader.match('Book').save({ name: 'The Bible', author: richard.id })).rejects.toThrow();
+        await expect(loader.match('Book').save({ name: 'The Bible', price: 1.99 })).rejects.toThrow();
+        await expect(loader.match('Book').save({ name: 'The Bible', price: 1.99, author: mobyDick.id })).rejects.toThrow();
+        await expect(loader.match('Book').save({ name: 'The Bible', price: 1.99, author: [christie.id] })).rejects.toThrow();
+        await expect(loader.match('Book').save({ name: 'the bible', price: 1.99, author: christie.id })).rejects.toThrow();
+        await expect(loader.match('Book').save({ name: 'Great Book', price: -1, author: christie.id })).rejects.toThrow();
+        await expect(loader.match('Book').save({ name: 'Best Book', price: 101, author: christie.id })).rejects.toThrow();
+        await expect(loader.match('Book').id(mobyDick.id).save({ author: christie.id })).rejects.toThrow();
+        await expect(loader.match('Book').id(mobyDick.id).save({ author: richard.id })).resolves;
 
         switch (stores.default.type) {
           case 'mongo': {
@@ -370,14 +370,14 @@ module.exports = (name, db = 'mongo') => {
 
       test('Chapter', async () => {
         await expect(loader.match('Chapter').save()).rejects.toThrow();
-        await expect(loader.match('Chapter').data({ name: 'chapter1' }).save()).rejects.toThrow();
-        await expect(loader.match('Chapter').data({ name: 'chapter2' }).save()).rejects.toThrow();
-        await expect(loader.match('Chapter').data({ name: 'chapter3' }).save()).rejects.toThrow();
+        await expect(loader.match('Chapter').save({ name: 'chapter1' })).rejects.toThrow();
+        await expect(loader.match('Chapter').save({ name: 'chapter2' })).rejects.toThrow();
+        await expect(loader.match('Chapter').save({ name: 'chapter3' })).rejects.toThrow();
 
         switch (stores.default.type) {
           case 'mongo': {
-            await expect(loader.match('Chapter').data({ name: 'chapter1', book: healthBook.id }).save()).rejects.toThrow();
-            await expect(loader.match('Chapter').data({ name: 'chapter3', book: christie.id }).save()).rejects.toThrow();
+            await expect(loader.match('Chapter').save({ name: 'chapter1', book: healthBook.id })).rejects.toThrow();
+            await expect(loader.match('Chapter').save({ name: 'chapter3', book: christie.id })).rejects.toThrow();
             break;
           }
           default: break;
@@ -386,14 +386,14 @@ module.exports = (name, db = 'mongo') => {
 
       test('Page', async () => {
         await expect(loader.match('Page').save()).rejects.toThrow();
-        await expect(loader.match('Page').data({ number: 3 }).save()).rejects.toThrow();
+        await expect(loader.match('Page').save({ number: 3 })).rejects.toThrow();
 
         switch (stores.default.type) {
           case 'mongo': {
-            await expect(loader.match('Page').data({ number: 1, chapter: chapter1 }).save()).rejects.toThrow();
-            await expect(loader.match('Page').data({ number: 1, chapter: chapter1.id }).save()).rejects.toThrow();
-            await expect(loader.match('Page').data({ number: 1, chapter: page4.id }).save()).rejects.toThrow();
-            await expect(loader.match('Page').id(page1.id).data({ number: 2 }).save()).rejects.toThrow();
+            await expect(loader.match('Page').save({ number: 1, chapter: chapter1 })).rejects.toThrow();
+            await expect(loader.match('Page').save({ number: 1, chapter: chapter1.id })).rejects.toThrow();
+            await expect(loader.match('Page').save({ number: 1, chapter: page4.id })).rejects.toThrow();
+            await expect(loader.match('Page').id(page1.id).save({ number: 2 })).rejects.toThrow();
             break;
           }
           default: break;
@@ -402,34 +402,34 @@ module.exports = (name, db = 'mongo') => {
 
       test('Building', async () => {
         await expect(loader.match('Building').save()).rejects.toThrow();
-        await expect(loader.match('Building').data({ type: 'bad-type' }).save()).rejects.toThrow();
-        await expect(loader.match('Building').data({ type: 'business', landlord: bookstore1.id }).save()).rejects.toThrow();
-        await expect(loader.match('Building').data({ type: 'business', tenants: [richard.id, bookstore1.id] }).save()).rejects.toThrow();
+        await expect(loader.match('Building').save({ type: 'bad-type' })).rejects.toThrow();
+        await expect(loader.match('Building').save({ type: 'business', landlord: bookstore1.id })).rejects.toThrow();
+        await expect(loader.match('Building').save({ type: 'business', tenants: [richard.id, bookstore1.id] })).rejects.toThrow();
       });
 
       test('BookStore', async () => {
         await expect(loader.match('BookStore').save()).rejects.toThrow();
-        await expect(loader.match('BookStore').data({ name: 'New Books' }).save()).rejects.toThrow();
-        await expect(loader.match('BookStore').data({ name: 'New Books', building: 'bad-building' }).save()).rejects.toThrow();
-        await expect(loader.match('BookStore').data({ name: 'besT bookS eveR', building: bookBuilding }).save()).rejects.toThrow();
-        await expect(loader.match('BookStore').data({ name: 'Best Books Ever', building: libraryBuilding }).save()).rejects.toThrow();
-        await expect(loader.match('BookStore').data({ name: 'More More Books', building: bookBuilding, books: bookBuilding.id }).save()).rejects.toThrow();
-        await expect(loader.match('BookStore').data({ name: 'More More Books', building: bookBuilding, books: [bookBuilding.id] }).save()).rejects.toThrow();
-        await expect(loader.match('BookStore').data({ name: 'More More Books', building: bookBuilding, books: [mobyDick.id, bookBuilding] }).save()).rejects.toThrow();
+        await expect(loader.match('BookStore').save({ name: 'New Books' })).rejects.toThrow();
+        await expect(loader.match('BookStore').save({ name: 'New Books', building: 'bad-building' })).rejects.toThrow();
+        await expect(loader.match('BookStore').save({ name: 'besT bookS eveR', building: bookBuilding })).rejects.toThrow();
+        await expect(loader.match('BookStore').save({ name: 'Best Books Ever', building: libraryBuilding })).rejects.toThrow();
+        await expect(loader.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: bookBuilding.id })).rejects.toThrow();
+        await expect(loader.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: [bookBuilding.id] })).rejects.toThrow();
+        await expect(loader.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: [mobyDick.id, bookBuilding] })).rejects.toThrow();
       });
 
       test('Library', async () => {
         await expect(loader.match('Library').save()).rejects.toThrow();
-        await expect(loader.match('Library').data({ name: 'New Library' }).save()).rejects.toThrow();
-        await expect(loader.match('Library').data({ name: 'New Library', building: 'bad-building' }).save()).rejects.toThrow();
-        await expect(loader.match('Library').data({ name: 'New Library', building: libraryBuilding }).save()).rejects.toThrow();
+        await expect(loader.match('Library').save({ name: 'New Library' })).rejects.toThrow();
+        await expect(loader.match('Library').save({ name: 'New Library', building: 'bad-building' })).rejects.toThrow();
+        await expect(loader.match('Library').save({ name: 'New Library', building: libraryBuilding })).rejects.toThrow();
       });
     });
 
 
     describe('Data Normalization', () => {
       test('uniq', async () => {
-        richard = await loader.match('Person').id(richard.id).data({ name: 'richard', friends: [christie.id, christie.id, christie.id] }).save();
+        richard = await loader.match('Person').id(richard.id).save({ name: 'richard', friends: [christie.id, christie.id, christie.id] });
         expect(richard.name).toEqual('Richard');
         expect(richard.friends).toEqual([christie.id]);
       });
@@ -468,13 +468,13 @@ module.exports = (name, db = 'mongo') => {
 
     describe('Update', () => {
       test('Person', async () => {
-        expect(await loader.match('Person').id(richard.id).data({ name: 'Rich' }).save()).toMatchObject({ id: richard.id, name: 'Rich' });
-        expect(await loader.match('Person').id(richard.id).data({ name: 'richard' }).save()).toMatchObject({ id: richard.id, name: 'Richard' });
+        expect(await loader.match('Person').id(richard.id).save({ name: 'Rich' })).toMatchObject({ id: richard.id, name: 'Rich' });
+        expect(await loader.match('Person').id(richard.id).save({ name: 'richard' })).toMatchObject({ id: richard.id, name: 'Richard' });
       });
 
       test('Book', async () => {
-        expect(await loader.match('Book').id(mobyDick.id).data({ name: 'mopey dick' }).save()).toMatchObject({ id: mobyDick.id, name: 'Mopey Dick' });
-        expect(await loader.match('Book').id(mobyDick.id).data({ name: 'moby dick' }).save()).toMatchObject({ id: mobyDick.id, name: 'Moby Dick' });
+        expect(await loader.match('Book').id(mobyDick.id).save({ name: 'mopey dick' })).toMatchObject({ id: mobyDick.id, name: 'Mopey Dick' });
+        expect(await loader.match('Book').id(mobyDick.id).save({ name: 'moby dick' })).toMatchObject({ id: mobyDick.id, name: 'Moby Dick' });
       });
     });
 
@@ -559,6 +559,14 @@ module.exports = (name, db = 'mongo') => {
         expect(await loader.match('Person').sortBy({ authored: { chapters: { countPages: 'desc' } } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
         expect(await loader.match('Chapter').sortBy({ countPages: 'asc', name: 'desc' }).many()).toMatchObject([{ name: 'Chapter1' }, { name: 'Chapter2' }]);
         expect(await loader.match('Chapter').sortBy({ countPages: 'desc', name: 'desc' }).many()).toMatchObject([{ name: 'Chapter2' }, { name: 'Chapter1' }]);
+      });
+    });
+
+
+    describe('Remove', () => {
+      test('remove', async () => {
+        await expect(loader.match('Person').remove()).rejects.toThrow();
+        expect(await loader.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
       });
     });
   });

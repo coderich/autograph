@@ -115,8 +115,8 @@ module.exports = class QueryWorker {
     const model = query.getModel();
     const doc = await loader.match(model).id(id).one({ required: true });
 
-    return createSystemEvent('Mutation', { method: 'delete', model, loader, id }, () => {
-      return resolveReferentialIntegrity(loader, model, id).then(async () => {
+    return resolveReferentialIntegrity(loader, model, id).then(() => {
+      return createSystemEvent('Mutation', { method: 'delete', model, loader, id }, async () => {
         const result = await model.delete(id, doc);
         return model.hydrate(loader, result, { fields: query.getSelectFields() });
       });

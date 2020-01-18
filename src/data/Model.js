@@ -136,6 +136,10 @@ module.exports = class Model {
     return this.fields.filter(field => Boolean(field.getDataRef()));
   }
 
+  getOnDeleteFields() {
+    return this.fields.filter(field => Boolean(field.getDataRef()) && Boolean(field.getOnDelete()));
+  }
+
   getScalarFields() {
     return this.fields.filter(field => field.isScalar());
   }
@@ -162,5 +166,10 @@ module.exports = class Model {
 
   isVisible() {
     return !this.isHidden();
+  }
+
+  referentialIntegrity(refs) {
+    if (refs) this.referentials = refs;
+    return this.referentials;
   }
 };

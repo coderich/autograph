@@ -27,6 +27,17 @@ module.exports = class Schema {
 
     // Create models
     this.models = Object.entries(schema).map(([model, options]) => new Model(this, model, drivers[options.driver || 'default'], options));
+
+    // Assign model referential integrity
+    this.models.forEach((parentModel) => {
+      parentModel.referentialIntegrity(this.models.reduce((prev, model) => {
+        model.getOnDeleteFields().forEach((field) => {
+          if (`${field.getModelRef()}` === `${parentModel}`) prev.push({ model, field });
+        });
+
+        return prev;
+      }, []));
+    });
   }
 
   getModel(name) {
@@ -40,23 +51,4 @@ module.exports = class Schema {
   getVisibleModels() {
     return this.models.filter(model => model.isVisible());
   }
-
-  // static identifyOnDeletes(schema) {
-  //   return Object.keys(schema).reduce((prev, modelName) => {
-  //     const arr = [];
-
-  //     Object.entries(schema).forEach(([model, modelDef]) => {
-  //       Object.entries(modelDef.fields).forEach(([field, fieldDef]) => {
-  //         const ref = Parser.getFieldDataRef(fieldDef);
-  //         const { onDelete } = fieldDef;
-
-  //         if (ref === modelName && onDelete) {
-  //           arr.push({ model, field, isArray: Boolean(Parser.getFieldArrayType(fieldDef)), onDelete });
-  //         }
-  //       });
-  //     });
-
-  //     return Object.assign(prev, { [modelName]: arr });
-  //   }, {});
-  // }
 };

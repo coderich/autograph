@@ -7,6 +7,7 @@ module.exports = class Field {
     this.model = model;
     this.name = name;
     this.options = options;
+    this.toString = () => `${name}`;
   }
 
   // CRUD
@@ -136,6 +137,10 @@ module.exports = class Field {
 
   getRules() {
     return this.options.rules;
+  }
+
+  getOnDelete() {
+    return this.options.onDelete;
   }
 
   isArray() {
