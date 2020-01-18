@@ -1,11 +1,11 @@
-class AutoGraphError extends Error {}
+class DataLoaderError extends Error {}
 
 // Request Errors
-exports.NotFoundError = class extends AutoGraphError {};
-exports.BadRequestError = class extends AutoGraphError {};
+exports.NotFoundError = class extends DataLoaderError {};
+exports.BadRequestError = class extends DataLoaderError {};
 
 // Rule Errors
-class RuleError extends AutoGraphError {}
+class RuleError extends DataLoaderError {}
 exports.AllowRuleError = class extends RuleError {};
 exports.ImmutableRuleError = class extends RuleError {};
 exports.EmailRuleError = class extends RuleError {};

@@ -60,8 +60,8 @@ describe('AppService', () => {
 
   test('mergeDeep', () => {
     // Expect concatenation
-    expect(mergeDeep(obj1, obj2)).toEqual({ name: 'name2', friends: ['a', 'b', 'c', 'd', 'e', 'f'] });
-    expect(mergeDeep(obj1, obj2, obj3)).toEqual({ name: 'name3', friends: ['a', 'b', 'c', 'd', 'e', 'f', 'a', 'e', 'b'] });
+    expect(mergeDeep(obj1, obj2)).toEqual({ name: 'name2', friends: obj2.friends });
+    expect(mergeDeep(obj1, obj2, obj3)).toEqual({ name: 'name3', friends: obj3.friends });
 
     // Expect originals not to change
     expect(obj1).toEqual({ name: 'name1', friends: ['a', 'b', 'c'] });

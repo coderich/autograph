@@ -1,6 +1,7 @@
-const { mergeDeep } = require('../service/app.service');
+const _ = require('lodash');
+const { mergeDeep, hashObject } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
-const { NotFoundError } = require('../service/error.service');
+const { NotFoundError, BadRequestError } = require('../service/error.service');
 const {
   ensureModelArrayTypes,
   validateModelData,
@@ -104,6 +105,41 @@ module.exports = class QueryWorker {
     await validateModelData(loader, model, data, doc, 'update');
 
     return createSystemEvent('Mutation', { method: 'update', model, loader, id, data }, async () => {
+      const merged = normalizeModelData(loader, model, mergeDeep(doc, data));
+      const result = await model.update(id, data, merged);
+      return model.hydrate(loader, result, { fields: query.getSelectFields() });
+    });
+  }
+
+  async push(query, id, key, values) {
+    const { loader } = this;
+    const model = query.getModel();
+    const field = model.getField(key);
+    if (!field || !field.isArray()) return Promise.reject(new BadRequestError(`Cannot push to field '${key}'`));
+    const doc = await loader.match(model).id(id).one({ required: true });
+    const data = { [key]: _.get(doc, key, []).concat(values) };
+    normalizeModelData(loader, model, data);
+    await validateModelData(loader, model, data, doc, 'update');
+
+    return createSystemEvent('Mutation', { method: 'push', model, loader, id, data }, async () => {
+      const merged = normalizeModelData(loader, model, mergeDeep(doc, data));
+      const result = await model.update(id, data, merged);
+      return model.hydrate(loader, result, { fields: query.getSelectFields() });
+    });
+  }
+
+  async pull(query, id, key, values) {
+    const { loader } = this;
+    const model = query.getModel();
+    const field = model.getField(key);
+    if (!field || !field.isArray()) return Promise.reject(new BadRequestError(`Cannot pull to field '${key}'`));
+    const doc = await loader.match(model).id(id).one({ required: true });
+    const data = { [key]: _.get(doc, key, []) };
+    _.remove(data[key], el => values.find(v => hashObject(v) === hashObject(el)));
+    normalizeModelData(loader, model, data);
+    await validateModelData(loader, model, data, doc, 'update');
+
+    return createSystemEvent('Mutation', { method: 'pull', model, loader, id, data }, async () => {
       const merged = normalizeModelData(loader, model, mergeDeep(doc, data));
       const result = await model.update(id, data, merged);
       return model.hydrate(loader, result, { fields: query.getSelectFields() });

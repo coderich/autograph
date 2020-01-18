@@ -38,6 +38,7 @@ module.exports = class QueryBuilder {
     this.meta = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'meta', args); // Provider additional options to query
     this.sum = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'sum', args); // Would sum be different than count?
     this.rollup = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'rollup', args); // Like sum, but for nested attributes (eg. Person.rollupAuthoredChaptersPages)
+    this.splice = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'splice', args);
   }
 
   static makeTheCall(loader, model, query, cmd, args) {
@@ -59,7 +60,7 @@ module.exports = class QueryBuilder {
         return loader.load({ method, model, query, args: [] });
       }
       case 'first': case 'last': {
-        const num = _.get(args, '0');
+        const [num] = args;
         const pagination = { before, after, [cmd]: num };
         return loader.load({ method: 'query', model, query: Object.assign(query, { pagination }), args: [] });
       }
@@ -70,10 +71,13 @@ module.exports = class QueryBuilder {
         return loader.load({ method: 'count', model, query, args: [] });
       }
       case 'push': case 'pull': {
-        return Promise.reject(new Error('Not yet supported'));
+        const [key, ...values] = args;
+        if (id) return loader.load({ method: cmd, model, query, args: [id, key, values] });
+        if (where) return Promise.reject(new Error(`Muiti ${cmd} not yet supported`));
+        return Promise.reject(new Error(`Must supply a where clause for multi ${cmd}`));
       }
       case 'save': {
-        const data = _.get(args, '0', {});
+        const [data] = args;
         if (id) return loader.load({ method: 'update', model, query, args: [id, data] });
         if (where) return Promise.reject(new Error('Multi update not yet supported'));
         return loader.load({ method: 'create', model, query, args: [data] });

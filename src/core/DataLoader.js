@@ -19,7 +19,7 @@ module.exports = class {
     const query = new Query(this.toModel(model), q);
 
     switch (method) {
-      case 'create': case 'update': case 'delete': {
+      case 'create': case 'update': case 'delete': case 'push': case 'pull': {
         const results = await this.worker[method](query, ...args);
         this.loader.clearAll();
         return results;
