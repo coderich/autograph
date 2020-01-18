@@ -15,28 +15,28 @@ module.exports = class Model {
   }
 
   // CRUD
-  get(id) {
-    return this.driver.dao.get(this.getAlias(), this.idValue(id)).then(res => this.toObject(res));
+  get(id, options) {
+    return this.driver.dao.get(this.getAlias(), this.idValue(id), options).then(res => this.toObject(res));
   }
 
-  find(where = {}) {
-    return this.driver.dao.find(this.getAlias(), where).then(res => this.toObject(res));
+  find(where = {}, options) {
+    return this.driver.dao.find(this.getAlias(), where, options).then(res => this.toObject(res));
   }
 
-  count(where = {}) {
-    return this.driver.dao.count(this.getAlias(), where);
+  count(where = {}, options) {
+    return this.driver.dao.count(this.getAlias(), where, options);
   }
 
-  create(data) {
-    return this.driver.dao.create(this.getAlias(), data).then(res => this.toObject(res));
+  create(data, options) {
+    return this.driver.dao.create(this.getAlias(), data, options).then(res => this.toObject(res));
   }
 
-  update(id, data, doc) {
-    return this.driver.dao.replace(this.getAlias(), this.idValue(id), data, doc).then(res => this.toObject(res));
+  update(id, data, doc, options) {
+    return this.driver.dao.replace(this.getAlias(), this.idValue(id), data, doc, options).then(res => this.toObject(res));
   }
 
-  delete(id, doc) {
-    return this.driver.dao.delete(this.getAlias(), this.idValue(id), doc).then(res => this.toObject(res));
+  delete(id, doc, options) {
+    return this.driver.dao.delete(this.getAlias(), this.idValue(id), doc, options).then(res => this.toObject(res));
   }
 
   drop() {

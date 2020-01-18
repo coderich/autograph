@@ -1,6 +1,7 @@
 const DataLoader = require('dataloader');
 const QueryBuilder = require('../data/QueryBuilder');
 const QueryWorker = require('../data/QueryWorker');
+const Transaction = require('../data/Transaction');
 const Query = require('../data/Query');
 const Model = require('../data/Model');
 const { hashObject } = require('../service/app.service');
@@ -44,6 +45,10 @@ module.exports = class {
 
   match(model) {
     return new QueryBuilder(this.toModel(model), this);
+  }
+
+  transaction() {
+    return new Transaction(this);
   }
 
   toModel(model) {

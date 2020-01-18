@@ -261,12 +261,18 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
 };
 
 exports.resolveReferentialIntegrity = async (loader, model, id) => {
-  model.referentialIntegrity().forEach(({ model: ref, field }) => {
-    console.log(`${ref}`, `${field}`, field.getOnDelete(), field.isArray());
-  });
+  // // Transaction
+  // const txn = loader.transaction();
+  // txn.match().blah().blah();
+  // txn.match().blah().blah();
+  // txn.match().blah().blah();
+  // txn.exec();
+  // txn.commit();
 
-  const doc = await loader.match(model).id(id).one();
-  return doc;
+  return Promise.all(model.referentialIntegrity().map(({ model: ref, field }) => {
+    console.log(`${model} -> ${ref}.${field}`, field.getOnDelete(), field.isArray());
+    return null;
+  }));
 };
 
 exports.sortData = (data, sortBy) => {

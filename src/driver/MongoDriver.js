@@ -8,8 +8,13 @@ const toObject = (doc) => {
 
 module.exports = class MongoDriver {
   constructor(uri, schema) {
+    this.uri = uri;
     this.schema = schema;
-    this.connection = MongoClient.connect(uri, { useUnifiedTopology: true });
+    this.connection = this.connect();
+  }
+
+  connect() {
+    return MongoClient.connect(this.uri, { useUnifiedTopology: true });
   }
 
   query(collection, method, ...args) {
@@ -17,34 +22,52 @@ module.exports = class MongoDriver {
     return this.connection.then(client => client.db().collection(collection)[method](...args));
   }
 
-  get(model, id) {
-    return this.query(model, 'findOne', { _id: id }).then(toObject);
+  get(model, id, options) {
+    return this.query(model, 'findOne', { _id: id }, options).then(toObject);
   }
 
-  find(model, where = {}) {
+  find(model, where = {}, options) {
     const $where = MongoDriver.normalizeWhereClause(model, this.schema, where);
-    return this.query(model, 'aggregate', $where).then(results => results.map(toObject).toArray());
+    return this.query(model, 'aggregate', $where, options).then(results => results.map(toObject).toArray());
   }
 
-  count(model, where = {}) {
+  count(model, where = {}, options) {
     const $where = MongoDriver.normalizeWhereClause(model, this.schema, where, true);
-    return this.query(model, 'aggregate', $where).then(cursor => cursor.next().then(data => (data ? data.count : 0)));
+    return this.query(model, 'aggregate', $where, options).then(cursor => cursor.next().then(data => (data ? data.count : 0)));
   }
 
-  create(model, data) {
-    return this.query(model, 'insertOne', data).then(result => toObject(Object.assign(data, { _id: result.insertedId })));
+  create(model, data, options) {
+    return this.query(model, 'insertOne', data, options).then(result => toObject(Object.assign(data, { _id: result.insertedId })));
   }
 
-  replace(model, id, data, doc) {
-    return this.query(model, 'replaceOne', { _id: id }, doc).then(() => toObject(doc));
+  replace(model, id, data, doc, options) {
+    return this.query(model, 'replaceOne', { _id: id }, doc, options).then(() => toObject(doc));
   }
 
-  delete(model, id, doc) {
-    return this.query(model, 'deleteOne', { _id: id }).then(() => doc);
+  delete(model, id, doc, options) {
+    return this.query(model, 'deleteOne', { _id: id }, options).then(() => doc);
   }
 
   dropModel(model) {
     return this.query(model, 'deleteMany');
+  }
+
+  async transaction(ops) {
+    const client = await this.connect();
+    const session = client.startSession();
+    session.startTransaction({ readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' } });
+
+    const results = await Promise.all(ops.map((op) => {
+      return op.exec({ session });
+    })).catch(async (e) => {
+      await session.abortTransaction();
+      session.endSession();
+      throw (e);
+    });
+
+    results.$commit = () => session.commitTransaction().then(() => session.endSession());
+    results.$rollback = () => session.abortTransaction().then(() => session.endSession());
+    return results;
   }
 
   createIndexes(model, indexes) {

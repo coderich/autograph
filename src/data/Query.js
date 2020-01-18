@@ -3,7 +3,7 @@ const { keyPaths, mergeDeep } = require('../service/app.service');
 
 module.exports = class Query {
   constructor(model, query = {}) {
-    const { fields, where = {}, sortBy = {}, limit, pagination = {} } = query;
+    const { fields, where = {}, sortBy = {}, limit, pagination = {}, options = {} } = query;
 
     // Fields
     const modelFields = model.getScalarFields();
@@ -32,6 +32,7 @@ module.exports = class Query {
     this.sortBy = sortBy;
     this.pagination = pagination;
     this.limit = limit;
+    this.options = options;
   }
 
   getSelectFields() {
@@ -64,6 +65,10 @@ module.exports = class Query {
 
   getLimit() {
     return this.limit;
+  }
+
+  getOptions() {
+    return this.options;
   }
 
   getModel() {

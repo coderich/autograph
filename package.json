@@ -15,11 +15,9 @@
     "types.js"
   ],
   "scripts": {
-    "start": "node ./src/server",
-    "test": "ratchet test --runInBand",
-    "lint": "ratchet lint",
+    "test": "ratchet test",
     "ratchet": "ratchet",
-    "uuid": "uuid"
+    "lint": "ratchet lint"
   },
   "dependencies": {
     "axios": "^0.19.0",
@@ -29,7 +27,7 @@
     "fill-range": "^7.0.1",
     "lodash": "^4.17.15",
     "micromatch": "^4.0.2",
-    "mongodb": "^3.3.5",
+    "mongodb": "^3.5.1",
     "neo4j-driver": "^4.0.0",
     "object-hash": "^2.0.1",
     "picomatch": "^2.1.1",
@@ -39,7 +37,7 @@
   },
   "devDependencies": {
     "@coderich/ratchet": "^1.2.5",
-    "mongodb-memory-server": "^6.0.2",
+    "mongodb-memory-server": "^6.2.2",
     "neodb": "^3.0.0",
     "redis-mock": "^0.47.0"
   }

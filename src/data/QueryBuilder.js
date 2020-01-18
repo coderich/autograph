@@ -2,6 +2,9 @@ const _ = require('lodash');
 
 module.exports = class QueryBuilder {
   constructor(model, loader) {
+    this.model = model;
+    this.loader = loader;
+
     const query = {};
 
     // Composable query
@@ -12,36 +15,38 @@ module.exports = class QueryBuilder {
     this.limit = (limit) => { query.limit = limit; return this; };
     this.before = (before) => { query.before = before; return this; };
     this.after = (after) => { query.after = after; return this; };
+    this.options = (options) => { query.options = options; return this; };
 
     // want to keep?
     this.query = (q) => { Object.assign(query, _.cloneDeep(q)); return this; };
 
     // Terminal commands
-    this.one = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'one', args);
-    this.many = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'many', args);
-    this.first = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'first', args);
-    this.last = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'last', args);
-    this.count = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'count', args);
-    this.min = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'min', args);
-    this.max = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'max', args);
-    this.avg = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'avg', args);
-    this.save = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'save', args);
-    this.push = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'push', args);
-    this.pull = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'pull', args);
-    this.remove = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'remove', args);
+    this.one = (...args) => this.makeTheCall(query, 'one', args);
+    this.many = (...args) => this.makeTheCall(query, 'many', args);
+    this.first = (...args) => this.makeTheCall(query, 'first', args);
+    this.last = (...args) => this.makeTheCall(query, 'last', args);
+    this.count = (...args) => this.makeTheCall(query, 'count', args);
+    this.min = (...args) => this.makeTheCall(query, 'min', args);
+    this.max = (...args) => this.makeTheCall(query, 'max', args);
+    this.avg = (...args) => this.makeTheCall(query, 'avg', args);
+    this.save = (...args) => this.makeTheCall(query, 'save', args);
+    this.push = (...args) => this.makeTheCall(query, 'push', args);
+    this.pull = (...args) => this.makeTheCall(query, 'pull', args);
+    this.remove = (...args) => this.makeTheCall(query, 'remove', args);
 
     // Food for thought...
-    this.archive = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'archive', args); // Soft Delete
-    this.stream = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'stream', args); // Stream records 1 by 1
-    this.driver = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'driver', args); // Access raw underlying driver
-    this.native = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'native', args); // Perhaps write a native query and hide the driver?
-    this.meta = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'meta', args); // Provider additional options to query
-    this.sum = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'sum', args); // Would sum be different than count?
-    this.rollup = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'rollup', args); // Like sum, but for nested attributes (eg. Person.rollupAuthoredChaptersPages)
-    this.splice = (...args) => QueryBuilder.makeTheCall(loader, model, query, 'splice', args);
+    this.archive = (...args) => this.makeTheCall(query, 'archive', args); // Soft Delete
+    this.stream = (...args) => this.makeTheCall(query, 'stream', args); // Stream records 1 by 1
+    this.driver = (...args) => this.makeTheCall(query, 'driver', args); // Access raw underlying driver
+    this.native = (...args) => this.makeTheCall(query, 'native', args); // Perhaps write a native query and hide the driver?
+    this.meta = (...args) => this.makeTheCall(query, 'meta', args); // Provider additional options to query
+    this.sum = (...args) => this.makeTheCall(query, 'sum', args); // Would sum be different than count?
+    this.rollup = (...args) => this.makeTheCall(query, 'rollup', args); // Like sum, but for nested attributes (eg. Person.rollupAuthoredChaptersPages)
+    this.splice = (...args) => this.makeTheCall(query, 'splice', args);
   }
 
-  static makeTheCall(loader, model, query, cmd, args) {
+  makeTheCall(query, cmd, args) {
+    const { model, loader } = this;
     const { id, where, before, after } = query;
 
     switch (cmd) {

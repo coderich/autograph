@@ -1,6 +1,6 @@
 // const Neo4j = require('neodb');
 // const Redis = require('redis-mock');
-const { MongoMemoryServer } = require('mongodb-memory-server');
+const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { timeout } = require('../src/service/app.service');
 const Schema = require('../src/core/Schema');
 const DataLoader = require('../src/core/DataLoader');
@@ -47,7 +47,7 @@ module.exports = (name, db = 'mongo') => {
           // driverArgs.redis = redisClient;
           break;
         }
-        case 'neo4j': {
+        case 'neo4jDriver': {
           stores.default.type = 'neo4jDriver';
           stores.default.uri = 'bolt://localhost';
           break;
@@ -58,8 +58,10 @@ module.exports = (name, db = 'mongo') => {
           break;
         }
         default: {
-          const mongoServer = new MongoMemoryServer();
-          stores.default.uri = await mongoServer.getConnectionString();
+          const mongoServer = new MongoMemoryReplSet({ replSet: { storageEngine: 'wiredTiger' } });
+          await mongoServer.waitUntilRunning();
+          stores.default.uri = await mongoServer.getUri();
+          // stores.default.uri = await mongoServer.getConnectionString();
           break;
         }
       }
@@ -478,7 +480,7 @@ module.exports = (name, db = 'mongo') => {
         expect(await loader.match('Book').id(mobyDick.id).save({ bids: [] })).toMatchObject({ id: mobyDick.id, name: 'Moby Dick', bids: [] });
         expect(await loader.match('Book').id(mobyDick.id).push('bids', 2.99, 1.99, 5.55)).toMatchObject({ id: mobyDick.id, name: 'Moby Dick', bids: [2.99, 1.99, 5.55] });
         expect(await loader.match('Book').id(mobyDick.id).pull('bids', 1.99)).toMatchObject({ id: mobyDick.id, name: 'Moby Dick', bids: [2.99, 5.55] });
-        expect(await loader.match('Book').id(healthBook.id).push('bids', 0.25, 11.00)).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', bids: [5.00, 9.00, 12.50, 0.25, 11.00] });
+        expect(await loader.match('Book').id(healthBook.id).push('bids', 0.25, 0.25, 11.00, 0.25)).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', bids: [5.00, 9.00, 12.50, 0.25, 0.25, 11.00, 0.25] });
         expect(await loader.match('Book').id(healthBook.id).pull('bids', 0.25, 9.00)).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', bids: [5.00, 12.50, 11.00] });
       });
     });
@@ -572,6 +574,18 @@ module.exports = (name, db = 'mongo') => {
       test('remove', async () => {
         await expect(loader.match('Person').remove()).rejects.toThrow();
         expect(await loader.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
+      });
+    });
+
+
+    describe('Transactions', () => {
+      test('create', async () => {
+        const txn = loader.transaction();
+        txn.match('Person').save({ name: 'person1', emailAddress: 'person1@gmail.com' });
+        txn.match('Person').save({ name: 'person2', emailAddress: 'person2@gmail.com' });
+        const [person1, person2] = await txn.exec();
+        expect(person1.name).toBe('Person1');
+        expect(person2.name).toBe('Person2');
       });
     });
   });

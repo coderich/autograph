@@ -9,7 +9,7 @@ module.exports = class Schema {
 
     const availableDrivers = {
       mongo: MongoDriver,
-      neo4j: Neo4jDriver,
+      neo4jDriver: Neo4jDriver,
       neo4jRest: Neo4jRestDriver,
       redis: RedisDriver,
     };
