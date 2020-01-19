@@ -64,12 +64,14 @@ module.exports = class MongoDriver {
         results.$commit = () => session.commitTransaction().then(close);
         results.$rollback = () => session.abortTransaction().then(close);
         return results;
+      }).catch((e) => {
+        close();
+        throw e;
       });
     };
 
     // Retry promise conditionally
-    const cond = e => e.errorLabels && e.errorLabels.indexOf('TransientTransactionError') > -1;
-    return promiseRetry(promise, 200, 5, cond);
+    return promiseRetry(promise, 200, 5, e => e.errorLabels && e.errorLabels.indexOf('TransientTransactionError') > -1);
   }
 
   createIndexes(model, indexes) {

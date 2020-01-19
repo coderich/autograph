@@ -9,32 +9,32 @@ class Cypher {
     this.options = options;
   }
 
-  get(model, id) {
-    return this.query(`MATCH (n:${model}) WHERE n.id = { id } RETURN n`, { id }).then(docs => docs[0]);
+  get(model, id, options) {
+    return this.query(`MATCH (n:${model}) WHERE n.id = { id } RETURN n`, { id }, options).then(docs => docs[0]);
   }
 
-  find(model, where = {}) {
+  find(model, where = {}, options) {
     const { $where, $params } = Cypher.normalizeWhereClause(where);
     const $wherePart = $where ? `WHERE ${$where}` : '';
-    return this.query(`MATCH (n:${model}) ${$wherePart} RETURN n`, $params);
+    return this.query(`MATCH (n:${model}) ${$wherePart} RETURN n`, $params, options);
   }
 
-  count(model, where = {}) {
+  count(model, where = {}, options) {
     const { $where, $params } = Cypher.normalizeWhereClause(where);
     const $wherePart = $where ? `WHERE ${$where}` : '';
-    return this.query(`MATCH (n:${model}) ${$wherePart} RETURN count(n) AS n`, $params).then(counts => counts[0]);
+    return this.query(`MATCH (n:${model}) ${$wherePart} RETURN count(n) AS n`, $params, options).then(counts => counts[0]);
   }
 
-  create(model, data) {
-    return this.query(`CREATE (n:${model} { ${Object.keys(data).map(k => `${k}:{${k}}`)} }) SET n.id = id(n) RETURN n`, data).then(docs => docs[0]);
+  create(model, data, options) {
+    return this.query(`CREATE (n:${model} { ${Object.keys(data).map(k => `${k}:{${k}}`)} }) SET n.id = id(n) RETURN n`, data, options).then(docs => docs[0]);
   }
 
-  replace(model, id, data, doc) {
-    return this.query(`MATCH (n:${model}) WHERE n.id = { id } SET ${Object.keys(doc).map(k => `n.${k}={${k}}`)} RETURN n`, { id, ...doc }).then(docs => docs[0]);
+  replace(model, id, data, doc, options) {
+    return this.query(`MATCH (n:${model}) WHERE n.id = { id } SET ${Object.keys(doc).map(k => `n.${k}={${k}}`)} RETURN n`, { id, ...doc }, options).then(docs => docs[0]);
   }
 
-  delete(model, id, doc) {
-    return this.query(`MATCH (n:${model}) WHERE n.id = { id } DELETE n`, { id }).then(() => doc);
+  delete(model, id, doc, options) {
+    return this.query(`MATCH (n:${model}) WHERE n.id = { id } DELETE n`, { id }, options).then(() => doc);
   }
 
   dropModel(model) {
@@ -123,7 +123,7 @@ exports.Neo4jRestDriver = class Neo4jRestDriver extends Cypher {
     this.cypher = Axios.get(`${uri}/db/data/`).then(({ data }) => data.cypher);
   }
 
-  query(query, params = {}) {
+  query(query, params = {}, options = {}) {
     return this.cypher.then(url => Axios.post(url, { query, params: Neo4jRestDriver.serialize(params) }).then(({ data }) => Neo4jRestDriver.toObject(data.data || [])));
   }
 
@@ -143,8 +143,30 @@ exports.Neo4jDriver = class Neo4jDriver extends Cypher {
     this.driver = Neo4j.driver(uri, null, { disableLosslessIntegers: true });
   }
 
-  query(query, params = {}) {
-    return this.driver.session().run(query, Neo4jDriver.serialize(params)).then(Neo4jDriver.toObject);
+  query(query, params = {}, options = {}) {
+    const session = options.session || this.driver.session();
+
+    return session.run(query, Neo4jDriver.serialize(params)).then((records) => {
+      if (session.close) session.close(); // could be in a transaction in which case we can't close
+      return Neo4jDriver.toObject(records);
+    });
+  }
+
+  transaction(ops) {
+    // Create session and start transaction
+    const session = this.driver.session();
+    const txn = session.beginTransaction();
+    const close = () => { session.close(); };
+
+    // Execute each operation with session
+    return Promise.all(ops.map(op => op.exec({ session: txn }))).then((results) => {
+      results.$commit = () => txn.commit().then(close);
+      results.$rollback = () => txn.rollback().then(close);
+      return results;
+    }).catch((e) => {
+      close();
+      throw e;
+    });
   }
 
   static toObject({ records }) {

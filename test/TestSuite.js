@@ -570,14 +570,6 @@ module.exports = (name, db = 'mongo') => {
     });
 
 
-    describe('Remove', () => {
-      test('remove', async () => {
-        await expect(loader.match('Person').remove()).rejects.toThrow();
-        expect(await loader.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
-      });
-    });
-
-
     describe('Transactions', () => {
       test('single txn (commit)', async () => {
         const txn1 = loader.transaction();
@@ -652,6 +644,26 @@ module.exports = (name, db = 'mongo') => {
 
         await timeout(100);
         await expect(txn2.exec()).rejects.toThrow();
+      });
+
+      // test('single-txn (read & write)', async (done) => {
+      //   const txn = loader.transaction();
+      //   txn.match('Person').save({ name: 'write1', emailAddress: 'write1@gmail.com' });
+      //   txn.match('Person').id(richard.id).one();
+      //   txn.match('Person').save({ name: 'write2', emailAddress: 'write2@gmail.com' });
+      //   const [person1, richie, person2] = await txn.exec();
+      //   expect(person1.name).toBe('Write1');
+      //   expect(richie.name).toBe('Richard');
+      //   expect(person2.name).toBe('Write2');
+      //   txn.rollback().then(() => done());
+      // });
+    });
+
+
+    describe('Remove', () => {
+      test('remove', async () => {
+        await expect(loader.match('Person').remove()).rejects.toThrow();
+        expect(await loader.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
       });
     });
   });
