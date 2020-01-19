@@ -1,5 +1,5 @@
 const { MongoClient, ObjectID } = require('mongodb');
-const { globToRegex, proxyDeep, isScalarDataType } = require('../service/app.service');
+const { promiseRetry, globToRegex, proxyDeep, isScalarDataType } = require('../service/app.service');
 
 const toObject = (doc) => {
   if (!doc) return undefined;
@@ -53,21 +53,23 @@ module.exports = class MongoDriver {
   }
 
   async transaction(ops) {
-    const client = await this.connect();
-    const session = client.startSession();
-    session.startTransaction({ readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' } });
+    const promise = async () => {
+      // Create session and start transaction
+      const session = await this.connection.then(client => client.startSession({ readPreference: { mode: 'primary' } }));
+      session.startTransaction({ readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' } });
+      const close = () => { session.endSession(); };
 
-    const results = await Promise.all(ops.map((op) => {
-      return op.exec({ session });
-    })).catch(async (e) => {
-      await session.abortTransaction();
-      session.endSession();
-      throw (e);
-    });
+      // Execute each operation with session
+      return Promise.all(ops.map(op => op.exec({ session }))).then((results) => {
+        results.$commit = () => session.commitTransaction().then(close);
+        results.$rollback = () => session.abortTransaction().then(close);
+        return results;
+      });
+    };
 
-    results.$commit = () => session.commitTransaction().then(() => session.endSession());
-    results.$rollback = () => session.abortTransaction().then(() => session.endSession());
-    return results;
+    // Retry promise conditionally
+    const cond = e => e.errorLabels && e.errorLabels.indexOf('TransientTransactionError') > -1;
+    return promiseRetry(promise, 200, 5, cond);
   }
 
   createIndexes(model, indexes) {

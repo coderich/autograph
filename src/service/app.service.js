@@ -54,6 +54,13 @@ exports.promiseChain = (promises) => {
   }, Promise.resolve([]));
 };
 
+exports.promiseRetry = (fn, ms, retries = 5, cond = e => e) => {
+  return fn().catch((e) => {
+    if (!retries || !cond(e)) throw e;
+    return exports.timeout(ms).then(() => exports.promiseRetry(fn, ms, --retries, cond));
+  });
+};
+
 exports.proxyDeep = (obj, handler, proxyMap = new WeakMap(), path = '') => {
   obj = obj || {};
   if (proxyMap.has(obj)) return proxyMap.get(obj);
