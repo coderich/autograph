@@ -83,6 +83,20 @@ module.exports = class QueryBuilder {
       case 'save': {
         const [data] = args;
         if (id || where) return loader.load({ method: 'update', model, query, args: [data] });
+
+        if (args.length > 1) {
+          const txn = loader.transaction();
+          args.forEach(arg => txn.match(model).query(query).save(arg));
+
+          return txn.exec().then(async (results) => {
+            await txn.commit();
+            return results;
+          }).catch(async (e) => {
+            await txn.rollback();
+            throw e;
+          });
+        }
+
         return loader.load({ method: 'create', model, query, args: [data] });
       }
       case 'remove': {

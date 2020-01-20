@@ -10,6 +10,9 @@ module.exports = class Model {
     this.fields = Object.entries(options.fields).map(([field, def]) => new Field(schema, this, field, def));
     this.toString = () => `${name}`;
 
+    // Create collections (mongo)
+    if (driver.dao.createCollection) driver.dao.createCollection(this.getAlias());
+
     // Create indexes
     driver.dao.createIndexes(this.getAlias(), this.getIndexes());
   }

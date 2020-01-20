@@ -4,6 +4,7 @@ const TransactionQueryBuilder = require('./TransactionQueryBuilder');
 module.exports = class Transaction {
   constructor(loader) {
     this.loader = loader;
+    this.results = [];
     this.ops = new Map();
   }
 

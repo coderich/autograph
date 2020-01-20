@@ -375,6 +375,7 @@ module.exports = (driver = 'mongo') => {
         await expect(loader.match('Chapter').save({ name: 'chapter1' })).rejects.toThrow();
         await expect(loader.match('Chapter').save({ name: 'chapter2' })).rejects.toThrow();
         await expect(loader.match('Chapter').save({ name: 'chapter3' })).rejects.toThrow();
+        await expect(loader.match('Chapter').save({ name: 'chapter1' }, { name: 'chapter2' })).rejects.toThrow();
 
         switch (stores.default.type) {
           case 'mongo': {
@@ -487,8 +488,7 @@ module.exports = (driver = 'mongo') => {
         expect(await loader.match('Book').id(healthBook.id).pull('bids', 0.25, 9.00)).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', bids: [5.00, 12.50, 11.00] });
 
         // Multi
-        await loader.match('Art').save({ name: 'Art1' });
-        await loader.match('Art').save({ name: 'Art2' });
+        await loader.match('Art').save({ name: 'Art1' }, { name: 'Art2' });
         await loader.match('Art').where({}).push('bids', 69.99, '109.99');
         expect(await loader.match('Art').many()).toMatchObject([{ bids: [69.99, 109.99] }, { bids: [69.99, 109.99] }]);
       });
@@ -684,7 +684,7 @@ module.exports = (driver = 'mongo') => {
 
       test('remove multi', async () => {
         // Create some colors
-        const colors = await Promise.all(['blue', 'red', 'green', 'purple'].map(type => loader.match('Color').save({ type })));
+        const colors = await loader.match('Color').save({ type: 'blue' }, { type: 'red' }, { type: 'green' }, { type: 'purple' });
         expect(colors.length).toBe(4);
 
         // Remogve some colors

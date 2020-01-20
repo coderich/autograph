@@ -85,6 +85,10 @@ module.exports = class MongoDriver {
     return promiseRetry(promise, 200, 5, e => e.errorLabels && e.errorLabels.indexOf('TransientTransactionError') > -1);
   }
 
+  createCollection(model) {
+    return this.connection.then(client => client.db().createCollection(model)).catch(e => null);
+  }
+
   createIndexes(model, indexes) {
     return Promise.all(indexes.map(({ name, type, fields }) => {
       const $fields = fields.reduce((prev, field) => Object.assign(prev, { [field]: 1 }), {});
