@@ -79,6 +79,10 @@ module.exports = class Query {
     return this.model;
   }
 
+  getQuery() {
+    return this.query;
+  }
+
   toObject() {
     return {
       ...this.query,

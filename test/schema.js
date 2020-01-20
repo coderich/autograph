@@ -85,6 +85,12 @@ exports.schema = {
       type: { type: String, rules: [required(), allow('blue', 'red', 'green', 'purple')] },
     },
   },
+  Art: {
+    fields: {
+      name: { type: String, rules: [required()] },
+      bids: { type: Array(Number) },
+    },
+  },
 };
 
 exports.stores = {

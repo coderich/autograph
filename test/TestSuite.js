@@ -478,10 +478,19 @@ module.exports = (driver = 'mongo') => {
         expect(await loader.match('Book').id(mobyDick.id).save({ name: 'mopey dick' })).toMatchObject({ id: mobyDick.id, name: 'Mopey Dick' });
         expect(await loader.match('Book').id(mobyDick.id).save({ name: 'moby dick' })).toMatchObject({ id: mobyDick.id, name: 'Moby Dick' });
         expect(await loader.match('Book').id(mobyDick.id).save({ bids: [] })).toMatchObject({ id: mobyDick.id, name: 'Moby Dick', bids: [] });
+      });
+
+      test('Push/Pull', async () => {
         expect(await loader.match('Book').id(mobyDick.id).push('bids', 2.99, 1.99, 5.55)).toMatchObject({ id: mobyDick.id, name: 'Moby Dick', bids: [2.99, 1.99, 5.55] });
         expect(await loader.match('Book').id(mobyDick.id).pull('bids', 1.99)).toMatchObject({ id: mobyDick.id, name: 'Moby Dick', bids: [2.99, 5.55] });
         expect(await loader.match('Book').id(healthBook.id).push('bids', 0.25, 0.25, 11.00, 0.25)).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', bids: [5.00, 9.00, 12.50, 0.25, 0.25, 11.00, 0.25] });
         expect(await loader.match('Book').id(healthBook.id).pull('bids', 0.25, 9.00)).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', bids: [5.00, 12.50, 11.00] });
+
+        // Multi
+        await loader.match('Art').save({ name: 'Art1' });
+        await loader.match('Art').save({ name: 'Art2' });
+        await loader.match('Art').where({}).push('bids', 69.99, '109.99');
+        expect(await loader.match('Art').many()).toMatchObject([{ bids: [69.99, 109.99] }, { bids: [69.99, 109.99] }]);
       });
 
       test('multi-update', async () => {

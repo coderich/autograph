@@ -77,9 +77,8 @@ module.exports = class QueryBuilder {
       }
       case 'push': case 'pull': {
         const [key, ...values] = args;
-        if (id) return loader.load({ method: cmd, model, query, args: [id, key, values] });
-        if (where) return Promise.reject(new Error(`Muiti ${cmd} not yet supported`));
-        return Promise.reject(new Error(`Must supply a where clause for multi ${cmd}`));
+        if (id === undefined && where === undefined) return Promise.reject(new Error(`${cmd} requires an id() or where()`));
+        return loader.load({ method: cmd, model, query, args: [key, values] });
       }
       case 'save': {
         const [data] = args;

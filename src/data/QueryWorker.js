@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const Query = require('./Query');
 const { mergeDeep, hashObject } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
 const { NotFoundError, BadRequestError } = require('../service/error.service');
@@ -19,8 +20,8 @@ module.exports = class QueryWorker {
     this.loader = loader;
 
     // Convenience methods
-    this.push = (query, id, key, values) => this.splice(query, id, key, null, values);
-    this.pull = (query, id, key, values) => this.splice(query, id, key, values);
+    this.push = (query, key, values) => this.splice(query, key, null, values);
+    this.pull = (query, key, values) => this.splice(query, key, values);
   }
 
   get(query, id, required) {
@@ -127,27 +128,41 @@ module.exports = class QueryWorker {
     });
   }
 
-  async splice(query, id, key, from, to) {
+  async splice(query, key, from, to) {
     const { loader } = this;
-    const [model, options] = [query.getModel(), query.getOptions()];
+    const [id, model, where, options] = [query.getId(), query.getModel(), query.getWhere(), query.getOptions()];
     const field = model.getField(key);
     if (!field || !field.isArray()) return Promise.reject(new BadRequestError(`Cannot splice field '${key}'`));
-    const doc = await loader.match(model).id(id).options(options).one({ required: true });
-    let data;
 
-    if (from) {
-      data = { [key]: _.get(doc, key, []) };
-      _.remove(data[key], el => from.find(v => hashObject(v) === hashObject(el)));
+    let args;
+
+    if (id) {
+      let data;
+      const doc = await loader.match(model).id(id).options(options).one({ required: true });
+
+      if (from) {
+        data = { [key]: _.get(doc, key, []) };
+        _.remove(data[key], el => from.find(v => hashObject(v) === hashObject(el)));
+      } else {
+        data = { [key]: _.get(doc, key, []).concat(to) };
+      }
+
+      normalizeModelData(loader, model, data);
+      await validateModelData(loader, model, data, doc, 'update');
+      const merged = normalizeModelData(loader, model, mergeDeep(doc, data));
+      args = [id, data, merged, options];
     } else {
-      data = { [key]: _.get(doc, key, []).concat(to) };
+      const resolvedWhere = await resolveModelWhereClause(loader, model, where);
+      const docs = await loader.match(model).where(resolvedWhere).options(options).many();
+
+      return Promise.all(docs.map((doc) => {
+        const newQuery = new Query(model, { id: doc.id, ..._.cloneDeep(query.getQuery()) });
+        return this.splice(newQuery, key, from, to);
+      }));
     }
 
-    normalizeModelData(loader, model, data);
-    await validateModelData(loader, model, data, doc, 'update');
-
-    return createSystemEvent('Mutation', { method: 'splice', model, loader, id, data }, async () => {
-      const merged = normalizeModelData(loader, model, mergeDeep(doc, data));
-      const result = await model.update(id, data, merged, options);
+    return createSystemEvent('Mutation', { method: 'splice', model, loader, query }, async () => {
+      const result = await model.update(...args);
       return model.hydrate(loader, result, { fields: query.getSelectFields() });
     });
   }
