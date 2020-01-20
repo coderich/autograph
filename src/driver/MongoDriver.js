@@ -27,12 +27,12 @@ module.exports = class MongoDriver {
   }
 
   find(model, where = {}, options) {
-    const $where = MongoDriver.normalizeWhereClause(model, this.schema, where);
+    const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where);
     return this.query(model, 'aggregate', $where, options).then(results => results.map(toObject).toArray());
   }
 
   count(model, where = {}, options) {
-    const $where = MongoDriver.normalizeWhereClause(model, this.schema, where, true);
+    const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where, true);
     return this.query(model, 'aggregate', $where, options).then(cursor => cursor.next().then(data => (data ? data.count : 0)));
   }
 
@@ -113,7 +113,7 @@ module.exports = class MongoDriver {
     }).toObject();
   }
 
-  static normalizeWhereClause(modelName, schema, where, count = false) {
+  static normalizeWhereAggregation(modelName, schema, where, count = false) {
     const $agg = [];
     const model = schema.getModel(modelName);
     const $match = MongoDriver.normalizeWhere(where);

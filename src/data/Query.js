@@ -35,6 +35,10 @@ module.exports = class Query {
     this.options = options;
   }
 
+  getId() {
+    return this.query.id;
+  }
+
   getSelectFields() {
     return this.selectFields;
   }

@@ -262,22 +262,39 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
 
 exports.resolveReferentialIntegrity = (loader, model, id) => {
   return new Promise((resolve, reject) => {
-    // Create a transaction for remove operation
-    const txn = model.referentialIntegrity().reduce((tx, { model: ref, field }) => {
-      // tx.match(ref).where({ [field]: id }).remove();
-      return tx;
-    }, loader.transaction());
+    // Start transaction for onDelete
+    const txn = loader.transaction();
 
-    // Execute the transaction
-    txn.exec().then((results) => {
-      console.log('results', results);
-      resolve();
-      txn.rollback();
-      // txn.commit();
-    }).catch((e) => {
+    try {
+      model.referentialIntegrity().forEach(({ model: ref, field }) => {
+        const op = field.getOnDelete();
+        const isArray = field.isArray();
+
+        switch (op) {
+          case 'cascade': {
+            txn.match(ref).where({ [field]: id }).remove();
+            break;
+          }
+          case 'nullify': {
+            txn.match(ref).where({ [field]: id }).save({ [field]: null });
+            break;
+          }
+          case 'restrict': throw new Error('restricted');
+          default: throw new Error(`Unknown onDelete operator: '${op}'`);
+        }
+      });
+
+      // Execute the transaction
+      txn.exec().then((results) => {
+        console.log('results', results);
+        resolve();
+        txn.rollback();
+        // txn.commit();
+      });
+    } catch (e) {
       reject(e);
       txn.rollback();
-    });
+    }
   });
 
   // return Promise.all(model.referentialIntegrity().map(({ model: ref, field }) => {
