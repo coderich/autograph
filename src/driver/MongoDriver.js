@@ -48,6 +48,11 @@ module.exports = class MongoDriver {
     return this.query(model, 'deleteOne', { _id: id }, options).then(() => doc);
   }
 
+  deleteMany(model, where = {}, options) {
+    const $where = MongoDriver.normalizeWhere(where);
+    return this.query(model, 'deleteMany', $where, options).then(() => 'success');
+  }
+
   dropModel(model) {
     return this.query(model, 'deleteMany');
   }
@@ -96,8 +101,8 @@ module.exports = class MongoDriver {
     }
   }
 
-  static normalizeWhereClause(modelName, schema, where, count = false) {
-    const $match = proxyDeep(where, {
+  static normalizeWhere(where) {
+    return proxyDeep(where, {
       get(target, prop, rec) {
         const value = Reflect.get(target, prop, rec);
         if (Array.isArray(value)) return { $in: value };
@@ -106,9 +111,12 @@ module.exports = class MongoDriver {
         return value;
       },
     }).toObject();
+  }
 
+  static normalizeWhereClause(modelName, schema, where, count = false) {
     const $agg = [];
     const model = schema.getModel(modelName);
+    const $match = MongoDriver.normalizeWhere(where);
 
     const fields = model.getFields().filter((field) => {
       const fieldName = field.getName();

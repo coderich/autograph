@@ -79,6 +79,11 @@ exports.schema = {
       landlord: 'Person',
     },
   },
+  Color: {
+    fields: {
+      type: { type: String, rules: [required(), allow('blue', 'red', 'green', 'purple')] },
+    },
+  },
 };
 
 exports.stores = {

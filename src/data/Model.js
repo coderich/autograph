@@ -39,6 +39,10 @@ module.exports = class Model {
     return this.driver.dao.delete(this.getAlias(), this.idValue(id), doc, options).then(res => this.toObject(res));
   }
 
+  deleteMany(where = {}, options) {
+    return this.driver.dao.deleteMany(this.getAlias(), where, options);
+  }
+
   drop() {
     return this.driver.dao.dropModel(this.getAlias());
   }

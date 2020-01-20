@@ -155,4 +155,17 @@ module.exports = class QueryWorker {
       });
     });
   }
+
+  async deleteMany(query) {
+    const { loader } = this;
+    const [model, where, options] = [query.getModel(), query.getWhere(), query.getOptions()];
+
+    return createSystemEvent('Mutation', { method: 'deleteMany', model, loader }, async () => {
+      const resolvedWhere = await resolveModelWhereClause(loader, model, where);
+
+      // return resolveReferentialIntegrity(loader, model, id).then(async () => {
+        return model.deleteMany(resolvedWhere, options);
+      // });
+    });
+  }
 };

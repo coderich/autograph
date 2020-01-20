@@ -260,19 +260,30 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
   return undefined;
 };
 
-exports.resolveReferentialIntegrity = async (loader, model, id) => {
-  // // Transaction
-  // const txn = loader.transaction();
-  // txn.match().blah().blah();
-  // txn.match().blah().blah();
-  // txn.match().blah().blah();
-  // txn.exec();
-  // txn.commit();
+exports.resolveReferentialIntegrity = (loader, model, id) => {
+  return new Promise((resolve, reject) => {
+    // Create a transaction for remove operation
+    const txn = model.referentialIntegrity().reduce((tx, { model: ref, field }) => {
+      // tx.match(ref).where({ [field]: id }).remove();
+      return tx;
+    }, loader.transaction());
 
-  return Promise.all(model.referentialIntegrity().map(({ model: ref, field }) => {
-    console.log(`${model} -> ${ref}.${field}`, field.getOnDelete(), field.isArray());
-    return null;
-  }));
+    // Execute the transaction
+    txn.exec().then((results) => {
+      console.log('results', results);
+      resolve();
+      txn.rollback();
+      // txn.commit();
+    }).catch((e) => {
+      reject(e);
+      txn.rollback();
+    });
+  });
+
+  // return Promise.all(model.referentialIntegrity().map(({ model: ref, field }) => {
+  //   console.log(`${model} -> ${ref}.${field}`, field.getOnDelete(), field.isArray());
+  //   return null;
+  // }));
 };
 
 exports.sortData = (data, sortBy) => {

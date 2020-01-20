@@ -1,3 +1,3 @@
 const TestSuite = require('../TestSuite');
 
-TestSuite('Store', 'neo4jRest');
+TestSuite('neo4jRest');

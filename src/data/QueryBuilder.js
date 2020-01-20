@@ -6,6 +6,7 @@ module.exports = class QueryBuilder {
     this.loader = loader;
 
     const query = {};
+    const addQueryOptions = (q, options = {}) => (q.options = Object.assign({}, q.options, options));
 
     // Composable query
     this.id = (id) => { query.id = `${id}`; return this; };
@@ -39,10 +40,10 @@ module.exports = class QueryBuilder {
     this.stream = (...args) => this.makeTheCall(query, 'stream', args); // Stream records 1 by 1
     this.driver = (...args) => this.makeTheCall(query, 'driver', args); // Access raw underlying driver
     this.native = (...args) => this.makeTheCall(query, 'native', args); // Perhaps write a native query and hide the driver?
-    this.meta = (...args) => this.makeTheCall(query, 'meta', args); // Provider additional options to query
+    this.meta = (...args) => this.makeTheCall(query, 'meta', args); // Provider additional options to query (may be dupe of options above)
     this.sum = (...args) => this.makeTheCall(query, 'sum', args); // Would sum be different than count?
     this.rollup = (...args) => this.makeTheCall(query, 'rollup', args); // Like sum, but for nested attributes (eg. Person.rollupAuthoredChaptersPages)
-    this.splice = (...args) => this.makeTheCall(query, 'splice', args);
+    this.splice = (...args) => this.makeTheCall(query, 'splice', args); // Remove/Add elements to an array (flexible push/pull)
   }
 
   makeTheCall(query, cmd, args) {
@@ -89,8 +90,8 @@ module.exports = class QueryBuilder {
       }
       case 'remove': {
         if (id) return loader.load({ method: 'delete', model, query, args: [id] });
-        if (where) return Promise.reject(new Error('Multi delete not yet supported'));
-        return Promise.reject(new Error('Multi delete not yet supported'));
+        if (where) return loader.load({ method: 'deleteMany', model, query, args: [] });
+        return Promise.reject(new Error(`Must supply a where clause for multi ${cmd}`));
       }
       default: return Promise.reject(new Error(`Unknown command: ${cmd}`));
     }

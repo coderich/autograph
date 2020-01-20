@@ -32,15 +32,15 @@ const sorter = (a, b) => {
   return 0;
 };
 
-module.exports = (name, db = 'mongo') => {
-  describe(`${name}-${db}`, () => {
+module.exports = (driver = 'mongo') => {
+  describe(driver, () => {
     beforeAll(async () => {
       jest.setTimeout(60000);
 
       const driverArgs = {};
 
       // Start in-memory db
-      switch (db) {
+      switch (driver) {
         case 'redis': {
           // const redisClient = Redis.createClient();
           stores.default.type = 'redis';
@@ -666,6 +666,17 @@ module.exports = (name, db = 'mongo') => {
       test('remove', async () => {
         await expect(loader.match('Person').remove()).rejects.toThrow();
         expect(await loader.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
+      });
+
+      test('remove multi', async () => {
+        // Create some colors
+        const colors = await Promise.all(['blue', 'red', 'green', 'purple'].map(type => loader.match('Color').save({ type })));
+        expect(colors.length).toBe(4);
+
+        // Remogve some colors
+        await loader.match('Color').where({ type: '{red,purple}' }).remove();
+        const results = await loader.match('Color').sortBy({ type: 'ASC' }).many();
+        expect(results).toMatchObject([{ type: 'blue' }, { type: 'green' }]);
       });
     });
   });
