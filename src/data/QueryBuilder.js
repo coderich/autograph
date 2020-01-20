@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const { resolveModelWhereClause } = require('../service/data.service');
 
 module.exports = class QueryBuilder {
   constructor(model, loader) {
@@ -45,7 +46,7 @@ module.exports = class QueryBuilder {
     this.splice = (...args) => this.makeTheCall(query, 'splice', args); // Remove/Add elements to an array (flexible push/pull)
   }
 
-  makeTheCall(query, cmd, args) {
+  async makeTheCall(query, cmd, args) {
     const { model, loader } = this;
     const { id, where, before, after } = query;
 
@@ -77,33 +78,45 @@ module.exports = class QueryBuilder {
       }
       case 'push': case 'pull': {
         const [key, ...values] = args;
-        if (id === undefined && where === undefined) return Promise.reject(new Error(`${cmd} requires an id() or where()`));
-        return loader.load({ method: cmd, model, query, args: [key, values] });
+
+        // Single op
+        if (id) return loader.load({ method: cmd, model, query, args: [id, key, values] });
+
+        // Multi op (transactional)
+        if (where) {
+          const txn = loader.transaction();
+          const resolvedWhere = await resolveModelWhereClause(loader, model, where);
+          const docs = await loader.match(model).where(resolvedWhere).many();
+          docs.forEach(doc => txn.match(model).id(doc.id).query(query)[cmd](...args));
+          return txn.auto();
+        }
+
+        // Best to require explicit intent
+        return Promise.reject(new Error(`${cmd} requires an id() or where()`));
       }
       case 'save': {
         const [data] = args;
+
+        // Update
         if (id || where) return loader.load({ method: 'update', model, query, args: [data] });
 
+        // Multi save (transactional)
         if (args.length > 1) {
           const txn = loader.transaction();
           args.forEach(arg => txn.match(model).query(query).save(arg));
-
-          return txn.exec().then(async (results) => {
-            await txn.commit();
-            return results;
-          }).catch(async (e) => {
-            await txn.rollback();
-            throw e;
-          });
+          return txn.auto();
         }
 
+        // Single save
         return loader.load({ method: 'create', model, query, args: [data] });
       }
       case 'remove': {
         if (id === undefined && where === undefined) return Promise.reject(new Error('Remove requires an id() or where()'));
         return loader.load({ method: 'delete', model, query, args: [] });
       }
-      default: return Promise.reject(new Error(`Unknown command: ${cmd}`));
+      default: {
+        return Promise.reject(new Error(`Unknown command: ${cmd}`));
+      }
     }
   }
 };

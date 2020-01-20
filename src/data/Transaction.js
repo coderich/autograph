@@ -24,6 +24,16 @@ module.exports = class Transaction {
     });
   }
 
+  auto() {
+    return this.exec().then(async (results) => {
+      await this.commit();
+      return results;
+    }).catch(async (e) => {
+      await this.rollback();
+      throw e;
+    });
+  }
+
   commit() {
     this.loader.clearAll();
     return Promise.all(this.results.map(result => result.$commit()));
