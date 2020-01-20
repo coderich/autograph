@@ -261,6 +261,8 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
 };
 
 exports.resolveReferentialIntegrity = (loader, model, id) => {
+  return Promise.resolve([]);
+
   return new Promise((resolve, reject) => {
     // Start transaction for onDelete
     const txn = loader.transaction();

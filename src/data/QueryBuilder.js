@@ -89,9 +89,8 @@ module.exports = class QueryBuilder {
         return loader.load({ method: 'create', model, query, args: [data] });
       }
       case 'remove': {
-        if (id) return loader.load({ method: 'delete', model, query, args: [id] });
-        if (where) return loader.load({ method: 'deleteMany', model, query, args: [] });
-        return Promise.reject(new Error(`Must supply a where clause for multi ${cmd}`));
+        if (id === undefined && where === undefined) return Promise.reject(new Error('Remove requires an id() or where()'));
+        return loader.load({ method: 'delete', model, query, args: [] });
       }
       default: return Promise.reject(new Error(`Unknown command: ${cmd}`));
     }

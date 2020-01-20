@@ -143,29 +143,28 @@ module.exports = class QueryWorker {
     });
   }
 
-  async delete(query, id) {
+  async delete(query) {
     const { loader } = this;
-    const [model, options] = [query.getModel(), query.getOptions()];
-    const doc = await loader.match(model).id(id).options(options).one({ required: true });
+    const [id, model, where, options] = [query.getId(), query.getModel(), query.getWhere(), query.getOptions()];
 
-    return createSystemEvent('Mutation', { method: 'delete', model, loader, id }, () => {
-      return resolveReferentialIntegrity(loader, model, id).then(async () => {
-        const result = await model.delete(id, doc, options);
-        return model.hydrate(loader, result, { fields: query.getSelectFields() });
-      });
-    });
-  }
+    let args;
+    let method;
 
-  async deleteMany(query) {
-    const { loader } = this;
-    const [model, where, options] = [query.getModel(), query.getWhere(), query.getOptions()];
-
-    return createSystemEvent('Mutation', { method: 'deleteMany', model, loader }, async () => {
+    if (id) {
+      const doc = await loader.match(model).id(id).options(options).one({ required: true });
+      args = [id, doc, options];
+      method = 'delete';
+    } else {
       const resolvedWhere = await resolveModelWhereClause(loader, model, where);
+      args = [resolvedWhere, options];
+      method = 'deleteMany';
+    }
 
-      // return resolveReferentialIntegrity(loader, model, id).then(async () => {
-        return model.deleteMany(resolvedWhere, options);
-      // });
+    return createSystemEvent('Mutation', { method, model, loader, query }, () => {
+      return resolveReferentialIntegrity(loader, model, query).then(async () => {
+        const result = await model[method](...args);
+        return method === 'delete' ? model.hydrate(loader, result, { fields: query.getSelectFields() }) : result;
+      });
     });
   }
 };
