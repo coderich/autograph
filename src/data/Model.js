@@ -35,6 +35,10 @@ module.exports = class Model {
     return this.driver.dao.replace(this.getAlias(), this.idValue(id), data, doc, options).then(res => this.toObject(res));
   }
 
+  updateMany(where = {}, data, options) {
+    return this.driver.dao.replaceMany(this.getAlias(), where, data, options);
+  }
+
   delete(id, doc, options) {
     return this.driver.dao.delete(this.getAlias(), this.idValue(id), doc, options).then(res => this.toObject(res));
   }

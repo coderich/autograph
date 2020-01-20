@@ -93,18 +93,33 @@ module.exports = class QueryWorker {
     });
   }
 
-  async update(query, id, data = {}) {
+  async update(query, data = {}) {
     const { loader } = this;
-    const [model, options] = [query.getModel(), query.getOptions()];
-    const doc = await loader.match(model).id(id).options(options).one({ required: true });
+    const [id, model, where, options] = [query.getId(), query.getModel(), query.getWhere(), query.getOptions()];
+
     ensureModelArrayTypes(loader, model, data);
     normalizeModelData(loader, model, data);
-    await validateModelData(loader, model, data, doc, 'update');
 
-    return createSystemEvent('Mutation', { method: 'update', model, loader, id, data }, async () => {
+    let args;
+    let method;
+
+    if (id) {
+      const doc = await loader.match(model).id(id).options(options).one({ required: true });
+      await validateModelData(loader, model, data, doc, 'update');
       const merged = normalizeModelData(loader, model, mergeDeep(doc, data));
-      const result = await model.update(id, data, merged, options);
-      return model.hydrate(loader, result, { fields: query.getSelectFields() });
+      args = [id, data, merged, options];
+      method = 'update';
+    } else {
+      const resolvedWhere = await resolveModelWhereClause(loader, model, where);
+      const docs = await loader.match(model).where(resolvedWhere).options(options).many();
+      await Promise.all(docs.map(doc => validateModelData(loader, model, data, doc, 'update')));
+      args = [resolvedWhere, data, options];
+      method = 'updateMany';
+    }
+
+    return createSystemEvent('Mutation', { method, model, loader, query, data }, async () => {
+      const result = await model[method](...args);
+      return method === 'update' ? model.hydrate(loader, result, { fields: query.getSelectFields() }) : result;
     });
   }
 

@@ -9,6 +9,7 @@ exports.schema = {
       emailAddress: { type: String, rules: [required(), email()] },
       authored: { type: Array('Book'), by: 'author' },
       friends: { type: Set('Person'), rules: [selfless()], onDelete: 'cascade' },
+      status: String,
     },
     indexes: [
       { name: 'uix_person_name', type: 'unique', fields: ['name'] },

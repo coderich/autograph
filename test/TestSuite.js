@@ -483,6 +483,11 @@ module.exports = (driver = 'mongo') => {
         expect(await loader.match('Book').id(healthBook.id).push('bids', 0.25, 0.25, 11.00, 0.25)).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', bids: [5.00, 9.00, 12.50, 0.25, 0.25, 11.00, 0.25] });
         expect(await loader.match('Book').id(healthBook.id).pull('bids', 0.25, 9.00)).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', bids: [5.00, 12.50, 11.00] });
       });
+
+      test('multi-update', async () => {
+        await loader.match('Person').where({}).save({ status: 'online' });
+        expect(await loader.match('Person').many()).toMatchObject([{ status: 'online' }, { status: 'online' }]);
+      });
     });
 
 

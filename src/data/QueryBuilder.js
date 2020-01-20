@@ -6,7 +6,6 @@ module.exports = class QueryBuilder {
     this.loader = loader;
 
     const query = {};
-    const addQueryOptions = (q, options = {}) => (q.options = Object.assign({}, q.options, options));
 
     // Composable query
     this.id = (id) => { query.id = `${id}`; return this; };
@@ -16,7 +15,7 @@ module.exports = class QueryBuilder {
     this.limit = (limit) => { query.limit = limit; return this; };
     this.before = (before) => { query.before = before; return this; };
     this.after = (after) => { query.after = after; return this; };
-    this.options = (options) => { query.options = options; return this; };
+    this.options = (options) => { query.options = Object.assign({}, query.options, options); return this; };
 
     // want to keep?
     this.query = (q) => { Object.assign(query, _.cloneDeep(q)); return this; };
@@ -84,8 +83,7 @@ module.exports = class QueryBuilder {
       }
       case 'save': {
         const [data] = args;
-        if (id) return loader.load({ method: 'update', model, query, args: [id, data] });
-        if (where) return Promise.reject(new Error('Multi update not yet supported'));
+        if (id || where) return loader.load({ method: 'update', model, query, args: [data] });
         return loader.load({ method: 'create', model, query, args: [data] });
       }
       case 'remove': {
