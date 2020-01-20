@@ -17,6 +17,10 @@ const {
 module.exports = class QueryWorker {
   constructor(loader) {
     this.loader = loader;
+
+    // Convenience methods
+    this.push = (query, id, key, values) => this.splice(query, id, key, null, values);
+    this.pull = (query, id, key, values) => this.splice(query, id, key, values);
   }
 
   get(query, id, required) {
@@ -123,35 +127,25 @@ module.exports = class QueryWorker {
     });
   }
 
-  async push(query, id, key, values) {
+  async splice(query, id, key, from, to) {
     const { loader } = this;
     const [model, options] = [query.getModel(), query.getOptions()];
     const field = model.getField(key);
-    if (!field || !field.isArray()) return Promise.reject(new BadRequestError(`Cannot push to field '${key}'`));
+    if (!field || !field.isArray()) return Promise.reject(new BadRequestError(`Cannot splice field '${key}'`));
     const doc = await loader.match(model).id(id).options(options).one({ required: true });
-    const data = { [key]: _.get(doc, key, []).concat(values) };
+    let data;
+
+    if (from) {
+      data = { [key]: _.get(doc, key, []) };
+      _.remove(data[key], el => from.find(v => hashObject(v) === hashObject(el)));
+    } else {
+      data = { [key]: _.get(doc, key, []).concat(to) };
+    }
+
     normalizeModelData(loader, model, data);
     await validateModelData(loader, model, data, doc, 'update');
 
-    return createSystemEvent('Mutation', { method: 'push', model, loader, id, data }, async () => {
-      const merged = normalizeModelData(loader, model, mergeDeep(doc, data));
-      const result = await model.update(id, data, merged, options);
-      return model.hydrate(loader, result, { fields: query.getSelectFields() });
-    });
-  }
-
-  async pull(query, id, key, values) {
-    const { loader } = this;
-    const [model, options] = [query.getModel(), query.getOptions()];
-    const field = model.getField(key);
-    if (!field || !field.isArray()) return Promise.reject(new BadRequestError(`Cannot pull to field '${key}'`));
-    const doc = await loader.match(model).id(id).options(options).one({ required: true });
-    const data = { [key]: _.get(doc, key, []) };
-    _.remove(data[key], el => values.find(v => hashObject(v) === hashObject(el)));
-    normalizeModelData(loader, model, data);
-    await validateModelData(loader, model, data, doc, 'update');
-
-    return createSystemEvent('Mutation', { method: 'pull', model, loader, id, data }, async () => {
+    return createSystemEvent('Mutation', { method: 'splice', model, loader, id, data }, async () => {
       const merged = normalizeModelData(loader, model, mergeDeep(doc, data));
       const result = await model.update(id, data, merged, options);
       return model.hydrate(loader, result, { fields: query.getSelectFields() });
