@@ -576,7 +576,9 @@ module.exports = (name, db = 'mongo') => {
         txn1.match('Person').save({ name: 'person1', emailAddress: 'person1@gmail.com' });
         txn1.match('Person').save({ name: 'person2', emailAddress: 'person2@gmail.com' });
         const [person1$1, person2$1] = await txn1.exec();
+        expect(person1$1.id).toBeDefined();
         expect(person1$1.name).toBe('Person1');
+        expect(person2$1.id).toBeDefined();
         expect(person2$1.name).toBe('Person2');
         expect(await loader.match('Person').id(person1$1.id).one()).toBeNull();
         await txn1.commit();
@@ -646,17 +648,17 @@ module.exports = (name, db = 'mongo') => {
         await expect(txn2.exec()).rejects.toThrow();
       });
 
-      // test('single-txn (read & write)', async (done) => {
-      //   const txn = loader.transaction();
-      //   txn.match('Person').save({ name: 'write1', emailAddress: 'write1@gmail.com' });
-      //   txn.match('Person').id(richard.id).one();
-      //   txn.match('Person').save({ name: 'write2', emailAddress: 'write2@gmail.com' });
-      //   const [person1, richie, person2] = await txn.exec();
-      //   expect(person1.name).toBe('Write1');
-      //   expect(richie.name).toBe('Richard');
-      //   expect(person2.name).toBe('Write2');
-      //   txn.rollback().then(() => done());
-      // });
+      test('single-txn (read & write)', async (done) => {
+        const txn = loader.transaction();
+        txn.match('Person').save({ name: 'write1', emailAddress: 'write1@gmail.com' });
+        txn.match('Person').id(richard.id).one();
+        txn.match('Person').save({ name: 'write2', emailAddress: 'write2@gmail.com' });
+        const [person1, richie, person2] = await txn.exec();
+        expect(person1.name).toBe('Write1');
+        expect(richie.name).toBe('Richard');
+        expect(person2.name).toBe('Write2');
+        txn.rollback().then(() => done());
+      });
     });
 
 

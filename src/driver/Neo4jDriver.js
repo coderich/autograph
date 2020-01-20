@@ -1,6 +1,6 @@
 const Axios = require('axios');
 const Neo4j = require('neo4j-driver');
-const { globToRegex, proxyDeep, isScalarValue } = require('../service/app.service');
+const { promiseChain, globToRegex, proxyDeep, isScalarValue } = require('../service/app.service');
 
 class Cypher {
   constructor(uri, schema, options = {}) {
@@ -117,14 +117,48 @@ class Cypher {
   }
 }
 
+// https://neo4j.com/docs/http-api/3.5/actions/begin-a-transaction/
 exports.Neo4jRestDriver = class Neo4jRestDriver extends Cypher {
   constructor(uri, options) {
     super(uri, options);
-    this.cypher = Axios.get(`${uri}/db/data/`).then(({ data }) => data.cypher);
+
+    // Grab our endpoints
+    const dbData = Axios.get(`${uri}/db/data/`).then(({ data }) => data);
+    this.session = dbData.then(data => data.cypher);
+    this.txn = dbData.then(data => data.transaction);
   }
 
   query(query, params = {}, options = {}) {
-    return this.cypher.then(url => Axios.post(url, { query, params: Neo4jRestDriver.serialize(params) }).then(({ data }) => Neo4jRestDriver.toObject(data.data || [])));
+    if (options.session) {
+      return Axios.post(options.session, {
+        statements: [{
+          statement: query,
+          parameters: Neo4jRestDriver.serialize(params),
+        }],
+      }).then((response) => {
+        const { data = [] } = response.data.results[0];
+        return Neo4jRestDriver.toObjectTxn(data);
+      });
+    }
+
+    return this.session.then(url => Axios.post(url, { query, params: Neo4jRestDriver.serialize(params) }).then(({ data }) => Neo4jRestDriver.toObject(data.data || [])));
+  }
+
+  async transaction(ops) {
+    const response = await this.txn.then(url => Axios.post(url, { statements: [] }));
+    const session = response.headers.location;
+    const commit = () => Axios.post(response.data.commit, { statements: [] });
+    const rollback = () => Axios.delete(session);
+
+    // Unfortunately must chain in series or figure out a way to combine in one shot
+    return promiseChain(ops.map(op => () => op.exec({ session }))).then((results) => {
+      results.$commit = () => commit();
+      results.$rollback = () => rollback();
+      return results;
+    }).catch(async (e) => {
+      await rollback();
+      throw e;
+    });
   }
 
   static toObject(records) {
@@ -133,6 +167,15 @@ exports.Neo4jRestDriver = class Neo4jRestDriver extends Cypher {
 
       const { metadata, data } = result;
       return Object.defineProperty(Neo4jRestDriver.deserialize(data), 'id', { value: metadata.id });
+    });
+  }
+
+  static toObjectTxn(records) {
+    return records.map((result) => {
+      if (isScalarValue(result)) return result;
+
+      const { meta, row } = result;
+      return Object.defineProperty(Neo4jRestDriver.deserialize(row[0]), 'id', { value: meta[0].id });
     });
   }
 };
