@@ -47,10 +47,12 @@ module.exports = class QueryBuilder {
     this.rollup = (...args) => this.makeTheCall(query, 'rollup', args); // Like sum, but for nested attributes (eg. Person.rollupAuthoredChaptersPages)
   }
 
-  async makeTheCall(query, cmd, args) {
+  async makeTheCall(query, cmd, args, txn = this.loader.transaction()) {
     const { model, loader } = this;
-    const { id, where, before, after, txn = loader.transaction() } = query;
+    const { id, where, before, after } = query;
     const txnLength = txn.length(); // To determine if new txn or existing
+
+    // console.log(query, cmd);
 
     switch (cmd) {
       case 'one': {
@@ -126,6 +128,7 @@ module.exports = class QueryBuilder {
         if (where) {
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
           const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
+          // return Promise.all(docs.map(doc => txn.match(model).id(doc.id).remove(txn)));
           const results = Promise.all(docs.map(doc => txn.match(model).id(doc.id).remove(txn)));
           return txnLength ? results : txn.auto();
         }

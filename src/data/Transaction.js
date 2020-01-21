@@ -7,12 +7,13 @@ module.exports = class Transaction {
     this.results = [];
     this.ops = new Map();
     this.len = 0;
+    this.done = false;
   }
 
   match(modelName) {
     const model = this.loader.toModel(modelName);
     const driver = model.getDriver();
-    const op = new TransactionQueryBuilder(model, this.loader).txn(this);
+    const op = new TransactionQueryBuilder(model, this.loader, this);
     if (!this.ops.has(driver)) this.ops.set(driver, []);
     this.ops.get(driver).push(op);
     this.len++;
@@ -20,10 +21,14 @@ module.exports = class Transaction {
   }
 
   exec() {
-    return Promise.all(Array.from(this.ops.entries()).map(([driver, ops]) => driver.transaction(ops))).then((results) => {
+    if (this.promise) return this.promise;
+
+    this.promise = Promise.all(Array.from(this.ops.entries()).map(([driver, ops]) => driver.transaction(ops))).then((results) => {
       this.results = results;
       return _.flatten(results);
     });
+
+    return this.promise;
   }
 
   auto() {
@@ -37,11 +42,15 @@ module.exports = class Transaction {
   }
 
   commit() {
+    if (this.done) return Promise.resolve();
+    this.done = true;
     this.loader.clearAll();
     return Promise.all(this.results.map(result => result.$commit()));
   }
 
   rollback() {
+    if (this.done) return Promise.resolve();
+    this.done = true;
     return Promise.all(this.results.map(result => result.$rollback()));
   }
 

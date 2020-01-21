@@ -262,7 +262,9 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
 
 exports.resolveReferentialIntegrity = (loader, model, query, txn) => {
   const id = query.getId();
-  return Promise.resolve(id);
+  const txnLength = txn.length();
+
+  return Promise.resolve(1);
 
   return new Promise((resolve, reject) => {
     try {
@@ -271,7 +273,7 @@ exports.resolveReferentialIntegrity = (loader, model, query, txn) => {
         const isArray = field.isArray();
         const fieldStr = `${field}`;
 
-        // console.log(op, `${ref}`, fieldStr, id, isArray);
+        console.log(op, `${ref}`, fieldStr, id, isArray);
 
         switch (op) {
           case 'cascade': {
@@ -292,6 +294,7 @@ exports.resolveReferentialIntegrity = (loader, model, query, txn) => {
       });
 
       // Execute the transaction
+      console.log('executing', txnLength, txn.length());
       txn.exec().then((results) => {
         console.log('results', JSON.stringify(results));
         resolve(results);
