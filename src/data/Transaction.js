@@ -12,7 +12,7 @@ module.exports = class Transaction {
   match(modelName) {
     const model = this.loader.toModel(modelName);
     const driver = model.getDriver();
-    const op = new TransactionQueryBuilder(model, this.loader);
+    const op = new TransactionQueryBuilder(model, this.loader).txn(this);
     if (!this.ops.has(driver)) this.ops.set(driver, []);
     this.ops.get(driver).push(op);
     this.len++;

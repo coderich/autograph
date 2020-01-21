@@ -278,12 +278,12 @@ exports.resolveReferentialIntegrity = (loader, model, query, txn) => {
             if (isArray) {
               txn.match(ref).where({ [fieldStr]: id }).pull(fieldStr, id);
             } else {
-              // txn.match(ref).where({ [`field`]: id }).remove(txn);
+              // txn.match(ref).where({ [fieldStr]: id }).remove(txn);
             }
             break;
           }
           case 'nullify': {
-            txn.match(ref).where({ [fieldStr]: id }).save({ [fieldStr]: null });
+            // txn.match(ref).where({ [fieldStr]: id }).save({ [fieldStr]: null });
             break;
           }
           case 'restrict': throw new Error('restricted');

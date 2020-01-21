@@ -50,6 +50,7 @@ module.exports = class QueryBuilder {
   async makeTheCall(query, cmd, args) {
     const { model, loader } = this;
     const { id, where, before, after, txn = loader.transaction() } = query;
+    const txnLength = txn.length(); // To determine if new txn or existing
 
     switch (cmd) {
       case 'one': {
@@ -87,8 +88,8 @@ module.exports = class QueryBuilder {
         if (where) {
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
           const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
-          docs.forEach(doc => txn.match(model).id(doc.id).query(query)[cmd](...args));
-          return txn.auto();
+          const results = Promise.all(docs.map(doc => txn.match(model).id(doc.id).query(query)[cmd](...args)));
+          return txnLength ? results : txn.auto();
         }
 
         // Best to require explicit intent
@@ -104,14 +105,14 @@ module.exports = class QueryBuilder {
         if (where) {
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
           const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
-          docs.forEach(doc => txn.match(model).id(doc.id).query(query).save(...args));
-          return txn.auto();
+          const results = Promise.all(docs.map(doc => txn.match(model).id(doc.id).query(query).save(...args)));
+          return txnLength ? results : txn.auto();
         }
 
         // Multi save (transaction)
         if (args.length > 1) {
-          args.forEach(arg => txn.match(model).query(query).save(arg));
-          return txn.auto();
+          const results = Promise.all(args.map(arg => txn.match(model).query(query).save(arg)));
+          return txnLength ? results : txn.auto();
         }
 
         // Single save
@@ -125,8 +126,8 @@ module.exports = class QueryBuilder {
         if (where) {
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
           const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
-          docs.forEach(doc => txn.match(model).id(doc.id).remove(txn));
-          return txn.auto();
+          const results = Promise.all(docs.map(doc => txn.match(model).id(doc.id).remove(txn)));
+          return txnLength ? results : txn.auto();
         }
 
         // Best to require explicit intent
