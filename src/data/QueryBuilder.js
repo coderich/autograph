@@ -33,6 +33,7 @@ module.exports = class QueryBuilder {
     this.save = (...args) => this.makeTheCall(query, 'save', args);
     this.push = (...args) => this.makeTheCall(query, 'push', args);
     this.pull = (...args) => this.makeTheCall(query, 'pull', args);
+    // this.splice = (...args) => this.makeTheCall(query, 'splice', args);
     this.remove = (...args) => this.makeTheCall(query, 'remove', args);
 
     // Food for thought...
@@ -43,7 +44,6 @@ module.exports = class QueryBuilder {
     this.meta = (...args) => this.makeTheCall(query, 'meta', args); // Provider additional options to query (may be dupe of options above)
     this.sum = (...args) => this.makeTheCall(query, 'sum', args); // Would sum be different than count?
     this.rollup = (...args) => this.makeTheCall(query, 'rollup', args); // Like sum, but for nested attributes (eg. Person.rollupAuthoredChaptersPages)
-    this.splice = (...args) => this.makeTheCall(query, 'splice', args); // Remove/Add elements to an array (flexible push/pull)
   }
 
   async makeTheCall(query, cmd, args) {
@@ -82,7 +82,7 @@ module.exports = class QueryBuilder {
         // Single op
         if (id) return loader.load({ method: cmd, model, query, args: [id, key, values] });
 
-        // Multi op (transactional)
+        // Multi op (transaction)
         if (where) {
           const txn = loader.transaction();
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
@@ -100,7 +100,7 @@ module.exports = class QueryBuilder {
         // Update
         if (id || where) return loader.load({ method: 'update', model, query, args: [data] });
 
-        // Multi save (transactional)
+        // Multi save (transaction)
         if (args.length > 1) {
           const txn = loader.transaction();
           args.forEach(arg => txn.match(model).query(query).save(arg));
@@ -111,8 +111,21 @@ module.exports = class QueryBuilder {
         return loader.load({ method: 'create', model, query, args: [data] });
       }
       case 'remove': {
-        if (id === undefined && where === undefined) return Promise.reject(new Error('Remove requires an id() or where()'));
-        return loader.load({ method: 'delete', model, query, args: [] });
+        const [transaction = loader.transaction()] = args;
+
+        // Single document remove
+        if (id) return loader.load({ method: 'delete', model, query, args: [id, transaction] });
+
+        // Multi remove (transaction)
+        if (where) {
+          const txn = loader.transaction();
+          const resolvedWhere = await resolveModelWhereClause(loader, model, where);
+          const docs = await loader.match(model).where(resolvedWhere).many();
+          docs.forEach(doc => txn.match(model).id(doc.id).remove(txn));
+          return txn.auto();
+        }
+
+        return Promise.reject(new Error('Remove requires an id() or where()'));
       }
       default: {
         return Promise.reject(new Error(`Unknown command: ${cmd}`));

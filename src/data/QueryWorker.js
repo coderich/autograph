@@ -153,27 +153,15 @@ module.exports = class QueryWorker {
     });
   }
 
-  async delete(query) {
+  async delete(query, id, txn) {
     const { loader } = this;
-    const [id, model, where, options] = [query.getId(), query.getModel(), query.getWhere(), query.getOptions()];
+    const [model, options] = [query.getModel(), query.getOptions()];
+    const doc = await loader.match(model).id(id).options(options).one({ required: true });
 
-    let args;
-    let method;
-
-    if (id) {
-      const doc = await loader.match(model).id(id).options(options).one({ required: true });
-      args = [id, doc, options];
-      method = 'delete';
-    } else {
-      const resolvedWhere = await resolveModelWhereClause(loader, model, where);
-      args = [resolvedWhere, options];
-      method = 'deleteMany';
-    }
-
-    return createSystemEvent('Mutation', { method, model, loader, query }, () => {
-      return resolveReferentialIntegrity(loader, model, query).then(async () => {
-        const result = await model[method](...args);
-        return method === 'delete' ? model.hydrate(loader, result, { fields: query.getSelectFields() }) : result;
+    return createSystemEvent('Mutation', { method: 'delete', model, loader, query }, () => {
+      return resolveReferentialIntegrity(loader, model, query, txn).then(async () => {
+        const result = await model.delete(id, doc, options);
+        return model.hydrate(loader, result, { fields: query.getSelectFields() });
       });
     });
   }

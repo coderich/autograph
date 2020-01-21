@@ -45,18 +45,13 @@ module.exports = class MongoDriver {
   }
 
   replaceMany(model, where = {}, data, options) {
-    const $where = MongoDriver.normalizeWhere(where);
     const $set = { $set: data };
-    return this.query(model, 'updateMany', $where, $set, options).then(() => 'success');
+    const $where = MongoDriver.normalizeWhere(where);
+    return this.query(model, 'updateMany', $where, $set, options);
   }
 
   delete(model, id, doc, options) {
     return this.query(model, 'deleteOne', { _id: id }, options).then(() => doc);
-  }
-
-  deleteMany(model, where = {}, options) {
-    const $where = MongoDriver.normalizeWhere(where);
-    return this.query(model, 'deleteMany', $where, options).then(() => 'success');
   }
 
   dropModel(model) {

@@ -44,12 +44,6 @@ class Cypher {
     return this.query(`MATCH (n:${model}) WHERE n.id = { id } DELETE n`, { id }, options).then(() => doc);
   }
 
-  deleteMany(model, where, options) {
-    const { $where, $params } = Cypher.normalizeWhereClause(where);
-    const $wherePart = $where ? `WHERE ${$where}` : '';
-    return this.query(`MATCH (n:${model}) ${$wherePart} DELETE n`, $params, options).then(() => 'success');
-  }
-
   dropModel(model) {
     return this.query(`MATCH (n:${model}) DELETE n`);
   }

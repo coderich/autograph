@@ -260,13 +260,12 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
   return undefined;
 };
 
-exports.resolveReferentialIntegrity = (loader, model, id) => {
-  return Promise.resolve([]);
+exports.resolveReferentialIntegrity = (loader, model, query, txn) => {
+  return Promise.resolve();
+
+  const id = query.getId();
 
   return new Promise((resolve, reject) => {
-    // Start transaction for onDelete
-    const txn = loader.transaction();
-
     try {
       model.referentialIntegrity().forEach(({ model: ref, field }) => {
         const op = field.getOnDelete();
