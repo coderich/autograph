@@ -7,7 +7,6 @@ module.exports = class Transaction {
     this.results = [];
     this.ops = new Map();
     this.len = 0;
-    this.done = false;
   }
 
   match(modelName) {
@@ -21,36 +20,29 @@ module.exports = class Transaction {
   }
 
   exec() {
-    if (this.promise) return this.promise;
+    const entries = Array.from(this.ops.entries());
+    this.ops.clear();
 
-    this.promise = Promise.all(Array.from(this.ops.entries()).map(([driver, ops]) => driver.transaction(ops))).then((results) => {
+    return Promise.all(entries.map(([driver, ops]) => driver.transaction(ops))).then((results) => {
       this.results = results;
       return _.flatten(results);
     });
-
-    return this.promise;
   }
 
   auto() {
-    return this.exec().then(async (results) => {
-      await this.commit();
-      return results;
-    }).catch(async (e) => {
-      await this.rollback();
-      throw e;
+    return this.exec().then((results) => {
+      return this.commit().then(() => results);
+    }).catch((e) => {
+      return this.rollback().then(() => Promise.reject(e));
     });
   }
 
   commit() {
-    if (this.done) return Promise.resolve();
-    this.done = true;
     this.loader.clearAll();
     return Promise.all(this.results.map(result => result.$commit()));
   }
 
   rollback() {
-    if (this.done) return Promise.resolve();
-    this.done = true;
     return Promise.all(this.results.map(result => result.$rollback()));
   }
 

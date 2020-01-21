@@ -28,6 +28,8 @@ module.exports = class QueryWorker {
     const { loader } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
 
+    // console.log(`${model}`, id);
+
     return createSystemEvent('Query', { method: 'get', model, loader, query }, async () => {
       const doc = await model.get(id, options);
       if (!doc && required) throw new NotFoundError(`${model} Not Found`);

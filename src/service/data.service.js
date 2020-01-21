@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { ObjectID } = require('mongodb');
 const { BadRequestError } = require('../service/error.service');
-const { uniq, globToRegexp, isScalarValue, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
+const { timeout, uniq, globToRegexp, isScalarValue, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
 
 exports.validateModelData = (loader, model, data, oldData, op) => {
   const promises = [];
@@ -262,23 +262,22 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
 
 exports.resolveReferentialIntegrity = (loader, model, query, txn) => {
   const id = query.getId();
-  const txnLength = txn.length();
 
-  return Promise.resolve(1);
+  return Promise.resolve();
 
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     try {
       model.referentialIntegrity().forEach(({ model: ref, field }) => {
         const op = field.getOnDelete();
         const isArray = field.isArray();
         const fieldStr = `${field}`;
 
-        console.log(op, `${ref}`, fieldStr, id, isArray);
+        // console.log(op, `${ref}`, fieldStr, id, isArray);
 
         switch (op) {
           case 'cascade': {
             if (isArray) {
-              txn.match(ref).where({ [fieldStr]: id }).pull(fieldStr, id);
+              // txn.match(ref).where({ [fieldStr]: id }).pull(fieldStr, id);
             } else {
               // txn.match(ref).where({ [fieldStr]: id }).remove(txn);
             }
@@ -294,15 +293,12 @@ exports.resolveReferentialIntegrity = (loader, model, query, txn) => {
       });
 
       // Execute the transaction
-      console.log('executing', txnLength, txn.length());
       txn.exec().then((results) => {
         console.log('results', JSON.stringify(results));
-        resolve(results);
-        txn.commit();
+        return txn.commit().then(() => resolve(results)).catch(e => reject(e));
       });
     } catch (e) {
-      reject(e);
-      txn.rollback();
+      return txn.rollback().then(() => reject(e)).catch(err => reject(err));
     }
   });
 };

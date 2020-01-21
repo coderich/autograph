@@ -90,8 +90,8 @@ module.exports = class QueryBuilder {
         if (where) {
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
           const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
-          const results = Promise.all(docs.map(doc => txn.match(model).id(doc.id).query(query)[cmd](...args)));
-          return txnLength ? results : txn.auto();
+          docs.forEach(doc => txn.match(model).id(doc.id).query(query)[cmd](...args));
+          return txnLength ? txn.exec() : txn.auto();
         }
 
         // Best to require explicit intent
@@ -107,8 +107,8 @@ module.exports = class QueryBuilder {
         if (where) {
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
           const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
-          const results = Promise.all(docs.map(doc => txn.match(model).id(doc.id).query(query).save(...args)));
-          return txnLength ? results : txn.auto();
+          docs.forEach(doc => txn.match(model).id(doc.id).query(query).save(...args));
+          return txnLength ? txn.exec() : txn.auto();
         }
 
         // Multi save (transaction)
@@ -128,9 +128,8 @@ module.exports = class QueryBuilder {
         if (where) {
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
           const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
-          // return Promise.all(docs.map(doc => txn.match(model).id(doc.id).remove(txn)));
-          const results = Promise.all(docs.map(doc => txn.match(model).id(doc.id).remove(txn)));
-          return txnLength ? results : txn.auto();
+          docs.forEach(doc => txn.match(model).id(doc.id).remove(txn));
+          return txnLength ? txn.exec() : txn.auto();
         }
 
         // Best to require explicit intent
