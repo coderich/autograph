@@ -6,6 +6,7 @@ module.exports = class Transaction {
     this.loader = loader;
     this.results = [];
     this.ops = new Map();
+    this.len = 0;
   }
 
   match(modelName) {
@@ -14,6 +15,7 @@ module.exports = class Transaction {
     const op = new TransactionQueryBuilder(model, this.loader);
     if (!this.ops.has(driver)) this.ops.set(driver, []);
     this.ops.get(driver).push(op);
+    this.len++;
     return op;
   }
 
@@ -41,5 +43,9 @@ module.exports = class Transaction {
 
   rollback() {
     return Promise.all(this.results.map(result => result.$rollback()));
+  }
+
+  length() {
+    return this.len;
   }
 };

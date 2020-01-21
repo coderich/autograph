@@ -119,6 +119,9 @@ module.exports = class QueryWorker {
     const field = model.getField(key);
     if (!field || !field.isArray()) return Promise.reject(new BadRequestError(`Cannot splice field '${key}'`));
     const doc = await loader.match(model).id(id).options(options).one({ required: true });
+    from = normalizeModelData(loader, model, { [key]: from })[key];
+    to = normalizeModelData(loader, model, { [key]: to })[key];
+
     let data;
 
     if (from) {

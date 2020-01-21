@@ -487,15 +487,21 @@ module.exports = (driver = 'mongo') => {
         expect(await loader.match('Book').id(healthBook.id).push('bids', 0.25, 0.25, 11.00, 0.25)).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', bids: [5.00, 9.00, 12.50, 0.25, 0.25, 11.00, 0.25] });
         expect(await loader.match('Book').id(healthBook.id).pull('bids', 0.25, 9.00)).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', bids: [5.00, 12.50, 11.00] });
 
-        // Multi
+        // Multi Push
         await loader.match('Art').save({ name: 'Art1' }, { name: 'Art2' });
         await loader.match('Art').where({}).push('bids', 69.99, '109.99');
         expect(await loader.match('Art').many()).toMatchObject([{ bids: [69.99, 109.99] }, { bids: [69.99, 109.99] }]);
+
+        // Multi Pull
+        await loader.match('Art').where({}).pull('bids', '69.99');
+        expect(await loader.match('Art').many()).toMatchObject([{ bids: [109.99] }, { bids: [109.99] }]);
       });
 
       test('multi-update', async () => {
         await loader.match('Person').where({}).save({ status: 'online' });
         expect(await loader.match('Person').many()).toMatchObject([{ status: 'online' }, { status: 'online' }]);
+        await loader.match('Person').where({ status: 'online' }).save({ status: 'offline' });
+        expect(await loader.match('Person').many()).toMatchObject([{ status: 'offline' }, { status: 'offline' }]);
       });
     });
 

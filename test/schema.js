@@ -77,7 +77,7 @@ exports.schema = {
       year: Number,
       type: { type: String, rules: [required(), allow('home', 'office', 'business')] },
       tenants: { type: Set('Person'), onDelete: 'cascade' },
-      landlord: 'Person',
+      landlord: { type: 'Person', onDelete: 'nullify' },
     },
   },
   Color: {

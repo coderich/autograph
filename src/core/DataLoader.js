@@ -1,4 +1,4 @@
-const DataLoader = require('dataloader');
+const FBDataLoader = require('dataloader');
 const QueryBuilder = require('../data/QueryBuilder');
 const QueryWorker = require('../data/QueryWorker');
 const Transaction = require('../data/Transaction');
@@ -6,13 +6,11 @@ const Query = require('../data/Query');
 const Model = require('../data/Model');
 const { hashObject } = require('../service/app.service');
 
-module.exports = class {
+module.exports = class DataLoader {
   constructor(schema) {
     this.schema = schema;
     this.worker = new QueryWorker(this);
-    this.loader = new DataLoader(keys => Promise.all(keys.map(({ method, query, args }) => this.worker[method](query, ...args))), {
-      cacheKeyFn: ({ method, model, query, args }) => hashObject({ method, model: `${model}`, query: query.toObject(), args }),
-    });
+    this.loader = this.createLoader();
   }
 
   async load(key) {
@@ -53,5 +51,11 @@ module.exports = class {
 
   toModel(model) {
     return model instanceof Model ? model : this.schema.getModel(model);
+  }
+
+  createLoader() {
+    return new FBDataLoader(keys => Promise.all(keys.map(({ method, query, args }) => this.worker[method](query, ...args))), {
+      cacheKeyFn: ({ method, model, query, args }) => hashObject({ method, model: `${model}`, query: query.toObject(), args }),
+    });
   }
 };

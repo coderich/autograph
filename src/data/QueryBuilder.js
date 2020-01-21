@@ -17,6 +17,7 @@ module.exports = class QueryBuilder {
     this.before = (before) => { query.before = before; return this; };
     this.after = (after) => { query.after = after; return this; };
     this.options = (options) => { query.options = Object.assign({}, query.options, options); return this; };
+    this.txn = (txn) => { query.txn = txn; return this; };
 
     // want to keep?
     this.query = (q) => { Object.assign(query, _.cloneDeep(q)); return this; };
@@ -48,7 +49,7 @@ module.exports = class QueryBuilder {
 
   async makeTheCall(query, cmd, args) {
     const { model, loader } = this;
-    const { id, where, before, after } = query;
+    const { id, where, before, after, txn = loader.transaction() } = query;
 
     switch (cmd) {
       case 'one': {
@@ -84,9 +85,8 @@ module.exports = class QueryBuilder {
 
         // Multi op (transaction)
         if (where) {
-          const txn = loader.transaction();
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
-          const docs = await loader.match(model).where(resolvedWhere).many();
+          const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
           docs.forEach(doc => txn.match(model).id(doc.id).query(query)[cmd](...args));
           return txn.auto();
         }
@@ -102,16 +102,14 @@ module.exports = class QueryBuilder {
 
         // Multi update (transaction)
         if (where) {
-          const txn = loader.transaction();
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
-          const docs = await loader.match(model).where(resolvedWhere).many();
+          const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
           docs.forEach(doc => txn.match(model).id(doc.id).query(query).save(...args));
           return txn.auto();
         }
 
         // Multi save (transaction)
         if (args.length > 1) {
-          const txn = loader.transaction();
           args.forEach(arg => txn.match(model).query(query).save(arg));
           return txn.auto();
         }
@@ -120,16 +118,13 @@ module.exports = class QueryBuilder {
         return loader.load({ method: 'create', model, query, args: [data] });
       }
       case 'remove': {
-        const [transaction = loader.transaction()] = args;
-
         // Single document remove
-        if (id) return loader.load({ method: 'delete', model, query, args: [transaction] });
+        if (id) return loader.load({ method: 'delete', model, query, args: [txn] });
 
         // Multi remove (transaction)
         if (where) {
-          const txn = loader.transaction();
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
-          const docs = await loader.match(model).where(resolvedWhere).many();
+          const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
           docs.forEach(doc => txn.match(model).id(doc.id).remove(txn));
           return txn.auto();
         }

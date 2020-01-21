@@ -261,23 +261,29 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
 };
 
 exports.resolveReferentialIntegrity = (loader, model, query, txn) => {
-  return Promise.resolve();
-
   const id = query.getId();
+  return Promise.resolve(id);
 
   return new Promise((resolve, reject) => {
     try {
       model.referentialIntegrity().forEach(({ model: ref, field }) => {
         const op = field.getOnDelete();
         const isArray = field.isArray();
+        const fieldStr = `${field}`;
+
+        // console.log(op, `${ref}`, fieldStr, id, isArray);
 
         switch (op) {
           case 'cascade': {
-            txn.match(ref).where({ [field]: id }).remove();
+            if (isArray) {
+              txn.match(ref).where({ [fieldStr]: id }).pull(fieldStr, id);
+            } else {
+              // txn.match(ref).where({ [`field`]: id }).remove(txn);
+            }
             break;
           }
           case 'nullify': {
-            txn.match(ref).where({ [field]: id }).save({ [field]: null });
+            txn.match(ref).where({ [fieldStr]: id }).save({ [fieldStr]: null });
             break;
           }
           case 'restrict': throw new Error('restricted');
@@ -287,21 +293,15 @@ exports.resolveReferentialIntegrity = (loader, model, query, txn) => {
 
       // Execute the transaction
       txn.exec().then((results) => {
-        console.log('results', results);
-        resolve();
-        txn.rollback();
-        // txn.commit();
+        console.log('results', JSON.stringify(results));
+        resolve(results);
+        txn.commit();
       });
     } catch (e) {
       reject(e);
       txn.rollback();
     }
   });
-
-  // return Promise.all(model.referentialIntegrity().map(({ model: ref, field }) => {
-  //   console.log(`${model} -> ${ref}.${field}`, field.getOnDelete(), field.isArray());
-  //   return null;
-  // }));
 };
 
 exports.sortData = (data, sortBy) => {
