@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { ObjectID } = require('mongodb');
 const { BadRequestError } = require('../service/error.service');
-const { timeout, uniq, globToRegexp, isScalarValue, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
+const { uniq, globToRegexp, isScalarValue, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
 
 exports.validateModelData = (loader, model, data, oldData, op) => {
   const promises = [];
