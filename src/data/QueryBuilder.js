@@ -54,7 +54,7 @@ module.exports = class QueryBuilder {
       case 'one': {
         if (id) {
           const { required } = _.get(args, '0', {});
-          return loader.load({ method: 'get', model, query, args: [id, required] });
+          return loader.load({ method: 'get', model, query, args: [required] });
         }
         const { find } = _.get(args, '0', {});
         const method = find ? 'find' : 'query';
@@ -80,7 +80,7 @@ module.exports = class QueryBuilder {
         const [key, ...values] = args;
 
         // Single op
-        if (id) return loader.load({ method: cmd, model, query, args: [id, key, values] });
+        if (id) return loader.load({ method: cmd, model, query, args: [key, values] });
 
         // Multi op (transaction)
         if (where) {
@@ -98,7 +98,7 @@ module.exports = class QueryBuilder {
         const [data] = args;
 
         // Single update
-        if (id) return loader.load({ method: 'update', model, query, args: [id, data] });
+        if (id) return loader.load({ method: 'update', model, query, args: [data] });
 
         // Multi update (transaction)
         if (where) {
@@ -123,7 +123,7 @@ module.exports = class QueryBuilder {
         const [transaction = loader.transaction()] = args;
 
         // Single document remove
-        if (id) return loader.load({ method: 'delete', model, query, args: [id, transaction] });
+        if (id) return loader.load({ method: 'delete', model, query, args: [transaction] });
 
         // Multi remove (transaction)
         if (where) {

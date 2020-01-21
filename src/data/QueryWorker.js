@@ -20,13 +20,13 @@ module.exports = class QueryWorker {
     this.loader = loader;
 
     // Convenience methods
-    this.push = (query, id, key, values) => this.splice(query, id, key, null, values);
-    this.pull = (query, id, key, values) => this.splice(query, id, key, values);
+    this.push = (query, key, values) => this.splice(query, key, null, values);
+    this.pull = (query, key, values) => this.splice(query, key, values);
   }
 
-  get(query, id, required) {
+  get(query, required) {
     const { loader } = this;
-    const [model, options] = [query.getModel(), query.getOptions()];
+    const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
 
     return createSystemEvent('Query', { method: 'get', model, loader, query }, async () => {
       const doc = await model.get(id, options);
@@ -98,9 +98,9 @@ module.exports = class QueryWorker {
     });
   }
 
-  async update(query, id, data = {}) {
+  async update(query, data = {}) {
     const { loader } = this;
-    const [model, options] = [query.getModel(), query.getOptions()];
+    const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await loader.match(model).id(id).options(options).one({ required: true });
     ensureModelArrayTypes(loader, model, data);
     normalizeModelData(loader, model, data);
@@ -113,9 +113,9 @@ module.exports = class QueryWorker {
     });
   }
 
-  async splice(query, id, key, from, to) {
+  async splice(query, key, from, to) {
     const { loader } = this;
-    const [model, options] = [query.getModel(), query.getOptions()];
+    const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const field = model.getField(key);
     if (!field || !field.isArray()) return Promise.reject(new BadRequestError(`Cannot splice field '${key}'`));
     const doc = await loader.match(model).id(id).options(options).one({ required: true });
@@ -138,9 +138,9 @@ module.exports = class QueryWorker {
     });
   }
 
-  async delete(query, id, txn) {
+  async delete(query, txn) {
     const { loader } = this;
-    const [model, options] = [query.getModel(), query.getOptions()];
+    const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await loader.match(model).id(id).options(options).one({ required: true });
 
     return createSystemEvent('Mutation', { method: 'delete', model, loader, query }, () => {
