@@ -22,6 +22,7 @@ module.exports = class Transaction {
   exec() {
     const entries = Array.from(this.ops.entries());
     this.ops.clear();
+    this.len = 0;
 
     return Promise.all(entries.map(([driver, ops]) => driver.transaction(ops))).then((results) => {
       this.results = results;

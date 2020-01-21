@@ -52,8 +52,6 @@ module.exports = class QueryBuilder {
     const { id, where, before, after } = query;
     const txnLength = txn.length(); // To determine if new txn or existing
 
-    // console.log(query, cmd);
-
     switch (cmd) {
       case 'one': {
         if (id) {
@@ -90,7 +88,7 @@ module.exports = class QueryBuilder {
         if (where) {
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
           const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
-          docs.forEach(doc => txn.match(model).id(doc.id).query(query)[cmd](...args));
+          const promise = Promise.all(docs.map(doc => txn.match(model).id(doc.id).query(query)[cmd](...args)));
           return txnLength ? txn.exec() : txn.auto();
         }
 
@@ -107,14 +105,14 @@ module.exports = class QueryBuilder {
         if (where) {
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
           const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
-          docs.forEach(doc => txn.match(model).id(doc.id).query(query).save(...args));
+          const promise = Promise.all(docs.map(doc => txn.match(model).id(doc.id).query(query).save(...args)));
           return txnLength ? txn.exec() : txn.auto();
         }
 
         // Multi save (transaction)
         if (args.length > 1) {
-          const results = Promise.all(args.map(arg => txn.match(model).query(query).save(arg)));
-          return txnLength ? results : txn.auto();
+          const promise = Promise.all(args.map(arg => txn.match(model).query(query).save(arg)));
+          return txnLength ? txn.exec() : txn.auto();
         }
 
         // Single save
@@ -128,7 +126,7 @@ module.exports = class QueryBuilder {
         if (where) {
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
           const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
-          docs.forEach(doc => txn.match(model).id(doc.id).remove(txn));
+          const promise = Promise.all(docs.map(doc => txn.match(model).id(doc.id).remove(txn)));
           return txnLength ? txn.exec() : txn.auto();
         }
 

@@ -284,7 +284,7 @@ exports.resolveReferentialIntegrity = (loader, model, query, txn) => {
             break;
           }
           case 'nullify': {
-            // txn.match(ref).where({ [fieldStr]: id }).save({ [fieldStr]: null });
+            txn.match(ref).where({ [fieldStr]: id }).save({ [fieldStr]: null });
             break;
           }
           case 'restrict': throw new Error('restricted');
@@ -293,8 +293,7 @@ exports.resolveReferentialIntegrity = (loader, model, query, txn) => {
       });
 
       // Execute the transaction
-      txn.exec().then((results) => {
-        console.log('results', JSON.stringify(results));
+      return txn.exec().then((results) => {
         return txn.commit().then(() => resolve(results)).catch(e => reject(e));
       });
     } catch (e) {
