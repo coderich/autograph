@@ -33,13 +33,6 @@ class Cypher {
     return this.query(`MATCH (n:${model}) WHERE n.id = { id } SET ${Object.keys(doc).map(k => `n.${k}={${k}}`)} RETURN n`, { id, ...doc }, options).then(docs => docs[0]);
   }
 
-  replaceMany(model, where = {}, data, options) {
-    const { $where, $params } = Cypher.normalizeWhereClause(where);
-    const $wherePart = $where ? `WHERE ${$where}` : '';
-    const $data = Object.entries(data).reduce((prev, [key, value]) => Object.assign(prev, { [`_${key}`]: value }), {});
-    return this.query(`MATCH (n:${model}) ${$wherePart} SET ${Object.keys(data).map(k => `n.${k}={_${k}}`)} RETURN n`, { ...$params, ...$data }, options);
-  }
-
   delete(model, id, doc, options) {
     return this.query(`MATCH (n:${model}) WHERE n.id = { id } DELETE n`, { id }, options).then(() => doc);
   }

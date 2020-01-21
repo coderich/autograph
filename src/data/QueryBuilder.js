@@ -97,8 +97,17 @@ module.exports = class QueryBuilder {
       case 'save': {
         const [data] = args;
 
-        // Update
-        if (id || where) return loader.load({ method: 'update', model, query, args: [data] });
+        // Single update
+        if (id) return loader.load({ method: 'update', model, query, args: [id, data] });
+
+        // Multi update (transaction)
+        if (where) {
+          const txn = loader.transaction();
+          const resolvedWhere = await resolveModelWhereClause(loader, model, where);
+          const docs = await loader.match(model).where(resolvedWhere).many();
+          docs.forEach(doc => txn.match(model).id(doc.id).query(query).save(...args));
+          return txn.auto();
+        }
 
         // Multi save (transaction)
         if (args.length > 1) {
@@ -125,6 +134,7 @@ module.exports = class QueryBuilder {
           return txn.auto();
         }
 
+        // Best to require explicit intent
         return Promise.reject(new Error('Remove requires an id() or where()'));
       }
       default: {
