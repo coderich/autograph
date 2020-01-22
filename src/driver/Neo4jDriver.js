@@ -175,7 +175,10 @@ exports.Neo4jRestDriver = class Neo4jRestDriver extends Cypher {
       if (isScalarValue(result)) return result;
 
       const { meta, row } = result;
-      return Object.defineProperty(Neo4jRestDriver.deserialize(row[0]), 'id', { value: meta[0].id });
+      const [data] = row;
+      const [info] = meta;
+      const doc = typeof data === 'object' ? Neo4jRestDriver.deserialize(data) : data;
+      return info ? Object.defineProperty(doc, 'id', { value: info.id }) : doc;
     });
   }
 };

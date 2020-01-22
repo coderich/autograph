@@ -141,13 +141,13 @@ module.exports = class QueryWorker {
     });
   }
 
-  async delete(query, txn) {
+  async delete(query) {
     const { loader } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await loader.match(model).id(id).options(options).one({ required: true });
 
     return createSystemEvent('Mutation', { method: 'delete', model, loader, query }, () => {
-      return resolveReferentialIntegrity(loader, model, query, txn).then(async () => {
+      return resolveReferentialIntegrity(loader, model, query).then(async () => {
         const result = await model.delete(id, doc, options);
         return model.hydrate(loader, result, { fields: query.getSelectFields() });
       });

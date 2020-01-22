@@ -360,14 +360,7 @@ module.exports = (driver = 'mongo') => {
         await expect(loader.match('Book').save({ name: 'Best Book', price: 101, author: christie.id })).rejects.toThrow();
         await expect(loader.match('Book').id(mobyDick.id).save({ author: christie.id })).rejects.toThrow();
         await expect(loader.match('Book').id(mobyDick.id).save({ author: richard.id })).resolves;
-
-        switch (stores.default.type) {
-          case 'mongo': {
-            await expect(loader.match('Book', { name: 'MoBY DiCK', price: 1.99, author: richard.id }).save()).rejects.toThrow();
-            break;
-          }
-          default: break;
-        }
+        await expect(loader.match('Book', { name: 'MoBY DiCK', price: 1.99, author: richard.id }).save()).rejects.toThrow();
       });
 
       test('Chapter', async () => {
@@ -375,8 +368,8 @@ module.exports = (driver = 'mongo') => {
         await expect(loader.match('Chapter').save({ name: 'chapter1' })).rejects.toThrow();
         await expect(loader.match('Chapter').save({ name: 'chapter2' })).rejects.toThrow();
         await expect(loader.match('Chapter').save({ name: 'chapter3' })).rejects.toThrow();
-        await expect(loader.match('Chapter').save({ name: 'chapter1' }, { name: 'chapter2' })).rejects.toThrow();
 
+        // Composite key
         switch (stores.default.type) {
           case 'mongo': {
             await expect(loader.match('Chapter').save({ name: 'chapter1', book: healthBook.id })).rejects.toThrow();
@@ -391,6 +384,7 @@ module.exports = (driver = 'mongo') => {
         await expect(loader.match('Page').save()).rejects.toThrow();
         await expect(loader.match('Page').save({ number: 3 })).rejects.toThrow();
 
+        // Composite key
         switch (stores.default.type) {
           case 'mongo': {
             await expect(loader.match('Page').save({ number: 1, chapter: chapter1 })).rejects.toThrow();
@@ -486,22 +480,16 @@ module.exports = (driver = 'mongo') => {
         expect(await loader.match('Book').id(mobyDick.id).pull('bids', 1.99)).toMatchObject({ id: mobyDick.id, name: 'Moby Dick', bids: [2.99, 5.55] });
         expect(await loader.match('Book').id(healthBook.id).push('bids', 0.25, 0.25, 11.00, 0.25)).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', bids: [5.00, 9.00, 12.50, 0.25, 0.25, 11.00, 0.25] });
         expect(await loader.match('Book').id(healthBook.id).pull('bids', 0.25, 9.00)).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', bids: [5.00, 12.50, 11.00] });
-
-        // Multi Push
-        await loader.match('Art').save({ name: 'Art1' }, { name: 'Art2' });
-        await loader.match('Art').where({}).push('bids', 69.99, '109.99');
-        expect(await loader.match('Art').many()).toMatchObject([{ bids: [69.99, 109.99] }, { bids: [69.99, 109.99] }]);
-
-        // Multi Pull
-        await loader.match('Art').where({}).pull('bids', '69.99');
-        expect(await loader.match('Art').many()).toMatchObject([{ bids: [109.99] }, { bids: [109.99] }]);
       });
+    });
 
-      test('multi-update', async () => {
-        await loader.match('Person').where({}).save({ status: 'online' });
-        expect(await loader.match('Person').many()).toMatchObject([{ status: 'online' }, { status: 'online' }]);
-        await loader.match('Person').where({ status: 'online' }).save({ status: 'offline' });
-        expect(await loader.match('Person').many()).toMatchObject([{ status: 'offline' }, { status: 'offline' }]);
+    describe('Remove', () => {
+      test('Art', async () => {
+        const art = await loader.match('Art').save({ name: 'bye bye' });
+        expect(art).toBeDefined();
+        expect(await loader.match('Art').id(art.id).one()).not.toBeNull();
+        expect(await loader.match('Art').id(art.id).remove()).toMatchObject({ id: art.id, name: 'Bye Bye' });
+        expect(await loader.match('Art').id(art.id).one()).toBeNull();
       });
     });
 
@@ -590,7 +578,25 @@ module.exports = (driver = 'mongo') => {
     });
 
 
-    describe('Transactions', () => {
+    describe('Transactions (auto)', () => {
+      test('multi-update', async () => {
+        await loader.match('Person').where({}).save({ status: 'online' });
+        expect(await loader.match('Person').many()).toMatchObject([{ status: 'online' }, { status: 'online' }]);
+        await loader.match('Person').where({ status: 'online' }).save({ status: 'offline' });
+        expect(await loader.match('Person').many()).toMatchObject([{ status: 'offline' }, { status: 'offline' }]);
+        await expect(loader.match('Chapter').save({ name: 'chapter1' }, { name: 'chapter2' })).rejects.toThrow();
+      });
+
+      test('multi-push-pull', async () => {
+        // push
+        await loader.match('Art').save({ name: 'Art1' }, { name: 'Art2' });
+        await loader.match('Art').where({}).push('bids', 69.99, '109.99');
+        expect(await loader.match('Art').many()).toMatchObject([{ bids: [69.99, 109.99] }, { bids: [69.99, 109.99] }]);
+        // pull
+        await loader.match('Art').where({}).pull('bids', '69.99');
+        expect(await loader.match('Art').many()).toMatchObject([{ bids: [109.99] }, { bids: [109.99] }]);
+      });
+
       test('single txn (commit)', async () => {
         const txn1 = loader.transaction();
         txn1.match('Person').save({ name: 'person1', emailAddress: 'person1@gmail.com' });
@@ -604,7 +610,9 @@ module.exports = (driver = 'mongo') => {
         await txn1.commit();
         expect(await loader.match('Person').id(person1$1.id).one()).not.toBeNull();
       });
+    });
 
+    describe('Transactions (manual)', () => {
       test('single txn (rollback)', async () => {
         const txn1 = loader.transaction();
         txn1.match('Person').save({ name: 'person3', emailAddress: 'person3@gmail.com' });
@@ -624,50 +632,6 @@ module.exports = (driver = 'mongo') => {
         await expect(txn1.exec()).rejects.toThrow();
       });
 
-      test('multi-txn (duplicate key with rollback)', async (done) => {
-        const txn1 = loader.transaction();
-        const txn2 = loader.transaction();
-        txn1.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' });
-        txn1.match('Person').save({ name: 'person11', emailAddress: 'person11@gmail.com' });
-        txn2.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' });
-        txn2.match('Person').save({ name: 'person11', emailAddress: 'person11@gmail.com' });
-
-        txn1.exec().then((results) => {
-          const [person1, person2] = results;
-          expect(person1.name).toBe('Person10');
-          expect(person2.name).toBe('Person11');
-          txn1.rollback();
-        });
-
-        await timeout(100);
-
-        txn2.exec().then(async (results) => {
-          const [person1, person2] = results;
-          expect(person1.name).toBe('Person10');
-          expect(person2.name).toBe('Person11');
-          txn2.rollback().then(() => done());
-        });
-      });
-
-      test('multi-txn (duplicate key with commit)', async () => {
-        const txn1 = loader.transaction();
-        const txn2 = loader.transaction();
-        txn1.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' });
-        txn1.match('Person').save({ name: 'person11', emailAddress: 'person11@gmail.com' });
-        txn2.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' });
-        txn2.match('Person').save({ name: 'person11', emailAddress: 'person11@gmail.com' });
-
-        txn1.exec().then((results) => {
-          const [person1, person2] = results;
-          expect(person1.name).toBe('Person10');
-          expect(person2.name).toBe('Person11');
-          txn1.commit();
-        });
-
-        await timeout(100);
-        await expect(txn2.exec()).rejects.toThrow();
-      });
-
       test('single-txn (read & write)', async (done) => {
         const txn = loader.transaction();
         txn.match('Person').save({ name: 'write1', emailAddress: 'write1@gmail.com' });
@@ -681,24 +645,66 @@ module.exports = (driver = 'mongo') => {
       });
     });
 
+    describe('Transactions (manual-with-auto)', () => {
+      // test('multi-txn (duplicate key with rollback)', async (done) => {
+      //   const txn1 = loader.transaction();
+      //   const txn2 = loader.transaction();
+      //   txn1.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
+      //   txn2.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
 
-    describe('Remove', () => {
-      test('remove', async () => {
-        await expect(loader.match('Person').remove()).rejects.toThrow();
-        expect(await loader.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
-      });
+      //   txn1.exec().then((results) => {
+      //     const [person1, person2] = results;
+      //     expect(person1.name).toBe('Person10');
+      //     expect(person2.name).toBe('Person11');
+      //     txn1.rollback();
+      //   });
 
-      test('remove multi', async () => {
-        // Create some colors
-        const colors = await loader.match('Color').save({ type: 'blue' }, { type: 'red' }, { type: 'green' }, { type: 'purple' });
-        expect(colors.length).toBe(4);
+      //   await timeout(100);
 
-        // Remogve some colors
-        const ids = await loader.match('Color').where({ type: '{red,purple}' }).remove();
-        const results = await loader.match('Color').sortBy({ type: 'ASC' }).many();
-        expect(ids.sort(sorter)).toMatchObject([{ id: colors[1].id }, { id: colors[3].id }].sort(sorter));
-        expect(results).toMatchObject([{ type: 'blue' }, { type: 'green' }]);
-      });
+      //   txn2.exec().then(async (results) => {
+      //     const [person1, person2] = results;
+      //     expect(person1.name).toBe('Person10');
+      //     expect(person2.name).toBe('Person11');
+      //     txn2.rollback().then(() => done());
+      //   });
+      // });
+
+      // test('multi-txn (duplicate key with commit)', async () => {
+      //   const txn1 = loader.transaction();
+      //   const txn2 = loader.transaction();
+      //   txn1.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
+      //   txn2.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
+
+      //   txn1.exec().then((results) => {
+      //     const [person1, person2] = results;
+      //     expect(person1.name).toBe('Person10');
+      //     expect(person2.name).toBe('Person11');
+      //     txn1.commit();
+      //   });
+
+      //   await timeout(100);
+      //   await expect(txn2.exec()).rejects.toThrow();
+      // });
     });
+
+
+    // describe('Referential Integrity', () => {
+    //   test('remove', async () => {
+    //     await expect(loader.match('Person').remove()).rejects.toThrow();
+    //     expect(await loader.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
+    //   });
+
+    //   test('remove multi', async () => {
+    //     // Create some colors
+    //     const colors = await loader.match('Color').save({ type: 'blue' }, { type: 'red' }, { type: 'green' }, { type: 'purple' });
+    //     expect(colors.length).toBe(4);
+
+    //     // Remogve some colors
+    //     const ids = await loader.match('Color').where({ type: '{red,purple}' }).remove();
+    //     const results = await loader.match('Color').sortBy({ type: 'ASC' }).many();
+    //     expect(ids.sort(sorter)).toMatchObject([{ id: colors[1].id }, { id: colors[3].id }].sort(sorter));
+    //     expect(results).toMatchObject([{ type: 'blue' }, { type: 'green' }]);
+    //   });
+    // });
   });
 };

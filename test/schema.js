@@ -31,7 +31,7 @@ exports.schema = {
   Chapter: {
     fields: {
       name: { type: String, transforms: [titleCase()], rules: [required()] },
-      book: { type: 'Book', rules: [required()] },
+      book: { type: 'Book', rules: [required()], onDelete: 'restrict' },
       pages: { type: Array('Page'), by: 'chapter' },
     },
     indexes: [
@@ -76,8 +76,8 @@ exports.schema = {
     fields: {
       year: Number,
       type: { type: String, rules: [required(), allow('home', 'office', 'business')] },
-      tenants: { type: Set('Person'), onDelete: 'cascade' },
-      landlord: { type: 'Person', onDelete: 'nullify' },
+      tenants: { type: Set('Person'), onDeletes: 'cascade' },
+      landlord: { type: 'Person', onDeletes: 'nullify' },
     },
   },
   Color: {
@@ -87,7 +87,7 @@ exports.schema = {
   },
   Art: {
     fields: {
-      name: { type: String, rules: [required()] },
+      name: { type: String, transforms: [titleCase()], rules: [required()] },
       bids: { type: Array(Number) },
     },
   },

@@ -1,7 +1,8 @@
+const _ = require('lodash');
 const FBDataLoader = require('dataloader');
 const QueryBuilder = require('../data/QueryBuilder');
+const TxnQueryBuilder = require('../data/TransactionQueryBuilder');
 const QueryWorker = require('../data/QueryWorker');
-const Transaction = require('../data/Transaction');
 const Query = require('../data/Query');
 const Model = require('../data/Model');
 const { hashObject } = require('../service/app.service');
@@ -11,8 +12,10 @@ module.exports = class DataLoader {
     this.schema = schema;
     this.worker = new QueryWorker(this);
     this.loader = this.createLoader();
+    this.txnMap = new WeakMap();
   }
 
+  // Encapsulate Facebook DataLoader
   async load(key) {
     const { method, model, query: q, args } = key;
     const query = new Query(this.toModel(model), q);
@@ -29,6 +32,7 @@ module.exports = class DataLoader {
     }
   }
 
+  // Public Data API
   clear(key) {
     return this.loader.clear(key);
   }
@@ -45,10 +49,67 @@ module.exports = class DataLoader {
     return new QueryBuilder(this.toModel(model), this);
   }
 
-  transaction() {
-    return new Transaction(this);
+  // Public Transaction API
+  transaction(parentTxn) {
+    const opsMap = new Map();
+    const loader = this;
+    let data = [];
+
+    // Create txn
+    const txn = {
+      get match() {
+        return (modelName) => {
+          const model = loader.toModel(modelName);
+          const driver = model.getDriver();
+          const op = new TxnQueryBuilder(model, loader);
+          if (!opsMap.has(driver)) opsMap.set(driver, []);
+          opsMap.get(driver).push(op);
+          return op;
+        };
+      },
+      get run() {
+        return () => {
+          return this.exec().then((results) => {
+            return this.commit().then(() => results);
+          }).catch((e) => {
+            return this.rollback().then(() => Promise.reject(e));
+          });
+        };
+      },
+      get exec() {
+        return () => {
+          return Promise.all(Array.from(opsMap.entries()).map(([driver, ops]) => driver.transaction(ops))).then((results) => {
+            data = results;
+            return _.flatten(results);
+          });
+        };
+      },
+      get commit() {
+        return () => {
+          loader.clearAll();
+          return Promise.all(data.map(result => result.$commit()));
+        };
+      },
+      get rollback() {
+        return () => {
+          return Promise.all(data.map(result => result.$rollback()));
+        };
+      },
+    };
+
+    // Save to manage them
+    if (parentTxn) {
+      if (!this.txnMap.has(parentTxn)) throw new Error();
+      this.txnMap.set(parentTxn, this.txnMap.get(parentTxn).concat(txn));
+    } else {
+      this.txnMap.set(txn, []);
+    }
+
+    // Return to caller
+    return txn;
   }
 
+  // Helpers
   toModel(model) {
     return model instanceof Model ? model : this.schema.getModel(model);
   }

@@ -260,8 +260,9 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
   return undefined;
 };
 
-exports.resolveReferentialIntegrity = (loader, model, query, txn) => {
+exports.resolveReferentialIntegrity = (loader, model, query) => {
   const id = query.getId();
+  const txn = loader.transaction();
 
   return Promise.resolve();
 
@@ -270,16 +271,15 @@ exports.resolveReferentialIntegrity = (loader, model, query, txn) => {
       model.referentialIntegrity().forEach(({ model: ref, field }) => {
         const op = field.getOnDelete();
         const isArray = field.isArray();
+        const isEmbedded = field.isEmbedded();
         const fieldStr = `${field}`;
-
-        // console.log(op, `${ref}`, fieldStr, id, isArray);
 
         switch (op) {
           case 'cascade': {
             if (isArray) {
-              // txn.match(ref).where({ [fieldStr]: id }).pull(fieldStr, id);
+              txn.match(ref).where({ [fieldStr]: id }).pull(fieldStr, id);
             } else {
-              // txn.match(ref).where({ [fieldStr]: id }).remove(txn);
+              txn.match(ref).where({ [fieldStr]: id }).remove(txn);
             }
             break;
           }
@@ -287,17 +287,18 @@ exports.resolveReferentialIntegrity = (loader, model, query, txn) => {
             txn.match(ref).where({ [fieldStr]: id }).save({ [fieldStr]: null });
             break;
           }
-          case 'restrict': throw new Error('restricted');
+          case 'restrict': {
+            txn.match(ref).where({ [fieldStr]: id }).count().then(count => (count ? Promise.reject(new Error('restricted')) : count));
+            break;
+          }
           default: throw new Error(`Unknown onDelete operator: '${op}'`);
         }
       });
 
       // Execute the transaction
-      return txn.exec().then((results) => {
-        return txn.commit().then(() => resolve(results)).catch(e => reject(e));
-      });
+      txn.run().then(results => resolve(results));
     } catch (e) {
-      return txn.rollback().then(() => reject(e)).catch(err => reject(err));
+      txn.rollback().then(() => reject(e)).catch(err => reject(err));
     }
   });
 };

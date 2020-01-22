@@ -17,10 +17,11 @@ module.exports = class QueryBuilder {
     this.before = (before) => { query.before = before; return this; };
     this.after = (after) => { query.after = after; return this; };
     this.options = (options) => { query.options = Object.assign({}, query.options, options); return this; };
-    this.txn = (txn) => { query.txn = txn; return this; };
+    this.meta = (meta) => { query.meta = Object.assign({}, query.meta, meta); return this; };
 
     // want to keep?
     this.query = (q) => { Object.assign(query, _.cloneDeep(q)); return this; };
+    this.getQuery = () => query;
 
     // Terminal commands
     this.one = (...args) => this.makeTheCall(query, 'one', args);
@@ -42,12 +43,11 @@ module.exports = class QueryBuilder {
     this.stream = (...args) => this.makeTheCall(query, 'stream', args); // Stream records 1 by 1
     this.driver = (...args) => this.makeTheCall(query, 'driver', args); // Access raw underlying driver
     this.native = (...args) => this.makeTheCall(query, 'native', args); // Perhaps write a native query and hide the driver?
-    this.meta = (...args) => this.makeTheCall(query, 'meta', args); // Provider additional options to query (may be dupe of options above)
     this.sum = (...args) => this.makeTheCall(query, 'sum', args); // Would sum be different than count?
     this.rollup = (...args) => this.makeTheCall(query, 'rollup', args); // Like sum, but for nested attributes (eg. Person.rollupAuthoredChaptersPages)
   }
 
-  async makeTheCall(query, cmd, args, txn = this.loader.transaction()) {
+  async makeTheCall(query, cmd, args, parentTxn) {
     const { model, loader } = this;
     const { id, where, before, after } = query;
 
@@ -85,6 +85,7 @@ module.exports = class QueryBuilder {
 
         // Multi op (transaction)
         if (where) {
+          const txn = loader.transaction(parentTxn);
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
           const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
           docs.forEach(doc => txn.match(model).id(doc.id).query(query)[cmd](...args));
@@ -102,14 +103,16 @@ module.exports = class QueryBuilder {
 
         // Multi update (transaction)
         if (where) {
+          const txn = loader.transaction(parentTxn);
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
-          const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
+          const docs = await loader.match(model).where(resolvedWhere).many();
           docs.forEach(doc => txn.match(model).id(doc.id).query(query).save(...args));
           return txn.run();
         }
 
         // Multi save (transaction)
         if (args.length > 1) {
+          const txn = loader.transaction(parentTxn);
           args.forEach(arg => txn.match(model).query(query).save(arg));
           return txn.run();
         }
@@ -119,13 +122,14 @@ module.exports = class QueryBuilder {
       }
       case 'remove': {
         // Single document remove
-        if (id) return loader.load({ method: 'delete', model, query, args: [txn] });
+        if (id) return loader.load({ method: 'delete', model, query, args: [] });
 
         // Multi remove (transaction)
         if (where) {
+          const txn = loader.transaction(parentTxn);
           const resolvedWhere = await resolveModelWhereClause(loader, model, where);
           const docs = await loader.match(model).where(resolvedWhere).many({ find: true });
-          docs.forEach(doc => txn.match(model).id(doc.id).remove(txn));
+          docs.forEach(doc => txn.match(model).id(doc.id).remove());
           return txn.run();
         }
 
