@@ -54,7 +54,21 @@ module.exports = class DataLoader {
   transaction(parentTxn) {
     const driverMap = new Map();
     const loader = this;
+    let promise;
     let data = [];
+
+    const ready = () => {
+      const elements = this.txnMap.elements();
+      const notReady = elements.filter(el => !el.marker);
+      if (notReady.length) return false;
+      const rollbackIndex = elements.findIndex(el => el.marker === 'rollback');
+      return [elements.slice(0, rollbackIndex), elements.slice(rollbackIndex)];
+    };
+
+    const perform = (commits, rollbacks) => {
+      console.log('commits', commits);
+      console.log('rollbacks', rollbacks);
+    };
 
     // Create txn
     const txn = {
@@ -87,13 +101,25 @@ module.exports = class DataLoader {
       },
       get commit() {
         return () => {
-          loader.clearAll();
-          return Promise.all(data.map(result => result.$commit()));
+          txn.marker = 'commit';
+
+          return new Promise((resolve, reject) => {
+            // if (ready()) {
+              loader.clearAll();
+              Promise.all(data.map(result => result.$commit())).then(resolve).catch(reject);
+            // }
+          });
         };
       },
       get rollback() {
         return () => {
-          return Promise.all(data.map(result => result.$rollback()));
+          txn.marker = 'rollback';
+
+          return new Promise((resolve, reject) => {
+            // if (ready()) {
+              Promise.all(data.map(result => result.$rollback())).then(resolve).catch(reject);
+            // }
+          });
         };
       },
     };

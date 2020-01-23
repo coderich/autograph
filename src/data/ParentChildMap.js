@@ -35,11 +35,19 @@ module.exports = class ParentChildMap {
     }, []);
   }
 
-  // ascendants(parent) {
-  //   const [, map] = this.get(parent) || this.throw();
-  //   const elements = this.elements();
-  //   return elements.slice(0, elements.indexOf(map));
-  // }
+  ascendants(parent) {
+    if (!this.get(parent)) this.throw();
+
+    const traverse = (e) => {
+      return Array.from(e.entries()).reduce((prev, [key, value]) => {
+        const descendants = this.descendants(key);
+        if (descendants.indexOf(parent) > -1) prev.push(key);
+        return prev.concat(traverse(value));
+      }, []);
+    };
+
+    return traverse(this.map);
+  }
 
   descendants(parent) {
     const [, map] = this.get(parent) || this.throw();

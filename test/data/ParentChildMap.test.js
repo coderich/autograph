@@ -66,17 +66,20 @@ describe('ParentChildMap', () => {
     expect(map.descendants(child1)).toEqual([]);
   });
 
-  // test('ascendants', () => {
-  //   expect(map.ascendants(grandparent)).toEqual([]);
-  //   expect(map.ascendants(parent1)).toEqual([grandparent]);
-  //   expect(map.ascendants(parent2)).toEqual([child3, child4]);
-  //   expect(map.ascendants(child1)).toEqual([]);
-  // });
+  test('ascendants', () => {
+    expect(map.ascendants(grandparent)).toEqual([]);
+    expect(map.ascendants(parent1)).toEqual([grandparent]);
+    expect(map.ascendants(parent2)).toEqual([grandparent]);
+    expect(map.ascendants(child1)).toEqual([grandparent, parent1]);
+    expect(map.ascendants(child2)).toEqual([grandparent, parent1]);
+    expect(map.ascendants(child3)).toEqual([grandparent, parent2]);
+    expect(map.ascendants(child4)).toEqual([grandparent, parent2]);
+  });
 
   test('remove', () => {
     const children = map.remove(parent1);
     expect(children.size).toBe(2);
     expect(map.get(parent1)).not.toBeDefined();
-    // expect(() => map.get(parent1)).toThrow();
+    expect(() => map.add(parent1, {})).toThrow();
   });
 });
