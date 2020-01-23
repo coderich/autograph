@@ -1,6 +1,6 @@
-const ParentChildMap = require('../../src/data/ParentChildMap');
+const TreeMap = require('../../src/data/TreeMap');
 
-const map = new ParentChildMap();
+const map = new TreeMap();
 
 // Parent child data
 const grandparent = { name: 'grandparent' };
@@ -11,9 +11,9 @@ const child2 = { name: 'child2' };
 const child3 = { name: 'child3' };
 const child4 = { name: 'child4' };
 
-describe('ParentChildMap', () => {
+describe('TreeMap', () => {
   test('add', () => {
-    map.add(undefined, grandparent);
+    map.add(grandparent);
     map.add(grandparent, parent1);
     map.add(parent1, child1);
     map.add(parent1, child2);

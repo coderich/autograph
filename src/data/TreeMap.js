@@ -5,11 +5,11 @@ module.exports = class ParentChildMap {
   }
 
   add(parent, child) {
-    if (parent) {
+    if (parent && child) {
       const [, map] = this.get(parent) || this.throw();
       map.set(child, new Map());
     } else {
-      this.map.set(child, new Map());
+      this.map.set(parent || child, new Map());
     }
   }
 
