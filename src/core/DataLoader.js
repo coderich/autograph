@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const FBDataLoader = require('dataloader');
+const ParentChildMap = require('../data/ParentChildMap');
 const QueryBuilder = require('../data/QueryBuilder');
 const TxnQueryBuilder = require('../data/TransactionQueryBuilder');
 const QueryWorker = require('../data/QueryWorker');
@@ -12,7 +13,7 @@ module.exports = class DataLoader {
     this.schema = schema;
     this.worker = new QueryWorker(this);
     this.loader = this.createLoader();
-    this.txnMap = new WeakMap();
+    this.txnMap = new ParentChildMap();
   }
 
   // Encapsulate Facebook DataLoader
@@ -51,7 +52,7 @@ module.exports = class DataLoader {
 
   // Public Transaction API
   transaction(parentTxn) {
-    const opsMap = new Map();
+    const driverMap = new Map();
     const loader = this;
     let data = [];
 
@@ -62,8 +63,8 @@ module.exports = class DataLoader {
           const model = loader.toModel(modelName);
           const driver = model.getDriver();
           const op = new TxnQueryBuilder(model, loader);
-          if (!opsMap.has(driver)) opsMap.set(driver, []);
-          opsMap.get(driver).push(op);
+          if (!driverMap.has(driver)) driverMap.set(driver, []);
+          driverMap.get(driver).push(op);
           return op;
         };
       },
@@ -78,7 +79,7 @@ module.exports = class DataLoader {
       },
       get exec() {
         return () => {
-          return Promise.all(Array.from(opsMap.entries()).map(([driver, ops]) => driver.transaction(ops))).then((results) => {
+          return Promise.all(Array.from(driverMap.entries()).map(([driver, ops]) => driver.transaction(ops))).then((results) => {
             data = results;
             return _.flatten(results);
           });
@@ -97,13 +98,8 @@ module.exports = class DataLoader {
       },
     };
 
-    // Save to manage them
-    if (parentTxn) {
-      if (!this.txnMap.has(parentTxn)) throw new Error();
-      this.txnMap.set(parentTxn, this.txnMap.get(parentTxn).concat(txn));
-    } else {
-      this.txnMap.set(txn, []);
-    }
+    // Save txn to map
+    this.txnMap.add(parentTxn, txn);
 
     // Return to caller
     return txn;
