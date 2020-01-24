@@ -669,22 +669,22 @@ module.exports = (driver = 'mongo') => {
         });
       });
 
-      // test('multi-txn (duplicate key with commit)', async () => {
-      //   const txn1 = loader.transaction();
-      //   const txn2 = loader.transaction();
-      //   txn1.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
-      //   txn2.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
+      test('multi-txn (duplicate key with commit)', async () => {
+        const txn1 = loader.transaction();
+        const txn2 = loader.transaction();
+        txn1.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
+        txn2.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
 
-      //   txn1.exec().then((results) => {
-      //     const [[person1, person2]] = results;
-      //     expect(person1.name).toBe('Person10');
-      //     expect(person2.name).toBe('Person11');
-      //     txn1.commit();
-      //   });
+        txn1.exec().then((results) => {
+          const [[person1, person2]] = results;
+          expect(person1.name).toBe('Person10');
+          expect(person2.name).toBe('Person11');
+          txn1.commit();
+        });
 
-      //   await timeout(100);
-      //   await expect(txn2.exec()).rejects.toThrow();
-      // });
+        await timeout(100);
+        await expect(txn2.exec()).rejects.toThrow();
+      });
     });
 
 

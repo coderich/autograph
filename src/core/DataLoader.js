@@ -113,11 +113,13 @@ module.exports = class DataLoader {
         get run() {
           return () => {
             return this.exec().then((results) => {
+              if (txMap.root(this) === this) return this.commit().then(() => results);
               this.commit();
               return results;
-              // return this.commit().then(() => results);
             }).catch((e) => {
-              return this.rollback().then(() => Promise.reject(e));
+              if (txMap.root(this) === this) return this.rollback().then(() => Promise.reject(e));
+              this.rollback();
+              throw e;
             });
           };
         },
