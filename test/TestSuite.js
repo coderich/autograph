@@ -688,23 +688,24 @@ module.exports = (driver = 'mongo') => {
     });
 
 
-    // describe('Referential Integrity', () => {
-    //   test('remove', async () => {
-    //     await expect(loader.match('Person').remove()).rejects.toThrow();
-    //     expect(await loader.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
-    //   });
+    describe('Referential Integrity', () => {
+      test('remove', async () => {
+        await expect(loader.match('Person').remove()).rejects.toThrow();
+        // await expect(loader.match('Person').id(christie.id).remove()).rejects.toThrow();
+        expect(await loader.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
+      });
 
-    //   test('remove multi', async () => {
-    //     // Create some colors
-    //     const colors = await loader.match('Color').save({ type: 'blue' }, { type: 'red' }, { type: 'green' }, { type: 'purple' });
-    //     expect(colors.length).toBe(4);
+      test('remove multi', async () => {
+        // Create some colors
+        const colors = await loader.match('Color').save({ type: 'blue' }, { type: 'red' }, { type: 'green' }, { type: 'purple' });
+        expect(colors.length).toBe(4);
 
-    //     // Remogve some colors
-    //     const ids = await loader.match('Color').where({ type: '{red,purple}' }).remove();
-    //     const results = await loader.match('Color').sortBy({ type: 'ASC' }).many();
-    //     expect(ids.sort(sorter)).toMatchObject([{ id: colors[1].id }, { id: colors[3].id }].sort(sorter));
-    //     expect(results).toMatchObject([{ type: 'blue' }, { type: 'green' }]);
-    //   });
-    // });
+        // Remove some colors
+        const ids = await loader.match('Color').where({ type: '{red,purple}' }).remove();
+        const results = await loader.match('Color').sortBy({ type: 'ASC' }).many();
+        expect(ids.sort(sorter)).toMatchObject([{ id: colors[1].id }, { id: colors[3].id }].sort(sorter));
+        expect(results).toMatchObject([{ type: 'blue' }, { type: 'green' }]);
+      });
+    });
   });
 };

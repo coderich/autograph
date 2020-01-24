@@ -8,7 +8,7 @@ module.exports = class TransactionQueryBuilder extends QueryBuilder {
   }
 
   makeTheCall(query, cmd, args) {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
       this.theCall = { query, cmd, args, resolve };
     });
   }

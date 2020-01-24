@@ -260,11 +260,11 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
   return undefined;
 };
 
-exports.resolveReferentialIntegrity = (loader, model, query) => {
+exports.resolveReferentialIntegrity = (loader, model, query, parentTxn) => {
   const id = query.getId();
-  const txn = loader.transaction();
+  const txn = loader.transaction(parentTxn);
 
-  return Promise.resolve();
+  // return Promise.resolve();
 
   return new Promise(async (resolve, reject) => {
     try {
@@ -288,7 +288,7 @@ exports.resolveReferentialIntegrity = (loader, model, query) => {
             break;
           }
           case 'restrict': {
-            txn.match(ref).where({ [fieldStr]: id }).count().then(count => (count ? Promise.reject(new Error('restricted')) : count));
+            txn.match(ref).where({ [fieldStr]: id }).count().then(count => (count ? reject(new Error('Restricted')) : count));
             break;
           }
           default: throw new Error(`Unknown onDelete operator: '${op}'`);

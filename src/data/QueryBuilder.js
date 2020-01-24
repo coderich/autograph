@@ -122,7 +122,7 @@ module.exports = class QueryBuilder {
       }
       case 'remove': {
         // Single document remove
-        if (id) return loader.load({ method: 'delete', model, query, args: [] });
+        if (id) return loader.load({ method: 'delete', model, query, args: [parentTxn] });
 
         // Multi remove (transaction)
         if (where) {
