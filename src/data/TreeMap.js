@@ -1,5 +1,3 @@
-const _ = require('lodash');
-
 module.exports = class TreeMap {
   constructor() {
     this.map = new Map();
@@ -37,6 +35,11 @@ module.exports = class TreeMap {
     }, []);
   }
 
+  root(parent) {
+    const [root = parent] = this.ascendants(parent);
+    return root;
+  }
+
   ascendants(parent) {
     if (!this.get(parent)) this.throw();
 
@@ -63,7 +66,7 @@ module.exports = class TreeMap {
   }
 
   lineage(parent) {
-    const [root = parent] = this.ascendants(parent);
+    const root = this.root(parent);
     return [root].concat(this.descendants(root));
   }
 };

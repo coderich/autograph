@@ -8,6 +8,8 @@ const Query = require('../data/Query');
 const Model = require('../data/Model');
 const { hashObject } = require('../service/app.service');
 
+let count = 0;
+
 module.exports = class DataLoader {
   constructor(schema) {
     this.schema = schema;
@@ -51,44 +53,50 @@ module.exports = class DataLoader {
 
   // Public Transaction API
   transaction(parentTxn) {
-    const txnMap = parentTxn || new TreeMap();
     const loader = this;
-    let resolve, reject;
-    const promise = new Promise((good, bad) => { resolve = good; reject = bad; });
+    const txnMap = (parentTxn || {}).txnMap || (() => {
+      let resolve, reject;
+      const map = new TreeMap();
+      map.promise = new Promise((good, bad) => { resolve = good; reject = bad; });
+      map.resolve = resolve;
+      map.reject = reject;
 
-    const ready = () => {
-      const elements = txnMap.elements();
-      const notReady = elements.filter(el => !el.marker);
-      if (notReady.length) return [undefined, undefined];
-      const rollbackIndex = elements.findIndex(el => el.marker === 'rollback');
-      return [elements.slice(0, rollbackIndex), elements.slice(rollbackIndex)];
-    };
+      map.ready = () => {
+        const elements = map.elements();
+        const notReady = elements.filter(el => !el.marker);
+        if (notReady.length) return [undefined, undefined];
+        let rollbackIndex = elements.findIndex(el => el.marker === 'rollback');
+        if (rollbackIndex === -1) rollbackIndex = Infinity;
+        return [elements.slice(0, rollbackIndex), elements.slice(rollbackIndex)];
+      };
 
-    const perform = () => {
-      const [commits, rollbacks] = ready();
+      map.perform = () => {
+        const [commits, rollbacks] = map.ready();
 
-      if (commits && commits.length) {
-        loader.clearAll();
-        const data = _.flatten(commits.map(txn => txn.data));
-        Promise.all(data.map(result => result.$commit())).then(resolve).catch(reject);
-      }
+        if (commits && rollbacks) {
+          const rollbackData = _.flatten(rollbacks.map(tnx => tnx.data));
+          const commitData = _.flatten(commits.map(tnx => tnx.data));
 
-      if (rollbacks && rollbacks.length) {
-        const data = _.flatten(rollbacks.map(txn => txn.data));
-        Promise.all(data.map(result => result.$rollback())).then(resolve).catch(reject);
-      }
+          Promise.all(rollbackData.map(rbd => rbd.$rollback())).then(() => {
+            if (commits.length) loader.clearAll();
+            Promise.all(commitData.map(cd => cd.$commit())).then(map.resolve);
+          }).catch(map.reject);
+        }
 
-      return promise;
-    };
+        return map.promise;
+      };
+
+      return map;
+    })();
 
     // Create txn
-    const txn = ((data, driverMap) => {
+    const txn = ((data, driverMap, txMap, id) => {
       return {
         get match() {
           return (modelName) => {
             const model = loader.toModel(modelName);
             const driver = model.getDriver();
-            const op = new TxnQueryBuilder(model, loader, txnMap);
+            const op = new TxnQueryBuilder(model, loader, this);
             if (!driverMap.has(driver)) driverMap.set(driver, []);
             driverMap.get(driver).push(op);
             return op;
@@ -105,7 +113,9 @@ module.exports = class DataLoader {
         get run() {
           return () => {
             return this.exec().then((results) => {
-              return this.commit().then(() => results);
+              this.commit();
+              return results;
+              // return this.commit().then(() => results);
             }).catch((e) => {
               return this.rollback().then(() => Promise.reject(e));
             });
@@ -113,24 +123,24 @@ module.exports = class DataLoader {
         },
         get commit() {
           return () => {
-            // txn.marker = 'commit';
-            // return perform();
-            loader.clearAll();
-            return Promise.all(data.map(result => result.$commit()));
+            if (this.marker !== 'rollback') this.marker = 'commit';
+            return txMap.perform();
           };
         },
         get rollback() {
           return () => {
-            // txn.marker = 'rollback';
-            // return perform();
-            return Promise.all(data.map(result => result.$rollback()));
+            this.marker = 'rollback';
+            return txMap.perform();
           };
         },
         get data() {
           return data;
         },
+        get txnMap() {
+          return txMap;
+        },
       };
-    })([], new Map());
+    })([], new Map(), txnMap, count++);
 
     // Save txn to map
     txnMap.add(parentTxn, txn);

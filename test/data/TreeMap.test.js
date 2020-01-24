@@ -23,7 +23,7 @@ describe('TreeMap', () => {
     map.add(parent2, child3);
 
     // Line 2
-    map.add(outsider);
+    map.add(undefined, outsider);
 
     const [root, grandchildren] = map.get(grandparent);
     expect(root).toBeDefined();
