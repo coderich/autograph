@@ -1,4 +1,6 @@
-module.exports = class ParentChildMap {
+const _ = require('lodash');
+
+module.exports = class TreeMap {
   constructor() {
     this.map = new Map();
     this.throw = (e = 'Parent not found') => { throw new Error(e); };
@@ -52,5 +54,16 @@ module.exports = class ParentChildMap {
   descendants(parent) {
     const [, map] = this.get(parent) || this.throw();
     return this.elements(map);
+  }
+
+  siblings(parent) {
+    const [map] = this.get(parent) || this.throw();
+    if (map === this.map) return [];
+    return Array.from(map.keys()).filter(node => node !== parent);
+  }
+
+  lineage(parent) {
+    const [root = parent] = this.ascendants(parent);
+    return [root].concat(this.descendants(root));
   }
 };
