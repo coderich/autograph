@@ -40,6 +40,17 @@ exports.map = (mixed, fn) => {
   return isArray ? results : results[0];
 };
 
+exports.unravelObject = (obj) => {
+  return exports.keyPaths(obj).reduce((prev, path) => {
+    const splitPath = path.split('.');
+    return _.set(prev, path, _.get(obj, path, splitPath.reduce((val, p, i) => {
+      if (val !== undefined) return val;
+      const tuple = [splitPath.slice(0, i + 1).join('.'), splitPath.slice(i + 1).join('.')];
+      return _.get(obj, tuple);
+    }, undefined)));
+  }, {});
+};
+
 exports.keyPaths = (obj, keys = [], path) => {
   return Object.entries(obj).reduce((prev, [key, value]) => {
     const keyPath = path ? `${path}.${key}` : key;

@@ -446,6 +446,22 @@ module.exports = (driver = 'mongo') => {
         expect(await loader.match('Person').where({ authored: { chapters: { name: 'citizen', pages: { verbage: '*intro*' } } } }).many({ find: true })).toMatchObject([]);
         expect(await loader.match('Person').where({ authored: { chapters: { name: 'chapter*', pages: { verbage: '*intro*' } } } }).many({ find: true })).toMatchObject([{ id: christie.id, name: 'Christie' }]);
         expect(await loader.match('Person').where({ authored: { chapters: { name: '{citizen,chap*}', pages: { verbage: '*intro*' } } } }).many({ find: true })).toMatchObject([{ id: christie.id, name: 'Christie' }]);
+
+        // Covenience counterparts
+        expect(await loader.match('Person').where({ 'authored.name': 'Moby Dick' }).many({ find: true })).toMatchObject([{ id: richard.id, name: 'Richard' }]);
+        expect(await loader.match('Person').where({ 'authored.author.name': 'ChRist??' }).many({ find: true })).toMatchObject([{ id: christie.id, name: 'Christie' }]);
+        expect(await loader.match('Person').where({ 'friends.name': 'Christie' }).many({ find: true })).toMatchObject([{ id: richard.id, name: 'Richard' }]);
+        expect(await loader.match('Person').where({ 'friends.authored.name': 'Health*' }).many({ find: true })).toMatchObject([{ id: richard.id, name: 'Richard' }]);
+        expect(await loader.match('Person').where({ 'friends.authored.name': 'Cray Cray*' }).many({ find: true })).toMatchObject([]);
+        expect(await loader.match('Person').where({ 'authored.chapters.pages.verbage': 'city lust' }).many({ find: true })).toMatchObject([]);
+        expect(await loader.match('Person').where({ 'authored.chapters.pages.verbage': 'the end.' }).many({ find: true })).toMatchObject([{ id: christie.id, name: 'Christie' }]);
+        expect(await loader.match('Person').where({ 'authored.chapters.pages.verbage': '*intro*' }).many({ find: true })).toMatchObject([{ id: christie.id, name: 'Christie' }]);
+        expect(await loader.match('Person').where({ 'authored.chapters.name': 'citizen', 'authored.chapters.pages.verbage': '*intro*' }).many({ find: true })).toMatchObject([]);
+        expect(await loader.match('Person').where({ 'authored.chapters.name': 'chapter*', 'authored.chapters.pages.verbage': '*intro*' }).many({ find: true })).toMatchObject([{ id: christie.id, name: 'Christie' }]);
+        expect(await loader.match('Person').where({ 'authored.chapters.name': '{citizen,chap*}', 'authored.chapters.pages.verbage': '*intro*' }).many({ find: true })).toMatchObject([{ id: christie.id, name: 'Christie' }]);
+        expect(await loader.match('Person').where({ 'authored.chapters': { name: 'citizen', 'pages.verbage': '*intro*' } }).many({ find: true })).toMatchObject([]);
+        expect(await loader.match('Person').where({ 'authored.chapters': { name: 'chapter*', 'pages.verbage': '*intro*' } }).many({ find: true })).toMatchObject([{ id: christie.id, name: 'Christie' }]);
+        expect(await loader.match('Person').where({ 'authored.chapters': { name: '{citizen,chap*}', 'pages.verbage': '*intro*' } }).many({ find: true })).toMatchObject([{ id: christie.id, name: 'Christie' }]);
       });
 
       test('Book', async () => {

@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { resolveModelWhereClause } = require('../service/data.service');
+const { unravelObject } = require('../service/app.service');
 
 module.exports = class QueryBuilder {
   constructor(model, loader) {
@@ -11,7 +12,7 @@ module.exports = class QueryBuilder {
     // Composable query
     this.id = (id) => { query.id = `${id}`; return this; };
     this.select = (fields) => { query.fields = fields; return this; };
-    this.where = (where) => { query.where = where; return this; };
+    this.where = (where) => { query.where = unravelObject(where); return this; };
     this.sortBy = (sortBy) => { query.sortBy = sortBy; return this; };
     this.limit = (limit) => { query.limit = limit; return this; };
     this.before = (before) => { query.before = before; return this; };

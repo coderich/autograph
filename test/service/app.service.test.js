@@ -1,6 +1,5 @@
 const { ObjectID } = require('mongodb');
-const PicoMatch = require('picomatch');
-const { isPlainObject, isScalarValue, mergeDeep, proxyDeep, uniq, hashObject } = require('../../src/service/app.service');
+const { keyPaths, unravelObject, isPlainObject, isScalarValue, mergeDeep, proxyDeep, uniq, hashObject } = require('../../src/service/app.service');
 
 const obj1 = { name: 'name1', friends: ['a', 'b', 'c'] };
 const obj2 = { name: 'name2', friends: ['d', 'e', 'f'] };
@@ -35,14 +34,6 @@ const doc2 = {
 };
 
 describe('AppService', () => {
-  // test('picomatch', () => {
-  //   const value = 'a.b.c.com';
-  //   const reg = PicoMatch.makeRe('!(^*.com$)', { nocase: true, regex: true, dot: true, unescape: true, maxLength: 100 });
-  //   const re = PicoMatch.toRegex(reg);
-  //   console.log(value.match(re));
-  //   expect(1).toBe(1);
-  // });
-
   test('object.reduce', () => {
     const data = { id: 1, name: 'rich' };
     const newData = Object.entries(data).reduce((prev, [key, value]) => {
@@ -78,6 +69,20 @@ describe('AppService', () => {
 
   test('uniq', () => {
     expect(uniq(['a', 'b', 'c', 'a', 'd', 'b'])).toEqual(['a', 'b', 'c', 'd']);
+  });
+
+  test('keyPaths', () => {
+    expect(keyPaths({ a: 'a' })).toEqual(['a']);
+    expect(keyPaths({ a: { c: 'c' }, b: 'b' })).toEqual(['a.c', 'b']);
+    expect(keyPaths({ a: { 'c.d': 'e', c: 'c' }, b: 'b' })).toEqual(['a.c.d', 'a.c', 'b']);
+    expect(keyPaths({ 'authored.chapters': { name: 'citizen', 'pages.verbage': '*intro*' } })).toEqual(['authored.chapters.name', 'authored.chapters.pages.verbage']);
+  });
+
+  test('unravelObject', () => {
+    expect(unravelObject({ a: 'a' })).toEqual({ a: 'a' });
+    expect(unravelObject({ 'a.b.c': 'a' })).toEqual({ a: { b: { c: 'a' } } });
+    expect(unravelObject({ 'a.b.c': 'a', 'a.b.d': 'e' })).toEqual({ a: { b: { c: 'a', d: 'e' } } });
+    expect(unravelObject({ 'authored.chapters': { name: 'citizen', 'pages.verbage': '*intro*' } })).toEqual({ authored: { chapters: { name: 'citizen', pages: { verbage: '*intro*' } } } });
   });
 
   test('proxyDeep', () => {
