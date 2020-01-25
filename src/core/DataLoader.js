@@ -18,15 +18,16 @@ module.exports = class DataLoader {
   }
 
   // Encapsulate Facebook DataLoader
-  async load(key) {
+  load(key) {
     const { method, model, query: q, args } = key;
     const query = new Query(this.toModel(model), q);
 
     switch (method) {
       case 'create': case 'update': case 'delete': case 'push': case 'pull': {
-        const results = await this.worker[method](query, ...args);
-        this.loader.clearAll();
-        return results;
+        return this.worker[method](query, ...args).then((results) => {
+          this.loader.clearAll();
+          return results;
+        });
       }
       default: {
         return this.loader.load({ method, model, query, args });
@@ -74,13 +75,17 @@ module.exports = class DataLoader {
         const [commits, rollbacks] = map.ready();
 
         if (commits && rollbacks) {
-          const rollbackData = _.flatten(rollbacks.map(tnx => tnx.data));
-          const commitData = _.flatten(commits.map(tnx => tnx.data));
+          try {
+            const rollbackData = _.flatten(rollbacks.map(tnx => tnx.data));
+            const commitData = _.flatten(commits.map(tnx => tnx.data));
 
-          Promise.all(rollbackData.map(rbd => rbd.$rollback())).then(() => {
-            if (commits.length) loader.clearAll();
-            Promise.all(commitData.map(cd => cd.$commit())).then(map.resolve);
-          }).catch(map.reject);
+            Promise.all(rollbackData.map(rbd => rbd.$rollback())).then(() => {
+              if (commits.length) loader.clearAll();
+              Promise.all(commitData.map(cd => cd.$commit())).then(d => map.resolve(d));
+            }).catch(e => map.reject(e));
+          } catch (e) {
+            console.log('strange', e);
+          }
         }
 
         return map.promise;

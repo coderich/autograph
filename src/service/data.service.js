@@ -264,8 +264,6 @@ exports.resolveReferentialIntegrity = (loader, model, query, parentTxn) => {
   const id = query.getId();
   const txn = loader.transaction(parentTxn);
 
-  // return Promise.resolve();
-
   return new Promise(async (resolve, reject) => {
     try {
       model.referentialIntegrity().forEach(({ model: ref, field }) => {
@@ -296,7 +294,7 @@ exports.resolveReferentialIntegrity = (loader, model, query, parentTxn) => {
       });
 
       // Execute the transaction
-      txn.run().then(results => resolve(results));
+      txn.run().then(results => resolve(results)).catch(e => reject(e));
     } catch (e) {
       txn.rollback().then(() => reject(e)).catch(err => reject(err));
     }

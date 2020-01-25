@@ -691,8 +691,11 @@ module.exports = (driver = 'mongo') => {
     describe('Referential Integrity', () => {
       test('remove', async () => {
         await expect(loader.match('Person').remove()).rejects.toThrow();
-        // await expect(loader.match('Person').id(christie.id).remove()).rejects.toThrow();
+        await expect(loader.match('Person').id(christie.id).remove()).rejects.toThrow();
         expect(await loader.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
+        expect(await loader.match('Person').where({ name: '{christie,richard}' }).many()).toMatchObject([{ id: christie.id }]);
+        expect(await loader.match('Book').many()).toMatchObject([{ id: healthBook.id }]);
+        expect(await loader.match('Chapter').sortBy({ name: 'ASC' }).many()).toMatchObject([{ id: chapter1.id }, { id: chapter2.id }]);
       });
 
       test('remove multi', async () => {
