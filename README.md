@@ -2,13 +2,8 @@
 
 # @coderich/dalmatian
 #### A unified API for data access.
-##### Currently supports:
 :heavy_check_mark: [Mongo](https://www.mongodb.com/)
 :heavy_check_mark: [Neo4j](https://https://neo4j.com/)
-
-:soon: SQL Databases
-
-:soon: HTTP Endpoints
 
 **Dalmatian** is a unified API to treat disparate data sources as one coherent graph. Inspired by [GraphQL](https://graphql.org/), it is the *resolver* responsible for executing queries.
 
