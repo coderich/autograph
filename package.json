@@ -3,6 +3,7 @@
   "author": "Richard Livolsi (coderich)",
   "version": "0.1.0",
   "description": "Dalmation",
+  "keywords": ["graphql", "mongo", "neo4j", "redis", "dataloader", "orm"],
   "main": "index.js",
   "license": "MIT",
   "files": [
