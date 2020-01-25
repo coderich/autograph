@@ -13,7 +13,7 @@ module.exports = class QueryBuilder {
     this.id = (id) => { query.id = `${id}`; return this; };
     this.select = (fields) => { query.fields = fields; return this; };
     this.where = (where) => { query.where = unravelObject(where); return this; };
-    this.sortBy = (sortBy) => { query.sortBy = sortBy; return this; };
+    this.sortBy = (sortBy) => { query.sortBy = unravelObject(sortBy); return this; };
     this.limit = (limit) => { query.limit = limit; return this; };
     this.before = (before) => { query.before = before; return this; };
     this.after = (after) => { query.after = after; return this; };
