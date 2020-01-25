@@ -67,8 +67,19 @@ exports.schema = {
       building: { type: 'Building', embedded: true, onDelete: 'cascade', rules: [required()] },
     },
     indexes: [
-      { name: 'uix_libraay', type: 'unique', fields: ['name'] },
+      { name: 'uix_library', type: 'unique', fields: ['name'] },
       { name: 'uix_library_bulding', type: 'unique', fields: ['building'] },
+    ],
+  },
+  Apartment: {
+    fields: {
+      name: { type: String, transforms: [titleCase()], rules: [required()] },
+      location: String,
+      building: { type: 'Building', embedded: true, onDelete: 'cascade', rules: [required()] },
+    },
+    indexes: [
+      { name: 'uix_apartment', type: 'unique', fields: ['name'] },
+      { name: 'uix_apartment_bulding', type: 'unique', fields: ['building'] },
     ],
   },
   Building: {

@@ -111,8 +111,18 @@ module.exports = class Model {
     return this.name;
   }
 
-  getField(name) {
-    return this.fields.find(field => field.getName() === name);
+  getField(path) {
+    const [name, ...rest] = path.split('.');
+    const field = this.fields.find(f => f.getName() === name);
+    if (field == null) return field;
+
+    if (rest.length) {
+      const modelRef = field.getModelRef();
+      if (modelRef) return modelRef.getField(rest.join('.'));
+      return null;
+    }
+
+    return field;
   }
 
   getFields() {

@@ -151,19 +151,20 @@ module.exports = class Field {
     return isScalarDataType(this.getSimpleType());
   }
 
-  isRequired() {
-    return this.options.required;
-  }
-
   isVirtual() {
     return Boolean(this.options.by);
   }
 
-  isImmutable() {
-    return this.options.immutable;
+  isEmbedded() {
+    return Boolean(this.options.embedded);
   }
 
-  isEmbedded() {
-    return this.options.embedded;
+  // TODO: These are broken
+  isRequired() {
+    return this.options.required;
+  }
+
+  isImmutable() {
+    return this.options.immutable;
   }
 };

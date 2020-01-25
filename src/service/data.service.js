@@ -175,7 +175,7 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
     query: Object.entries(where).reduce((prev, [key, value]) => {
       const field = model.getField(key);
 
-      if (field) {
+      if (field && !field.isEmbedded()) {
         const ref = field.getModelRef();
 
         if (ref) {
@@ -183,6 +183,7 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
             exports.resolveModelWhereClause(loader, ref, value, field.getAlias(key), lookups2D, index + 1);
             return prev;
           }
+
           if (Array.isArray(value)) {
             const scalars = [];
             const norm = value.map((v) => {
@@ -266,27 +267,27 @@ exports.resolveReferentialIntegrity = (loader, model, query, parentTxn) => {
 
   return new Promise(async (resolve, reject) => {
     try {
-      model.referentialIntegrity().forEach(({ model: ref, field }) => {
-        const op = field.getOnDelete();
-        const isArray = field.isArray();
-        const isEmbedded = field.isEmbedded();
-        const fieldStr = `${field}`;
+      model.referentialIntegrity().forEach(({ model: ref, field, fieldRef, isArray, op }) => {
+        const fieldStr = fieldRef ? `${field}.${fieldRef}` : `${field}`;
+        const $where = { [fieldStr]: id };
+
+        // console.log(`${ref}`, $where, op, isArray, fieldStr);
 
         switch (op) {
           case 'cascade': {
             if (isArray) {
-              txn.spot(ref).where({ [fieldStr]: id }).pull(fieldStr, id);
+              txn.spot(ref).where($where).pull(fieldStr, id);
             } else {
-              txn.spot(ref).where({ [fieldStr]: id }).remove(txn);
+              txn.spot(ref).where($where).remove(txn);
             }
             break;
           }
           case 'nullify': {
-            txn.spot(ref).where({ [fieldStr]: id }).save({ [fieldStr]: null });
+            txn.spot(ref).where($where).save({ [fieldStr]: null });
             break;
           }
           case 'restrict': {
-            txn.spot(ref).where({ [fieldStr]: id }).count().then(count => (count ? reject(new Error('Restricted')) : count));
+            txn.spot(ref).where($where).count().then(count => (count ? reject(new Error('Restricted')) : count));
             break;
           }
           default: throw new Error(`Unknown onDelete operator: '${op}'`);

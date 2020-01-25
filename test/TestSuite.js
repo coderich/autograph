@@ -23,6 +23,7 @@ let apartmentBuilding;
 let bookstore1;
 let bookstore2;
 let library;
+let apartment;
 
 const sorter = (a, b) => {
   const idA = `${a.id}`;
@@ -153,6 +154,12 @@ module.exports = (driver = 'mongo') => {
         expect(library.books.length).toEqual(3);
         expect(library.building.type).toEqual('business');
       });
+
+      test('Apartment', async () => {
+        apartment = await loader.spot('Apartment').save({ name: 'Piedmont Beauty', building: apartmentBuilding });
+        expect(apartment.id).toBeDefined();
+        expect(apartment.building.type).toEqual('home');
+      });
     });
 
 
@@ -276,6 +283,11 @@ module.exports = (driver = 'mongo') => {
       test('Library', async () => {
         expect((await loader.spot('Library').many({ find: true })).length).toBe(1);
       });
+
+      // test('Apartment', async () => {
+      //   expect((await loader.spot('Apartment').where({ 'building.tenants': 'nobody' }).many({ find: true })).length).toBe(0);
+      //   expect((await loader.spot('Apartment').where({ 'building.tenants': richard.id }).many({ find: true })).length).toBe(1);
+      // });
     });
 
 

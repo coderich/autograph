@@ -1,3 +1,4 @@
+const _ = require('lodash');
 const Model = require('../data/Model');
 const RedisDriver = require('../driver/RedisDriver');
 const MongoDriver = require('../driver/MongoDriver');
@@ -28,15 +29,26 @@ module.exports = class Schema {
     // Create models
     this.models = Object.entries(schema).map(([model, options]) => new Model(this, model, drivers[options.driver || 'default'], options));
 
-    // Assign model referential integrity
-    this.models.forEach((parentModel) => {
-      parentModel.referentialIntegrity(this.models.reduce((prev, model) => {
+    const identifyOnDeletes = (parentModel) => {
+      return this.models.reduce((prev, model) => {
         model.getOnDeleteFields().forEach((field) => {
-          if (`${field.getModelRef()}` === `${parentModel}`) prev.push({ model, field });
+          if (`${field.getModelRef()}` === `${parentModel}`) {
+            if (model.isVisible()) {
+              prev.push({ model, field, isArray: field.isArray(), op: field.getOnDelete() });
+            } else {
+              prev.push(...identifyOnDeletes(model).map(od => Object.assign(od, { fieldRef: field, isArray: field.isArray(), op: field.getOnDelete() })));
+            }
+          }
         });
 
-        return prev;
-      }, []));
+        return _.uniqWith(prev, (a, b) => `${a.model}:${a.field}:${a.fieldRef}:${a.op}` === `${b.model}:${b.field}:${b.fieldRef}:${b.op}`);
+      }, []);
+    };
+
+    // Assign model referential integrity
+    this.models.forEach((parentModel) => {
+      const ods = identifyOnDeletes(parentModel);
+      parentModel.referentialIntegrity(ods);
     });
   }
 

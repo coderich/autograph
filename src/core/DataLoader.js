@@ -75,17 +75,13 @@ module.exports = class DataLoader {
         const [commits, rollbacks] = map.ready();
 
         if (commits && rollbacks) {
-          try {
-            const rollbackData = _.flatten(rollbacks.map(tnx => tnx.data));
-            const commitData = _.flatten(commits.map(tnx => tnx.data));
+          const rollbackData = _.flatten(rollbacks.map(tnx => tnx.data));
+          const commitData = _.flatten(commits.map(tnx => tnx.data));
 
-            Promise.all(rollbackData.map(rbd => rbd.$rollback())).then(() => {
-              if (commits.length) loader.clearAll();
-              Promise.all(commitData.map(cd => cd.$commit())).then(d => map.resolve(d));
-            }).catch(e => map.reject(e));
-          } catch (e) {
-            console.log('strange', e);
-          }
+          Promise.all(rollbackData.map(rbd => rbd.$rollback())).then(() => {
+            if (commits.length) loader.clearAll();
+            Promise.all(commitData.map(cd => cd.$commit())).then(d => map.resolve(d));
+          }).catch(e => map.reject(e));
         }
 
         return map.promise;
