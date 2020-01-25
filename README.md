@@ -7,11 +7,12 @@
 
 If you are looking to build a GraphQL API, check out [AutoGraph](https://www.npmjs.com/package/@coderich/autograph)!
 
-**Dalmatian** is a unified API that treats disparate data sources as one coherent graph. Inspired by [GraphQL](https://graphql.org/), it is the *resolver* responsible for executing queries. Dalmatian currently supports:
+**Dalmatian** is a unified API that treats disparate data sources as one coherent graph. Inspired by [GraphQL](https://graphql.org/), it is the *resolver* responsible for query management. Features include:
 
 - Full Query API
 - Cursor Pagination
 - Atomic Transactions
+- Memoized Caching (via [DataLoader](https://www.npmjs.com/package/dataloader))
 
 ## Getting Started
 ```
