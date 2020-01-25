@@ -48,7 +48,7 @@ module.exports = class DataLoader {
     return this.loader.prime(key, value);
   }
 
-  match(model) {
+  spot(model) {
     return new QueryBuilder(this.toModel(model), this);
   }
 
@@ -97,7 +97,7 @@ module.exports = class DataLoader {
     // Create txn
     const txn = ((data, driverMap, txMap, id) => {
       return {
-        get match() {
+        get spot() {
           return (modelName) => {
             const model = loader.toModel(modelName);
             const driver = model.getDriver();

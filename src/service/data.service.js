@@ -34,7 +34,7 @@ exports.validateModelData = (loader, model, data, oldData, op) => {
         if (field.isEmbedded()) {
           promises.push(...value.map(v => exports.validateModelData(loader, ref, v, oldData, op)));
         } else {
-          promises.push(...value.map(v => loader.match(ref).id(v).one({ required: true })));
+          promises.push(...value.map(v => loader.spot(ref).id(v).one({ required: true })));
           value.forEach(v => rules.forEach(rule => rule(v, oldData, op, path)));
         }
       } else {
@@ -44,7 +44,7 @@ exports.validateModelData = (loader, model, data, oldData, op) => {
       if (field.isEmbedded()) {
         promises.push(exports.validateModelData(loader, ref, value, oldData, op));
       } else {
-        promises.push(loader.match(ref).id(value).one({ required: true }));
+        promises.push(loader.spot(ref).id(value).one({ required: true }));
       }
     }
   });
@@ -219,7 +219,7 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
         const { parentModel, parentFields, parentDataRefs } = parentLookup;
         const { parentModel: currentModel, parentFields: currentFields, parentFieldAlias: currentFieldAlias } = lookups2D[index2D];
 
-        return loader.match(modelName).where(query).many({ find: true }).then((results) => {
+        return loader.spot(modelName).where(query).many({ find: true }).then((results) => {
           if (parentDataRefs.has(modelName)) {
             parentLookup.lookups.forEach((lookup) => {
               // Anything with type `modelName` should be added to query
@@ -275,18 +275,18 @@ exports.resolveReferentialIntegrity = (loader, model, query, parentTxn) => {
         switch (op) {
           case 'cascade': {
             if (isArray) {
-              txn.match(ref).where({ [fieldStr]: id }).pull(fieldStr, id);
+              txn.spot(ref).where({ [fieldStr]: id }).pull(fieldStr, id);
             } else {
-              txn.match(ref).where({ [fieldStr]: id }).remove(txn);
+              txn.spot(ref).where({ [fieldStr]: id }).remove(txn);
             }
             break;
           }
           case 'nullify': {
-            txn.match(ref).where({ [fieldStr]: id }).save({ [fieldStr]: null });
+            txn.spot(ref).where({ [fieldStr]: id }).save({ [fieldStr]: null });
             break;
           }
           case 'restrict': {
-            txn.match(ref).where({ [fieldStr]: id }).count().then(count => (count ? reject(new Error('Restricted')) : count));
+            txn.spot(ref).where({ [fieldStr]: id }).count().then(count => (count ? reject(new Error('Restricted')) : count));
             break;
           }
           default: throw new Error(`Unknown onDelete operator: '${op}'`);

@@ -1,8 +1,8 @@
 {
-  "name": "@coderich/dataloader",
+  "name": "@coderich/dalmatian",
   "author": "Richard Livolsi (coderich)",
-  "version": "0.0.3",
-  "description": "DataLoader",
+  "version": "0.1.0",
+  "description": "Dalmation",
   "main": "index.js",
   "license": "MIT",
   "files": [
@@ -40,5 +40,9 @@
     "mongodb-memory-server": "^6.2.2",
     "neodb": "^3.0.0",
     "redis-mock": "^0.47.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:coderich/dalmatian.git"
   }
 }
