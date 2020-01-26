@@ -22,7 +22,7 @@ First, install Dalmatian via NPM:
 npm i @coderich/dalmatian --save
 ```
 
-To get started, create a `Resolver`. Each `Resolver` instance provides an API for the `Schema` passed to it's constructor. Typically you will only need one `Resolver` per `Schema`.
+To get started, create a `Resolver`. Each `Resolver` provides a *context* to run queries for a given `Schema`.
 
 ```js
 const { Resolver } = require('@coderich/dalmatian');
@@ -30,8 +30,20 @@ const { Resolver } = require('@coderich/dalmatian');
 const resolver = new Resolver(schema); // Here 'schema' is a Linchpin Schema (see below)
 ```
 
-That's it! Now you're ready to start using your resolver to query for data.
+That's it! Now you're ready to start using the resolver to query for data.
 
 > NOTE: Refer to the [Linchpin Documentation]() for how to create a schema definition.
 
-## Resolver API
+## Resolving Data
+Each `Resolver` treats your schema definition as a *graph of connected nodes*. To begin a *query* or *mutation*, you must first identify a node in the graph as your starting point.
+
+##### .spot
+Identify a node, returns a `QueryBuilder`.
+```
+const queryBuilder = resolver.spot('Person');
+```
+##### .mark
+Identify a node, returns a `Transaction`.
+```
+const txn = resolver.mark('Person');
+```
