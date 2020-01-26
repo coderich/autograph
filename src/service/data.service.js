@@ -3,7 +3,7 @@ const { ObjectID } = require('mongodb');
 const { BadRequestError } = require('../service/error.service');
 const { uniq, globToRegexp, isScalarValue, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
 
-exports.validateModelData = (loader, model, data, oldData, op) => {
+exports.validateModelData = (resolver, model, data, oldData, op) => {
   const promises = [];
   const modelName = model.getName();
   const fields = model.getFields();
@@ -32,9 +32,9 @@ exports.validateModelData = (loader, model, data, oldData, op) => {
     if (isValueArray) {
       if (ref) {
         if (field.isEmbedded()) {
-          promises.push(...value.map(v => exports.validateModelData(loader, ref, v, oldData, op)));
+          promises.push(...value.map(v => exports.validateModelData(resolver, ref, v, oldData, op)));
         } else {
-          promises.push(...value.map(v => loader.spot(ref).id(v).one({ required: true })));
+          promises.push(...value.map(v => resolver.spot(ref).id(v).one({ required: true })));
           value.forEach(v => rules.forEach(rule => rule(v, oldData, op, path)));
         }
       } else {
@@ -42,9 +42,9 @@ exports.validateModelData = (loader, model, data, oldData, op) => {
       }
     } else if (ref) {
       if (field.isEmbedded()) {
-        promises.push(exports.validateModelData(loader, ref, value, oldData, op));
+        promises.push(exports.validateModelData(resolver, ref, value, oldData, op));
       } else {
-        promises.push(loader.spot(ref).id(value).one({ required: true }));
+        promises.push(resolver.spot(ref).id(value).one({ required: true }));
       }
     }
   });
@@ -52,7 +52,7 @@ exports.validateModelData = (loader, model, data, oldData, op) => {
   return Promise.all(promises);
 };
 
-exports.ensureModelArrayTypes = (loader, model, data) => {
+exports.ensureModelArrayTypes = (resolver, model, data) => {
   return Object.entries(data).reduce((prev, [key, value]) => {
     const field = model.getField(key);
     if (value == null || field == null) return prev;
@@ -94,7 +94,7 @@ exports.applyFieldValueTransform = (field, value) => {
   return value;
 };
 
-exports.normalizeModelWhere = (loader, model, data) => {
+exports.normalizeModelWhere = (resolver, model, data) => {
   return Object.entries(data).reduce((prev, [key, value]) => {
     const field = model.getField(key);
     if (value == null || field == null) return prev;
@@ -103,10 +103,10 @@ exports.normalizeModelWhere = (loader, model, data) => {
 
     if (ref) {
       if (isPlainObject(value)) {
-        prev[key] = exports.normalizeModelWhere(loader, ref, value);
+        prev[key] = exports.normalizeModelWhere(resolver, ref, value);
       } else if (Array.isArray(value)) {
         prev[key] = value.map((val) => {
-          if (isPlainObject(val)) return exports.normalizeModelWhere(loader, ref, val);
+          if (isPlainObject(val)) return exports.normalizeModelWhere(resolver, ref, val);
           if (isIdValue(val)) return ref.idValue(val);
           return val;
         });
@@ -123,7 +123,7 @@ exports.normalizeModelWhere = (loader, model, data) => {
   }, data);
 };
 
-exports.normalizeModelData = (loader, model, data) => {
+exports.normalizeModelData = (resolver, model, data) => {
   return Object.entries(data).reduce((prev, [key, value]) => {
     const field = model.getField(key);
     if (value == null || field == null) return prev;
@@ -132,11 +132,11 @@ exports.normalizeModelData = (loader, model, data) => {
     const type = field.getDataType();
 
     if (isPlainObject(value) && ref) {
-      prev[key] = exports.normalizeModelData(loader, ref, value);
+      prev[key] = exports.normalizeModelData(resolver, ref, value);
     } else if (Array.isArray(value)) {
       if (ref) {
         if (field.isEmbedded() || field.isVirtual()) {
-          prev[key] = value.map(v => exports.normalizeModelData(loader, ref, v));
+          prev[key] = value.map(v => exports.normalizeModelData(resolver, ref, v));
         } else if (type.isSet) {
           prev[key] = uniq(value).map(v => ref.idValue(v));
         } else {
@@ -156,7 +156,7 @@ exports.normalizeModelData = (loader, model, data) => {
   }, data);
 };
 
-exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', lookups2D = [], index = 0) => {
+exports.resolveModelWhereClause = (resolver, model, where = {}, fieldAlias = '', lookups2D = [], index = 0) => {
   const mName = model.getName();
   const fields = model.getFields();
 
@@ -180,7 +180,7 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
 
         if (ref) {
           if (isPlainObject(value)) {
-            exports.resolveModelWhereClause(loader, ref, value, field.getAlias(key), lookups2D, index + 1);
+            exports.resolveModelWhereClause(resolver, ref, value, field.getAlias(key), lookups2D, index + 1);
             return prev;
           }
 
@@ -192,13 +192,13 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
               scalars.push(v);
               return null;
             }).filter(v => v);
-            norm.forEach(val => exports.resolveModelWhereClause(loader, ref, val, field.getAlias(key), lookups2D, index + 1));
+            norm.forEach(val => exports.resolveModelWhereClause(resolver, ref, val, field.getAlias(key), lookups2D, index + 1));
             if (scalars.length) prev[key] = scalars;
             return prev;
           }
 
           if (field.isVirtual()) {
-            exports.resolveModelWhereClause(loader, ref, { [ref.idField()]: value }, field.getAlias(key), lookups2D, index + 1);
+            exports.resolveModelWhereClause(resolver, ref, { [ref.idField()]: value }, field.getAlias(key), lookups2D, index + 1);
             return prev;
           }
         }
@@ -220,7 +220,7 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
         const { parentModel, parentFields, parentDataRefs } = parentLookup;
         const { parentModel: currentModel, parentFields: currentFields, parentFieldAlias: currentFieldAlias } = lookups2D[index2D];
 
-        return loader.spot(modelName).where(query).many({ find: true }).then((results) => {
+        return resolver.spot(modelName).where(query).many({ find: true }).then((results) => {
           if (parentDataRefs.has(modelName)) {
             parentLookup.lookups.forEach((lookup) => {
               // Anything with type `modelName` should be added to query
@@ -261,9 +261,9 @@ exports.resolveModelWhereClause = (loader, model, where = {}, fieldAlias = '', l
   return undefined;
 };
 
-exports.resolveReferentialIntegrity = (loader, model, query, parentTxn) => {
+exports.resolveReferentialIntegrity = (resolver, model, query, parentTxn) => {
   const id = query.getId();
-  const txn = loader.transaction(parentTxn);
+  const txn = resolver.transaction(parentTxn);
 
   return new Promise(async (resolve, reject) => {
     try {
@@ -330,7 +330,7 @@ exports.sortData = (data, sortBy) => {
   });
 };
 
-exports.filterDataByCounts = (loader, model, data, countPaths) => {
+exports.filterDataByCounts = (resolver, model, data, countPaths) => {
   const pathValue = (doc, path) => {
     const realPath = path.split('.').map(s => (s.indexOf('count') === 0 ? s : `$${s}`)).join('.');
     const realVals = getDeep(doc, realPath);

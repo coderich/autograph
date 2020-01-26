@@ -1,11 +1,11 @@
-class DataLoaderError extends Error {}
+class DalmatianError extends Error {}
 
 // Request Errors
-exports.NotFoundError = class extends DataLoaderError {};
-exports.BadRequestError = class extends DataLoaderError {};
+exports.NotFoundError = class extends DalmatianError {};
+exports.BadRequestError = class extends DalmatianError {};
 
 // Rule Errors
-class RuleError extends DataLoaderError {}
+class RuleError extends DalmatianError {}
 exports.AllowRuleError = class extends RuleError {};
 exports.ImmutableRuleError = class extends RuleError {};
 exports.EmailRuleError = class extends RuleError {};

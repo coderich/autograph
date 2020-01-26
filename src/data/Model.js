@@ -66,7 +66,7 @@ module.exports = class Model {
     });
   }
 
-  async hydrate(loader, results, query = {}) {
+  async hydrate(resolver, results, query = {}) {
     const { fields = {} } = query;
     const isArray = Array.isArray(results);
     const modelFields = this.getFields().map(f => f.getName());
@@ -82,13 +82,13 @@ module.exports = class Model {
         Promise.all(fieldEntries.map(async ([field, subFields]) => {
           const [arg = {}] = (fields[field].__arguments || []).filter(el => el.query).map(el => el.query.value); // eslint-disable-line
           const ref = this.getField(field).getModelRef();
-          const resolved = await this.getField(field).resolve(loader, doc, { ...query, ...arg });
-          if (Object.keys(subFields).length && ref) return ref.hydrate(loader, resolved, { ...query, ...arg, fields: subFields });
+          const resolved = await this.getField(field).resolve(resolver, doc, { ...query, ...arg });
+          if (Object.keys(subFields).length && ref) return ref.hydrate(resolver, resolved, { ...query, ...arg, fields: subFields });
           return resolved;
         })),
         Promise.all(countEntries.map(async ([field, subFields]) => {
           const [arg = {}] = (fields[field].__arguments || []).filter(el => el.where).map(el => el.where.value); // eslint-disable-line
-          return this.getField(lcFirst(field.substr(5))).count(loader, doc, arg);
+          return this.getField(lcFirst(field.substr(5))).count(resolver, doc, arg);
         })),
       ]);
 

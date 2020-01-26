@@ -2,8 +2,8 @@ const _ = require('lodash');
 const TransactionQueryBuilder = require('./TransactionQueryBuilder');
 
 module.exports = class Transaction {
-  constructor(loader) {
-    this.loader = loader;
+  constructor(resolver) {
+    this.resolver = resolver;
     this.results = [];
     this.ops = new Map();
   }
@@ -15,14 +15,14 @@ module.exports = class Transaction {
   }
 
   match(modelName) {
-    const model = this.loader.toModel(modelName);
-    const op = new TransactionQueryBuilder(model, this.loader);
+    const model = this.resolver.toModel(modelName);
+    const op = new TransactionQueryBuilder(model, this.resolver);
     this.addOp(op);
     return op;
   }
 
   exec(force) {
-    if (force !== true) return this.loader.exec(this);
+    if (force !== true) return this.resolver.exec(this);
 
     return Promise.all(this.entries().map(([driver, ops]) => driver.transaction(ops))).then((results) => {
       this.results = results;
@@ -31,7 +31,7 @@ module.exports = class Transaction {
   }
 
   run(force) {
-    if (force !== true) return this.loader.run(this);
+    if (force !== true) return this.resolver.run(this);
 
     return this.exec().then((results) => {
       return this.commit().then(() => results);
@@ -50,7 +50,7 @@ module.exports = class Transaction {
   // }
 
   commit() {
-    this.loader.clearAll();
+    this.resolver.clearAll();
     return Promise.all(this.results.map(result => result.$commit()));
   }
 

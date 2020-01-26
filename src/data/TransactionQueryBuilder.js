@@ -1,8 +1,8 @@
 const QueryBuilder = require('./QueryBuilder');
 
 module.exports = class TransactionQueryBuilder extends QueryBuilder {
-  constructor(model, loader, transaction) {
-    super(model, loader);
+  constructor(model, resolver, transaction) {
+    super(model, resolver);
     this.transaction = transaction;
     this.driver = model.getDriver();
   }

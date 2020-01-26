@@ -3,9 +3,9 @@ const { resolveModelWhereClause } = require('../service/data.service');
 const { unravelObject } = require('../service/app.service');
 
 module.exports = class QueryBuilder {
-  constructor(model, loader) {
+  constructor(model, resolver) {
     this.model = model;
-    this.loader = loader;
+    this.resolver = resolver;
 
     const query = {};
 
@@ -49,46 +49,46 @@ module.exports = class QueryBuilder {
   }
 
   async makeTheCall(query, cmd, args, parentTxn) {
-    const { model, loader } = this;
+    const { model, resolver } = this;
     const { id, where, before, after } = query;
 
     switch (cmd) {
       case 'one': {
         if (id) {
           const { required } = _.get(args, '0', {});
-          return loader.load({ method: 'get', model, query, args: [required] });
+          return resolver.load({ method: 'get', model, query, args: [required] });
         }
         const { find } = _.get(args, '0', {});
         const method = find ? 'find' : 'query';
-        return loader.load({ method, model, query, args: [] }).then(results => results[0]);
+        return resolver.load({ method, model, query, args: [] }).then(results => results[0]);
       }
       case 'many': {
         const { find } = _.get(args, '0', {});
         const method = find ? 'find' : 'query';
-        return loader.load({ method, model, query, args: [] });
+        return resolver.load({ method, model, query, args: [] });
       }
       case 'first': case 'last': {
         const [num] = args;
         const pagination = { before, after, [cmd]: num };
-        return loader.load({ method: 'query', model, query: Object.assign(query, { pagination }), args: [] });
+        return resolver.load({ method: 'query', model, query: Object.assign(query, { pagination }), args: [] });
       }
       case 'min': case 'max': case 'avg': {
         return 0;
       }
       case 'count': {
-        return loader.load({ method: 'count', model, query, args: [] });
+        return resolver.load({ method: 'count', model, query, args: [] });
       }
       case 'push': case 'pull': {
         const [key, ...values] = args;
 
         // Single op
-        if (id) return loader.load({ method: cmd, model, query, args: [key, values] });
+        if (id) return resolver.load({ method: cmd, model, query, args: [key, values] });
 
         // Multi op (transaction)
         if (where) {
-          const txn = loader.transaction(parentTxn);
-          const resolvedWhere = await resolveModelWhereClause(loader, model, where);
-          const docs = await loader.spot(model).where(resolvedWhere).many({ find: true });
+          const txn = resolver.transaction(parentTxn);
+          const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
+          const docs = await resolver.spot(model).where(resolvedWhere).many({ find: true });
           docs.forEach(doc => txn.spot(model).id(doc.id).query(query)[cmd](...args));
           return txn.run();
         }
@@ -100,36 +100,36 @@ module.exports = class QueryBuilder {
         const [data] = args;
 
         // Single update
-        if (id) return loader.load({ method: 'update', model, query, args: [data] });
+        if (id) return resolver.load({ method: 'update', model, query, args: [data] });
 
         // Multi update (transaction)
         if (where) {
-          const txn = loader.transaction(parentTxn);
-          const resolvedWhere = await resolveModelWhereClause(loader, model, where);
-          const docs = await loader.spot(model).where(resolvedWhere).many();
+          const txn = resolver.transaction(parentTxn);
+          const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
+          const docs = await resolver.spot(model).where(resolvedWhere).many();
           docs.forEach(doc => txn.spot(model).id(doc.id).query(query).save(...args));
           return txn.run();
         }
 
         // Multi save (transaction)
         if (args.length > 1) {
-          const txn = loader.transaction(parentTxn);
+          const txn = resolver.transaction(parentTxn);
           args.forEach(arg => txn.spot(model).query(query).save(arg));
           return txn.run();
         }
 
         // Single save
-        return loader.load({ method: 'create', model, query, args: [data] });
+        return resolver.load({ method: 'create', model, query, args: [data] });
       }
       case 'remove': {
         // Single document remove
-        if (id) return loader.load({ method: 'delete', model, query, args: [parentTxn] });
+        if (id) return resolver.load({ method: 'delete', model, query, args: [parentTxn] });
 
         // Multi remove (transaction)
         if (where) {
-          const txn = loader.transaction(parentTxn);
-          const resolvedWhere = await resolveModelWhereClause(loader, model, where);
-          const docs = await loader.spot(model).where(resolvedWhere).many({ find: true });
+          const txn = resolver.transaction(parentTxn);
+          const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
+          const docs = await resolver.spot(model).where(resolvedWhere).many({ find: true });
           docs.forEach(doc => txn.spot(model).id(doc.id).remove());
           return txn.run();
         }

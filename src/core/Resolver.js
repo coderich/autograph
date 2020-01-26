@@ -10,7 +10,7 @@ const { hashObject } = require('../service/app.service');
 
 let count = 0;
 
-module.exports = class DataLoader {
+module.exports = class Resolver {
   constructor(schema) {
     this.schema = schema;
     this.worker = new QueryWorker(this);
@@ -54,7 +54,7 @@ module.exports = class DataLoader {
 
   // Public Transaction API
   transaction(parentTxn) {
-    const loader = this;
+    const resolver = this;
     const txnMap = (parentTxn || {}).txnMap || (() => {
       let resolve, reject;
       const map = new TreeMap();
@@ -79,7 +79,7 @@ module.exports = class DataLoader {
           const commitData = _.flatten(commits.map(tnx => tnx.data));
 
           Promise.all(rollbackData.map(rbd => rbd.$rollback())).then(() => {
-            if (commits.length) loader.clearAll();
+            if (commits.length) resolver.clearAll();
             Promise.all(commitData.map(cd => cd.$commit())).then(d => map.resolve(d));
           }).catch(e => map.reject(e));
         }
@@ -95,9 +95,9 @@ module.exports = class DataLoader {
       return {
         get spot() {
           return (modelName) => {
-            const model = loader.toModel(modelName);
+            const model = resolver.toModel(modelName);
             const driver = model.getDriver();
-            const op = new TxnQueryBuilder(model, loader, this);
+            const op = new TxnQueryBuilder(model, resolver, this);
             if (!driverMap.has(driver)) driverMap.set(driver, []);
             driverMap.get(driver).push(op);
             return op;

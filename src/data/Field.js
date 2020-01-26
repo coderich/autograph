@@ -11,13 +11,13 @@ module.exports = class Field {
   }
 
   // CRUD
-  count(loader, doc, w = {}) {
+  count(resolver, doc, w = {}) {
     const where = _.cloneDeep(w);
     const fieldRef = this.getModelRef();
 
     if (this.isVirtual()) {
       where[this.getVirtualRef()] = doc.id;
-      return loader.spot(fieldRef).where(where).count();
+      return resolver.spot(fieldRef).where(where).count();
     }
 
     if (!Object.keys(where).length) {
@@ -26,10 +26,10 @@ module.exports = class Field {
 
     const ids = (doc[this.getName()] || []);
     where[fieldRef.idField()] = ids;
-    return loader.spot(fieldRef).where(where).count();
+    return resolver.spot(fieldRef).where(where).count();
   }
 
-  resolve(loader, doc, q = {}) {
+  resolve(resolver, doc, q = {}) {
     if (doc == null) return doc;
 
     const query = _.cloneDeep(q);
@@ -44,20 +44,20 @@ module.exports = class Field {
     if (Array.isArray(dataType)) {
       if (this.isVirtual()) {
         query.where[this.getVirtualField().getAlias()] = doc.id;
-        return loader.spot(dataType[0]).query(query).many({ find: true });
+        return resolver.spot(dataType[0]).query(query).many({ find: true });
       }
       const valueIds = (value || []).map(v => (isScalarValue(v) ? v : v.id));
-      return Promise.all(valueIds.map(id => loader.spot(dataType[0]).id(id).one({ required: this.isRequired() }).catch(() => null)));
+      return Promise.all(valueIds.map(id => resolver.spot(dataType[0]).id(id).one({ required: this.isRequired() }).catch(() => null)));
     }
 
     // Object Resolvers
     if (this.isVirtual()) {
       query.where[this.getVirtualField().getAlias()] = doc.id;
-      return loader.spot(dataType).query(query).one({ find: true });
+      return resolver.spot(dataType).query(query).one({ find: true });
     }
 
     const id = isScalarValue(value) ? value : value.id;
-    return loader.spot(dataType).id(id).one({ required: this.isRequired() });
+    return resolver.spot(dataType).id(id).one({ required: this.isRequired() });
   }
 
   //
