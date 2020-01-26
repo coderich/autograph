@@ -5,7 +5,7 @@
 :heavy_check_mark: [MongoDB](https://www.mongodb.com/)
 :heavy_check_mark: [Neo4j](https://https://neo4j.com/)
 
-**Dalmatian** is a unified data access layer (DAL) abstraction. Inspired by [GraphQL](https://graphql.org/), it represents your domain model as a coherent graph of connected nodes (spots). Features include:
+**Dalmatian** is a backend data access API. Inspired by [GraphQL](https://graphql.org/), it provides a abstraction to your domain models as a unified graph of connected nodes. Features include:
 
 
 - Full Query API
@@ -22,7 +22,7 @@ npm i @coderich/dalmatian --save
 ```
 To get started, create a `Schema`. A `Schema` may define all (or some) of your domain model.
 
-Next, create a `Resolver`. A `Resolver` provides a unified API to a given `Schema`.
+Next, create a `Resolver`. A `Resolver` provides a unified API for a given `Schema`.
 
 #### Schema
 
