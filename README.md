@@ -17,15 +17,22 @@
 
 ## Getting Started
 First, install Dalmatian via NPM:
-```
+
+```sh
 npm i @coderich/dalmatian --save
 ```
-To get started, create a `Schema`. A `Schema` may define all (or some) of your domain model.
 
-Next, create a `Resolver`. A `Resolver` provides a unified API for a given `Schema`.
+To get started, you'll need to instantiate a `Schema` + `Resolver`:
 
-#### Schema
+```js
+const { Schema, Resolver } = require('@coderich/dalmatian');
+const mySchemaDef = require('./schemaDef');
 
-#### Resolver
+const schema = new Schema(mySchemaDef); // Linchpin Schema
+const resolver = new Resolver(schema); // Unified API Resolver
+```
 
-## API
+That's it! Now you're ready to start using the Resolver API to query your data.
+
+> NOTE: Schemas are defined via the [Linchpin Schema]() definition
+## Resolver API
