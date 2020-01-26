@@ -1,11 +1,11 @@
 <img src="http://319aae5799f54c1fcefb-5ae98ed6e277c174e30e3abd5432b5c9.r57.cf2.rackcdn.com/dalmation.jpg" width="170px" align="right"/>
 
 # @coderich/dalmatian
-### Unified Data Access.
+### A Unified Data Query Resolver.
 :heavy_check_mark: [MongoDB](https://www.mongodb.com/)
 :heavy_check_mark: [Neo4j](https://https://neo4j.com/)
 
-**Dalmatian** is a backend data access API. Inspired by [GraphQL](https://graphql.org/), it provides a abstraction to your domain models as a unified graph of connected nodes. Features include:
+**Dalmatian** is a source-agnostic data query resolver. Inspired by [GraphQL](https://graphql.org/), it's goal is to connect and query multiple data sources as one coherent graph schema. Features include:
 
 
 - Full Query API
