@@ -5,10 +5,10 @@
 :heavy_check_mark: [MongoDB](https://www.mongodb.com/)
 :heavy_check_mark: [Neo4j](https://https://neo4j.com/)
 
-**Dalmatian** is a source-agnostic data query resolver. Inspired by [GraphQL](https://graphql.org/), it's goal is to connect and query multiple data sources as one coherent graph schema. Features include:
+**Dalmatian** is a unified data query resolver. Inspired by [GraphQL](https://graphql.org/), it's goal is to connect and query multiple data sources as one coherent graph schema. Features include:
 
 
-- Full Query API
+- Unified Query API
 - Cursor Pagination
 - Atomic Transactions
 - Memoized Caching (via [DataLoader](https://www.npmjs.com/package/dataloader))
