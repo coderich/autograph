@@ -1,11 +1,11 @@
-class DalmatianError extends Error {}
+class AutoGraphError extends Error {}
 
 // Request Errors
-exports.NotFoundError = class extends DalmatianError {};
-exports.BadRequestError = class extends DalmatianError {};
+exports.NotFoundError = class extends AutoGraphError {};
+exports.BadRequestError = class extends AutoGraphError {};
 
 // Rule Errors
-class RuleError extends DalmatianError {}
+class RuleError extends AutoGraphError {}
 exports.AllowRuleError = class extends RuleError {};
 exports.ImmutableRuleError = class extends RuleError {};
 exports.EmailRuleError = class extends RuleError {};

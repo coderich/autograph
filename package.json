@@ -1,14 +1,15 @@
 {
-  "name": "@coderich/dalmatian",
+  "name": "@coderich/autograph",
   "author": "Richard Livolsi (coderich)",
   "version": "0.1.0",
-  "description": "Dalmation",
+  "description": "AutoGraph",
   "keywords": [
     "graphql",
     "mongo",
     "neo4j",
     "redis",
     "dataloader",
+    "resolver",
     "orm"
   ],
   "main": "index.js",
@@ -46,6 +47,6 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:coderich/dalmatian.git"
+    "url": "git@github.com:coderich/autograph.git"
   }
 }
