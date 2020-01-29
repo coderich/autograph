@@ -723,27 +723,27 @@ module.exports = (driver = 'mongo') => {
     });
 
 
-    // describe('Referential Integrity', () => {
-    //   test('remove', async () => {
-    //     await expect(resolver.spot('Person').remove()).rejects.toThrow();
-    //     await expect(resolver.spot('Person').id(christie.id).remove()).rejects.toThrow();
-    //     expect(await resolver.spot('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
-    //     expect(await resolver.spot('Person').where({ name: '{christie,richard}' }).many()).toMatchObject([{ id: christie.id }]);
-    //     expect(await resolver.spot('Book').many()).toMatchObject([{ id: healthBook.id }]);
-    //     expect(await resolver.spot('Chapter').sortBy({ name: 'ASC' }).many()).toMatchObject([{ id: chapter1.id }, { id: chapter2.id }]);
-    //   });
+    describe('Referential Integrity', () => {
+      test('remove', async () => {
+        await expect(resolver.spot('Person').remove()).rejects.toThrow();
+        await expect(resolver.spot('Person').id(christie.id).remove()).rejects.toThrow();
+        expect(await resolver.spot('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
+        expect(await resolver.spot('Person').where({ name: '{christie,richard}' }).many()).toMatchObject([{ id: christie.id }]);
+        expect(await resolver.spot('Book').many()).toMatchObject([{ id: healthBook.id }]);
+        expect(await resolver.spot('Chapter').sortBy({ name: 'ASC' }).many()).toMatchObject([{ id: chapter1.id }, { id: chapter2.id }]);
+      });
 
-    //   test('remove multi', async () => {
-    //     // Create some colors
-    //     const colors = await resolver.spot('Color').save({ type: 'blue' }, { type: 'red' }, { type: 'green' }, { type: 'purple' });
-    //     expect(colors.length).toBe(4);
+      test('remove multi', async () => {
+        // Create some colors
+        const colors = await resolver.spot('Color').save({ type: 'blue' }, { type: 'red' }, { type: 'green' }, { type: 'purple' });
+        expect(colors.length).toBe(4);
 
-    //     // Remove some colors
-    //     const ids = await resolver.spot('Color').where({ type: '{red,purple}' }).remove();
-    //     const results = await resolver.spot('Color').sortBy({ type: 'ASC' }).many();
-    //     expect(ids.sort(sorter)).toMatchObject([{ id: colors[1].id }, { id: colors[3].id }].sort(sorter));
-    //     expect(results).toMatchObject([{ type: 'blue' }, { type: 'green' }]);
-    //   });
-    // });
+        // Remove some colors
+        const ids = await resolver.spot('Color').where({ type: '{red,purple}' }).remove();
+        const results = await resolver.spot('Color').sortBy({ type: 'ASC' }).many();
+        expect(ids.sort(sorter)).toMatchObject([{ id: colors[1].id }, { id: colors[3].id }].sort(sorter));
+        expect(results).toMatchObject([{ type: 'blue' }, { type: 'green' }]);
+      });
+    });
   });
 };

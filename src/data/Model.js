@@ -159,6 +159,11 @@ module.exports = class Model {
     return this.model.getDriver();
   }
 
+  referentialIntegrity(refs) {
+    if (refs) this.referentials = refs;
+    return this.referentials;
+  }
+
   // GTG
 
   getName() {
@@ -179,9 +184,5 @@ module.exports = class Model {
 
   isVisible() {
     return this.model.isVisible();
-  }
-
-  referentialIntegrity(refs) {
-    return this.model.referentialIntegrity(refs);
   }
 };
