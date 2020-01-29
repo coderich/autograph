@@ -433,6 +433,10 @@ module.exports = (driver = 'mongo') => {
         await expect(resolver.spot('Library').save({ name: 'New Library', building: 'bad-building' })).rejects.toThrow();
         await expect(resolver.spot('Library').save({ name: 'New Library', building: libraryBuilding })).rejects.toThrow();
       });
+
+      test('Art', async () => {
+        await expect(resolver.spot('Art').save({ name: 'sup', comments: ['whoops'] })).rejects.toThrow();
+      });
     });
 
 
@@ -514,7 +518,7 @@ module.exports = (driver = 'mongo') => {
 
     describe('Remove', () => {
       test('Art', async () => {
-        const art = await resolver.spot('Art').save({ name: 'bye bye' });
+        const art = await resolver.spot('Art').save({ name: 'bye bye', comments: ['yay'] });
         expect(art).toBeDefined();
         expect(await resolver.spot('Art').id(art.id).one()).not.toBeNull();
         expect(await resolver.spot('Art').id(art.id).remove()).toMatchObject({ id: art.id, name: 'Bye Bye' });
