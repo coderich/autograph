@@ -42,11 +42,11 @@ class Cypher {
   }
 
   createIndexes(model, indexes) {
-    return Promise.all(indexes.map(({ type, fields }) => {
-      if (fields.length > 1) return null;
+    return Promise.all(indexes.map(({ type, on }) => {
+      if (on.length > 1) return null;
 
       switch (type) {
-        case 'unique': return this.query(`CREATE CONSTRAINT on (n:${model}) ASSERT (${fields.map(f => `n.${f}`).join(',')}) IS UNIQUE`);
+        case 'unique': return this.query(`CREATE CONSTRAINT on (n:${model}) ASSERT (${on.map(f => `n.${f}`).join(',')}) IS UNIQUE`);
         default: return null;
       }
     }));

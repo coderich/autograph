@@ -1,13 +1,12 @@
 const _ = require('lodash');
-const { ucFirst, isScalarValue, isScalarDataType } = require('../service/app.service');
+const { isScalarValue } = require('../service/app.service');
 
 module.exports = class Field {
-  constructor(schema, model, name, options = {}) {
+  constructor(schema, model, field) {
     this.schema = schema;
     this.model = model;
-    this.name = name;
-    this.options = options;
-    this.toString = () => `${name}`;
+    this.field = field;
+    this.toString = () => `${field}`;
   }
 
   // CRUD
@@ -56,115 +55,91 @@ module.exports = class Field {
       return resolver.spot(dataType).query(query).one({ find: true });
     }
 
-    const id = isScalarValue(value) ? value : value.id;
-    return resolver.spot(dataType).id(id).one({ required: this.isRequired() });
+    // const id = isScalarValue(value) ? value : value.id;
+    // console.log(typeof value, value, id);
+    return resolver.spot(dataType).id(value).one({ required: this.isRequired() });
   }
 
-  //
-
-  getName() {
-    return this.name;
-  }
-
-  getSimpleType() {
-    const val = this.getDataType();
-    return Array.isArray(val) ? val[0] : val;
-  }
-
-  getDataType(field = this.options) {
-    switch (field) {
-      case String: return 'String';
-      case Number: return 'Float';
-      case Boolean: return 'Boolean';
-      default: {
-        if (Array.isArray(field)) { field[0] = this.getDataType(field[0]); return field; }
-        if (field instanceof Object) return this.getDataType(field.type);
-        return field;
-      }
-    }
-  }
-
-  getGQLType(suffix) {
-    let type = this.getSimpleType();
-    if (suffix && !isScalarDataType(type)) type = this.options.embedded ? `${type}${suffix}` : 'ID';
-    if (this.options.enum) type = `${this.model.getName()}${ucFirst(this.getName())}Enum`;
-    type = this.isArray() ? `[${type}]` : type;
-    if (suffix !== 'InputUpdate' && this.isRequired()) type += '!';
-    return type;
-  }
-
-  getGQLDefinition() {
-    const fieldName = this.getName();
-    const type = this.getGQLType();
-    const ref = this.getDataRef();
-
-    if (ref) {
-      if (this.isArray()) return `${fieldName}(first: Int after: String last: Int before: String query: ${ref}InputQuery): Connection`;
-      return `${fieldName}(query: ${ref}InputQuery): ${type}`;
-    }
-
-    return `${fieldName}: ${type}`;
-  }
-
-  getDataRef() {
-    const ref = this.getSimpleType();
-    return isScalarDataType(ref) ? null : ref;
-  }
+  // Transitional
 
   getModelRef() {
     return this.schema.getModel(this.getDataRef());
-  }
-
-  getAlias(alias) {
-    return this.options.alias || alias || this.getName();
-  }
-
-  getVirtualRef() {
-    return this.options.by;
+    // return this.field.getModelRef();
   }
 
   getVirtualModel() {
     return this.schema.getModel(this.getSimpleType());
+    // return this.field.getVirtualModel();
   }
 
   getVirtualField() {
     return this.getVirtualModel().getField(this.getVirtualRef());
+    // return this.field.getVirtualField();
+  }
+
+  // GTG
+
+  getName() {
+    return this.field.getName();
+  }
+
+  getSimpleType() {
+    return this.field.getSimpleType();
+  }
+
+  getDataType() {
+    return this.field.getDataType();
+  }
+
+  getDataRef() {
+    return this.field.getDataRef();
+  }
+
+  getAlias(defaultValue) {
+    return this.field.getAlias(defaultValue);
+  }
+
+  getVirtualRef() {
+    return this.field.getVirtualRef();
   }
 
   getTransforms() {
-    return this.options.transforms;
+    return this.field.getTransforms();
   }
 
   getRules() {
-    return this.options.rules;
+    return this.field.getRules();
   }
 
   getOnDelete() {
-    return this.options.onDelete;
+    return this.field.getOnDelete();
   }
 
   isArray() {
-    return Array.isArray(this.getDataType());
+    return this.field.isArray();
   }
 
   isScalar() {
-    return isScalarDataType(this.getSimpleType());
+    return this.field.isScalar();
   }
 
   isVirtual() {
-    return Boolean(this.options.by);
+    return this.field.isVirtual();
   }
 
   isEmbedded() {
-    return Boolean(this.options.embedded);
+    return this.field.isEmbedded();
   }
 
-  // TODO: These are broken
   isRequired() {
-    return this.options.required;
+    return this.field.isRequired();
   }
 
   isImmutable() {
-    return this.options.immutable;
+    return this.field.isImmutable();
+  }
+
+  validate(value, mapper) {
+    return this.field.validate(value, mapper);
   }
 };

@@ -2,13 +2,12 @@ const Field = require('./Field');
 const { lcFirst, map, toGUID } = require('../service/app.service');
 
 module.exports = class Model {
-  constructor(schema, name, driver, options = {}) {
+  constructor(schema, model, driver) {
     this.schema = schema;
-    this.name = name;
+    this.model = model;
     this.driver = driver;
-    this.options = options;
-    this.fields = Object.entries(options.fields).map(([field, def]) => new Field(schema, this, field, def));
-    this.toString = () => `${name}`;
+    this.fields = model.getFields().map(field => new Field(schema, this, field));
+    this.toString = () => `${model}`;
 
     // Create collections (mongo)
     if (driver.dao.createCollection) driver.dao.createCollection(this.getAlias());
@@ -105,12 +104,7 @@ module.exports = class Model {
     return isArray ? data : data[0];
   }
 
-  //
-
-  getName() {
-    return this.name;
-  }
-
+  // Transitional
   getField(path) {
     const [name, ...rest] = path.split('.');
     const field = this.fields.find(f => f.getName() === name);
@@ -157,32 +151,37 @@ module.exports = class Model {
     return this.fields.filter(field => field.isScalar());
   }
 
-  getAlias() {
-    return this.options.alias || this.getName();
-  }
-
-  getIndexes() {
-    return this.options.indexes || [];
-  }
-
   getDriver() {
     return this.driver.dao;
   }
 
   getDriverName() {
-    return this.options.driver || 'default';
+    return this.model.getDriver();
+  }
+
+  // GTG
+
+  getName() {
+    return this.model.getName();
+  }
+
+  getAlias() {
+    return this.model.getAlias();
+  }
+
+  getIndexes() {
+    return this.model.getIndexes();
   }
 
   isHidden() {
-    return this.options.hideFromApi;
+    return this.model.isHidden();
   }
 
   isVisible() {
-    return !this.isHidden();
+    return this.model.isVisible();
   }
 
   referentialIntegrity(refs) {
-    if (refs) this.referentials = refs;
-    return this.referentials;
+    return this.model.referentialIntegrity(refs);
   }
 };

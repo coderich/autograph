@@ -18,9 +18,11 @@ exports.validateModelData = (resolver, model, data, oldData, op) => {
     const isValueArray = Array.isArray(value);
 
     // User-Defined Validation Rules
-    if (value == null || isScalarValue(value) || value instanceof ObjectID) {
-      rules.forEach(rule => rule(value, oldData, op, path));
-    }
+    field.validate(value);
+
+    // if (value == null || isScalarValue(value) || value instanceof ObjectID) {
+    //   rules.forEach(rule => rule(value, oldData, op, path));
+    // }
 
     // The data may not be defined for this key
     if (!Object.prototype.hasOwnProperty.call(data, key)) return;
@@ -35,10 +37,10 @@ exports.validateModelData = (resolver, model, data, oldData, op) => {
           promises.push(...value.map(v => exports.validateModelData(resolver, ref, v, oldData, op)));
         } else {
           promises.push(...value.map(v => resolver.spot(ref).id(v).one({ required: true })));
-          value.forEach(v => rules.forEach(rule => rule(v, oldData, op, path)));
+          // value.forEach(v => rules.forEach(rule => rule(v, oldData, op, path)));
         }
       } else {
-        value.forEach(v => rules.forEach(rule => rule(v, oldData, op, path)));
+        // value.forEach(v => rules.forEach(rule => rule(v, oldData, op, path)));
       }
     } else if (ref) {
       if (field.isEmbedded()) {
@@ -73,7 +75,7 @@ exports.applyFieldValueTransform = (field, value) => {
       value = `${value}`;
       break;
     }
-    case 'Number': case 'Float': {
+    case 'Number': case 'Float': case 'Int': {
       const num = Number(value);
       if (!Number.isNaN(num)) value = num;
       break;

@@ -79,8 +79,8 @@ module.exports = class MongoDriver {
   }
 
   createIndexes(model, indexes) {
-    return Promise.all(indexes.map(({ name, type, fields }) => {
-      const $fields = fields.reduce((prev, field) => Object.assign(prev, { [field]: 1 }), {});
+    return Promise.all(indexes.map(({ name, type, on }) => {
+      const $fields = on.reduce((prev, field) => Object.assign(prev, { [field]: 1 }), {});
 
       switch (type) {
         case 'unique': return this.query(model, 'createIndex', $fields, { name, unique: true });
@@ -122,7 +122,7 @@ module.exports = class MongoDriver {
       const val = where[fieldName];
       const type = field.getDataType();
       if (!isScalarDataType(type)) return false;
-      const stype = String((type === 'Float' ? 'Number' : type)).toLowerCase();
+      const stype = String((type === 'Float' || type === 'Int' ? 'Number' : type)).toLowerCase();
       if (String(typeof val) === `${stype}`) return false;
       return true;
     });
