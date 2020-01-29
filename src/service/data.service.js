@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const { ObjectID } = require('mongodb');
+const RuleService = require('../service/rule.service');
 const { BadRequestError } = require('../service/error.service');
 const { uniq, globToRegexp, isScalarValue, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
 
@@ -18,7 +19,10 @@ exports.validateModelData = (resolver, model, data, oldData, op) => {
     const isValueArray = Array.isArray(value);
 
     // User-Defined Validation Rules
-    field.validate(value);
+    const immutable = v => RuleService.immutable()(v, oldData, op, path);
+    const selfless = v => RuleService.selfless()(v, oldData, op, path);
+    const required = (op === 'create' ? v => v == null : v => v === null);
+    field.validate(value, { required, selfless, immutable });
 
     // if (value == null || isScalarValue(value) || value instanceof ObjectID) {
     //   rules.forEach(rule => rule(value, oldData, op, path));

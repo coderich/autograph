@@ -6,7 +6,7 @@ module.exports = `
     name: String! @quin(transform: titleCase)
     authored: [Book] @quin(materializeBy: "author")
     emailAddress: String! @quin(enforce: email)
-    friends: [Person] @quin(onDelete: cascade)
+    friends: [Person] @quin(transform: dedupe, enforce: selfless, onDelete: cascade)
     status: String
   }
 
@@ -23,7 +23,7 @@ module.exports = `
   }
 
   type Chapter
-    @quin(indexes: [{name: "uix_chapter", type: unique, on: ["name", "book"]}])
+    @quin(indexes: [{ name: "uix_chapter", type: unique, on: ["name", "book"] }])
   {
     # id: ID!
     name: String! @quin(transform: titleCase)
@@ -32,7 +32,7 @@ module.exports = `
   }
 
   type Page
-    @quin(indexes: [{name: "uix_page", type: unique, on: ["number", "chapter"]}])
+    @quin(indexes: [{ name: "uix_page", type: unique, on: ["number", "chapter"] }])
   {
     # id: ID!
     number: Int!
@@ -40,7 +40,9 @@ module.exports = `
     chapter: Chapter!
   }
 
-  type BookStore {
+  type BookStore
+    @quin(indexes: [{ name: "uix_bookstore", type: unique, on: ["name"] }]),
+  {
     # id: ID!
     name: String! @quin(transform: titleCase)
     location: String
@@ -48,7 +50,12 @@ module.exports = `
     building: Building! @quin(embedded: true, onDelete: cascade)
   }
 
-  type Library {
+  type Library
+    @quin(indexes: [
+      { name: "uix_library", type: unique, on: ["name"] },
+      { name: "uix_library_bulding", type: unique, on: ["building"] },
+    ])
+  {
     # id: ID!
     name: String! @quin(transform: titleCase)
     location: String,
@@ -56,7 +63,12 @@ module.exports = `
     building: Building! @quin(embedded: true, onDelete: cascade)
   }
 
-  type Apartment {
+  type Apartment
+    @quin(indexes: [
+      { name: "uix_apartment", type: unique, on: ["name"] },
+      { name: "uix_apartment_bulding", type: unique, on: ["building"] },
+    ])
+  {
     # id: ID!
     name: String! @quin(transform: titleCase)
     location: String
