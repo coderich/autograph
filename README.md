@@ -3,7 +3,7 @@
 :heavy_check_mark: [MongoDB](https://www.mongodb.com/)
 :heavy_check_mark: [Neo4j](https://https://neo4j.com/)
 
-**AutoGraph** provides a unified API to *query* and *mutate* backend data like a graph. Inspired by [GraphQL](https://graphql.org/), it's a *standalone data resolver* designed to treat multiple data sources as a single graph schema.
+**AutoGraph** provides a unified API to *query* and *mutate* backend data. Inspired by [GraphQL](https://graphql.org/), it's a *standalone data resolver* designed to represent data sources as a connected graph schema.
 
 Features include:
 
