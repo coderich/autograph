@@ -1,8 +1,7 @@
 const _ = require('lodash');
-const { ObjectID } = require('mongodb');
 const RuleService = require('../service/rule.service');
 const { BadRequestError } = require('../service/error.service');
-const { uniq, globToRegexp, isScalarValue, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
+const { uniq, globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
 
 exports.validateModelData = (resolver, model, data, oldData, op) => {
   const promises = [];
@@ -11,7 +10,6 @@ exports.validateModelData = (resolver, model, data, oldData, op) => {
 
   fields.forEach((field) => {
     const key = field.getName();
-    const rules = field.getRules() || [];
     const ref = field.getModelRef();
     const isTypeArray = field.isArray();
     const value = data[key];
@@ -23,10 +21,6 @@ exports.validateModelData = (resolver, model, data, oldData, op) => {
     const selfless = v => RuleService.selfless()(v, oldData, op, path);
     const required = (op === 'create' ? v => v == null : v => v === null);
     field.validate(value, { required, selfless, immutable });
-
-    // if (value == null || isScalarValue(value) || value instanceof ObjectID) {
-    //   rules.forEach(rule => rule(value, oldData, op, path));
-    // }
 
     // The data may not be defined for this key
     if (!Object.prototype.hasOwnProperty.call(data, key)) return;
@@ -41,10 +35,7 @@ exports.validateModelData = (resolver, model, data, oldData, op) => {
           promises.push(...value.map(v => exports.validateModelData(resolver, ref, v, oldData, op)));
         } else {
           promises.push(...value.map(v => resolver.spot(ref).id(v).one({ required: true })));
-          // value.forEach(v => rules.forEach(rule => rule(v, oldData, op, path)));
         }
-      } else {
-        // value.forEach(v => rules.forEach(rule => rule(v, oldData, op, path)));
       }
     } else if (ref) {
       if (field.isEmbedded()) {
@@ -72,7 +63,6 @@ exports.ensureModelArrayTypes = (resolver, model, data) => {
 
 exports.applyFieldValueTransform = (field, value) => {
   const type = field.getSimpleType();
-  const transforms = field.getTransforms() || [];
 
   switch (type) {
     case 'String': {
@@ -95,9 +85,7 @@ exports.applyFieldValueTransform = (field, value) => {
   }
 
   // Transforming
-  transforms.forEach(t => (value = t(value)));
-
-  return value;
+  return field.transform(value);
 };
 
 exports.normalizeModelWhere = (resolver, model, data) => {

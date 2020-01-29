@@ -103,14 +103,6 @@ module.exports = class Field {
     return this.field.getVirtualRef();
   }
 
-  getTransforms() {
-    return this.field.getTransforms();
-  }
-
-  getRules() {
-    return this.field.getRules();
-  }
-
   getOnDelete() {
     return this.field.getOnDelete();
   }
@@ -137,6 +129,10 @@ module.exports = class Field {
 
   isImmutable() {
     return this.field.isImmutable();
+  }
+
+  transform(value, mapper) {
+    return this.field.transform(value, mapper);
   }
 
   validate(value, mapper) {
