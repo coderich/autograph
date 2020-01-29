@@ -61,33 +61,6 @@ exports.ensureModelArrayTypes = (resolver, model, data) => {
   }, data);
 };
 
-exports.applyFieldValueTransform = (field, value) => {
-  const type = field.getSimpleType();
-
-  switch (type) {
-    case 'String': {
-      value = `${value}`;
-      break;
-    }
-    case 'Number': case 'Float': case 'Int': {
-      const num = Number(value);
-      if (!Number.isNaN(num)) value = num;
-      break;
-    }
-    case 'Boolean': {
-      if (value === 'true') value = true;
-      if (value === 'false') value = false;
-      break;
-    }
-    default: {
-      break;
-    }
-  }
-
-  // Transforming
-  return field.transform(value);
-};
-
 exports.normalizeModelWhere = (resolver, model, data) => {
   return Object.entries(data).reduce((prev, [key, value]) => {
     const field = model.getField(key);
@@ -108,9 +81,9 @@ exports.normalizeModelWhere = (resolver, model, data) => {
         prev[key] = ref.idValue(value);
       }
     } else if (Array.isArray(value)) {
-      prev[key] = value.map(val => exports.applyFieldValueTransform(field, val));
+      prev[key] = value.map(val => field.transform(val));
     } else {
-      prev[key] = exports.applyFieldValueTransform(field, value);
+      prev[key] = field.transform(value);
     }
 
     return prev;
@@ -137,13 +110,13 @@ exports.normalizeModelData = (resolver, model, data) => {
           prev[key] = value.map(v => ref.idValue(v));
         }
       } else {
-        prev[key] = value.map(v => exports.applyFieldValueTransform(field, v));
+        prev[key] = value.map(v => field.transform(v));
         if (type.isSet) prev[key] = uniq(prev[key]);
       }
     } else if (ref) {
       prev[key] = ref.idValue(value);
     } else {
-      prev[key] = exports.applyFieldValueTransform(field, value);
+      prev[key] = field.transform(value);
     }
 
     return prev;
