@@ -1,9 +1,9 @@
 # AutoGraph
-### Query your data like a graph.
+### A GraphQL resolver for unified data access.
 :heavy_check_mark: [MongoDB](https://www.mongodb.com/)
 :heavy_check_mark: [Neo4j](https://https://neo4j.com/)
 
-**AutoGraph** provides a unified API to *query* and *mutate* backend data. Inspired by [GraphQL](https://graphql.org/), it's a *standalone data resolver* designed to represent your domain model as a connected graph.
+**AutoGraph** is a unified API to *query* and *mutate* data defined in your [GraphQL Schema](https://graphql.org/). It's a *[data resolver]()* and *business logic* handler that can be used *in and outside* of a GraphQL server.
 
 Features include:
 
@@ -12,7 +12,7 @@ Features include:
 - Atomic Transactions
 - Memoized Caching (via [DataLoader](https://www.npmjs.com/package/dataloader))
 
-:fire: If you're looking to build a GraphQL API, check out [AutoGraphQL](https://www.npmjs.com/package/@coderich/autographql)!
+:fire: If you're looking to build a GraphQL Server API, check out [AutoGraphServer](https://www.npmjs.com/package/@coderich/autographql)!
 
 ## Getting Started
 First, install AutoGraph via NPM:

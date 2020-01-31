@@ -1,14 +1,15 @@
+const esm = require('esm')(module);
 const { uniqWith } = require('lodash');
-const { Schema } = require('@coderich/quin');
 const Model = require('../data/Model');
 const RedisDriver = require('../driver/RedisDriver');
 const MongoDriver = require('../driver/MongoDriver');
 const { Neo4jDriver, Neo4jRestDriver } = require('../driver/Neo4jDriver');
 const typeDefs = require('../../test/typeDefs');
 
+const { Schema } = esm('@coderich/quin');
+
 module.exports = class {
   constructor(schema, stores, driverArgs = {}) {
-    // this.schema = schema;
     this.schema = new Schema(typeDefs);
 
     const availableDrivers = {
