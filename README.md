@@ -3,7 +3,7 @@
 :heavy_check_mark: [MongoDB](https://www.mongodb.com/)
 :heavy_check_mark: [Neo4j](https://https://neo4j.com/)
 
-**AutoGraph** is a unified API to *query* and *mutate* data defined in your [GraphQL Schema](https://graphql.org/). It's a *[data resolver]()* and *business logic* handler that can be used *in and outside* of a GraphQL server.
+**AutoGraph** is a unified API to *query* and *mutate* data defined in a [GraphQL Schema](https://graphql.org/). It's a *[data resolver]()* and *business logic* handler that can be used *in and outside* of a GraphQL server.
 
 Features include:
 

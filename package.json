@@ -41,7 +41,7 @@
     "uuid": "^3.3.3"
   },
   "devDependencies": {
-    "@coderich/ratchet": "^1.2.5",
+    "@coderich/ratchet": "^1.3.1",
     "mongodb-memory-server": "^6.2.2",
     "neodb": "^3.0.0",
     "redis-mock": "^0.47.0"
