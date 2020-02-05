@@ -2,18 +2,18 @@ const Field = require('./Field');
 const { lcFirst, map, toGUID } = require('../service/app.service');
 
 module.exports = class Model {
-  constructor(schema, model, driver) {
+  constructor(schema, model, drivers) {
     this.schema = schema;
     this.model = model;
-    this.driver = driver;
+    this.driver = drivers[this.getDriverName()];
     this.fields = model.getFields().map(field => new Field(schema, this, field));
     this.toString = () => `${model}`;
 
     // Create collections (mongo)
-    if (driver.dao.createCollection) driver.dao.createCollection(this.getAlias());
+    if (this.driver.dao.createCollection) this.driver.dao.createCollection(this.getAlias());
 
     // Create indexes
-    driver.dao.createIndexes(this.getAlias(), this.getIndexes());
+    this.driver.dao.createIndexes(this.getAlias(), this.getIndexes());
   }
 
   // CRUD
@@ -156,7 +156,7 @@ module.exports = class Model {
   }
 
   getDriverName() {
-    return this.model.getDriver();
+    return this.model.getDirectiveArg('quin', 'driver', 'default');
   }
 
   referentialIntegrity(refs) {
@@ -171,18 +171,18 @@ module.exports = class Model {
   }
 
   getAlias() {
-    return this.model.getAlias();
+    return this.model.getDirectiveArg('quin', 'alias', this.getName());
   }
 
   getIndexes() {
-    return this.model.getIndexes();
+    return this.model.getDirectiveArg('quin', 'indexes', []);
   }
 
   isHidden() {
-    return this.model.isHidden();
+    return this.model.getDirectiveArg('quin', 'hidden', false);
   }
 
   isVisible() {
-    return this.model.isVisible();
+    return !this.isHidden();
   }
 };

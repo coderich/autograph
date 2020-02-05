@@ -4,7 +4,7 @@ const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { timeout } = require('../src/service/app.service');
 const Schema = require('../src/core/Schema');
 const Resolver = require('../src/core/Resolver');
-const { schema, stores } = require('./schema');
+const { stores, typeDefs } = require('./schema');
 
 let resolver;
 let richard;
@@ -68,12 +68,12 @@ module.exports = (driver = 'mongo') => {
       }
 
       // Create core classes
-      const schema2 = new Schema(schema, stores, driverArgs);
-      resolver = new Resolver(schema2);
+      const schema = new Schema({ typeDefs, stores }, driverArgs);
+      resolver = new Resolver(schema);
 
       //
       await timeout(2000);
-      await Promise.all(schema2.getModels().map(model => model.drop()));
+      await Promise.all(schema.getModels().map(model => model.drop()));
       await timeout(500);
     });
 

@@ -1,0 +1,7 @@
+{
+  "lib": {
+    "jest": {
+      "setupFilesAfterEnv": ["<rootDir>/test/jest.setup.js"]
+    }
+  }
+}

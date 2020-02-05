@@ -20,7 +20,7 @@
     "index.js"
   ],
   "scripts": {
-    "test": "ratchet test",
+    "test": "env APP_ROOT_PATH=$(pwd) ratchet test",
     "ratchet": "ratchet",
     "lint": "ratchet lint"
   },
@@ -44,7 +44,8 @@
     "@coderich/ratchet": "^1.3.1",
     "mongodb-memory-server": "^6.2.2",
     "neodb": "^3.0.0",
-    "redis-mock": "^0.47.0"
+    "redis-mock": "^0.47.0",
+    "validator": "^12.2.0"
   },
   "repository": {
     "type": "git",

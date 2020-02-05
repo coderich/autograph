@@ -4,13 +4,13 @@ const Model = require('../data/Model');
 const RedisDriver = require('../driver/RedisDriver');
 const MongoDriver = require('../driver/MongoDriver');
 const { Neo4jDriver, Neo4jRestDriver } = require('../driver/Neo4jDriver');
-const typeDefs = require('../../test/typeDefs');
 
-const { Schema } = esm('@coderich/quin');
+const { Quin } = esm('@coderich/quin');
 
 module.exports = class {
-  constructor(schema, stores, driverArgs = {}) {
-    this.schema = new Schema(typeDefs);
+  constructor(schema, driverArgs = {}) {
+    const { typeDefs, stores } = schema;
+    this.schema = new Quin({ typeDefs });
 
     const availableDrivers = {
       mongo: MongoDriver,
@@ -31,7 +31,7 @@ module.exports = class {
     }, {});
 
     // Create models
-    this.models = this.schema.getModels().map(model => new Model(this, model, drivers[model.getDriver()]));
+    this.models = Object.values(this.schema.getModels()).map(model => new Model(this, model, drivers));
 
     const identifyOnDeletes = (parentModel) => {
       return this.models.reduce((prev, model) => {

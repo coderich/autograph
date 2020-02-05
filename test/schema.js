@@ -1,113 +1,117 @@
-// exports.schema = {
-//   Person: {
-//     fields: {
-//       name: { type: String, transforms: [titleCase()], rules: [required()] },
-//       emailAddress: { type: String, rules: [required(), email()] },
-//       authored: { type: Array('Book'), by: 'author' },
-//       friends: { type: Set('Person'), rules: [selfless()], onDelete: 'cascade' },
-//       status: String,
-//     },
-//     indexes: [
-//       { name: 'uix_person_name', type: 'unique', fields: ['name'] },
-//     ],
-//   },
-//   Book: {
-//     fields: {
-//       name: { type: String, transforms: [titleCase()], rules: [required(), reject('The Bible')] },
-//       price: { type: Number, rules: [range(0, 100), required()] },
-//       author: { type: 'Person', onDelete: 'cascade', rules: [required(), immutable()] },
-//       bestSeller: Boolean,
-//       bids: { type: Array(Number) },
-//       chapters: { type: Array('Chapter'), by: 'book' },
-//     },
-//     indexes: [
-//       { name: 'uix_book', type: 'unique', fields: ['name', 'author'] },
-//     ],
-//   },
-//   Chapter: {
-//     fields: {
-//       name: { type: String, transforms: [titleCase()], rules: [required()] },
-//       book: { type: 'Book', rules: [required()], onDelete: 'restrict' },
-//       pages: { type: Array('Page'), by: 'chapter' },
-//     },
-//     indexes: [
-//       { name: 'uix_chapter', type: 'unique', fields: ['name', 'book'] },
-//     ],
-//   },
-//   Page: {
-//     fields: {
-//       number: { type: Number, rules: [required(), range(1)] },
-//       verbage: String,
-//       chapter: { type: 'Chapter', rules: [required()] },
-//     },
-//     indexes: [
-//       { name: 'uix_page', type: 'unique', fields: ['number', 'chapter'] },
-//     ],
-//   },
-//   BookStore: {
-//     fields: {
-//       name: { type: String, transforms: [titleCase()], rules: [required()] },
-//       location: String,
-//       books: { type: Array('Book'), onDelete: 'cascade' },
-//       building: { type: 'Building', embedded: true, onDelete: 'cascade', rules: [required()] },
-//     },
-//     indexes: [
-//       { name: 'uix_bookstore', type: 'unique', fields: ['name'] },
-//     ],
-//   },
-//   Library: {
-//     fields: {
-//       name: { type: String, transforms: [titleCase()], rules: [required()] },
-//       location: String,
-//       books: { type: Array('Book'), onDelete: 'cascade' },
-//       building: { type: 'Building', embedded: true, onDelete: 'cascade', rules: [required()] },
-//     },
-//     indexes: [
-//       { name: 'uix_library', type: 'unique', fields: ['name'] },
-//       { name: 'uix_library_bulding', type: 'unique', fields: ['building'] },
-//     ],
-//   },
-//   Apartment: {
-//     fields: {
-//       name: { type: String, transforms: [titleCase()], rules: [required()] },
-//       location: String,
-//       building: { type: 'Building', embedded: true, onDelete: 'cascade', rules: [required()] },
-//     },
-//     indexes: [
-//       { name: 'uix_apartment', type: 'unique', fields: ['name'] },
-//       { name: 'uix_apartment_bulding', type: 'unique', fields: ['building'] },
-//     ],
-//   },
-//   Building: {
-//     hideFromApi: true,
-//     fields: {
-//       year: Number,
-//       type: { type: String, rules: [required(), allow('home', 'office', 'business')] },
-//       tenants: { type: Set('Person'), onDeletes: 'cascade' },
-//       landlord: { type: 'Person', onDeletes: 'nullify' },
-//     },
-//   },
-//   Color: {
-//     fields: {
-//       type: { type: String, rules: [required(), allow('blue', 'red', 'green', 'purple')] },
-//     },
-//   },
-//   Art: {
-//     fields: {
-//       name: { type: String, transforms: [titleCase()], rules: [required()] },
-//       bids: { type: Array(Number) },
-//     },
-//   },
-// };
+module.exports = {
+  typeDefs: `
+    enum IndexEnum { unique }
+    enum OnDeleteEnum { cascade nullify restrict }
+    input IndexInput { name: String type: IndexEnum! on: [String!]! }
 
-exports.stores = {
-  neo4j: {
-    type: 'neo4jDriver',
-    uri: 'bolt://localhost',
-  },
-  default: {
-    type: 'mongo',
-    uri: 'mongodb://localhost/dataloader',
-    // uri: 'mongodb://localhost:27018,localhost:27019,localhost:27020/dataloader?replicaSet=rs',
+    type Person
+      @quin(indexes: [{ name: "uix_person_name", type: unique, on: ["name"] }])
+    {
+      # id: ID!
+      name: String! @quin(transform: toTitleCase)
+      authored: [Book] @quin(materializeBy: "author")
+      emailAddress: String! @quin(enforce: email)
+      friends: [Person] @quin(transform: dedupe, enforce: selfless, onDelete: cascade)
+      status: String
+    }
+
+    type Book
+      @quin(indexes: [{ name: "uix_book", type: unique, on: ["name", "author"] }])
+    {
+      # id: ID!
+      name: String! @quin(transform: toTitleCase, enforce: bookName)
+      price: Float! @quin(enforce: bookPrice)
+      author: Person! @quin(enforce: immutable, onDelete: cascade)
+      bestSeller: Boolean
+      bids: [Float]
+      chapters: [Chapter] @quin(materializeBy: "book")
+    }
+
+    type Chapter
+      @quin(indexes: [{ name: "uix_chapter", type: unique, on: ["name", "book"] }])
+    {
+      # id: ID!
+      name: String! @quin(transform: toTitleCase)
+      book: Book! @quin(onDelete: restrict)
+      pages: [Page] @quin(materializeBy: "chapter")
+    }
+
+    type Page
+      @quin(indexes: [{ name: "uix_page", type: unique, on: ["number", "chapter"] }])
+    {
+      # id: ID!
+      number: Int!
+      verbage: String
+      chapter: Chapter!
+    }
+
+    type BookStore
+      @quin(indexes: [{ name: "uix_bookstore", type: unique, on: ["name"] }]),
+    {
+      # id: ID!
+      name: String! @quin(transform: toTitleCase)
+      location: String
+      books: [Book] @quin(onDelete: cascade)
+      building: Building! @quin(embedded: true, onDelete: cascade)
+    }
+
+    type Library
+      @quin(indexes: [
+        { name: "uix_library", type: unique, on: ["name"] },
+        { name: "uix_library_bulding", type: unique, on: ["building"] },
+      ])
+    {
+      # id: ID!
+      name: String! @quin(transform: toTitleCase)
+      location: String,
+      books: [Book] @quin(onDelete: cascade)
+      building: Building! @quin(embedded: true, onDelete: cascade)
+    }
+
+    type Apartment
+      @quin(indexes: [
+        { name: "uix_apartment", type: unique, on: ["name"] },
+        { name: "uix_apartment_bulding", type: unique, on: ["building"] },
+      ])
+    {
+      # id: ID!
+      name: String! @quin(transform: toTitleCase)
+      location: String
+      building: Building! @quin(embedded: true, onDelete: cascade)
+    }
+
+    type Building
+      @quin(hidden: true)
+    {
+      # id: ID!
+      year: Int
+      type: String! @quin(enforce: buildingType)
+      tenants: [Person] @quin(enforce: distinct, onDelete: cascade)
+      landlord: Person @quin(onDelete: nullify)
+    }
+
+    type Color {
+      # id: ID!
+      type: String! @quin(enforce: colors)
+      isDefault: Boolean @quin(norepeat: true)
+    }
+
+    type Art {
+      # id: ID!
+      name: String! @quin(transform: toTitleCase)
+      bids: [Float]
+      comments: [String] @quin(enforce: artComment)
+    }
+  `,
+  stores: {
+    neo4j: {
+      type: 'neo4jDriver',
+      uri: 'bolt://localhost',
+    },
+    default: {
+      type: 'mongo',
+      uri: 'mongodb://localhost/dataloader',
+      // uri: 'mongodb://localhost:27018,localhost:27019,localhost:27020/dataloader?replicaSet=rs',
+    },
   },
 };

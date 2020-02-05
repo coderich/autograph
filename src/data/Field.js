@@ -55,8 +55,6 @@ module.exports = class Field {
       return resolver.spot(dataType).query(query).one({ find: true });
     }
 
-    // const id = isScalarValue(value) ? value : value.id;
-    // console.log(typeof value, value, id);
     return resolver.spot(dataType).id(value).one({ required: this.isRequired() });
   }
 
@@ -64,12 +62,10 @@ module.exports = class Field {
 
   getModelRef() {
     return this.schema.getModel(this.getDataRef());
-    // return this.field.getModelRef();
   }
 
   getVirtualModel() {
     return this.schema.getModel(this.getSimpleType());
-    // return this.field.getVirtualModel();
   }
 
   getVirtualField() {
@@ -84,7 +80,7 @@ module.exports = class Field {
   }
 
   getSimpleType() {
-    return this.field.getSimpleType();
+    return this.field.getType();
   }
 
   getDataType() {
@@ -95,18 +91,6 @@ module.exports = class Field {
     return this.field.getDataRef();
   }
 
-  getAlias(defaultValue) {
-    return this.field.getAlias(defaultValue);
-  }
-
-  getVirtualRef() {
-    return this.field.getVirtualRef();
-  }
-
-  getOnDelete() {
-    return this.field.getOnDelete();
-  }
-
   isArray() {
     return this.field.isArray();
   }
@@ -115,20 +99,32 @@ module.exports = class Field {
     return this.field.isScalar();
   }
 
-  isVirtual() {
-    return this.field.isVirtual();
-  }
-
-  isEmbedded() {
-    return this.field.isEmbedded();
-  }
-
   isRequired() {
     return this.field.isRequired();
   }
 
+  getAlias(defaultValue) {
+    return this.field.getDirectiveArg('quin', 'alias', defaultValue || this.getName());
+  }
+
+  getOnDelete() {
+    return this.field.getDirectiveArg('quin', 'onDelete');
+  }
+
+  isVirtual() {
+    return Boolean(this.field.getDirectiveArg('quin', 'materializeBy'));
+  }
+
+  getVirtualRef() {
+    return this.field.getDirectiveArg('quin', 'materializeBy');
+  }
+
+  isEmbedded() {
+    return Boolean(this.field.getDirectiveArg('quin', 'embedded'));
+  }
+
   isImmutable() {
-    return this.field.isImmutable();
+    return Boolean(this.field.getDirectiveArg('quin', 'immutable'));
   }
 
   transform(value, mapper) {
