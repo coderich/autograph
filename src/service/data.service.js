@@ -238,8 +238,6 @@ exports.resolveReferentialIntegrity = (resolver, model, query, parentTxn) => {
         const fieldStr = fieldRef ? `${field}.${fieldRef}` : `${field}`;
         const $where = { [fieldStr]: id };
 
-        // console.log(`${ref}`, $where, op, isArray, fieldStr);
-
         switch (op) {
           case 'cascade': {
             if (isArray) {
