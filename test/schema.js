@@ -52,7 +52,7 @@ module.exports = {
       name: String! @quin(transform: toTitleCase)
       location: String
       books: [Book] @quin(onDelete: cascade)
-      building: Building! @quin(embedded: true, onDelete: cascade)
+      building: Building! @quin(onDelete: cascade)
     }
 
     type Library
@@ -65,7 +65,7 @@ module.exports = {
       name: String! @quin(transform: toTitleCase)
       location: String,
       books: [Book] @quin(onDelete: cascade)
-      building: Building! @quin(embedded: true, onDelete: cascade)
+      building: Building! @quin(onDelete: cascade)
     }
 
     type Apartment
@@ -77,12 +77,10 @@ module.exports = {
       # id: ID!
       name: String! @quin(transform: toTitleCase)
       location: String
-      building: Building! @quin(embedded: true, onDelete: cascade)
+      building: Building! @quin(onDelete: cascade)
     }
 
-    type Building
-      @quin(hidden: true)
-    {
+    type Building {
       # id: ID!
       year: Int
       type: String! @quin(enforce: buildingType)
@@ -90,13 +88,17 @@ module.exports = {
       landlord: Person @quin(onDelete: nullify)
     }
 
-    type Color {
+    type Color
+      @quin
+    {
       # id: ID!
       type: String! @quin(enforce: colors)
       isDefault: Boolean @quin(norepeat: true)
     }
 
-    type Art {
+    type Art
+      @quin
+    {
       # id: ID!
       name: String! @quin(transform: toTitleCase)
       bids: [Float]

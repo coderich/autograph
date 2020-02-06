@@ -21,10 +21,6 @@ Quin.extend('immutable', Rule.immutable());
 Quin.extend('distinct', Rule.distinct());
 
 // Adding custom keys
-Quin.custom('alias: String');
-Quin.custom('hidden: Boolean');
-Quin.custom('embedded: Boolean');
 Quin.custom('norepeat: Boolean');
-Quin.custom('materializeBy: String');
 Quin.custom('onDelete: OnDeleteEnum');
 Quin.custom('indexes: [IndexInput!]');

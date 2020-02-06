@@ -44,7 +44,7 @@ exports.validateModelData = (resolver, model, data, oldData, op) => {
   return Promise.all(promises);
 };
 
-exports.normalizeModelData = (resolver, model, data) => {
+exports.normalizeModelData = (model, data) => {
   return Object.entries(data).reduce((prev, [key, value]) => {
     const field = model.getField(key);
     if (value == null || field == null) return prev;
@@ -52,11 +52,11 @@ exports.normalizeModelData = (resolver, model, data) => {
     const ref = field.getModelRef();
 
     if (isPlainObject(value) && ref) {
-      prev[key] = exports.normalizeModelData(resolver, ref, value);
+      prev[key] = exports.normalizeModelData(ref, value);
     } else if (Array.isArray(value)) {
       if (ref) {
         if (field.isEmbedded() || field.isVirtual()) {
-          prev[key] = value.map(v => exports.normalizeModelData(resolver, ref, v));
+          prev[key] = value.map(v => exports.normalizeModelData(ref, v));
         } else {
           prev[key] = field.transform(value.map(v => ref.idValue(v)));
         }

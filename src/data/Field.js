@@ -108,23 +108,23 @@ module.exports = class Field {
   }
 
   getAlias(defaultValue) {
-    return this.field.getDirectiveArg('quin', 'alias', defaultValue || this.getName());
+    return this.field.getAlias(defaultValue);
+  }
+
+  isVirtual() {
+    return this.field.isVirtual();
+  }
+
+  getVirtualRef() {
+    return this.field.getVirtualRef();
+  }
+
+  isEmbedded() {
+    return this.field.isEmbedded();
   }
 
   getOnDelete() {
     return this.field.getDirectiveArg('quin', 'onDelete');
-  }
-
-  isVirtual() {
-    return Boolean(this.field.getDirectiveArg('quin', 'materializeBy'));
-  }
-
-  getVirtualRef() {
-    return this.field.getDirectiveArg('quin', 'materializeBy');
-  }
-
-  isEmbedded() {
-    return Boolean(this.field.getDirectiveArg('quin', 'embedded'));
   }
 
   isImmutable() {

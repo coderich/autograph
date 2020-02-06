@@ -40,15 +40,6 @@ module.exports = class Transaction {
     });
   }
 
-  // dryRun() {
-  //   return Promise.all(this.entries().map(([driver, ops]) => driver.transaction(ops))).then((results) => {
-  //     return Promise.all(results.map(result => result.$rollback())).then(() => {
-  //       if (this.parentTxn) this.values().forEach(op => this.parentTxn.addOp(op));
-  //       return _.flatten(results);
-  //     });
-  //   });
-  // }
-
   commit() {
     this.resolver.clearAll();
     return Promise.all(this.results.map(result => result.$commit()));

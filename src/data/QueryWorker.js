@@ -49,7 +49,7 @@ module.exports = class QueryWorker {
   find(query) {
     const { resolver } = this;
     const [model, where, limit, selectFields, countFields, sortFields, options] = [query.getModel(), query.getWhere(), query.getLimit(), query.getSelectFields(), query.getCountFields(), query.getSortFields(), query.getOptions()];
-    normalizeModelData(resolver, model, where);
+    normalizeModelData(model, where);
 
     return createSystemEvent('Query', { method: 'find', model, resolver, query }, async () => {
       const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
@@ -65,7 +65,7 @@ module.exports = class QueryWorker {
   count(query) {
     const { resolver } = this;
     const [model, where, countFields, countPaths, options] = [query.getModel(), query.getWhere(), query.getCountFields(), query.getCountPaths(), query.getOptions()];
-    normalizeModelData(resolver, model, where);
+    normalizeModelData(model, where);
 
     return createSystemEvent('Query', { method: 'count', model, resolver, query }, async () => {
       const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
@@ -83,7 +83,7 @@ module.exports = class QueryWorker {
   async create(query, data = {}) {
     const { resolver } = this;
     const [model, options] = [query.getModel(), query.getOptions()];
-    normalizeModelData(resolver, model, data);
+    normalizeModelData(model, data);
     await validateModelData(resolver, model, data, {}, 'create');
 
     return createSystemEvent('Mutation', { method: 'create', model, resolver, query, data }, async () => {
@@ -96,11 +96,11 @@ module.exports = class QueryWorker {
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.spot(model).id(id).options(options).one({ required: true });
-    normalizeModelData(resolver, model, data);
+    normalizeModelData(model, data);
     await validateModelData(resolver, model, data, doc, 'update');
 
     return createSystemEvent('Mutation', { method: 'update', model, resolver, query, data }, async () => {
-      const merged = normalizeModelData(resolver, model, mergeDeep(doc, data));
+      const merged = normalizeModelData(model, mergeDeep(doc, data));
       const result = await model.update(id, data, merged, options);
       return model.hydrate(resolver, result, { fields: query.getSelectFields() });
     });
@@ -112,8 +112,8 @@ module.exports = class QueryWorker {
     const field = model.getField(key);
     if (!field || !field.isArray()) return Promise.reject(new BadRequestError(`Cannot splice field '${key}'`));
     const doc = await resolver.spot(model).id(id).options(options).one({ required: true });
-    from = normalizeModelData(resolver, model, { [key]: from })[key];
-    to = normalizeModelData(resolver, model, { [key]: to })[key];
+    from = normalizeModelData(model, { [key]: from })[key];
+    to = normalizeModelData(model, { [key]: to })[key];
 
     let data;
 
@@ -124,11 +124,11 @@ module.exports = class QueryWorker {
       data = { [key]: _.get(doc, key, []).concat(to) };
     }
 
-    normalizeModelData(resolver, model, data);
+    normalizeModelData(model, data);
     await validateModelData(resolver, model, data, doc, 'update');
 
     return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, data }, async () => {
-      const merged = normalizeModelData(resolver, model, mergeDeep(doc, data));
+      const merged = normalizeModelData(model, mergeDeep(doc, data));
       const result = await model.update(id, data, merged, options);
       return model.hydrate(resolver, result, { fields: query.getSelectFields() });
     });

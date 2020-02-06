@@ -178,11 +178,7 @@ module.exports = class Model {
     return this.model.getDirectiveArg('quin', 'indexes', []);
   }
 
-  isHidden() {
-    return this.model.getDirectiveArg('quin', 'hidden', false);
-  }
-
   isVisible() {
-    return !this.isHidden();
+    return this.model.isEntity();
   }
 };
