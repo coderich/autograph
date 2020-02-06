@@ -44,33 +44,6 @@ exports.validateModelData = (resolver, model, data, oldData, op) => {
   return Promise.all(promises);
 };
 
-exports.normalizeModelWhere = (resolver, model, data) => {
-  return Object.entries(data).reduce((prev, [key, value]) => {
-    const field = model.getField(key);
-    if (value == null || field == null) return prev;
-
-    const ref = field.getModelRef();
-
-    if (ref) {
-      if (isPlainObject(value)) {
-        prev[key] = exports.normalizeModelWhere(resolver, ref, value);
-      } else if (Array.isArray(value)) {
-        prev[key] = value.map((val) => {
-          if (isPlainObject(val)) return exports.normalizeModelWhere(resolver, ref, val);
-          if (isIdValue(val)) return ref.idValue(val);
-          return val;
-        });
-      } else {
-        prev[key] = field.transform(ref.idValue(value));
-      }
-    } else {
-      prev[key] = field.transform(value);
-    }
-
-    return prev;
-  }, data);
-};
-
 exports.normalizeModelData = (resolver, model, data) => {
   return Object.entries(data).reduce((prev, [key, value]) => {
     const field = model.getField(key);

@@ -60,6 +60,10 @@ module.exports = class Field {
 
   // Transitional
 
+  cast(value) {
+    return this.field.cast(value);
+  }
+
   getModelRef() {
     return this.schema.getModel(this.getDataRef());
   }

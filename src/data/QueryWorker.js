@@ -5,7 +5,6 @@ const { NotFoundError, BadRequestError } = require('../service/error.service');
 const {
   validateModelData,
   normalizeModelData,
-  normalizeModelWhere,
   resolveModelWhereClause,
   resolveReferentialIntegrity,
   sortData,
@@ -50,7 +49,7 @@ module.exports = class QueryWorker {
   find(query) {
     const { resolver } = this;
     const [model, where, limit, selectFields, countFields, sortFields, options] = [query.getModel(), query.getWhere(), query.getLimit(), query.getSelectFields(), query.getCountFields(), query.getSortFields(), query.getOptions()];
-    normalizeModelWhere(resolver, model, where);
+    normalizeModelData(resolver, model, where);
 
     return createSystemEvent('Query', { method: 'find', model, resolver, query }, async () => {
       const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
@@ -66,7 +65,7 @@ module.exports = class QueryWorker {
   count(query) {
     const { resolver } = this;
     const [model, where, countFields, countPaths, options] = [query.getModel(), query.getWhere(), query.getCountFields(), query.getCountPaths(), query.getOptions()];
-    normalizeModelWhere(resolver, model, where);
+    normalizeModelData(resolver, model, where);
 
     return createSystemEvent('Query', { method: 'count', model, resolver, query }, async () => {
       const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
