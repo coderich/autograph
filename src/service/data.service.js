@@ -1,6 +1,5 @@
 const _ = require('lodash');
 const RuleService = require('../service/rule.service');
-const { BadRequestError } = require('../service/error.service');
 const { globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
 
 exports.validateModelData = (resolver, model, data, oldData, op) => {
@@ -11,7 +10,6 @@ exports.validateModelData = (resolver, model, data, oldData, op) => {
   fields.forEach((field) => {
     const key = field.getName();
     const ref = field.getModelRef();
-    const isTypeArray = field.isArray();
     const value = data[key];
     const path = `${modelName}.${key}`;
     const isValueArray = Array.isArray(value);
@@ -24,9 +22,6 @@ exports.validateModelData = (resolver, model, data, oldData, op) => {
 
     // The data may not be defined for this key
     if (!Object.prototype.hasOwnProperty.call(data, key)) return;
-
-    // Data type check
-    if (isValueArray !== isTypeArray) throw new BadRequestError(`${path} invalid array`);
 
     // Recursive/Promises lookup
     if (isValueArray) {
@@ -49,18 +44,6 @@ exports.validateModelData = (resolver, model, data, oldData, op) => {
   return Promise.all(promises);
 };
 
-exports.ensureModelArrayTypes = (resolver, model, data) => {
-  return Object.entries(data).reduce((prev, [key, value]) => {
-    const field = model.getField(key);
-    if (value == null || field == null) return prev;
-
-    // Ensure array if type array
-    if (field.isArray() && !Array.isArray(value)) prev[key] = [value];
-
-    return prev;
-  }, data);
-};
-
 exports.normalizeModelWhere = (resolver, model, data) => {
   return Object.entries(data).reduce((prev, [key, value]) => {
     const field = model.getField(key);
@@ -78,7 +61,7 @@ exports.normalizeModelWhere = (resolver, model, data) => {
           return val;
         });
       } else {
-        prev[key] = ref.idValue(value);
+        prev[key] = field.transform(ref.idValue(value));
       }
     } else {
       prev[key] = field.transform(value);
@@ -108,7 +91,7 @@ exports.normalizeModelData = (resolver, model, data) => {
         prev[key] = field.transform(value);
       }
     } else if (ref) {
-      prev[key] = ref.idValue(value);
+      prev[key] = field.transform(ref.idValue(value));
     } else {
       prev[key] = field.transform(value);
     }

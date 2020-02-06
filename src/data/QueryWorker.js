@@ -1,10 +1,8 @@
 const _ = require('lodash');
-// const Query = require('./Query');
 const { mergeDeep, hashObject } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
 const { NotFoundError, BadRequestError } = require('../service/error.service');
 const {
-  ensureModelArrayTypes,
   validateModelData,
   normalizeModelData,
   normalizeModelWhere,
@@ -52,7 +50,6 @@ module.exports = class QueryWorker {
   find(query) {
     const { resolver } = this;
     const [model, where, limit, selectFields, countFields, sortFields, options] = [query.getModel(), query.getWhere(), query.getLimit(), query.getSelectFields(), query.getCountFields(), query.getSortFields(), query.getOptions()];
-    ensureModelArrayTypes(resolver, model, where);
     normalizeModelWhere(resolver, model, where);
 
     return createSystemEvent('Query', { method: 'find', model, resolver, query }, async () => {
@@ -69,7 +66,6 @@ module.exports = class QueryWorker {
   count(query) {
     const { resolver } = this;
     const [model, where, countFields, countPaths, options] = [query.getModel(), query.getWhere(), query.getCountFields(), query.getCountPaths(), query.getOptions()];
-    ensureModelArrayTypes(resolver, model, where);
     normalizeModelWhere(resolver, model, where);
 
     return createSystemEvent('Query', { method: 'count', model, resolver, query }, async () => {
@@ -88,7 +84,6 @@ module.exports = class QueryWorker {
   async create(query, data = {}) {
     const { resolver } = this;
     const [model, options] = [query.getModel(), query.getOptions()];
-    ensureModelArrayTypes(resolver, model, data);
     normalizeModelData(resolver, model, data);
     await validateModelData(resolver, model, data, {}, 'create');
 
@@ -102,7 +97,6 @@ module.exports = class QueryWorker {
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.spot(model).id(id).options(options).one({ required: true });
-    ensureModelArrayTypes(resolver, model, data);
     normalizeModelData(resolver, model, data);
     await validateModelData(resolver, model, data, doc, 'update');
 
