@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const RuleService = require('../service/rule.service');
 const { BadRequestError } = require('../service/error.service');
-const { uniq, globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
+const { globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
 
 exports.validateModelData = (resolver, model, data, oldData, op) => {
   const promises = [];
@@ -80,8 +80,6 @@ exports.normalizeModelWhere = (resolver, model, data) => {
       } else {
         prev[key] = ref.idValue(value);
       }
-    } else if (Array.isArray(value)) {
-      prev[key] = value.map(val => field.transform(val));
     } else {
       prev[key] = field.transform(value);
     }
@@ -96,7 +94,6 @@ exports.normalizeModelData = (resolver, model, data) => {
     if (value == null || field == null) return prev;
 
     const ref = field.getModelRef();
-    const type = field.getDataType();
 
     if (isPlainObject(value) && ref) {
       prev[key] = exports.normalizeModelData(resolver, ref, value);
@@ -104,14 +101,11 @@ exports.normalizeModelData = (resolver, model, data) => {
       if (ref) {
         if (field.isEmbedded() || field.isVirtual()) {
           prev[key] = value.map(v => exports.normalizeModelData(resolver, ref, v));
-        } else if (type.isSet) {
-          prev[key] = uniq(value).map(v => ref.idValue(v));
         } else {
-          prev[key] = value.map(v => ref.idValue(v));
+          prev[key] = field.transform(value.map(v => ref.idValue(v)));
         }
       } else {
-        prev[key] = value.map(v => field.transform(v));
-        if (type.isSet) prev[key] = uniq(prev[key]);
+        prev[key] = field.transform(value);
       }
     } else if (ref) {
       prev[key] = ref.idValue(value);
