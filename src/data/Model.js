@@ -181,4 +181,14 @@ module.exports = class Model {
   isVisible() {
     return this.model.isEntity();
   }
+
+  transform(value, mapper = {}) {
+    return this.model.transform(value, Object.assign(mapper, {
+      id: v => this.idValue(v),
+    }));
+  }
+
+  validate(value, mapper = {}) {
+    return this.model.validate(value, mapper);
+  }
 };

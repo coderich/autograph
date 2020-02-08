@@ -44,35 +44,6 @@ exports.validateModelData = (resolver, model, data, oldData, op) => {
   return Promise.all(promises);
 };
 
-exports.normalizeModelData = (model, data) => {
-  return Object.entries(data).reduce((prev, [key, value]) => {
-    const field = model.getField(key);
-    if (value == null || field == null) return prev;
-
-    const ref = field.getModelRef();
-
-    if (isPlainObject(value) && ref) {
-      prev[key] = exports.normalizeModelData(ref, value);
-    } else if (Array.isArray(value)) {
-      if (ref) {
-        if (field.isEmbedded() || field.isVirtual()) {
-          prev[key] = value.map(v => exports.normalizeModelData(ref, v));
-        } else {
-          prev[key] = field.transform(value.map(v => ref.idValue(v)));
-        }
-      } else {
-        prev[key] = field.transform(value);
-      }
-    } else if (ref) {
-      prev[key] = field.transform(ref.idValue(value));
-    } else {
-      prev[key] = field.transform(value);
-    }
-
-    return prev;
-  }, data);
-};
-
 exports.resolveModelWhereClause = (resolver, model, where = {}, fieldAlias = '', lookups2D = [], index = 0) => {
   const mName = model.getName();
   const fields = model.getFields();
