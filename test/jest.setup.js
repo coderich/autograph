@@ -8,6 +8,13 @@ Rule.factory('email', () => v => !isEmail(v));
 Rule.factory('selfless', () => v => false);
 Rule.factory('immutable', () => v => false);
 Rule.factory('distinct', () => v => false);
+Rule.factory('idResolve', field => v => {
+  return Rule.resolver.spot(field.getType()).id(v).one().then((doc) => {
+    if (doc) return false;
+    return true;
+  });
+});
+
 
 // Adding Rules/Transformers
 Quin.extend('email', Rule.email());

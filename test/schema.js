@@ -112,8 +112,7 @@ module.exports = {
     },
     default: {
       type: 'mongo',
-      uri: 'mongodb://localhost/dataloader',
-      // uri: 'mongodb://localhost:27018,localhost:27019,localhost:27020/dataloader?replicaSet=rs',
+      uri: 'mongodb://localhost/autograph',
     },
   },
 };

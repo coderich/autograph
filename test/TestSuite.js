@@ -1,10 +1,13 @@
 // const Neo4j = require('neodb');
 // const Redis = require('redis-mock');
+const esm = require('esm')(module);
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { timeout } = require('../src/service/app.service');
 const Schema = require('../src/core/Schema');
 const Resolver = require('../src/core/Resolver');
 const { stores, typeDefs } = require('./schema');
+
+const { Rule } = esm('@coderich/quin');
 
 let resolver;
 let richard;
@@ -70,6 +73,8 @@ module.exports = (driver = 'mongo') => {
       // Create core classes
       const schema = new Schema({ typeDefs, stores }, driverArgs);
       resolver = new Resolver(schema);
+
+      Rule.resolver = resolver;
 
       //
       await timeout(2000);
@@ -372,7 +377,7 @@ module.exports = (driver = 'mongo') => {
         await expect(resolver.spot('Book').save({ name: 'Great Book', price: -1, author: christie.id })).rejects.toThrow();
         await expect(resolver.spot('Book').save({ name: 'Best Book', price: 101, author: christie.id })).rejects.toThrow();
         await expect(resolver.spot('Book').id(mobyDick.id).save({ author: christie.id })).rejects.toThrow();
-        await expect(resolver.spot('Book').id(mobyDick.id).save({ author: richard.id })).resolves;
+        await expect(resolver.spot('Book').id(mobyDick.id).save({ author: richard.id })).resolves.toBeDefined();
         await expect(resolver.spot('Book', { name: 'MoBY DiCK', price: 1.99, author: richard.id }).save()).rejects.toThrow();
       });
 
