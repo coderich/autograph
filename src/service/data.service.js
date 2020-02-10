@@ -2,48 +2,11 @@ const _ = require('lodash');
 const RuleService = require('../service/rule.service');
 const { globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
 
-exports.validateModelData = (resolver, model, data, oldData, op) => {
-  const promises = [];
-  const modelName = model.getName();
-  const fields = model.getFields();
-  const required = (op === 'create' ? v => v == null : v => v === null);
-
-  // promises.push(model.validate(data, { required }));
-
-  fields.forEach((field) => {
-    const key = field.getName();
-    const ref = field.getModelRef();
-    const value = data[key];
-    const path = `${modelName}.${key}`;
-    const isValueArray = Array.isArray(value);
-
-    // User-Defined Validation Rules
-    const immutable = v => RuleService.immutable()(v, oldData, op, path);
-    const selfless = v => RuleService.selfless()(v, oldData, op, path);
-    promises.push(field.validate(value, { required, selfless, immutable }, resolver));
-
-    // // The data may not be defined for this key
-    // if (!Object.prototype.hasOwnProperty.call(data, key)) return;
-
-    // // Recursive/Promises lookup
-    // if (isValueArray) {
-    //   if (ref) {
-    //     if (field.isEmbedded()) {
-    //       promises.push(...value.map(v => exports.validateModelData(resolver, ref, v, oldData, op)));
-    //     } else {
-    //       promises.push(...value.map(v => resolver.spot(ref).id(v).one({ required: true })));
-    //     }
-    //   }
-    // } else if (ref) {
-    //   if (field.isEmbedded()) {
-    //     promises.push(exports.validateModelData(resolver, ref, value, oldData, op));
-    //   } else {
-    //     promises.push(resolver.spot(ref).id(value).one({ required: true }));
-    //   }
-    // }
-  });
-
-  return Promise.all(promises);
+exports.validateModelData = (model, data, oldData, op) => {
+  const required = (op === 'create' ? (f, v) => v == null : (f, v) => v === null);
+  const immutable = (f, v) => RuleService.immutable()(v, oldData, op, `${f.getModel()}.${f.getName()}`);
+  const selfless = (f, v) => RuleService.selfless()(v, oldData, op, `${f.getModel()}.${f.getName()}`);
+  return model.validate(data, { required, immutable, selfless });
 };
 
 exports.resolveModelWhereClause = (resolver, model, where = {}, fieldAlias = '', lookups2D = [], index = 0) => {

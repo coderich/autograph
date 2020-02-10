@@ -83,7 +83,7 @@ module.exports = class QueryWorker {
     const { resolver } = this;
     const [model, options] = [query.getModel(), query.getOptions()];
     const $data = model.transform(data);
-    await validateModelData(resolver, model, $data, {}, 'create');
+    await validateModelData(model, $data, {}, 'create');
 
     return createSystemEvent('Mutation', { method: 'create', model, resolver, query, data: $data }, async () => {
       const doc = await model.create($data, options);
@@ -96,7 +96,7 @@ module.exports = class QueryWorker {
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.spot(model).id(id).options(options).one({ required: true });
     const $data = model.transform(data);
-    await validateModelData(resolver, model, $data, doc, 'update');
+    await validateModelData(model, $data, doc, 'update');
 
     return createSystemEvent('Mutation', { method: 'update', model, resolver, query, data: $data }, async () => {
       const merged = model.transform(mergeDeep(doc, $data));
@@ -124,7 +124,7 @@ module.exports = class QueryWorker {
     }
 
     const $data = model.transform(data);
-    await validateModelData(resolver, model, $data, doc, 'update');
+    await validateModelData(model, $data, doc, 'update');
 
     return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, data: $data }, async () => {
       const merged = model.transform(mergeDeep(doc, $data));

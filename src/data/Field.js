@@ -132,21 +132,10 @@ module.exports = class Field {
   }
 
   transform(value, mapper) {
-    return this.field.transform(value, Object.assign({}, mapper, {
-      id: v => this.model.idValue(v),
-    }));
+    return this.field.transform(value, mapper);
   }
 
-  validate(value, mapper, resolver) {
+  validate(value, mapper) {
     return this.field.validate(value, mapper);
-    // return this.field.validate(value, Object.assign({}, mapper, {
-    //   // idResolve: v => resolver.spot(this.getSimpleType()).id(v).one().then((doc) => {
-    //   //   if (this.getSimpleType() === 'Building') {
-    //   //     console.log(this.getSimpleType(), v, doc);
-    //   //   }
-    //   //   if (doc) return false;
-    //   //   return true;
-    //   // }),
-    // }));
   }
 };

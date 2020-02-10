@@ -7,7 +7,7 @@ const Schema = require('../src/core/Schema');
 const Resolver = require('../src/core/Resolver');
 const { stores, typeDefs } = require('./schema');
 
-const { Rule } = esm('@coderich/quin');
+const { Transformer, Rule } = esm('@coderich/quin');
 
 let resolver;
 let richard;
@@ -74,7 +74,18 @@ module.exports = (driver = 'mongo') => {
       const schema = new Schema({ typeDefs, stores }, driverArgs);
       resolver = new Resolver(schema);
 
-      Rule.resolver = resolver;
+      Rule.factory('idResolve', () => (field, v) => {
+        return resolver.spot(field.getType()).id(v).one().then((doc) => {
+          if (doc) return false;
+          return true;
+        });
+      });
+
+      Transformer.factory('id', () => (field, v) => {
+        const modelRef = field.getModel();
+        const model = schema.getModel(`${modelRef}`);
+        return model.idValue(v);
+      });
 
       //
       await timeout(2000);

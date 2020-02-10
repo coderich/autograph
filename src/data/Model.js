@@ -183,9 +183,7 @@ module.exports = class Model {
   }
 
   transform(value, mapper = {}) {
-    return this.model.transform(value, Object.assign({}, mapper, {
-      id: v => this.idValue(v),
-    }));
+    return this.model.transform(value, mapper);
   }
 
   validate(value, mapper = {}) {
