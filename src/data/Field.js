@@ -131,6 +131,10 @@ module.exports = class Field {
     return Boolean(this.field.getDirectiveArg('quin', 'immutable'));
   }
 
+  serialize(value, mapper) {
+    return this.field.serialize(value, mapper);
+  }
+
   transform(value, mapper) {
     return this.field.transform(value, mapper);
   }

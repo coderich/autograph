@@ -300,7 +300,7 @@ module.exports = (driver = 'mongo') => {
         expect((await resolver.spot('Library').many({ find: true })).length).toBe(1);
       });
 
-      // TODO Embedded tests
+      // // TODO Embedded tests
       // test('Apartment', async () => {
       //   expect((await resolver.spot('Apartment').where({ 'building.tenants': 'nobody' }).many({ find: true })).length).toBe(0);
       //   expect((await resolver.spot('Apartment').where({ 'building.tenants': richard.id }).many({ find: true })).length).toBe(1);

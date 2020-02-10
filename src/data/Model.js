@@ -182,11 +182,15 @@ module.exports = class Model {
     return this.model.isEntity();
   }
 
-  transform(value, mapper = {}) {
+  serialize(value, mapper) {
+    return this.model.serialize(value, mapper);
+  }
+
+  transform(value, mapper) {
     return this.model.transform(value, mapper);
   }
 
-  validate(value, mapper = {}) {
+  validate(value, mapper) {
     return this.model.validate(value, mapper);
   }
 };

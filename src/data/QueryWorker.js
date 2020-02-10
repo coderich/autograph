@@ -82,7 +82,7 @@ module.exports = class QueryWorker {
   async create(query, data = {}) {
     const { resolver } = this;
     const [model, options] = [query.getModel(), query.getOptions()];
-    const $data = model.transform(data);
+    const $data = model.serialize(data);
     await validateModelData(model, $data, {}, 'create');
 
     return createSystemEvent('Mutation', { method: 'create', model, resolver, query, data: $data }, async () => {
@@ -95,11 +95,11 @@ module.exports = class QueryWorker {
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.spot(model).id(id).options(options).one({ required: true });
-    const $data = model.transform(data);
+    const $data = model.serialize(data);
     await validateModelData(model, $data, doc, 'update');
 
     return createSystemEvent('Mutation', { method: 'update', model, resolver, query, data: $data }, async () => {
-      const merged = model.transform(mergeDeep(doc, $data));
+      const merged = model.serialize(mergeDeep(doc, $data));
       const result = await model.update(id, $data, merged, options);
       return model.hydrate(resolver, result, { fields: query.getSelectFields() });
     });
@@ -123,11 +123,11 @@ module.exports = class QueryWorker {
       data = { [key]: _.get(doc, key, []).concat($to) };
     }
 
-    const $data = model.transform(data);
+    const $data = model.serialize(data);
     await validateModelData(model, $data, doc, 'update');
 
     return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, data: $data }, async () => {
-      const merged = model.transform(mergeDeep(doc, $data));
+      const merged = model.serialize(mergeDeep(doc, $data));
       const result = await model.update(id, $data, merged, options);
       return model.hydrate(resolver, result, { fields: query.getSelectFields() });
     });
