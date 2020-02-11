@@ -1,7 +1,7 @@
 {
   "name": "@coderich/autograph",
   "author": "Richard Livolsi (coderich)",
-  "version": "0.1.0",
+  "version": "0.0.7",
   "description": "AutoGraph",
   "keywords": [
     "graphql",
@@ -21,6 +21,7 @@
   ],
   "scripts": {
     "test": "APP_ROOT_PATH=$(pwd) ratchet test",
+    "lint": "APP_ROOT_PATH=$(pwd) ratchet lint",
     "ratchet": "ratchet",
     "lint": "ratchet lint"
   },
