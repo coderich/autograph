@@ -48,7 +48,7 @@ module.exports = class Resolver {
     return this.loader.prime(key, value);
   }
 
-  spot(model) {
+  match(model) {
     return new QueryBuilder(this.toModel(model), this);
   }
 
@@ -93,7 +93,7 @@ module.exports = class Resolver {
     // Create txn
     const txn = ((data, driverMap, txMap, id) => {
       return {
-        get spot() {
+        get match() {
           return (modelName) => {
             const model = resolver.toModel(modelName);
             const driver = model.getDriver();

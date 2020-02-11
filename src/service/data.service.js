@@ -73,7 +73,7 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldAlias = '',
         const { parentModel, parentFields, parentDataRefs } = parentLookup;
         const { parentModel: currentModel, parentFields: currentFields, parentFieldAlias: currentFieldAlias } = lookups2D[index2D];
 
-        return resolver.spot(modelName).where(query).many({ find: true }).then((results) => {
+        return resolver.match(modelName).where(query).many({ find: true }).then((results) => {
           if (parentDataRefs.has(modelName)) {
             parentLookup.lookups.forEach((lookup) => {
               // Anything with type `modelName` should be added to query
@@ -127,18 +127,18 @@ exports.resolveReferentialIntegrity = (resolver, model, query, parentTxn) => {
         switch (op) {
           case 'cascade': {
             if (isArray) {
-              txn.spot(ref).where($where).pull(fieldStr, id);
+              txn.match(ref).where($where).pull(fieldStr, id);
             } else {
-              txn.spot(ref).where($where).remove(txn);
+              txn.match(ref).where($where).remove(txn);
             }
             break;
           }
           case 'nullify': {
-            txn.spot(ref).where($where).save({ [fieldStr]: null });
+            txn.match(ref).where($where).save({ [fieldStr]: null });
             break;
           }
           case 'restrict': {
-            txn.spot(ref).where($where).count().then(count => (count ? reject(new Error('Restricted')) : count));
+            txn.match(ref).where($where).count().then(count => (count ? reject(new Error('Restricted')) : count));
             break;
           }
           default: throw new Error(`Unknown onDelete operator: '${op}'`);

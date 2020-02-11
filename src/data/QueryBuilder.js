@@ -88,8 +88,8 @@ module.exports = class QueryBuilder {
         if (where) {
           const txn = resolver.transaction(parentTxn);
           const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
-          const docs = await resolver.spot(model).where(resolvedWhere).many({ find: true });
-          docs.forEach(doc => txn.spot(model).id(doc.id).query(query)[cmd](...args));
+          const docs = await resolver.match(model).where(resolvedWhere).many({ find: true });
+          docs.forEach(doc => txn.match(model).id(doc.id).query(query)[cmd](...args));
           return txn.run();
         }
 
@@ -106,15 +106,15 @@ module.exports = class QueryBuilder {
         if (where) {
           const txn = resolver.transaction(parentTxn);
           const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
-          const docs = await resolver.spot(model).where(resolvedWhere).many();
-          docs.forEach(doc => txn.spot(model).id(doc.id).query(query).save(...args));
+          const docs = await resolver.match(model).where(resolvedWhere).many();
+          docs.forEach(doc => txn.match(model).id(doc.id).query(query).save(...args));
           return txn.run();
         }
 
         // Multi save (transaction)
         if (args.length > 1) {
           const txn = resolver.transaction(parentTxn);
-          args.forEach(arg => txn.spot(model).query(query).save(arg));
+          args.forEach(arg => txn.match(model).query(query).save(arg));
           return txn.run();
         }
 
@@ -129,8 +129,8 @@ module.exports = class QueryBuilder {
         if (where) {
           const txn = resolver.transaction(parentTxn);
           const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
-          const docs = await resolver.spot(model).where(resolvedWhere).many({ find: true });
-          docs.forEach(doc => txn.spot(model).id(doc.id).remove());
+          const docs = await resolver.match(model).where(resolvedWhere).many({ find: true });
+          docs.forEach(doc => txn.match(model).id(doc.id).remove());
           return txn.run();
         }
 

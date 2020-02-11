@@ -16,7 +16,7 @@ module.exports = class Field {
 
     if (this.isVirtual()) {
       where[this.getVirtualRef()] = doc.id;
-      return resolver.spot(fieldRef).where(where).count();
+      return resolver.match(fieldRef).where(where).count();
     }
 
     if (!Object.keys(where).length) {
@@ -25,7 +25,7 @@ module.exports = class Field {
 
     const ids = (doc[this.getName()] || []);
     where[fieldRef.idField()] = ids;
-    return resolver.spot(fieldRef).where(where).count();
+    return resolver.match(fieldRef).where(where).count();
   }
 
   resolve(resolver, doc, q = {}) {
@@ -43,19 +43,19 @@ module.exports = class Field {
     if (Array.isArray(dataType)) {
       if (this.isVirtual()) {
         query.where[this.getVirtualField().getAlias()] = doc.id;
-        return resolver.spot(dataType[0]).query(query).many({ find: true });
+        return resolver.match(dataType[0]).query(query).many({ find: true });
       }
       const valueIds = (value || []).map(v => (isScalarValue(v) ? v : v.id));
-      return Promise.all(valueIds.map(id => resolver.spot(dataType[0]).id(id).one({ required: this.isRequired() }).catch(() => null)));
+      return Promise.all(valueIds.map(id => resolver.match(dataType[0]).id(id).one({ required: this.isRequired() }).catch(() => null)));
     }
 
     // Object Resolvers
     if (this.isVirtual()) {
       query.where[this.getVirtualField().getAlias()] = doc.id;
-      return resolver.spot(dataType).query(query).one({ find: true });
+      return resolver.match(dataType).query(query).one({ find: true });
     }
 
-    return resolver.spot(dataType).id(value).one({ required: this.isRequired() });
+    return resolver.match(dataType).id(value).one({ required: this.isRequired() });
   }
 
   // Transitional

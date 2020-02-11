@@ -37,7 +37,7 @@ module.exports = class QueryWorker {
     const [model, limit, fields, countFields, sortFields, pagination, options] = [query.getModel(), query.getLimit(), query.getSelectFields(), query.getCountFields(), query.getSortFields(), query.getPagination(), query.getOptions()];
 
     return createSystemEvent('Query', { method: 'query', model, resolver, query }, async () => {
-      const results = await resolver.spot(model).select(fields).where(query.getWhere()).options(options).many({ find: true });
+      const results = await resolver.match(model).select(fields).where(query.getWhere()).options(options).many({ find: true });
       const filteredData = filterDataByCounts(resolver, model, results, countFields);
       const sortedResults = sortData(filteredData, sortFields);
       const limitedResults = sortedResults.slice(0, limit > 0 ? limit : undefined);
@@ -70,7 +70,7 @@ module.exports = class QueryWorker {
       const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
 
       if (countPaths.length) {
-        const results = await resolver.spot(model).where(resolvedWhere).select(countFields).options(options).many();
+        const results = await resolver.match(model).where(resolvedWhere).select(countFields).options(options).many();
         const filteredData = filterDataByCounts(resolver, model, results, countFields);
         return filteredData.length;
       }
@@ -94,7 +94,7 @@ module.exports = class QueryWorker {
   async update(query, data = {}) {
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
-    const doc = await resolver.spot(model).id(id).options(options).one({ required: true });
+    const doc = await resolver.match(model).id(id).options(options).one({ required: true });
     const $data = model.serialize(data);
     await validateModelData(model, $data, doc, 'update');
 
@@ -110,7 +110,7 @@ module.exports = class QueryWorker {
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const field = model.getField(key);
     if (!field || !field.isArray()) return Promise.reject(new BadRequestError(`Cannot splice field '${key}'`));
-    const doc = await resolver.spot(model).id(id).options(options).one({ required: true });
+    const doc = await resolver.match(model).id(id).options(options).one({ required: true });
     const $from = model.transform({ [key]: from })[key];
     const $to = model.transform({ [key]: to })[key];
 
@@ -136,7 +136,7 @@ module.exports = class QueryWorker {
   async delete(query, txn) {
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
-    const doc = await resolver.spot(model).id(id).options(options).one({ required: true });
+    const doc = await resolver.match(model).id(id).options(options).one({ required: true });
 
     return createSystemEvent('Mutation', { method: 'delete', model, resolver, query }, () => {
       return resolveReferentialIntegrity(resolver, model, query, txn).then(async () => {
