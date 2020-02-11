@@ -4,8 +4,8 @@ const { globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, 
 
 exports.validateModelData = (model, data, oldData, op) => {
   const required = (op === 'create' ? (f, v) => v == null : (f, v) => v === null);
-  const immutable = (f, v) => RuleService.immutable()(v, oldData, op, `${f.getModel()}.${f.getName()}`);
-  const selfless = (f, v) => RuleService.selfless()(v, oldData, op, `${f.getModel()}.${f.getName()}`);
+  const immutable = (f, v) => RuleService.immutable(v, oldData, op, `${f.getModel()}.${f.getName()}`);
+  const selfless = (f, v) => RuleService.selfless(v, oldData, op, `${f.getModel()}.${f.getName()}`);
   return model.validate(data, { required, immutable, selfless });
 };
 

@@ -74,14 +74,14 @@ module.exports = (driver = 'mongo') => {
       const schema = new Schema({ typeDefs, stores }, driverArgs);
       resolver = new Resolver(schema);
 
-      Rule.factory('idResolve', () => (field, v) => {
+      Rule.factory('ensureId', () => (field, v) => {
         return resolver.spot(field.getType()).id(v).one().then((doc) => {
           if (doc) return false;
           return true;
         });
       });
 
-      Transformer.factory('id', () => (field, v) => {
+      Transformer.factory('toId', () => (field, v) => {
         const modelRef = field.getModel();
         const model = schema.getModel(`${modelRef}`);
         return model.idValue(v);
