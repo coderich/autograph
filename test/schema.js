@@ -1,9 +1,5 @@
 module.exports = {
   typeDefs: `
-    enum IndexEnum { unique }
-    enum OnDeleteEnum { cascade nullify restrict }
-    input IndexInput { name: String type: IndexEnum! on: [String!]! }
-
     type Person
       @quin(indexes: [{ name: "uix_person_name", type: unique, on: ["name"] }])
     {
@@ -105,14 +101,4 @@ module.exports = {
       comments: [String] @quin(enforce: artComment)
     }
   `,
-  stores: {
-    neo4j: {
-      type: 'neo4jDriver',
-      uri: 'bolt://localhost',
-    },
-    default: {
-      type: 'mongo',
-      uri: 'mongodb://localhost/autograph',
-    },
-  },
 };

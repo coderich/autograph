@@ -5,7 +5,8 @@ const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { timeout } = require('../src/service/app.service');
 const Schema = require('../src/core/Schema');
 const Resolver = require('../src/core/Resolver');
-const { stores, typeDefs } = require('./schema');
+const gql = require('./schema');
+const stores = require('./stores');
 
 const { Transformer, Rule } = esm('@coderich/quin');
 
@@ -71,7 +72,7 @@ module.exports = (driver = 'mongo') => {
       }
 
       // Create core classes
-      const schema = new Schema({ typeDefs, stores }, driverArgs);
+      const schema = new Schema(gql, stores, driverArgs);
       resolver = new Resolver(schema);
 
       Rule.factory('ensureId', () => (field, v) => {

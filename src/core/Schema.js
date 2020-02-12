@@ -1,16 +1,44 @@
 const esm = require('esm')(module);
 const { uniqWith } = require('lodash');
+const isEmail = require('validator/lib/isEmail');
 const Model = require('../data/Model');
 const RedisDriver = require('../driver/RedisDriver');
 const MongoDriver = require('../driver/MongoDriver');
 const { Neo4jDriver, Neo4jRestDriver } = require('../driver/Neo4jDriver');
 
-const { Quin } = esm('@coderich/quin');
+// Configure Quin
+const { Quin, Rule } = esm('@coderich/quin');
 
-module.exports = class {
-  constructor(schema, driverArgs = {}) {
-    const { typeDefs, stores } = schema;
-    this.schema = new Quin({ typeDefs });
+// Adding new rules
+Rule.factory('email', () => (f, v) => !isEmail(v));
+Rule.factory('selfless', () => (f, v) => false);
+Rule.factory('immutable', () => (f, v) => false);
+Rule.factory('distinct', () => (f, v) => false);
+
+// Adding Rules/Transformers
+Quin.extend('email', Rule.email());
+Quin.extend('selfless', Rule.selfless());
+Quin.extend('immutable', Rule.immutable());
+Quin.extend('distinct', Rule.distinct());
+
+// Adding custom keys
+Quin.custom('norepeat: Boolean');
+Quin.custom('onDelete: AutoGraphOnDeleteEnum');
+Quin.custom('indexes: [AutoGraphIndexInput!]');
+
+// Export class
+module.exports = class Schema {
+  constructor(schema, stores, driverArgs = {}) {
+    // Ensure schema
+    schema.typeDefs = schema.typeDefs || [];
+    schema.typeDefs = Array.isArray(schema.typeDefs) ? schema.typeDefs : [schema.typeDefs];
+    schema.typeDefs.push(`
+      enum AutoGraphIndexEnum { unique }
+      enum AutoGraphOnDeleteEnum { cascade nullify restrict }
+      input AutoGraphIndexInput { name: String type: AutoGraphIndexEnum! on: [String!]! }
+    `);
+
+    this.schema = new Quin(schema);
 
     const availableDrivers = {
       mongo: MongoDriver,

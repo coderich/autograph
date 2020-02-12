@@ -38,7 +38,8 @@
     "micromatch": "^4.0.2",
     "object-hash": "^2.0.1",
     "picomatch": "^2.1.1",
-    "uuid": "^3.3.3"
+    "uuid": "^3.3.3",
+    "validator": "^12.2.0"
   },
   "peerDependencies": {
     "mongodb": "^3.5.1",
@@ -52,8 +53,7 @@
     "neo4j-driver": "^4.0.0",
     "neodb": "^3.0.0",
     "redis": "^2.8.0",
-    "redis-mock": "^0.47.0",
-    "validator": "^12.2.0"
+    "redis-mock": "^0.47.0"
   },
   "repository": {
     "type": "git",
