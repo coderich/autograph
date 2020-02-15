@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { isScalarValue } = require('../service/app.service');
+const { ucFirst, isScalarValue, isScalarDataType } = require('../service/app.service');
 
 module.exports = class Field {
   constructor(schema, model, field) {
@@ -141,5 +141,29 @@ module.exports = class Field {
 
   validate(value, mapper) {
     return this.field.validate(value, mapper);
+  }
+
+  //
+
+  getGQLType(suffix) {
+    let type = this.getSimpleType();
+    if (suffix && !isScalarDataType(type)) type = this.isEmbedded() ? `${type}${suffix}` : 'ID';
+    // if (this.options.enum) type = `${this.model.getName()}${ucFirst(this.getName())}Enum`;
+    type = this.isArray() ? `[${type}]` : type;
+    if (suffix !== 'InputUpdate' && this.isRequired()) type += '!';
+    return type;
+  }
+
+  getGQLDefinition() {
+    const fieldName = this.getName();
+    const type = this.getGQLType();
+    const ref = this.getDataRef();
+
+    if (ref) {
+      if (this.isArray()) return `${fieldName}(first: Int after: String last: Int before: String query: ${ref}InputQuery): Connection`;
+      return `${fieldName}(query: ${ref}InputQuery): ${type}`;
+    }
+
+    return `${fieldName}: ${type}`;
   }
 };

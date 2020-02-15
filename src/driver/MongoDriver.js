@@ -88,6 +88,10 @@ module.exports = class MongoDriver {
     }));
   }
 
+  static idField() {
+    return '_id';
+  }
+
   static idValue(value) {
     if (value instanceof ObjectID) return value;
 

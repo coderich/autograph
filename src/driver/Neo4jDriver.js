@@ -52,6 +52,10 @@ class Cypher {
     }));
   }
 
+  static idField() {
+    return 'id';
+  }
+
   static idValue(value) {
     return Number(value);
   }

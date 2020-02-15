@@ -2,9 +2,7 @@ const esm = require('esm')(module);
 const { uniqWith } = require('lodash');
 const isEmail = require('validator/lib/isEmail');
 const Model = require('../data/Model');
-const RedisDriver = require('../driver/RedisDriver');
-const MongoDriver = require('../driver/MongoDriver');
-const { Neo4jDriver, Neo4jRestDriver } = require('../driver/Neo4jDriver');
+const Drivers = require('../driver');
 
 // Configure Quin
 const { Quin, Rule } = esm('@coderich/quin');
@@ -26,6 +24,7 @@ Quin.custom('norepeat: Boolean');
 Quin.custom('onDelete: AutoGraphOnDeleteEnum');
 Quin.custom('indexes: [AutoGraphIndexInput!]');
 
+
 // Export class
 module.exports = class Schema {
   constructor(schema, stores, driverArgs = {}) {
@@ -40,20 +39,15 @@ module.exports = class Schema {
 
     this.schema = new Quin(schema);
 
-    const availableDrivers = {
-      mongo: MongoDriver,
-      neo4jDriver: Neo4jDriver,
-      neo4jRest: Neo4jRestDriver,
-      redis: RedisDriver,
-    };
-
     // Create drivers
     const drivers = Object.entries(stores).reduce((prev, [key, { type, uri, options }]) => {
+      const Driver = Drivers.require(type);
+
       return Object.assign(prev, {
         [key]: {
-          dao: new availableDrivers[type](uri, this, options, driverArgs[type]),
-          idValue: availableDrivers[type].idValue,
-          idField: type === 'mongo' ? '_id' : 'id',
+          dao: new Driver(uri, this, options, driverArgs[type]),
+          idValue: Driver.idValue,
+          idField: Driver.idField,
         },
       });
     }, {});

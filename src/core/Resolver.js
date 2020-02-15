@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const esm = require('esm')(module);
 const FBDataLoader = require('dataloader');
 const TreeMap = require('../data/TreeMap');
 const QueryBuilder = require('../data/QueryBuilder');
@@ -8,6 +9,9 @@ const Query = require('../data/Query');
 const Model = require('../data/Model');
 const { hashObject } = require('../service/app.service');
 
+// Configure Quin
+const { Rule, Transformer } = esm('@coderich/quin');
+
 let count = 0;
 
 module.exports = class Resolver {
@@ -15,6 +19,19 @@ module.exports = class Resolver {
     this.schema = schema;
     this.worker = new QueryWorker(this);
     this.loader = this.createLoader();
+
+    Rule.factory('ensureId', () => (field, v) => {
+      return this.match(field.getType()).id(v).one().then((doc) => {
+        if (doc) return false;
+        return true;
+      });
+    });
+
+    Transformer.factory('toId', () => (field, v) => {
+      const modelRef = field.getModel();
+      const model = schema.getModel(`${modelRef}`);
+      return model.idValue(v);
+    });
   }
 
   // Encapsulate Facebook DataLoader

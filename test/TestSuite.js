@@ -75,19 +75,6 @@ module.exports = (driver = 'mongo') => {
       const schema = new Schema(gql, stores, driverArgs);
       resolver = new Resolver(schema);
 
-      Rule.factory('ensureId', () => (field, v) => {
-        return resolver.match(field.getType()).id(v).one().then((doc) => {
-          if (doc) return false;
-          return true;
-        });
-      });
-
-      Transformer.factory('toId', () => (field, v) => {
-        const modelRef = field.getModel();
-        const model = schema.getModel(`${modelRef}`);
-        return model.idValue(v);
-      });
-
       //
       await timeout(2000);
       await Promise.all(schema.getModels().map(model => model.drop()));
@@ -383,7 +370,7 @@ module.exports = (driver = 'mongo') => {
         await expect(resolver.match('Book').save({ name: 'The Bible', author: 'Moses' })).rejects.toThrow();
         await expect(resolver.match('Book').save({ name: 'The Bible', author: richard.id })).rejects.toThrow();
         await expect(resolver.match('Book').save({ name: 'The Bible', price: 1.99 })).rejects.toThrow();
-        await expect(resolver.match('Book').save({ name: 'The Bible', price: 1.99, author: mobyDick.id })).rejects.toThrow();
+        await expect(resolver.match('Book').save({ name: 'No Moby', price: 1.99, author: mobyDick.id })).rejects.toThrow();
         await expect(resolver.match('Book').save({ name: 'The Bible', price: 1.99, author: [christie.id] })).rejects.toThrow();
         await expect(resolver.match('Book').save({ name: 'the bible', price: 1.99, author: christie.id })).rejects.toThrow();
         await expect(resolver.match('Book').save({ name: 'Great Book', price: -1, author: christie.id })).rejects.toThrow();
