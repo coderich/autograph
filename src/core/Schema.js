@@ -1,11 +1,9 @@
-const esm = require('esm')(module);
 const { uniqWith } = require('lodash');
 const isEmail = require('validator/lib/isEmail');
 const Model = require('../data/Model');
 const Drivers = require('../driver');
-
-// Configure Quin
-const { Quin, Rule } = esm('@coderich/quin');
+const Rule = require('../schema/Rule');
+const Quin = require('../schema/Quin');
 
 // Adding new rules
 Rule.factory('email', () => (f, v) => !isEmail(v));
@@ -24,7 +22,6 @@ Quin.custom('driver: String');
 Quin.custom('norepeat: Boolean');
 Quin.custom('onDelete: AutoGraphOnDeleteEnum');
 Quin.custom('indexes: [AutoGraphIndexInput!]');
-
 
 // Export class
 module.exports = class Schema {

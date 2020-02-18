@@ -22,6 +22,9 @@ exports.globToRegex = (glob, options = {}) => PicoMatch.makeRe(glob, { maxLength
 exports.globToRegexp = (glob, options = {}) => PicoMatch.toRegex(exports.globToRegex(glob, options));
 exports.toGUID = (model, id) => Buffer.from(`${model},${`${id}`}`).toString('base64');
 exports.fromGUID = guid => Buffer.from(`${guid}`, 'base64').toString('ascii').split(',');
+exports.ensureArray = a => (Array.isArray(a) ? a : [a]);
+
+// export const isPlainObject = value => IPO(value);
 
 exports.getDeep = (obj, path, defaultValue) => {
   const results = [];
@@ -38,6 +41,40 @@ exports.map = (mixed, fn) => {
   const arr = isArray ? mixed : [mixed];
   const results = arr.map(el => fn(el));
   return isArray ? results : results[0];
+};
+
+exports.castCmp = (type, value) => {
+  switch (type) {
+    case 'String': {
+      return `${value}`;
+    }
+    case 'Float': case 'Number': {
+      const num = Number(value);
+      if (!Number.isNaN(num)) return num;
+      return value;
+    }
+    case 'Int': {
+      const num = parseInt(value, 10);
+      if (!Number.isNaN(num)) return num;
+      return value;
+    }
+    case 'Boolean': {
+      if (value === 'true') return true;
+      if (value === 'false') return false;
+      return value;
+    }
+    default: {
+      return value;
+    }
+  }
+};
+
+exports.serialize = (field, value) => {
+  if (!exports.isPlainObject(value)) return value;
+  const model = field.getModelRef();
+  if (!model) return value;
+  const key = model.getIdField().getName();
+  return value[key];
 };
 
 exports.unravelObject = (obj = {}) => {

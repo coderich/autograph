@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const esm = require('esm')(module);
 const FBDataLoader = require('dataloader');
 const TreeMap = require('../data/TreeMap');
 const QueryBuilder = require('../data/QueryBuilder');
@@ -8,9 +7,8 @@ const QueryWorker = require('../data/QueryWorker');
 const Query = require('../data/Query');
 const Model = require('../data/Model');
 const { hashObject } = require('../service/app.service');
-
-// Configure Quin
-const { Rule, Transformer } = esm('@coderich/quin');
+const Rule = require('../schema/Rule');
+const Transformer = require('../schema/Transformer');
 
 let count = 0;
 
