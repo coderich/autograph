@@ -20,6 +20,7 @@ Quin.extend('immutable', Rule.immutable());
 Quin.extend('distinct', Rule.distinct());
 
 // Adding custom keys
+Quin.custom('driver: String');
 Quin.custom('norepeat: Boolean');
 Quin.custom('onDelete: AutoGraphOnDeleteEnum');
 Quin.custom('indexes: [AutoGraphIndexInput!]');
@@ -76,7 +77,7 @@ module.exports = class Schema {
   }
 
   getModel(name) {
-    return this.models.find(model => model.getName() === name);
+    return this.models.find(model => model.getName() === name || model.getAlias() === name);
   }
 
   getModels() {

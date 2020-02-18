@@ -1,14 +1,11 @@
 // const Neo4j = require('neodb');
 // const Redis = require('redis-mock');
-const esm = require('esm')(module);
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { timeout } = require('../src/service/app.service');
 const Schema = require('../src/core/Schema');
 const Resolver = require('../src/core/Resolver');
 const gql = require('./schema');
 const stores = require('./stores');
-
-const { Transformer, Rule } = esm('@coderich/quin');
 
 let resolver;
 let richard;

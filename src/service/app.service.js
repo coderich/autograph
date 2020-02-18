@@ -40,7 +40,7 @@ exports.map = (mixed, fn) => {
   return isArray ? results : results[0];
 };
 
-exports.unravelObject = (obj) => {
+exports.unravelObject = (obj = {}) => {
   return exports.keyPaths(obj).reduce((prev, path) => {
     const splitPath = path.split('.');
     return _.set(prev, path, _.get(obj, path, splitPath.reduce((val, p, i) => {
@@ -51,7 +51,7 @@ exports.unravelObject = (obj) => {
   }, {});
 };
 
-exports.keyPaths = (obj, keys = [], path) => {
+exports.keyPaths = (obj = {}, keys = [], path) => {
   return Object.entries(obj).reduce((prev, [key, value]) => {
     const keyPath = path ? `${path}.${key}` : key;
     if (exports.isPlainObject(value)) return exports.keyPaths(value, prev, keyPath);

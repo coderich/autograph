@@ -70,16 +70,16 @@ class Cypher {
 
         if (Array.isArray(value)) {
           $params[prop] = value;
-          return `any (x IN $${prop} WHERE x IN n.${prop})`;
+          return `any (x IN {${prop}} WHERE x IN n.${prop})`;
         }
 
         if (typeof value === 'string') {
           $params[prop] = `(?i)${globToRegex(value.toLowerCase(), { unescape: true, regex: false, maxLength: 100 }).toString().slice(1, -1)}`;
-          return `toString(n.${prop}) =~ $${prop}`;
+          return `toString(n.${prop}) =~ {${prop}}`;
         }
 
         $params[prop] = value;
-        return `n.${prop} = $${prop}`;
+        return `n.${prop} = {${prop}}`;
       },
     }).toObject();
 
