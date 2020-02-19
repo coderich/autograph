@@ -5,12 +5,14 @@ const FillRange = require('fill-range');
 const DeepMerge = require('deepmerge');
 const { ObjectID } = require('mongodb');
 const ObjectHash = require('object-hash');
+// const IPO = require('is-plain-object');
 
 exports.id = '3d896496-02a3-4ee5-8e42-2115eb215f7e';
 exports.generateId = () => UUID();
 exports.ucFirst = string => string.charAt(0).toUpperCase() + string.slice(1);
 exports.lcFirst = string => string.charAt(0).toLowerCase() + string.slice(1);
 exports.isPlainObject = obj => typeof obj === 'object' && !Array.isArray(obj) && !(obj instanceof ObjectID);
+// exports.isPlainObject = obj => IPO(obj) && !Array.isArray(obj);
 exports.isScalarValue = value => typeof value !== 'object' && typeof value !== 'function';
 exports.isScalarDataType = value => ['ID', 'String', 'Float', 'Int', 'Boolean'].indexOf(value) > -1;
 exports.isIdValue = value => exports.isScalarValue(value) || value instanceof ObjectID;
@@ -23,8 +25,6 @@ exports.globToRegexp = (glob, options = {}) => PicoMatch.toRegex(exports.globToR
 exports.toGUID = (model, id) => Buffer.from(`${model},${`${id}`}`).toString('base64');
 exports.fromGUID = guid => Buffer.from(`${guid}`, 'base64').toString('ascii').split(',');
 exports.ensureArray = a => (Array.isArray(a) ? a : [a]);
-
-// export const isPlainObject = value => IPO(value);
 
 exports.getDeep = (obj, path, defaultValue) => {
   const results = [];

@@ -2,8 +2,8 @@ const { uniqWith } = require('lodash');
 const isEmail = require('validator/lib/isEmail');
 const Model = require('../data/Model');
 const Drivers = require('../driver');
-const Rule = require('../schema/Rule');
-const Quin = require('../schema/Quin');
+const Rule = require('../graphql/Rule');
+const Schema = require('../graphql/Schema');
 
 // Adding new rules
 Rule.factory('email', () => (f, v) => !isEmail(v));
@@ -12,19 +12,19 @@ Rule.factory('immutable', () => (f, v) => false);
 Rule.factory('distinct', () => (f, v) => false);
 
 // Adding Rules/Transformers
-Quin.extend('email', Rule.email());
-Quin.extend('selfless', Rule.selfless());
-Quin.extend('immutable', Rule.immutable());
-Quin.extend('distinct', Rule.distinct());
+Schema.extend('email', Rule.email());
+Schema.extend('selfless', Rule.selfless());
+Schema.extend('immutable', Rule.immutable());
+Schema.extend('distinct', Rule.distinct());
 
 // Adding custom keys
-Quin.custom('driver: String');
-Quin.custom('norepeat: Boolean');
-Quin.custom('onDelete: AutoGraphOnDeleteEnum');
-Quin.custom('indexes: [AutoGraphIndexInput!]');
+Schema.custom('driver: String');
+Schema.custom('norepeat: Boolean');
+Schema.custom('onDelete: AutoGraphOnDeleteEnum');
+Schema.custom('indexes: [AutoGraphIndexInput!]');
 
 // Export class
-module.exports = class Schema {
+module.exports = class {
   constructor(schema, stores, driverArgs = {}) {
     // Ensure schema
     schema.typeDefs = schema.typeDefs || [];
@@ -35,7 +35,7 @@ module.exports = class Schema {
       input AutoGraphIndexInput { name: String type: AutoGraphIndexEnum! on: [String!]! }
     `);
 
-    this.schema = new Quin(schema);
+    this.schema = new Schema(schema);
 
     // Create drivers
     const drivers = Object.entries(stores).reduce((prev, [key, { type, uri, options }]) => {

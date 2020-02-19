@@ -7,8 +7,8 @@ const QueryWorker = require('../data/QueryWorker');
 const Query = require('../data/Query');
 const Model = require('../data/Model');
 const { hashObject } = require('../service/app.service');
-const Rule = require('../schema/Rule');
-const Transformer = require('../schema/Transformer');
+const Rule = require('../graphql/Rule');
+const Transformer = require('../graphql/Transformer');
 
 let count = 0;
 

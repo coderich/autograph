@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { ucFirst, isScalarValue, isScalarDataType } = require('../service/app.service');
+const { isScalarValue, isScalarDataType } = require('../service/app.service');
 
 module.exports = class Field {
   constructor(schema, model, field) {

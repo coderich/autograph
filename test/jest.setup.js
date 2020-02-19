@@ -1,8 +1,8 @@
-const Rule = require('../src/schema/Rule');
-const Quin = require('../src/schema/Quin');
+const Rule = require('../src/graphql/Rule');
+const Schema = require('../src/graphql/Schema');
 
-Quin.extend('bookName', Rule.deny('The Bible'));
-Quin.extend('bookPrice', Rule.range(0, 100));
-Quin.extend('artComment', Rule.allow('yay', 'great', 'boo'));
-Quin.extend('colors', Rule.allow('blue', 'red', 'green', 'purple'));
-Quin.extend('buildingType', Rule.allow('home', 'office', 'business'));
+Schema.extend('bookName', Rule.deny('The Bible'));
+Schema.extend('bookPrice', Rule.range(0, 100));
+Schema.extend('artComment', Rule.allow('yay', 'great', 'boo'));
+Schema.extend('colors', Rule.allow('blue', 'red', 'green', 'purple'));
+Schema.extend('buildingType', Rule.allow('home', 'office', 'business'));
