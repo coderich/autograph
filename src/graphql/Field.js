@@ -10,7 +10,7 @@ module.exports = class Field extends Type {
     this.rules = [];
     this.transformers = [];
 
-    Object.entries(this.getDirectiveArgs('quin', {})).forEach(([key, value]) => {
+    Object.entries(this.getDirectiveArgs('field', {})).forEach(([key, value]) => {
       if (!Array.isArray(value)) value = [value];
 
       switch (key) {

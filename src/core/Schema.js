@@ -17,23 +17,12 @@ Schema.extend('selfless', Rule.selfless());
 Schema.extend('immutable', Rule.immutable());
 Schema.extend('distinct', Rule.distinct());
 
-// Adding custom keys
-Schema.custom('driver: String');
-Schema.custom('norepeat: Boolean');
-Schema.custom('onDelete: AutoGraphOnDeleteEnum');
-Schema.custom('indexes: [AutoGraphIndexInput!]');
-
 // Export class
 module.exports = class {
   constructor(schema, stores, driverArgs = {}) {
     // Ensure schema
     schema.typeDefs = schema.typeDefs || [];
     schema.typeDefs = Array.isArray(schema.typeDefs) ? schema.typeDefs : [schema.typeDefs];
-    schema.typeDefs.push(`
-      enum AutoGraphIndexEnum { unique }
-      enum AutoGraphOnDeleteEnum { cascade nullify restrict }
-      input AutoGraphIndexInput { name: String type: AutoGraphIndexEnum! on: [String!]! }
-    `);
 
     this.schema = new Schema(schema);
 

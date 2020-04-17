@@ -156,7 +156,7 @@ module.exports = class Model {
   }
 
   getDriverName() {
-    return this.model.getDirectiveArg('quin', 'driver', 'default');
+    return this.model.getDirectiveArg('model', 'driver', 'default');
   }
 
   referentialIntegrity(refs) {
@@ -171,11 +171,15 @@ module.exports = class Model {
   }
 
   getAlias() {
-    return this.model.getDirectiveArg('quin', 'alias', this.getName());
+    return this.model.getDirectiveArg('model', 'alias', this.getName());
+  }
+
+  getNamespace() {
+    return this.model.getDirectiveArg('model', 'namespace', this.getName());
   }
 
   getIndexes() {
-    return this.model.getDirectiveArg('quin', 'indexes', []);
+    return this.model.getDirectiveArg('model', 'indexes', []);
   }
 
   isVisible() {

@@ -15,7 +15,7 @@ module.exports = class Type {
   }
 
   getAlias(defaultValue) {
-    return this.getDirectiveArg('quin', 'alias', defaultValue || this.getName());
+    return this.getDirectiveArg('model', 'alias') || this.getDirectiveArg('field', 'alias') || defaultValue || this.getName();
   }
 
   getType() {
@@ -38,7 +38,7 @@ module.exports = class Type {
   }
 
   getVirtualRef() {
-    return this.getDirectiveArg('quin', 'materializeBy');
+    return this.getDirectiveArg('field', 'materializeBy');
   }
 
   getVirtualModel() {
@@ -86,7 +86,7 @@ module.exports = class Type {
   }
 
   isEntity() {
-    return Boolean(this.getDirective('quin'));
+    return Boolean(this.getDirective('model'));
   }
 
   isEmbedded() {
@@ -95,6 +95,6 @@ module.exports = class Type {
   }
 
   isVirtual() {
-    return Boolean(this.getDirectiveArg('quin', 'materializeBy'));
+    return Boolean(this.getDirectiveArg('field', 'materializeBy'));
   }
 };

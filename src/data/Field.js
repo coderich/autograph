@@ -124,11 +124,11 @@ module.exports = class Field {
   }
 
   getOnDelete() {
-    return this.field.getDirectiveArg('quin', 'onDelete');
+    return this.field.getDirectiveArg('field', 'onDelete');
   }
 
   isImmutable() {
-    return Boolean(this.field.getDirectiveArg('quin', 'immutable'));
+    return Boolean(this.field.getDirectiveArg('field', 'immutable'));
   }
 
   serialize(value, mapper) {

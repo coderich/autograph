@@ -27,22 +27,33 @@ module.exports = class Schema {
 
     // Ensure schema
     schema.typeDefs = schema.typeDefs || [];
-    schema.schemaDirectives = Object.assign(schema.schemaDirectives || {}, { quin: SchemaDirective });
+    schema.schemaDirectives = Object.assign(schema.schemaDirectives || {}, { model: SchemaDirective, field: SchemaDirective });
     schema.typeDefs = Array.isArray(schema.typeDefs) ? schema.typeDefs : [schema.typeDefs];
 
     // Merge schema
     schema.typeDefs.push(`
-      scalar QuinMixed
-      enum QuinEnforceEnum { ${rules.map(({ name }) => name).join(' ')} }
-      enum QuinTransformEnum  { ${transformers.map(({ name }) => name).join(' ')} }
+      enum AutoGraphEnforceEnum { ${rules.map(({ name }) => name).join(' ')} }
+      enum AutoGraphTransformEnum  { ${transformers.map(({ name }) => name).join(' ')} }
+      enum AutoGraphOnDeleteEnum { cascade nullify restrict }
+      enum AutoGraphIndexEnum { unique }
+      input AutoGraphIndexInput { name: String type: AutoGraphIndexEnum! on: [String!]! }
 
-      directive @quin(
+      directive @model(
+        alias: String
+        driver: String
+        namespace: String
+        indexes: [AutoGraphIndexInput!]
+      ) on OBJECT
+
+      directive @field(
         ${customDirectives.join('\n\t    ')}
         alias: String
+        norepeat: Boolean
         materializeBy: String
-        enforce: [QuinEnforceEnum!]
-        transform: [QuinTransformEnum!]
-      ) repeatable on OBJECT | FIELD_DEFINITION
+        onDelete: AutoGraphOnDeleteEnum
+        enforce: [AutoGraphEnforceEnum!]
+        transform: [AutoGraphTransformEnum!]
+      ) on FIELD_DEFINITION
     `);
 
     // Prepare

@@ -1,39 +1,39 @@
 module.exports = {
   typeDefs: `
     type Person
-      @quin(indexes: [{ name: "uix_person_name", type: unique, on: ["name"] }])
+      @model(indexes: [{ name: "uix_person_name", type: unique, on: ["name"] }])
     {
       id: ID!
-      name: String! @quin(transform: toTitleCase)
-      authored: [Book] @quin(materializeBy: "author")
-      emailAddress: String! @quin(enforce: email)
-      friends: [Person] @quin(transform: dedupe, enforce: selfless, onDelete: cascade)
+      name: String! @field(transform: toTitleCase)
+      authored: [Book] @field(materializeBy: "author")
+      emailAddress: String! @field(enforce: email)
+      friends: [Person] @field(transform: dedupe, enforce: selfless, onDelete: cascade)
       status: String
     }
 
     type Book
-      @quin(indexes: [{ name: "uix_book", type: unique, on: ["name", "author"] }])
+      @model(indexes: [{ name: "uix_book", type: unique, on: ["name", "author"] }])
     {
       id: ID!
-      name: String! @quin(transform: toTitleCase, enforce: bookName)
-      price: Float! @quin(enforce: bookPrice)
-      author: Person! @quin(enforce: immutable, onDelete: cascade)
+      name: String! @field(transform: toTitleCase, enforce: bookName)
+      price: Float! @field(enforce: bookPrice)
+      author: Person! @field(enforce: immutable, onDelete: cascade)
       bestSeller: Boolean
       bids: [Float]
-      chapters: [Chapter] @quin(materializeBy: "book")
+      chapters: [Chapter] @field(materializeBy: "book")
     }
 
     type Chapter
-      @quin(indexes: [{ name: "uix_chapter", type: unique, on: ["name", "book"] }])
+      @model(indexes: [{ name: "uix_chapter", type: unique, on: ["name", "book"] }])
     {
       id: ID!
-      name: String! @quin(transform: toTitleCase)
-      book: Book! @quin(onDelete: restrict)
-      pages: [Page] @quin(materializeBy: "chapter")
+      name: String! @field(transform: toTitleCase)
+      book: Book! @field(onDelete: restrict)
+      pages: [Page] @field(materializeBy: "chapter")
     }
 
     type Page
-      @quin(indexes: [{ name: "uix_page", type: unique, on: ["number", "chapter"] }])
+      @model(indexes: [{ name: "uix_page", type: unique, on: ["number", "chapter"] }])
     {
       id: ID!
       number: Int!
@@ -42,63 +42,63 @@ module.exports = {
     }
 
     type BookStore
-      @quin(indexes: [{ name: "uix_bookstore", type: unique, on: ["name"] }]),
+      @model(indexes: [{ name: "uix_bookstore", type: unique, on: ["name"] }]),
     {
       id: ID!
-      name: String! @quin(transform: toTitleCase)
+      name: String! @field(transform: toTitleCase)
       location: String
-      books: [Book] @quin(onDelete: cascade)
-      building: Building! @quin(onDelete: cascade)
+      books: [Book] @field(onDelete: cascade)
+      building: Building! @field(onDelete: cascade)
     }
 
     type Library
-      @quin(indexes: [
+      @model(indexes: [
         { name: "uix_library", type: unique, on: ["name"] },
         { name: "uix_library_bulding", type: unique, on: ["building"] },
       ])
     {
       id: ID!
-      name: String! @quin(transform: toTitleCase)
+      name: String! @field(transform: toTitleCase)
       location: String,
-      books: [Book] @quin(onDelete: cascade)
-      building: Building! @quin(onDelete: cascade)
+      books: [Book] @field(onDelete: cascade)
+      building: Building! @field(onDelete: cascade)
     }
 
     type Apartment
-      @quin(indexes: [
+      @model(indexes: [
         { name: "uix_apartment", type: unique, on: ["name"] },
         { name: "uix_apartment_bulding", type: unique, on: ["building"] },
       ])
     {
       id: ID!
-      name: String! @quin(transform: toTitleCase)
+      name: String! @field(transform: toTitleCase)
       location: String
-      building: Building! @quin(onDelete: cascade)
+      building: Building! @field(onDelete: cascade)
     }
 
     type Building {
       id: ID!
       year: Int
-      type: String! @quin(enforce: buildingType)
-      tenants: [Person] @quin(enforce: distinct, onDelete: cascade)
-      landlord: Person @quin(onDelete: nullify)
+      type: String! @field(enforce: buildingType)
+      tenants: [Person] @field(enforce: distinct, onDelete: cascade)
+      landlord: Person @field(onDelete: nullify)
     }
 
     type Color
-      @quin
+      @model
     {
       id: ID!
-      type: String! @quin(enforce: colors)
-      isDefault: Boolean @quin(norepeat: true)
+      type: String! @field(enforce: colors)
+      isDefault: Boolean @field(norepeat: true)
     }
 
     type Art
-      @quin
+      @model
     {
       id: ID!
-      name: String! @quin(transform: toTitleCase)
+      name: String! @field(transform: toTitleCase)
       bids: [Float]
-      comments: [String] @quin(enforce: artComment)
+      comments: [String] @field(enforce: artComment)
     }
   `,
 };
