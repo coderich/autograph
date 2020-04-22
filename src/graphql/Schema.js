@@ -1,18 +1,11 @@
 const { GraphQLObjectType } = require('graphql');
-const { SchemaDirectiveVisitor, makeExecutableSchema } = require('graphql-tools');
+const { makeExecutableSchema } = require('../service/schema.service');
 const Transformer = require('./Transformer');
 const Rule = require('./Rule');
 const Model = require('./Model');
 
 const instances = {};
 const customDirectives = [];
-
-class SchemaDirective extends SchemaDirectiveVisitor {
-  visitFieldDefinition(field, details) { // eslint-disable-line
-  }
-  visitObject(type) { // eslint-disable-line
-  }
-}
 
 module.exports = class Schema {
   constructor(schema) {
@@ -25,40 +18,9 @@ module.exports = class Schema {
     const rules = defaultRules.concat(customRules);
     const transformers = defaultTransformers.concat(customTransformers);
 
-    // Ensure schema
-    schema.typeDefs = schema.typeDefs || [];
-    schema.schemaDirectives = Object.assign(schema.schemaDirectives || {}, { model: SchemaDirective, field: SchemaDirective });
-    schema.typeDefs = Array.isArray(schema.typeDefs) ? schema.typeDefs : [schema.typeDefs];
-
-    // Merge schema
-    schema.typeDefs.push(`
-      enum AutoGraphEnforceEnum { ${rules.map(({ name }) => name).join(' ')} }
-      enum AutoGraphTransformEnum  { ${transformers.map(({ name }) => name).join(' ')} }
-      enum AutoGraphOnDeleteEnum { cascade nullify restrict }
-      enum AutoGraphIndexEnum { unique }
-      input AutoGraphIndexInput { name: String type: AutoGraphIndexEnum! on: [String!]! }
-
-      directive @model(
-        alias: String
-        driver: String
-        namespace: String
-        indexes: [AutoGraphIndexInput!]
-      ) on OBJECT
-
-      directive @field(
-        ${customDirectives.join('\n\t    ')}
-        alias: String
-        norepeat: Boolean
-        materializeBy: String
-        onDelete: AutoGraphOnDeleteEnum
-        enforce: [AutoGraphEnforceEnum!]
-        transform: [AutoGraphTransformEnum!]
-      ) on FIELD_DEFINITION
-    `);
-
     // Prepare
     this.toString = () => schema;
-    this.schema = makeExecutableSchema(schema);
+    this.schema = makeExecutableSchema(schema, rules, transformers, customDirectives);
     this.rules = rules.reduce((prev, { name, instance }) => Object.assign(prev, { [name]: instance }), {});
     this.transformers = transformers.reduce((prev, { name, instance }) => Object.assign(prev, { [name]: instance }), {});
     this.models = Object.entries(this.schema.getTypeMap()).reduce((prev, [key, value]) => {

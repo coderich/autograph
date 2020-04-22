@@ -1,29 +1,12 @@
 const { uniqWith } = require('lodash');
-const isEmail = require('validator/lib/isEmail');
 const Model = require('../data/Model');
 const Drivers = require('../driver');
-const Rule = require('../graphql/Rule');
 const Schema = require('../graphql/Schema');
-
-// Adding new rules
-Rule.factory('email', () => (f, v) => !isEmail(v));
-Rule.factory('selfless', () => (f, v) => false);
-Rule.factory('immutable', () => (f, v) => false);
-Rule.factory('distinct', () => (f, v) => false);
-
-// Adding Rules/Transformers
-Schema.extend('email', Rule.email());
-Schema.extend('selfless', Rule.selfless());
-Schema.extend('immutable', Rule.immutable());
-Schema.extend('distinct', Rule.distinct());
 
 // Export class
 module.exports = class {
   constructor(schema, stores, driverArgs = {}) {
-    // Ensure schema
-    schema.typeDefs = schema.typeDefs || [];
-    schema.typeDefs = Array.isArray(schema.typeDefs) ? schema.typeDefs : [schema.typeDefs];
-
+    // Create schema
     this.schema = new Schema(schema);
 
     // Create drivers

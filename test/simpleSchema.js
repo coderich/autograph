@@ -1,13 +1,13 @@
 module.exports = {
   typeDefs: `
-    type Person {
+    type Person @model {
       name: String!
       authored: [Book]
       emailAddress: String!
       status: String
     }
 
-    type Book {
+    type Book @model {
       name: String!
       price: Float!
       author: Person!

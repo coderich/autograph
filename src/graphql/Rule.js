@@ -1,3 +1,4 @@
+const isEmail = require('validator/lib/isEmail');
 const { map, ensureArray } = require('../service/app.service');
 
 const jsStringMethods = ['endsWith', 'includes', 'match', 'search', 'startsWith'];
@@ -46,5 +47,9 @@ Rule.factory('range', (min, max) => {
   if (max == null) max = undefined;
   return (f, v) => Number.isNaN(v) || v < min || v > max;
 });
+Rule.factory('email', () => (f, v) => !isEmail(v), true, { enumerable: true });
+Rule.factory('selfless', () => (f, v) => false, true, { enumerable: true });
+Rule.factory('immutable', () => (f, v) => false, true, { enumerable: true });
+Rule.factory('distinct', () => (f, v) => false, true, { enumerable: true });
 
 module.exports = Rule;
