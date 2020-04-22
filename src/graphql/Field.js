@@ -84,8 +84,4 @@ module.exports = class Field extends Type {
       return rule(this, value, cmp);
     }));
   }
-
-  isIdField() {
-    return Boolean(this.model.getIdField() === this);
-  }
 };

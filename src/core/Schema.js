@@ -5,9 +5,9 @@ const Schema = require('../graphql/Schema');
 
 // Export class
 module.exports = class {
-  constructor(schema, stores, driverArgs = {}) {
+  constructor(gqlSchema, stores, driverArgs = {}) {
     // Create schema
-    this.schema = new Schema(schema);
+    const schema = new Schema(gqlSchema);
 
     // Create drivers
     const drivers = Object.entries(stores).reduce((prev, [key, { type, uri, options }]) => {
@@ -23,7 +23,7 @@ module.exports = class {
     }, {});
 
     // Create models
-    this.models = Object.values(this.schema.getModels()).map(model => new Model(this, model, drivers));
+    this.models = Object.values(schema.getModels()).map(model => new Model(this, model, drivers));
 
     const identifyOnDeletes = (parentModel) => {
       return this.models.reduce((prev, model) => {

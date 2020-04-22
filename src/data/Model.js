@@ -50,7 +50,7 @@ module.exports = class Model {
   }
 
   idField() {
-    return this.model.getIdField().getAlias(this.driver.idField());
+    return this.model.getDirectiveArg('model', 'id', this.driver.idField());
   }
 
   toObject(docs) {

@@ -1,3 +1,4 @@
+// https://hasura.io/blog/the-ultimate-guide-to-schema-stitching-in-graphql-f30178ac0072/#d677
 const { SchemaDirectiveVisitor, makeExecutableSchema } = require('graphql-tools');
 
 class SchemaDirective extends SchemaDirectiveVisitor {

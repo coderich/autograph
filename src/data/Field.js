@@ -111,10 +111,6 @@ module.exports = class Field {
     return this.field.getAlias(defaultValue);
   }
 
-  isIdField() {
-    return this.field.isIdField();
-  }
-
   isVirtual() {
     return this.field.isVirtual();
   }

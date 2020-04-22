@@ -7,10 +7,6 @@ module.exports = class Model extends Type {
     this.fields = Object.values(model.getFields()).map(field => new Field(schema, this, field));
   }
 
-  getIdField() {
-    return this.fields.find(field => field.getType() === 'ID');
-  }
-
   getFields() {
     return this.fields;
   }
