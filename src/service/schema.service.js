@@ -9,8 +9,8 @@ class SchemaDirective extends SchemaDirectiveVisitor {
 exports.makeExecutableSchema = (schema, rules, transformers, directives) => {
   // Ensure schema
   schema.typeDefs = schema.typeDefs || [];
-  schema.schemaDirectives = Object.assign(schema.schemaDirectives || {}, { model: SchemaDirective, field: SchemaDirective });
   schema.typeDefs = Array.isArray(schema.typeDefs) ? schema.typeDefs : [schema.typeDefs];
+  schema.schemaDirectives = Object.assign(schema.schemaDirectives || {}, { model: SchemaDirective, field: SchemaDirective });
 
   // Merge schema
   schema.typeDefs.push(`
@@ -21,6 +21,7 @@ exports.makeExecutableSchema = (schema, rules, transformers, directives) => {
     input AutoGraphIndexInput { name: String type: AutoGraphIndexEnum! on: [String!]! }
 
     directive @model(
+      id: String
       alias: String
       driver: String
       namespace: String
