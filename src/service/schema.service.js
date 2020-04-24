@@ -25,6 +25,8 @@ exports.makeExecutableSchema = (schema, rules, transformers, directives) => {
       alias: String
       driver: String
       namespace: String
+      createdAt: String
+      updatedAt: String
       indexes: [AutoGraphIndexInput!]
     ) on OBJECT
 

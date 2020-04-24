@@ -30,10 +30,14 @@ module.exports = class Model {
   }
 
   create(data, options) {
+    const createdAt = this.model.getDirectiveArg('model', 'createdAt', 'createdAt');
+    if (createdAt) data[createdAt] = Date.now();
     return this.driver.dao.create(this.getAlias(), data, options).then(res => this.toObject(res));
   }
 
   update(id, data, doc, options) {
+    const updatedAt = this.model.getDirectiveArg('model', 'updatedAt', 'updatedAt');
+    if (updatedAt) data[updatedAt] = Date.now();
     return this.driver.dao.replace(this.getAlias(), this.idValue(id), data, doc, options).then(res => this.toObject(res));
   }
 

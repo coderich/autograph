@@ -25,6 +25,7 @@ exports.globToRegexp = (glob, options = {}) => PicoMatch.toRegex(exports.globToR
 exports.toGUID = (model, id) => Buffer.from(`${model},${`${id}`}`).toString('base64');
 exports.fromGUID = guid => Buffer.from(`${guid}`, 'base64').toString('ascii').split(',');
 exports.ensureArray = a => (Array.isArray(a) ? a : [a]);
+exports.uvl = (...values) => values.reduce((prev, value) => (prev === undefined ? value : prev), undefined);
 
 exports.getDeep = (obj, path, defaultValue) => {
   const results = [];

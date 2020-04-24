@@ -1,5 +1,5 @@
 const { isListType, isNonNullType, getNamedType } = require('graphql');
-const { isScalarDataType } = require('../service/app.service');
+const { uvl, isScalarDataType } = require('../service/app.service');
 const Directive = require('./Directive');
 
 module.exports = class Type {
@@ -15,7 +15,7 @@ module.exports = class Type {
   }
 
   getAlias(defaultValue) {
-    return this.getDirectiveArg('model', 'alias') || this.getDirectiveArg('field', 'alias') || defaultValue || this.getName();
+    return uvl(this.getDirectiveArg('model', 'alias'), this.getDirectiveArg('field', 'alias'), defaultValue, this.getName());
   }
 
   getType() {
@@ -58,7 +58,7 @@ module.exports = class Type {
   getDirectiveArg(name, arg, defaultValue) {
     const directive = this.getDirective(name);
     if (!directive) return defaultValue;
-    return directive.getArg(arg) || defaultValue;
+    return uvl(directive.getArg(arg), defaultValue);
   }
 
   getDirectiveArgs(name, defaultValue) {

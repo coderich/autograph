@@ -21,6 +21,10 @@ module.exports = class Directive {
     if (value.value !== undefined) return value.value;
     if (value.values !== undefined) return value.values.map(v => Directive.parseValue(v));
     if (value.fields !== undefined) return value.fields.reduce((prev, f) => Object.assign(prev, { [Directive.parseValue(f.name)]: Directive.parseValue(f.value) }), {});
-    return value;
+
+    switch (value.kind) {
+      case 'NullValue': return null;
+      default: return value;
+    }
   }
 };

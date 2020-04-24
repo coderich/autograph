@@ -128,7 +128,8 @@ module.exports = class Field {
   }
 
   isImmutable() {
-    return Boolean(this.field.getDirectiveArg('field', 'immutable'));
+    const enforce = this.field.getDirectiveArg('field', 'enforce', '');
+    return Boolean(JSON.stringify(enforce).indexOf('immutable') > -1);
   }
 
   serialize(value, mapper) {
