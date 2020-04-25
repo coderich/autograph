@@ -1,7 +1,7 @@
 {
   "name": "@coderich/autograph",
   "author": "Richard Livolsi (coderich)",
-  "version": "0.0.11",
+  "version": "0.0.12",
   "description": "AutoGraph",
   "keywords": [
     "graphql",
@@ -35,7 +35,6 @@
     "graphql-tools": "^5.0.0",
     "is-plain-object": "^3.0.0",
     "lodash": "^4.17.15",
-    "micromatch": "^4.0.2",
     "object-hash": "^2.0.1",
     "picomatch": "^2.1.1",
     "uuid": "^3.3.3",
