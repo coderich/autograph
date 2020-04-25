@@ -156,7 +156,3 @@ exports.proxyDeep = (obj, handler, proxyMap = new WeakMap(), path = '') => {
 
   return finalProxy;
 };
-
-// exports.compositionProxy = (source, comp) => {
-
-// };

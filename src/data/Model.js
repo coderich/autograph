@@ -1,5 +1,6 @@
 const Field = require('./Field');
-const { lcFirst, map, toGUID } = require('../service/app.service');
+const ResultSet = require('./ResultSet');
+const { lcFirst } = require('../service/app.service');
 
 module.exports = class Model {
   constructor(schema, model, drivers) {
@@ -18,11 +19,11 @@ module.exports = class Model {
 
   // CRUD
   get(id, options) {
-    return this.driver.dao.get(this.getAlias(), this.idValue(id), options).then(res => this.toObject(res));
+    return this.driver.dao.get(this.getAlias(), this.idValue(id), options).then(res => (res ? new ResultSet(this, res) : res));
   }
 
   find(where = {}, options) {
-    return this.driver.dao.find(this.getAlias(), where, options).then(res => this.toObject(res));
+    return this.driver.dao.find(this.getAlias(), where, options).then(res => new ResultSet(this, res));
   }
 
   count(where = {}, options) {
@@ -30,15 +31,15 @@ module.exports = class Model {
   }
 
   create(data, options) {
-    return this.driver.dao.create(this.getAlias(), data, options).then(res => this.toObject(res));
+    return this.driver.dao.create(this.getAlias(), data, options).then(res => new ResultSet(this, res));
   }
 
   update(id, data, doc, options) {
-    return this.driver.dao.replace(this.getAlias(), this.idValue(id), data, doc, options).then(res => this.toObject(res));
+    return this.driver.dao.replace(this.getAlias(), this.idValue(id), data, doc, options).then(res => new ResultSet(this, res));
   }
 
   delete(id, doc, options) {
-    return this.driver.dao.delete(this.getAlias(), this.idValue(id), doc, options).then(res => this.toObject(res));
+    return this.driver.dao.delete(this.getAlias(), this.idValue(id), doc, options).then(res => new ResultSet(this, res));
   }
 
   drop() {
@@ -51,18 +52,6 @@ module.exports = class Model {
 
   idField() {
     return this.model.getDirectiveArg('model', 'id', this.driver.idField());
-  }
-
-  toObject(docs) {
-    return map(docs, (doc, i) => {
-      const guid = toGUID(this.getName(), doc.id);
-      // const cursor = toGUID(i, guid);
-
-      return Object.defineProperties(doc, {
-        $id: { value: guid },
-        // $$cursor: { value: cursor },
-      });
-    });
   }
 
   async hydrate(resolver, results, query = {}) {

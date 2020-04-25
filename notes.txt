@@ -6,7 +6,6 @@ Ideas:
 Bugs:
   * Casting must be bi-directional
   * Can you count Bids?
-  * Can you alias model names?
   * Can you alias field names?
 
 Todo:
