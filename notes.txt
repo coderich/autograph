@@ -10,7 +10,6 @@ Bugs:
   * Can you alias field names?
 
 Todo:
-  * AutoGraph to create server schema (need to tack on to existing graphql server)
   * Error handling; Rules need error messages
 
 Figure out:
