@@ -132,6 +132,10 @@ module.exports = class Field {
     return Boolean(JSON.stringify(enforce).indexOf('immutable') > -1);
   }
 
+  isImplicit() {
+    return this.field.getDirectiveArg('field', 'implicit', false);
+  }
+
   serialize(value, mapper) {
     return this.field.serialize(value, mapper);
   }

@@ -80,6 +80,7 @@ module.exports = class QueryWorker {
   }
 
   async create(query, data = {}) {
+    data.createdAt = Date.now();
     const { resolver } = this;
     const [model, options] = [query.getModel(), query.getOptions()];
     const $data = model.serialize(data);
@@ -92,6 +93,7 @@ module.exports = class QueryWorker {
   }
 
   async update(query, data = {}) {
+    data.updatedAt = Date.now();
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
@@ -99,7 +101,8 @@ module.exports = class QueryWorker {
     await validateModelData(model, $data, doc, 'update');
 
     return createSystemEvent('Mutation', { method: 'update', model, resolver, query, data: $data }, async () => {
-      const merged = model.serialize(mergeDeep(doc, $data));
+      // const merged = model.serialize(mergeDeep(doc, $data));
+      const merged = mergeDeep(model.serialize(doc), $data);
       const result = await model.update(id, $data, merged, options);
       return model.hydrate(resolver, result, { fields: query.getSelectFields() });
     });
@@ -127,7 +130,8 @@ module.exports = class QueryWorker {
     await validateModelData(model, $data, doc, 'update');
 
     return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, data: $data }, async () => {
-      const merged = model.serialize(mergeDeep(doc, $data));
+      // const merged = model.serialize(mergeDeep(doc, $data));
+      const merged = mergeDeep(model.serialize(doc), $data);
       const result = await model.update(id, $data, merged, options);
       return model.hydrate(resolver, result, { fields: query.getSelectFields() });
     });

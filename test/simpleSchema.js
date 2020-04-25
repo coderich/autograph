@@ -4,7 +4,7 @@ module.exports = {
       name: String!
       authored: [Book]
       emailAddress: String!
-      status: String
+      status: String @field(implicit: true)
     }
 
     type Book @model {

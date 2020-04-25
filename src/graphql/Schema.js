@@ -1,5 +1,6 @@
+// https://hasura.io/blog/the-ultimate-guide-to-schema-stitching-in-graphql-f30178ac0072/#d677
 const { GraphQLObjectType } = require('graphql');
-const { makeExecutableSchema } = require('../service/schema.service');
+const { SchemaDirectiveVisitor, makeExecutableSchema, mergeSchemas } = require('graphql-tools');
 const Transformer = require('./Transformer');
 const Rule = require('./Rule');
 const Model = require('./Model');
@@ -7,8 +8,25 @@ const Model = require('./Model');
 const instances = {};
 const customDirectives = [];
 
+const getSchemaDataTypes = (schema) => {
+  return Object.entries(schema.getTypeMap()).reduce((prev, [key, value]) => {
+    if (!key.startsWith('__') && value instanceof GraphQLObjectType) Object.assign(prev, { [key]: value });
+    return prev;
+  }, {});
+};
+
+class SchemaDirective extends SchemaDirectiveVisitor {
+  visitFieldDefinition() {} // eslint-disable-line
+  visitObject() {} // eslint-disable-line
+}
+
 module.exports = class Schema {
   constructor(gqlSchema) {
+    // Ensure schema
+    gqlSchema.typeDefs = gqlSchema.typeDefs || [];
+    gqlSchema.typeDefs = Array.isArray(gqlSchema.typeDefs) ? gqlSchema.typeDefs : [gqlSchema.typeDefs];
+    gqlSchema.schemaDirectives = Object.assign(gqlSchema.schemaDirectives || {}, { model: SchemaDirective, field: SchemaDirective });
+
     // Identify instances
     const defaultTransformers = Object.entries(Transformer).map(([name, method]) => ({ name, instance: method() })); // Create default instances
     const defaultRules = Object.entries(Rule).map(([name, method]) => ({ name, instance: method() })); // Create default instances
@@ -19,14 +37,75 @@ module.exports = class Schema {
     const transformers = defaultTransformers.concat(customTransformers);
 
     // Prepare
-    this.toString = () => gqlSchema;
-    this.schema = makeExecutableSchema(gqlSchema, rules, transformers, customDirectives);
     this.rules = rules.reduce((prev, { name, instance }) => Object.assign(prev, { [name]: instance }), {});
     this.transformers = transformers.reduce((prev, { name, instance }) => Object.assign(prev, { [name]: instance }), {});
-    this.models = Object.entries(this.schema.getTypeMap()).reduce((prev, [key, value]) => {
-      if (!key.startsWith('__') && value instanceof GraphQLObjectType) Object.assign(prev, { [key]: new Model(this, value) });
-      return prev;
-    }, {});
+
+    // Merge schema
+    gqlSchema.typeDefs.push(`
+      enum AutoGraphEnforceEnum { ${rules.map(({ name }) => name).join(' ')} }
+      enum AutoGraphTransformEnum  { ${transformers.map(({ name }) => name).join(' ')} }
+      enum AutoGraphOnDeleteEnum { cascade nullify restrict }
+      enum AutoGraphIndexEnum { unique }
+      input AutoGraphIndexInput { name: String type: AutoGraphIndexEnum! on: [String!]! }
+
+      directive @model(
+        id: String
+        alias: String
+        driver: String
+        namespace: String
+        createdAt: String
+        updatedAt: String
+        indexes: [AutoGraphIndexInput!]
+      ) on OBJECT
+
+      directive @field(
+        ${customDirectives.join('\n\t    ')}
+        alias: String
+        norepeat: Boolean
+        implicit: Boolean
+        materializeBy: String
+        onDelete: AutoGraphOnDeleteEnum
+        enforce: [AutoGraphEnforceEnum!]
+        transform: [AutoGraphTransformEnum!]
+      ) on FIELD_DEFINITION
+    `);
+
+    // Make executable schema
+    const schema = makeExecutableSchema(gqlSchema);
+
+    // Now extend the schema further...
+    const extSchema = `${Object.entries(getSchemaDataTypes(schema)).map(([key, value]) => {
+      const model = new Model(this, value);
+      const createdAt = model.getDirectiveArg('model', 'createdAt', 'createdAt');
+      const updatedAt = model.getDirectiveArg('model', 'updatedAt', 'updatedAt');
+
+      return `
+        extend type ${key} {
+          id: ID @field(implicit: true)
+          ${createdAt ? `createdAt: Int @field(alias: "${createdAt}", implicit: true)` : ''}
+          ${updatedAt ? `updatedAt: Int @field(alias: "${updatedAt}", implicit: true)` : ''}
+        }
+      `;
+    })}`;
+
+    // const resolvers = {
+    //   DateTime: {
+    //     __parseValue(value) { // gets invoked to parse client input that was passed through variables.
+    //       return new Date(value);
+    //     },
+    //     __serialize(date) { // gets invoked when serializing the result to send it back to a client.
+    //       if (typeof date === 'object') return date.toISOString();
+    //       return new Date(date).toISOString();
+    //     },
+    //     __parseLiteral(ast) { // gets invoked to parse client input that was passed inline in the query. (ast.value always a string)
+    //       return new Date(ast.value);
+    //     },
+    //   },
+    // };
+
+    // Create extended schema
+    this.schema = mergeSchemas({ schemas: [schema, extSchema], mergeDirectives: true });
+    this.models = Object.entries(getSchemaDataTypes(this.schema)).reduce((prev, [key, value]) => Object.assign(prev, { [key]: new Model(this, value) }), {});
   }
 
   getModels() {

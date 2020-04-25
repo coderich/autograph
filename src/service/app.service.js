@@ -14,7 +14,7 @@ exports.lcFirst = string => string.charAt(0).toLowerCase() + string.slice(1);
 exports.isPlainObject = obj => typeof obj === 'object' && !Array.isArray(obj) && !(obj instanceof ObjectID);
 // exports.isPlainObject = obj => IPO(obj) && !Array.isArray(obj);
 exports.isScalarValue = value => typeof value !== 'object' && typeof value !== 'function';
-exports.isScalarDataType = value => ['ID', 'String', 'Float', 'Int', 'Boolean'].indexOf(value) > -1;
+exports.isScalarDataType = value => ['ID', 'String', 'Float', 'Int', 'Boolean', 'DateTime'].indexOf(value) > -1;
 exports.isIdValue = value => exports.isScalarValue(value) || value instanceof ObjectID;
 exports.mergeDeep = (...args) => DeepMerge.all(args, { isMergeableObject: obj => (exports.isPlainObject(obj) || Array.isArray(obj)), arrayMerge: (d, s, o) => s });
 exports.uniq = arr => [...new Set(arr.map(a => `${a}`))];
