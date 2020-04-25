@@ -97,6 +97,21 @@ exports.keyPaths = (obj = {}, keys = [], path) => {
   }, keys);
 };
 
+// exports.keyPaths = (obj, keys = [], path) => {
+//   return Object.entries(obj).reduce((prev, [key, value]) => {
+//     const keyPath = path ? `${path}.${key}` : key;
+//     prev.push(keyPath);
+//     if (exports.isPlainObject(value)) return exports.keyPaths(value, prev, keyPath);
+//     return prev;
+//   }, keys);
+// };
+
+exports.queryPaths = (model, obj) => {
+  return exports.keyPaths(obj).filter(path => path.indexOf('edges.cursor') === -1).map((path) => {
+    return path.replace(/edges|node/gi, '').replace(/^\.+|\.+$/g, '');
+  }).filter(a => a);
+};
+
 exports.promiseChain = (promises) => {
   return promises.reduce((chain, promise) => {
     return chain.then(chainResults => promise().then(promiseResult => [...chainResults, promiseResult]));

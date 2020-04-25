@@ -22,11 +22,6 @@ class SchemaDirective extends SchemaDirectiveVisitor {
 
 module.exports = class Schema {
   constructor(gqlSchema) {
-    // Ensure schema
-    gqlSchema.typeDefs = gqlSchema.typeDefs || [];
-    gqlSchema.typeDefs = Array.isArray(gqlSchema.typeDefs) ? gqlSchema.typeDefs : [gqlSchema.typeDefs];
-    gqlSchema.schemaDirectives = Object.assign(gqlSchema.schemaDirectives || {}, { model: SchemaDirective, field: SchemaDirective });
-
     // Identify instances
     const defaultTransformers = Object.entries(Transformer).map(([name, method]) => ({ name, instance: method() })); // Create default instances
     const defaultRules = Object.entries(Rule).map(([name, method]) => ({ name, instance: method() })); // Create default instances
@@ -39,11 +34,40 @@ module.exports = class Schema {
     // Prepare
     this.rules = rules.reduce((prev, { name, instance }) => Object.assign(prev, { [name]: instance }), {});
     this.transformers = transformers.reduce((prev, { name, instance }) => Object.assign(prev, { [name]: instance }), {});
+    this.schema = this.makeExecutableSchema(gqlSchema);
+    this.models = Object.entries(getSchemaDataTypes(this.schema)).reduce((prev, [key, value]) => Object.assign(prev, { [key]: new Model(this, value) }), {});
+  }
+
+  getModels() {
+    return this.models;
+  }
+
+  getModel(name) {
+    return this.models[name];
+  }
+
+  getRules() {
+    return this.rules;
+  }
+
+  getTransformers() {
+    return this.transformers;
+  }
+
+  getExecutableSchema() {
+    return this.schema;
+  }
+
+  makeExecutableSchema(gqlSchema) {
+    // Ensure schema
+    gqlSchema.typeDefs = gqlSchema.typeDefs || [];
+    gqlSchema.typeDefs = Array.isArray(gqlSchema.typeDefs) ? gqlSchema.typeDefs : [gqlSchema.typeDefs];
+    gqlSchema.schemaDirectives = Object.assign(gqlSchema.schemaDirectives || {}, { model: SchemaDirective, field: SchemaDirective });
 
     // Merge schema
     gqlSchema.typeDefs.push(`
-      enum AutoGraphEnforceEnum { ${rules.map(({ name }) => name).join(' ')} }
-      enum AutoGraphTransformEnum  { ${transformers.map(({ name }) => name).join(' ')} }
+      enum AutoGraphEnforceEnum { ${Object.keys(this.rules).join(' ')} }
+      enum AutoGraphTransformEnum  { ${Object.keys(this.transformers).join(' ')} }
       enum AutoGraphOnDeleteEnum { cascade nullify restrict }
       enum AutoGraphIndexEnum { unique }
       input AutoGraphIndexInput { name: String type: AutoGraphIndexEnum! on: [String!]! }
@@ -71,9 +95,10 @@ module.exports = class Schema {
     `);
 
     // Make executable schema
-    const schema = makeExecutableSchema(gqlSchema);
+    return this.extendSchemaDataTypes(makeExecutableSchema(gqlSchema));
+  }
 
-    // Now extend the schema further...
+  extendSchemaDataTypes(schema) {
     const extSchema = `${Object.entries(getSchemaDataTypes(schema)).map(([key, value]) => {
       const model = new Model(this, value);
       const createdAt = model.getDirectiveArg('model', 'createdAt', 'createdAt');
@@ -103,29 +128,7 @@ module.exports = class Schema {
     //   },
     // };
 
-    // Create extended schema
-    this.schema = mergeSchemas({ schemas: [schema, extSchema], mergeDirectives: true });
-    this.models = Object.entries(getSchemaDataTypes(this.schema)).reduce((prev, [key, value]) => Object.assign(prev, { [key]: new Model(this, value) }), {});
-  }
-
-  getModels() {
-    return this.models;
-  }
-
-  getModel(name) {
-    return this.models[name];
-  }
-
-  getRules() {
-    return this.rules;
-  }
-
-  getTransformers() {
-    return this.transformers;
-  }
-
-  getExecutableSchema() {
-    return this.schema;
+    return mergeSchemas({ schemas: [schema, extSchema], mergeDirectives: true });
   }
 
   static extend(name, instance) {

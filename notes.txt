@@ -1,0 +1,26 @@
+Ideas:
+  * Create a Document/Record class
+    - hydrate, dehydrate, cast, etc
+  * Create a GQLParser class to consolidate Model and Field classes... pass raw gql to data/Model, data/Field
+
+Bugs:
+  * Casting must be bi-directional
+  * Can you count Bids?
+  * Can you alias model names?
+  * Can you alias field names?
+
+Todo:
+  * AutoGraph to create server schema (need to tack on to existing graphql server)
+  * Error handling; Rules need error messages
+
+Figure out:
+  * publishedDate. Cannot be set via CRUD; only set via meta action...
+  * createdBy? (Audit trail)
+  * Dyncamic Required Fields. (eg. title required if no background image)
+  * ValidateMultiLang. How would you implement this kind of validation?
+  * Context. (tenants, segmentation, language)
+  * Authorization. Specifically owner records, segmentation, recursion
+
+Open Questions:
+  * Is GLOB where-clause a good idea?
+  * Where/How to define stores?
