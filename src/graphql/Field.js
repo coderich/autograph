@@ -1,6 +1,6 @@
 const Type = require('./Type');
-const Rule = require('../graphql/Rule');
-const Transformer = require('../graphql/Transformer');
+const Rule = require('../core/Rule');
+const Transformer = require('../core/Transformer');
 const { isPlainObject, ensureArray } = require('../service/app.service');
 
 module.exports = class Field extends Type {

@@ -1,8 +1,8 @@
 // https://hasura.io/blog/the-ultimate-guide-to-schema-stitching-in-graphql-f30178ac0072/#d677
 const { GraphQLObjectType } = require('graphql');
 const { SchemaDirectiveVisitor, makeExecutableSchema, mergeSchemas } = require('graphql-tools');
-const Transformer = require('./Transformer');
-const Rule = require('./Rule');
+const Transformer = require('../core/Transformer');
+const Rule = require('../core/Rule');
 const Model = require('./Model');
 
 const instances = {};

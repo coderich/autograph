@@ -1,4 +1,4 @@
-const Rule = require('../src/graphql/Rule');
+const Rule = require('../src/core/Rule');
 const Schema = require('../src/graphql/Schema');
 
 Schema.extend('bookName', Rule.deny('The Bible'));

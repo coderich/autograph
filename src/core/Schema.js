@@ -159,19 +159,6 @@ module.exports = class {
           ${this.getVisibleModels().map(model => `create${model.getName()}(data: ${model.getName()}InputCreate!): ${model.getName()}! @authz`)}
           ${this.getVisibleModels().map(model => `update${model.getName()}(id: ID! data: ${model.getName()}InputUpdate!): ${model.getName()}!  @authz`)}
           ${this.getVisibleModels().map(model => `delete${model.getName()}(id: ID!): ${model.getName()}! @authz`)}
-          ${this.getVisibleModels().map(model => `
-            ${model.getEmbeddedArrayFields().map((field) => {
-              return '';
-              // const modelName = model.getName();
-              // const fieldName = field.getName();
-              // const inputType = field.getGQLType('InputCreate');
-
-              // return `
-              //   add${modelName}${ucFirst(fieldName)}(id: ID! ${fieldName}: ${inputType}!): ${modelName}!
-              //   rem${modelName}${ucFirst(fieldName)}(id: ID! query: ID!): ${modelName}!
-              // `;
-            })}
-          `)}
         }`,
 
         `type Subscription {
