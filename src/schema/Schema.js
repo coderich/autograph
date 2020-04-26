@@ -8,7 +8,7 @@ const customDirectives = [];
 
 module.exports = class Schema {
   constructor(gqlSchema) {
-    // Identify instances
+    // Identify rule/transformer instances
     const defaultTransformers = Object.entries(Transformer).map(([name, method]) => ({ name, instance: method() })); // Create default instances
     const defaultRules = Object.entries(Rule).map(([name, method]) => ({ name, instance: method() })); // Create default instances
     const customInstances = Object.entries(instances).map(([name, instance]) => ({ name, instance }));
@@ -17,11 +17,11 @@ module.exports = class Schema {
     const rules = defaultRules.concat(customRules);
     const transformers = defaultTransformers.concat(customTransformers);
 
-    // Prepare
+    // Create instance variables
     this.rules = rules.reduce((prev, { name, instance }) => Object.assign(prev, { [name]: instance }), {});
     this.transformers = transformers.reduce((prev, { name, instance }) => Object.assign(prev, { [name]: instance }), {});
     this.schema = makeExecutableSchema(gqlSchema, this.rules, this.transformers, customDirectives);
-    this.models = Object.entries(getSchemaDataTypes(this.schema)).reduce((prev, [key, value]) => Object.assign(prev, { [key]: new Model(this, value) }), {});
+    this.models = Object.values(getSchemaDataTypes(this.schema)).map(value => new Model(this, value));
   }
 
   getModels() {
@@ -29,7 +29,7 @@ module.exports = class Schema {
   }
 
   getModel(name) {
-    return this.models[name];
+    return this.models.find(model => model.getName() === name || model.getAlias() === name);
   }
 
   getRules() {

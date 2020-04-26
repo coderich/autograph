@@ -34,7 +34,7 @@ module.exports = class Type {
   }
 
   getModelRef() {
-    return this.schema.getModels()[this.getDataRef()];
+    return this.schema.getModel(this.getDataRef());
   }
 
   getVirtualRef() {
@@ -42,7 +42,7 @@ module.exports = class Type {
   }
 
   getVirtualModel() {
-    return this.schema.getModels()[this.getType()];
+    return this.schema.getModel(this.getType());
   }
 
   getVirtualField() {
