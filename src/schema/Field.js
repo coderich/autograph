@@ -1,3 +1,5 @@
-module.exports = class Field {
+const Type = require('./Type');
+
+module.exports = class Field extends Type {
 
 };

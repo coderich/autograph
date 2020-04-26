@@ -6,6 +6,7 @@ Ideas:
 Bugs:
   * Casting must be bi-directional
   * Can you count Bids?
+  * There is no way to extend Schema since core/Schema can't be extended
 
 Todo:
   * Error handling; Rules need error messages
