@@ -32,6 +32,10 @@ module.exports = class Schema {
     return this.models.find(model => model.getName() === name || model.getAlias() === name);
   }
 
+  getVisibleModels() {
+    return this.models.filter(model => model.isVisible());
+  }
+
   getRules() {
     return this.rules;
   }

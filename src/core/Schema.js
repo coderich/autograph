@@ -1,4 +1,3 @@
-const { uniqWith } = require('lodash');
 const GraphqlFields = require('graphql-fields');
 const { makeExecutableSchema, mergeSchemas } = require('graphql-tools');
 const Model = require('../data/Model');
@@ -7,12 +6,12 @@ const Schema = require('../schema/Schema');
 const AuthzDirective = require('../directive/authz.directive');
 const ServerResolver = require('./ServerResolver');
 const { ucFirst, toGUID, fromGUID } = require('../service/app.service');
+const { identifyOnDeletes } = require('../service/schema.service');
 
 // Export class
-module.exports = class {
+module.exports = class extends Schema {
   constructor(gqlSchema, stores, driverArgs = {}) {
-    // Create schema
-    this.schema = new Schema(gqlSchema);
+    super(gqlSchema);
 
     // Create drivers
     const drivers = Object.entries(stores).reduce((prev, [key, { type, uri, options }]) => {
@@ -28,42 +27,8 @@ module.exports = class {
     }, {});
 
     // Create models
-    this.models = Object.values(this.schema.getModels()).map(model => new Model(this, model, drivers));
-
-    const identifyOnDeletes = (parentModel) => {
-      return this.models.reduce((prev, model) => {
-        model.getOnDeleteFields().forEach((field) => {
-          if (`${field.getModelRef()}` === `${parentModel}`) {
-            if (model.isVisible()) {
-              prev.push({ model, field, isArray: field.isArray(), op: field.getOnDelete() });
-            } else {
-              prev.push(...identifyOnDeletes(model).map(od => Object.assign(od, { fieldRef: field, isArray: field.isArray(), op: field.getOnDelete() })));
-            }
-          }
-        });
-
-        // Assign model referential integrity
-        return uniqWith(prev, (a, b) => `${a.model}:${a.field}:${a.fieldRef}:${a.op}` === `${b.model}:${b.field}:${b.fieldRef}:${b.op}`);
-      }, []);
-    };
-
-    this.models.forEach(model => model.referentialIntegrity(identifyOnDeletes(model)));
-  }
-
-  getModel(name) {
-    return this.models.find(model => model.getName() === name || model.getAlias() === name);
-  }
-
-  getModels() {
-    return this.models;
-  }
-
-  getVisibleModels() {
-    return this.models.filter(model => model.isVisible());
-  }
-
-  getExecutableSchema() {
-    return this.schema.getExecutableSchema();
+    this.models = super.getModels().map(model => new Model(this, model, drivers));
+    this.models.forEach(model => model.referentialIntegrity(identifyOnDeletes(this.models, model)));
   }
 
   makeServerApiSchema() {

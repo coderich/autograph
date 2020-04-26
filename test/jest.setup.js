@@ -1,5 +1,5 @@
 const Rule = require('../src/core/Rule');
-const Schema = require('../src/schema/Schema');
+const Schema = require('../src/core/Schema');
 
 Schema.extend('bookName', Rule.deny('The Bible'));
 Schema.extend('bookPrice', Rule.range(0, 100));

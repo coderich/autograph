@@ -1,8 +1,9 @@
 // https://hasura.io/blog/the-ultimate-guide-to-schema-stitching-in-graphql-f30178ac0072/#d677
 
+const { uniqWith } = require('lodash');
 const { GraphQLObjectType } = require('graphql');
 const { SchemaDirectiveVisitor, makeExecutableSchema, mergeSchemas } = require('graphql-tools');
-const Model = require('../graphql/Model');
+// const Model = require('../graphql/Model');
 
 class SchemaDirective extends SchemaDirectiveVisitor {
   visitFieldDefinition() {} // eslint-disable-line
@@ -89,4 +90,22 @@ exports.getSchemaDataTypes = (schema) => {
     if (!key.startsWith('__') && value instanceof GraphQLObjectType) Object.assign(prev, { [key]: value });
     return prev;
   }, {});
+};
+
+
+exports.identifyOnDeletes = (models, parentModel) => {
+  return models.reduce((prev, model) => {
+    model.getOnDeleteFields().forEach((field) => {
+      if (`${field.getModelRef()}` === `${parentModel}`) {
+        if (model.isVisible()) {
+          prev.push({ model, field, isArray: field.isArray(), op: field.getOnDelete() });
+        } else {
+          prev.push(...exports.identifyOnDeletes(models, model).map(od => Object.assign(od, { fieldRef: field, isArray: field.isArray(), op: field.getOnDelete() })));
+        }
+      }
+    });
+
+    // Assign model referential integrity
+    return uniqWith(prev, (a, b) => `${a.model}:${a.field}:${a.fieldRef}:${a.op}` === `${b.model}:${b.field}:${b.fieldRef}:${b.op}`);
+  }, []);
 };

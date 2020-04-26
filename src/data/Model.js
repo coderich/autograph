@@ -179,6 +179,10 @@ module.exports = class Model {
     return this.model.isEntity();
   }
 
+  isEntity() {
+    return this.model.isEntity();
+  }
+
   serialize(value, mapper) {
     return this.model.serialize(value, mapper);
   }
