@@ -34,10 +34,10 @@ module.exports = class QueryWorker {
 
   query(query) {
     const { resolver } = this;
-    const [model, limit, fields, countFields, sortFields, pagination, options] = [query.getModel(), query.getLimit(), query.getSelectFields(), query.getCountFields(), query.getSortFields(), query.getPagination(), query.getOptions()];
+    const [model, where, limit, fields, countFields, sortFields, pagination, options] = [query.getModel(), query.getWhere(), query.getLimit(), query.getSelectFields(), query.getCountFields(), query.getSortFields(), query.getPagination(), query.getOptions()];
 
     return createSystemEvent('Query', { method: 'query', model, resolver, query }, async () => {
-      const results = await resolver.match(model).select(fields).where(query.getWhere()).options(options).many({ find: true });
+      const results = await resolver.match(model).select(fields).where(where).options(options).many({ find: true });
       const filteredData = filterDataByCounts(resolver, model, results, countFields);
       const sortedResults = sortData(filteredData, sortFields);
       const limitedResults = sortedResults.slice(0, limit > 0 ? limit : undefined);
@@ -83,11 +83,10 @@ module.exports = class QueryWorker {
     data.createdAt = Date.now();
     const { resolver } = this;
     const [model, options] = [query.getModel(), query.getOptions()];
-    const $data = model.serialize(data);
-    await validateModelData(model, $data, {}, 'create');
+    await validateModelData(model, data, {}, 'create');
 
-    return createSystemEvent('Mutation', { method: 'create', model, resolver, query, data: $data }, async () => {
-      const doc = await model.create($data, options);
+    return createSystemEvent('Mutation', { method: 'create', model, resolver, query, data }, async () => {
+      const doc = await model.create(model.serialize(data), options);
       return model.hydrate(resolver, doc, { fields: query.getSelectFields() });
     });
   }
@@ -97,13 +96,11 @@ module.exports = class QueryWorker {
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
-    const $data = model.serialize(data);
-    await validateModelData(model, $data, doc, 'update');
+    await validateModelData(model, data, doc, 'update');
 
-    return createSystemEvent('Mutation', { method: 'update', model, resolver, query, data: $data }, async () => {
-      // const merged = model.serialize(mergeDeep(doc, $data));
-      const merged = mergeDeep(model.serialize(doc), $data);
-      const result = await model.update(id, $data, merged, options);
+    return createSystemEvent('Mutation', { method: 'update', model, resolver, query, data }, async () => {
+      const merged = model.serialize(mergeDeep(doc, data));
+      const result = await model.update(id, data, merged, options);
       return model.hydrate(resolver, result, { fields: query.getSelectFields() });
     });
   }
@@ -126,13 +123,11 @@ module.exports = class QueryWorker {
       data = { [key]: _.get(doc, key, []).concat($to) };
     }
 
-    const $data = model.serialize(data);
-    await validateModelData(model, $data, doc, 'update');
+    await validateModelData(model, data, doc, 'update');
 
-    return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, data: $data }, async () => {
-      // const merged = model.serialize(mergeDeep(doc, $data));
-      const merged = mergeDeep(model.serialize(doc), $data);
-      const result = await model.update(id, $data, merged, options);
+    return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, data }, async () => {
+      const merged = model.serialize(mergeDeep(doc, data));
+      const result = await model.update(id, data, merged, options);
       return model.hydrate(resolver, result, { fields: query.getSelectFields() });
     });
   }

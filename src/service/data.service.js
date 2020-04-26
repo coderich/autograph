@@ -55,6 +55,8 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldAlias = '',
             return prev;
           }
         }
+
+        return Object.assign(prev, { [field.getAlias(key)]: value });
       }
 
       return Object.assign(prev, { [key]: value });

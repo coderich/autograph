@@ -5,7 +5,7 @@ module.exports = {
     {
       name: String! @field(transform: toTitleCase)
       authored: [Book] @field(materializeBy: "author")
-      emailAddress: String! @field(enforce: email)
+      emailAddress: String! @field(alias: "email_address", enforce: email)
       friends: [Person] @field(transform: dedupe, enforce: selfless, onDelete: cascade)
       status: String
     }
