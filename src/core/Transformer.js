@@ -1,5 +1,7 @@
 const { map, serialize, castCmp } = require('../service/app.service');
 
+const instances = {};
+
 const jsStringMethods = [
   'charAt', 'charCodeAt', 'codePointAt', 'concat', 'indexOf', 'lastIndexOf', 'localeCompare',
   'normalize', 'padEnd', 'padStart', 'repeat', 'replace', 'search', 'slice', 'split', 'substr', 'substring',
@@ -20,6 +22,20 @@ class Transformer {
       value: (...args) => Object.defineProperty(new Transformer(thunk(...args), ignoreNull), 'method', { value: name }),
       ...descriptor,
     })[name];
+  }
+
+  static extend(name, instance) {
+    const invalidArg = () => { throw new Error('Invalid argument; expected Transformer factory instance'); };
+    const { method = invalidArg(), type = invalidArg() } = instance;
+    if (type !== 'transformer' || !Transformer[method]) invalidArg();
+    return (instances[name] = instance);
+  }
+
+  static getInstances() {
+    const defaultTransformers = Object.entries(Transformer).map(([name, method]) => ({ name, instance: method() }));
+    const customTransformers = Object.entries(instances).map(([name, instance]) => ({ name, instance }));
+    const transformers = defaultTransformers.concat(customTransformers);
+    return transformers.reduce((prev, { name, instance }) => Object.assign(prev, { [name]: instance }), {});
   }
 }
 

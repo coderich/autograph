@@ -43,7 +43,7 @@ class Rule {
     return (instances[name] = instance);
   }
 
-  static getRules() {
+  static getInstances() {
     const defaultRules = Object.entries(Rule).map(([name, method]) => ({ name, instance: method() }));
     const customRules = Object.entries(instances).map(([name, instance]) => ({ name, instance }));
     const rules = defaultRules.concat(customRules);

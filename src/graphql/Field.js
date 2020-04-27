@@ -15,11 +15,11 @@ module.exports = class Field extends Type {
 
       switch (key) {
         case 'enforce': {
-          this.rules.push(...value.map(r => Rule.getRules()[r]));
+          this.rules.push(...value.map(r => Rule.getInstances()[r]));
           break;
         }
         case 'transform': {
-          this.transformers.push(...value.map(t => schema.getTransformers()[t]));
+          this.transformers.push(...value.map(t => Transformer.getInstances()[t]));
           break;
         }
         default: {
