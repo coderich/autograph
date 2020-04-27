@@ -4,8 +4,8 @@ const Transformer = require('../core/Transformer');
 const { isPlainObject, ensureArray } = require('../service/app.service');
 
 module.exports = class Field extends Type {
-  constructor(schema, model, field) {
-    super(schema, field);
+  constructor(schema, model, type) {
+    super(schema, type);
     this.model = model;
     this.rules = [];
     this.transformers = [];
@@ -15,7 +15,7 @@ module.exports = class Field extends Type {
 
       switch (key) {
         case 'enforce': {
-          this.rules.push(...value.map(r => schema.getRules()[r]));
+          this.rules.push(...value.map(r => Rule.getRules()[r]));
           break;
         }
         case 'transform': {

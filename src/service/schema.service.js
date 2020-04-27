@@ -3,6 +3,7 @@
 const { uniqWith } = require('lodash');
 const { GraphQLObjectType } = require('graphql');
 const { SchemaDirectiveVisitor, makeExecutableSchema, mergeSchemas } = require('graphql-tools');
+const Rule = require('../core/Rule');
 // const Model = require('../graphql/Model');
 
 class SchemaDirective extends SchemaDirectiveVisitor {
@@ -10,7 +11,7 @@ class SchemaDirective extends SchemaDirectiveVisitor {
   visitObject() {} // eslint-disable-line
 }
 
-exports.makeExecutableSchema = (gqlSchema, rules, transformers, directives) => {
+exports.makeExecutableSchema = (gqlSchema, transformers, directives) => {
   // Ensure schema
   gqlSchema.typeDefs = gqlSchema.typeDefs || [];
   gqlSchema.typeDefs = Array.isArray(gqlSchema.typeDefs) ? gqlSchema.typeDefs : [gqlSchema.typeDefs];
@@ -18,7 +19,7 @@ exports.makeExecutableSchema = (gqlSchema, rules, transformers, directives) => {
 
   // Merge schema
   gqlSchema.typeDefs.push(`
-    enum AutoGraphEnforceEnum { ${Object.keys(rules).join(' ')} }
+    enum AutoGraphEnforceEnum { ${Object.keys(Rule.getRules()).join(' ')} }
     enum AutoGraphTransformEnum  { ${Object.keys(transformers).join(' ')} }
     enum AutoGraphOnDeleteEnum { cascade nullify restrict }
     enum AutoGraphIndexEnum { unique }

@@ -1,8 +1,7 @@
 const Rule = require('../src/core/Rule');
-const Schema = require('../src/core/Schema');
 
-Schema.extend('bookName', Rule.deny('The Bible'));
-Schema.extend('bookPrice', Rule.range(0, 100));
-Schema.extend('artComment', Rule.allow('yay', 'great', 'boo'));
-Schema.extend('colors', Rule.allow('blue', 'red', 'green', 'purple'));
-Schema.extend('buildingType', Rule.allow('home', 'office', 'business'));
+Rule.extend('bookName', Rule.deny('The Bible'));
+Rule.extend('bookPrice', Rule.range(0, 100));
+Rule.extend('artComment', Rule.allow('yay', 'great', 'boo'));
+Rule.extend('colors', Rule.allow('blue', 'red', 'green', 'purple'));
+Rule.extend('buildingType', Rule.allow('home', 'office', 'business'));

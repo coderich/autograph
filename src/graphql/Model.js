@@ -2,9 +2,9 @@ const Type = require('./Type');
 const Field = require('./Field');
 
 module.exports = class Model extends Type {
-  constructor(schema, model) {
-    super(schema, model);
-    this.fields = Object.values(model.getFields()).map(field => new Field(schema, this, field));
+  constructor(schema, type) {
+    super(schema, type);
+    this.fields = Object.values(type.getFields()).map(fieldType => new Field(schema, this, fieldType));
   }
 
   getFields() {

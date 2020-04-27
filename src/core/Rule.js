@@ -1,6 +1,7 @@
 const isEmail = require('validator/lib/isEmail');
 const { map, ensureArray } = require('../service/app.service');
 
+const instances = {};
 const jsStringMethods = ['endsWith', 'includes', 'match', 'search', 'startsWith'];
 
 class Rule {
@@ -33,6 +34,20 @@ class Rule {
       value: (...args) => Object.defineProperty(new Rule(thunk(...args), ignoreNull, name), 'method', { value: name }),
       ...descriptor,
     })[name];
+  }
+
+  static extend(name, instance) {
+    const invalidArg = () => { throw new Error('Invalid argument; expected Rule factory instance'); };
+    const { method = invalidArg(), type = invalidArg() } = instance;
+    if (type !== 'rule' || !Rule[method]) invalidArg();
+    return (instances[name] = instance);
+  }
+
+  static getRules() {
+    const defaultRules = Object.entries(Rule).map(([name, method]) => ({ name, instance: method() }));
+    const customRules = Object.entries(instances).map(([name, instance]) => ({ name, instance }));
+    const rules = defaultRules.concat(customRules);
+    return rules.reduce((prev, { name, instance }) => Object.assign(prev, { [name]: instance }), {});
   }
 }
 

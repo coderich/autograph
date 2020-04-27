@@ -10,17 +10,13 @@ module.exports = class Schema {
   constructor(gqlSchema) {
     // Identify rule/transformer instances
     const defaultTransformers = Object.entries(Transformer).map(([name, method]) => ({ name, instance: method() })); // Create default instances
-    const defaultRules = Object.entries(Rule).map(([name, method]) => ({ name, instance: method() })); // Create default instances
     const customInstances = Object.entries(instances).map(([name, instance]) => ({ name, instance }));
-    const customRules = customInstances.filter(({ instance }) => instance.type === 'rule');
     const customTransformers = customInstances.filter(({ instance }) => instance.type === 'transformer');
-    const rules = defaultRules.concat(customRules);
     const transformers = defaultTransformers.concat(customTransformers);
 
     // Create instance variables
-    this.rules = rules.reduce((prev, { name, instance }) => Object.assign(prev, { [name]: instance }), {});
     this.transformers = transformers.reduce((prev, { name, instance }) => Object.assign(prev, { [name]: instance }), {});
-    this.schema = makeExecutableSchema(gqlSchema, this.rules, this.transformers, customDirectives);
+    this.schema = makeExecutableSchema(gqlSchema, this.transformers, customDirectives);
     this.models = Object.values(getSchemaDataTypes(this.schema)).map(value => new Model(this, value));
   }
 
@@ -37,7 +33,7 @@ module.exports = class Schema {
   }
 
   getRules() {
-    return this.rules;
+    return Rule.getRules();
   }
 
   getTransformers() {
