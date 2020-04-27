@@ -33,12 +33,12 @@ module.exports = class Type {
     return isScalarDataType(ref) ? null : ref;
   }
 
-  getModelRef() {
-    return this.schema.getModel(this.getDataRef());
-  }
-
   getVirtualRef() {
     return this.getDirectiveArg('field', 'materializeBy');
+  }
+
+  getModelRef() {
+    return this.schema.getModel(this.getDataRef());
   }
 
   getVirtualModel() {

@@ -5,7 +5,6 @@ const customDirectives = [];
 
 module.exports = class Schema {
   constructor(gqlSchema) {
-    // Create instance variables
     this.schema = makeExecutableSchema(gqlSchema, customDirectives);
     this.models = Object.values(getSchemaDataTypes(this.schema)).map(value => new Model(this, value));
   }
