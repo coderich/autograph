@@ -1,7 +1,7 @@
+const Model = require('./Model');
 const Rule = require('../core/Rule');
 const Transformer = require('../core/Transformer');
 const { makeExecutableSchema, getSchemaDataTypes } = require('../service/schema.service');
-const Model = require('../graphql/Model');
 
 const instances = {};
 const customDirectives = [];
