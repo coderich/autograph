@@ -1,7 +1,11 @@
 module.exports = {
   typeDefs: `
-    type Person
-      @model(indexes: [{ name: "uix_person_name", type: unique, on: ["name"] }])
+    input PersonMeta {
+      notify: Boolean
+    }
+
+    type Person @model
+      @index(name: "uix_person_name", type: unique, on: ["name"])
     {
       name: String! @field(transform: toTitleCase)
       authored: [Book] @field(materializeBy: "author")
@@ -10,8 +14,8 @@ module.exports = {
       status: String
     }
 
-    type Book
-      @model(indexes: [{ name: "uix_book", type: unique, on: ["name", "author"] }])
+    type Book @model
+      @index(name: "uix_book", type: unique, on: ["name", "author"])
     {
       name: String! @field(transform: toTitleCase, enforce: bookName)
       price: Float! @field(enforce: bookPrice)
@@ -21,24 +25,24 @@ module.exports = {
       chapters: [Chapter] @field(materializeBy: "book")
     }
 
-    type Chapter
-      @model(indexes: [{ name: "uix_chapter", type: unique, on: ["name", "book"] }])
+    type Chapter @model
+      @index(name: "uix_chapter", type: unique, on: ["name", "book"])
     {
       name: String! @field(transform: toTitleCase)
       book: Book! @field(onDelete: restrict)
       pages: [Page] @field(materializeBy: "chapter")
     }
 
-    type Page
-      @model(indexes: [{ name: "uix_page", type: unique, on: ["number", "chapter"] }])
+    type Page @model
+      @index(name: "uix_page", type: unique, on: ["number", "chapter"])
     {
       number: Int!
       verbage: String
       chapter: Chapter!
     }
 
-    type BookStore
-      @model(indexes: [{ name: "uix_bookstore", type: unique, on: ["name"] }]),
+    type BookStore @model
+      @index(name: "uix_bookstore", type: unique, on: ["name"])
     {
       name: String! @field(transform: toTitleCase)
       location: String
@@ -46,11 +50,9 @@ module.exports = {
       building: Building! @field(onDelete: cascade)
     }
 
-    type Library
-      @model(indexes: [
-        { name: "uix_library", type: unique, on: ["name"] },
-        { name: "uix_library_bulding", type: unique, on: ["building"] },
-      ])
+    type Library @model
+      @index(name: "uix_library", type: unique, on: ["name"])
+      @index(name: "uix_library_bulding", type: unique, on: ["building"])
     {
       name: String! @field(transform: toTitleCase)
       location: String,
@@ -58,11 +60,9 @@ module.exports = {
       building: Building! @field(onDelete: cascade)
     }
 
-    type Apartment
-      @model(indexes: [
-        { name: "uix_apartment", type: unique, on: ["name"] },
-        { name: "uix_apartment_bulding", type: unique, on: ["building"] },
-      ])
+    type Apartment @model
+      @index(name: "uix_apartment", type: unique, on: ["name"])
+      @index(name: "uix_apartment_bulding", type: unique, on: ["building"])
     {
       name: String! @field(transform: toTitleCase)
       location: String
@@ -76,16 +76,12 @@ module.exports = {
       landlord: Person @field(onDelete: nullify)
     }
 
-    type Color
-      @model
-    {
+    type Color @model {
       type: String! @field(enforce: colors)
       isDefault: Boolean @field(norepeat: true)
     }
 
-    type Art
-      @model
-    {
+    type Art @model {
       name: String! @field(transform: toTitleCase)
       bids: [Float]
       comments: [String] @field(enforce: artComment)

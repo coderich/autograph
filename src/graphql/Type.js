@@ -55,6 +55,10 @@ module.exports = class Type {
     return this.directives.find(directive => directive.getName() === name);
   }
 
+  getDirectives(...names) {
+    return this.directives.filter(directive => names.indexOf(directive.getName()) > -1);
+  }
+
   getDirectiveArg(name, arg, defaultValue) {
     const directive = this.getDirective(name);
     if (!directive) return defaultValue;

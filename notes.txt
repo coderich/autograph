@@ -9,6 +9,7 @@ Bugs:
 
 Todo:
   * Error handling; Rules need error messages
+  * Mutation should have meta input (how to define meta props?)
 
 Figure out:
   * publishedDate. Cannot be set via CRUD; only set via meta action...

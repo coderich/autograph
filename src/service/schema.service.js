@@ -24,7 +24,6 @@ exports.makeExecutableSchema = (gqlSchema, directives) => {
     enum AutoGraphTransformEnum  { ${Object.keys(Transformer.getInstances()).join(' ')} }
     enum AutoGraphOnDeleteEnum { cascade nullify restrict }
     enum AutoGraphIndexEnum { unique }
-    input AutoGraphIndexInput { name: String type: AutoGraphIndexEnum! on: [String!]! }
 
     directive @model(
       id: String
@@ -33,7 +32,6 @@ exports.makeExecutableSchema = (gqlSchema, directives) => {
       namespace: String
       createdAt: String
       updatedAt: String
-      indexes: [AutoGraphIndexInput!]
     ) on OBJECT
 
     directive @field(
@@ -46,6 +44,12 @@ exports.makeExecutableSchema = (gqlSchema, directives) => {
       enforce: [AutoGraphEnforceEnum!]
       transform: [AutoGraphTransformEnum!]
     ) on FIELD_DEFINITION
+
+    directive @index(
+      name: String
+      type: AutoGraphIndexEnum!
+      on: [String]!
+    ) repeatable on OBJECT
   `);
 
   // Make executable schema

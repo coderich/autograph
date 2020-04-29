@@ -172,7 +172,7 @@ module.exports = class Model {
   }
 
   getIndexes() {
-    return this.model.getDirectiveArg('model', 'indexes', []);
+    return this.model.getDirectives('index').map(d => d.getArgs());
   }
 
   isVisible() {
