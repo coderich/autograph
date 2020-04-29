@@ -20,14 +20,21 @@ exports.makeExecutableSchema = (gqlSchema, directives) => {
 
   // Merge schema
   gqlSchema.typeDefs.push(`
+    scalar AutoGraphMixed
     enum AutoGraphEnforceEnum { ${Object.keys(Rule.getInstances()).join(' ')} }
     enum AutoGraphTransformEnum  { ${Object.keys(Transformer.getInstances()).join(' ')} }
     enum AutoGraphOnDeleteEnum { cascade nullify restrict }
     enum AutoGraphIndexEnum { unique }
 
+    input AutoGraphMetaInput {
+      input: AutoGraphMixed!
+      required: Boolean
+    }
+
     directive @model(
       id: String
       alias: String
+      meta: AutoGraphMetaInput
       driver: String
       namespace: String
       createdAt: String

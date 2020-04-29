@@ -22,3 +22,6 @@ Figure out:
 Open Questions:
   * Is GLOB where-clause a good idea?
   * Where/How to define stores?
+
+Integration Concerns
+  * AutoGraph returns base64 id's for pagination; how to mix APIs and slowly migrate?

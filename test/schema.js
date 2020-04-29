@@ -1,10 +1,10 @@
 module.exports = {
   typeDefs: `
-    input PersonMeta {
+    input PersonInputMeta {
       notify: Boolean
     }
 
-    type Person @model
+    type Person @model(meta: { input: PersonMetaInput, required: true })
       @index(name: "uix_person_name", type: unique, on: ["name"])
     {
       name: String! @field(transform: toTitleCase)
