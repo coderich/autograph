@@ -1,11 +1,6 @@
 const { MongoClient, ObjectID } = require('mongodb');
 const { promiseRetry, globToRegex, proxyDeep, isScalarDataType } = require('../service/app.service');
 
-const toObject = (doc) => {
-  if (!doc) return undefined;
-  return Object.defineProperty(doc, 'id', { value: doc._id }); // eslint-disable-line
-};
-
 module.exports = class MongoDriver {
   constructor(uri, schema) {
     this.uri = uri;
@@ -22,12 +17,12 @@ module.exports = class MongoDriver {
   }
 
   get(model, id, options) {
-    return this.query(model, 'findOne', { _id: id }, options).then(toObject);
+    return this.query(model, 'findOne', { _id: id }, options);
   }
 
   find(model, where = {}, options) {
     const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where);
-    return this.query(model, 'aggregate', $where, options).then(results => results.map(toObject).toArray());
+    return this.query(model, 'aggregate', $where, options).then(results => results.toArray());
   }
 
   count(model, where = {}, options) {
@@ -36,11 +31,11 @@ module.exports = class MongoDriver {
   }
 
   create(model, data, options) {
-    return this.query(model, 'insertOne', data, options).then(result => toObject(Object.assign(data, { _id: result.insertedId })));
+    return this.query(model, 'insertOne', data, options).then(result => Object.assign(data, { _id: result.insertedId }));
   }
 
   replace(model, id, data, doc, options) {
-    return this.query(model, 'replaceOne', { _id: id }, doc, options).then(() => toObject(doc));
+    return this.query(model, 'replaceOne', { _id: id }, doc, options).then(() => doc);
   }
 
   delete(model, id, doc, options) {
