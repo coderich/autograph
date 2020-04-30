@@ -70,7 +70,7 @@ module.exports = (driver = 'mongo') => {
 
       // Create core classes
       const schema = new Schema(gql, stores, driverArgs);
-      const serverSchema = schema.makeServerApiSchema();
+      schema.makeServerApiSchema(); // Just call the API to make sure no errors
       resolver = new Resolver(schema);
 
       //

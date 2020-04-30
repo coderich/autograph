@@ -133,7 +133,7 @@ module.exports = class Model {
   }
 
   getDataRefFields() {
-    return this.fields.filter(field => Boolean(field.getDataRef()));
+    return this.fields.filter(field => Boolean(field.getDataRef() && !field.isEmbedded()));
   }
 
   getOnDeleteFields() {

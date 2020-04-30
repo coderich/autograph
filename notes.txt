@@ -5,6 +5,13 @@ Ideas:
 
 Bugs:
   * Casting must be bi-directional
+  * What if you defined @index without @model?
+  * Embedded documents do not work!
+    - Currently embedded document is being saved as it's own collection/node
+    - Cannot update apartment.building
+    - Cannot query where building.tenants, etc
+    - Concept only fits document databases (what about neo4j and sql databases?)
+    - How to create index on embedded objects? building.type unique?
 
 Todo:
   * Verify that Rules are passed parameters one would need to do custom logic
@@ -15,11 +22,16 @@ Todo:
 
 Figure out:
   * createdBy? (Audit trail)
+  * Composite Rule Definitions?
   * Context. (tenants, segmentation, language)
-  * Authorization. Specifically owner records, segmentation, recursion
+  * Authorization. Specifically owner records, segmentation, recursive data resolution
 
 Open Questions:
   * Where/How to define stores?
+  * Should updatedAt be set when a document is created? Should it be configurable?
 
 Integration Concerns
   * AutoGraph returns base64 id's for pagination; how to mix APIs and slowly migrate?
+
+Refs:
+  * https://jbt.github.io/markdown-editor/
