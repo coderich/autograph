@@ -21,6 +21,7 @@ module.exports = {
       emailAddress: String! @field(alias: "email_address", enforce: email)
       friends: [Person] @field(transform: dedupe, enforce: selfless, onDelete: cascade)
       status: String
+      telephone: String
     }
 
     type Book

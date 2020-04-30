@@ -6,7 +6,8 @@ module.exports = class {
       const guid = toGUID(model.getName(), doc.id);
       // const cursor = toGUID(i, guid);
 
-      return Object.defineProperties(doc, {
+      return Object.defineProperties(model.transform(doc), {
+        id: { value: doc.id },
         $id: { value: guid },
         // $$cursor: { value: cursor },
       });

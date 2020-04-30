@@ -4,7 +4,6 @@ Ideas:
   * Create a GQLParser class to consolidate Model and Field classes... pass raw gql to data/Model, data/Field
 
 Bugs:
-  * Casting must be bi-directional
   * What if you defined @index without @model?
   * Embedded documents do not work!
     - Currently embedded document is being saved as it's own collection/node
@@ -19,6 +18,7 @@ Todo:
   * Mutation should have meta input (how to define meta props?)
   * Get a list of references that would be onDelete affected
   * Currently there is no way to count regular elements of an array (try to count bids)
+  * URL validator
 
 Figure out:
   * createdBy? (Audit trail)

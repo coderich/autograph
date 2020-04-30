@@ -445,8 +445,9 @@ module.exports = (driver = 'mongo') => {
 
     describe('Data Normalization', () => {
       test('uniq', async () => {
-        richard = await resolver.match('Person').id(richard.id).save({ name: 'richard', friends: [christie.id, christie.id, christie.id] });
+        richard = await resolver.match('Person').id(richard.id).save({ name: 'richard', friends: [christie.id, christie.id, christie.id], telephone: 1234567890 });
         expect(richard.name).toEqual('Richard');
+        expect(richard.telephone).toEqual('1234567890');
         expect(richard.friends).toEqual([christie.id]);
       });
     });
