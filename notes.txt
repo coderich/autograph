@@ -18,7 +18,7 @@ Todo:
   * Mutation should have meta input (how to define meta props?)
   * Get a list of references that would be onDelete affected
   * Currently there is no way to count regular elements of an array (try to count bids)
-  * URL validator
+  * URL, RGB, RGBA, validator?
 
 Figure out:
   * createdBy? (Audit trail)
@@ -29,9 +29,6 @@ Figure out:
 Open Questions:
   * Where/How to define stores?
   * Should updatedAt be set when a document is created? Should it be configurable?
-
-Integration Concerns
-  * AutoGraph returns base64 id's for pagination; how to mix APIs and slowly migrate?
 
 Refs:
   * https://jbt.github.io/markdown-editor/

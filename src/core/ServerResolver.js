@@ -3,10 +3,11 @@ const GraphqlFields = require('graphql-fields');
 const { NotFoundError } = require('../service/error.service');
 const { fromGUID, map } = require('../service/app.service');
 
-const guidToId = guid => fromGUID(guid)[1];
+const guidToId = (context, guid) => (context.legacyMode ? guid : fromGUID(guid)[1]);
 
-const unrollGuid = (loader, model, data) => {
-  model = loader.toModel(model);
+const unrollGuid = (context, model, data) => {
+  if (context.legacyMode) return data;
+  model = context.loader.toModel(model);
   const fields = model.getDataRefFields().map(field => field.getName());
 
   return map(data, (doc) => {
@@ -26,10 +27,10 @@ const normalizeQuery = (args = {}, info) => {
 module.exports = class ServerResolver {
   constructor() {
     // Getter
-    this.get = ({ loader }, model, guid, required = false, info) => {
+    this.get = (context, model, guid, required = false, info) => {
       const query = { fields: GraphqlFields(info, {}, { processArguments: true }) };
 
-      return loader.match(model).id(guidToId(guid)).query(query).one().then((doc) => {
+      return context.loader.match(model).id(guidToId(context, guid)).query(query).one().then((doc) => {
         if (!doc && required) throw new NotFoundError(`${model} Not Found`);
         return doc;
       });
@@ -40,8 +41,8 @@ module.exports = class ServerResolver {
     this.count = ({ loader }, model, args, info) => loader.match(model).where(args.where).count();
 
     // Mutations
-    this.create = ({ loader }, model, data, query) => loader.match(model).select(query.fields).save(unrollGuid(loader, model, data));
-    this.update = ({ loader }, model, guid, data, query) => loader.match(model).id(guidToId(guid)).select(query.fields).save(unrollGuid(loader, model, data));
-    this.delete = ({ loader }, model, guid, query) => loader.match(model).id(guidToId(guid)).select(query.fields).remove();
+    this.create = (context, model, data, query) => context.loader.match(model).select(query.fields).save(unrollGuid(context, model, data));
+    this.update = (context, model, guid, data, query) => context.loader.match(model).id(guidToId(context, guid)).select(query.fields).save(unrollGuid(loader, model, data));
+    this.delete = (context, model, guid, query) => context.loader.match(model).id(guidToId(context, guid)).select(query.fields).remove();
   }
 };

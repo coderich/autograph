@@ -14,6 +14,7 @@ class Server {
       context: () => ({
         schema,
         permissions: ['**'],
+        legacyMode: true,
         loader: new Resolver(schema),
       }),
     });

@@ -139,7 +139,7 @@ module.exports = class extends Schema {
             const fieldName = field.getName();
             return Object.assign(def, { [fieldName]: root => root[`$${fieldName}`] });
           }, {
-            id: root => toGUID(modelName, root.id),
+            id: (root, args, context) => (context.legacyMode ? root.id : root.$id),
             countSelf: (root, args, context, info) => resolver.count(context, model, args, info),
           }),
         });
