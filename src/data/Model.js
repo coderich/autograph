@@ -125,11 +125,11 @@ module.exports = class Model {
   }
 
   getCreateFields() {
-    return this.fields.filter(field => !field.isVirtual() && !field.isImplicit());
+    return this.fields.filter(field => !field.isVirtual() && !field.isPrivate());
   }
 
   getUpdateFields() {
-    return this.fields.filter(field => !field.isVirtual() && !field.isImmutable() && !field.isImplicit());
+    return this.fields.filter(field => !field.isVirtual() && !field.isImmutable() && !field.isPrivate());
   }
 
   getDataRefFields() {

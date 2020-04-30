@@ -71,6 +71,10 @@ module.exports = class Type {
     return directive.getArgs();
   }
 
+  getScope() {
+    return this.getDirectiveArg('field', 'scope', this.getDirectiveArg('model', 'scope', 'protected'));
+  }
+
   resolveField() {
     const vField = this.getVirtualField() || this;
     if (vField !== this) return vField.resolveField();
@@ -100,5 +104,9 @@ module.exports = class Type {
 
   isVirtual() {
     return Boolean(this.getDirectiveArg('field', 'materializeBy'));
+  }
+
+  isPrivate() {
+    return Boolean(this.getScope() === 'private');
   }
 };

@@ -23,6 +23,7 @@ exports.makeExecutableSchema = (gqlSchema, directives) => {
     scalar AutoGraphMixed
     enum AutoGraphEnforceEnum { ${Object.keys(Rule.getInstances()).join(' ')} }
     enum AutoGraphTransformEnum  { ${Object.keys(Transformer.getInstances()).join(' ')} }
+    enum AutoGraphScopeEnum { private protected public restricted }
     enum AutoGraphOnDeleteEnum { cascade nullify restrict }
     enum AutoGraphIndexEnum { unique }
 
@@ -34,6 +35,7 @@ exports.makeExecutableSchema = (gqlSchema, directives) => {
     directive @model(
       id: String
       alias: String
+      scope: AutoGraphScopeEnum
       meta: AutoGraphMetaInput
       driver: String
       namespace: String
@@ -44,8 +46,8 @@ exports.makeExecutableSchema = (gqlSchema, directives) => {
     directive @field(
       ${directives.join('\n\t    ')}
       alias: String
+      scope: AutoGraphScopeEnum
       norepeat: Boolean
-      implicit: Boolean
       materializeBy: String
       onDelete: AutoGraphOnDeleteEnum
       enforce: [AutoGraphEnforceEnum!]
@@ -73,9 +75,9 @@ exports.extendSchemaDataTypes = (schema) => {
 
     return `
       extend type ${key} {
-        id: ID @field(implicit: true)
-        ${createdAt ? `createdAt: Int @field(alias: "${createdAt}", implicit: true)` : ''}
-        ${updatedAt ? `updatedAt: Int @field(alias: "${updatedAt}", implicit: true)` : ''}
+        id: ID @field(scope: private)
+        ${createdAt ? `createdAt: Int @field(alias: "${createdAt}", scope: private)` : ''}
+        ${updatedAt ? `updatedAt: Int @field(alias: "${updatedAt}", scope: private)` : ''}
       }
     `;
   })}`;

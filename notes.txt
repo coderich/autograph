@@ -5,23 +5,20 @@ Ideas:
 
 Bugs:
   * Casting must be bi-directional
-  * Can you count Bids?
 
 Todo:
-  * Error handling; Rules need error messages
+  * Verify that Rules are passed parameters one would need to do custom logic
+  * Error handling; Rules need better error messages
   * Mutation should have meta input (how to define meta props?)
   * Get a list of references that would be onDelete affected
+  * Currently there is no way to count regular elements of an array (try to count bids)
 
 Figure out:
-  * publishedDate. Cannot be set via CRUD; only set via meta action...
   * createdBy? (Audit trail)
-  * Dyncamic Required Fields. (eg. title required if no background image)
-  * ValidateMultiLang. How would you implement this kind of validation?
   * Context. (tenants, segmentation, language)
   * Authorization. Specifically owner records, segmentation, recursion
 
 Open Questions:
-  * Is GLOB where-clause a good idea?
   * Where/How to define stores?
 
 Integration Concerns

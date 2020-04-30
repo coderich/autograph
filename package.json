@@ -20,6 +20,7 @@
     "index.js"
   ],
   "scripts": {
+    "start": "APP_ROOT_PATH=$(pwd) node ./test/server",
     "test": "APP_ROOT_PATH=$(pwd) ratchet test",
     "lint": "APP_ROOT_PATH=$(pwd) ratchet lint",
     "ratchet": "ratchet"
@@ -46,6 +47,7 @@
   },
   "devDependencies": {
     "@coderich/ratchet": "^1.4.3",
+    "apollo-server": "^2.12.0",
     "mongodb": "^3.5.1",
     "mongodb-memory-server": "^6.2.2",
     "neo4j-driver": "^4.0.0",

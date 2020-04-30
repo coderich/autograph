@@ -132,8 +132,8 @@ module.exports = class Field {
     return Boolean(JSON.stringify(enforce).indexOf('immutable') > -1);
   }
 
-  isImplicit() {
-    return this.field.getDirectiveArg('field', 'implicit', false);
+  isPrivate() {
+    return this.field.isPrivate();
   }
 
   serialize(value, mapper) {
