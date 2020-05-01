@@ -1,18 +1,15 @@
 # AutoGraph
-### A GraphQL resolver for unified data access.
-:heavy_check_mark: [MongoDB](https://www.mongodb.com/)
-:heavy_check_mark: [Neo4j](https://https://neo4j.com/)
+### A Featured-Rich GraphQL Framework
 
-**AutoGraph** is a unified API to *query* and *mutate* data defined in a [GraphQL Schema](https://graphql.org/). It's a *[data resolver]()* and *business logic* handler that can be used *in and outside* of a GraphQL server.
+**AutoGraph** is a [GraphQL](https://graphql.org/) framework to help build and maintain a [Relay-Compliant Schema](https://relay.dev/docs/en/graphql-server-specification.html). It provides a *declarative*, *extensible*, and *best-practice* approach to schema design.
 
-Features include:
-
-- Unified Query API
-- Cursor Pagination
-- Atomic Transactions
+Feature Highlights:
+- Instant Query + Mutation + Resolver Schema Stiching
+- Declarative Schema Validation & Transformation
+- Unified Data Access / Database Abstraction
 - Memoized Caching (via [DataLoader](https://www.npmjs.com/package/dataloader))
+- Transactions, Pagination, and more!
 
-:fire: If you're looking to build a GraphQL Server API, check out [AutoGraphServer](https://www.npmjs.com/package/@coderich/autographql)!
 
 ## Getting Started
 First, install AutoGraph via NPM:
