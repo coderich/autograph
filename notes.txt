@@ -2,6 +2,7 @@ Ideas:
   * Create a Document/Record class
     - hydrate, dehydrate, cast, etc
   * Create a GQLParser class to consolidate Model and Field classes... pass raw gql to data/Model, data/Field
+  * Can you use semver over glob in some areas?
 
 Bugs:
   * What if you defined @index without @model?
