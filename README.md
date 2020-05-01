@@ -1,12 +1,13 @@
 # AutoGraph
-### A Featured-Rich GraphQL Framework
+### Instantly Build [Relay-Compliant](https://relay.dev/docs/en/graphql-server-specification.html) GraphQL APIs
 
-**AutoGraph** is a [GraphQL](https://graphql.org/) framework to help build and maintain a [Relay-Compliant Schema](https://relay.dev/docs/en/graphql-server-specification.html). It provides a *declarative*, *extensible*, and *best-practice* approach to schema design.
+**AutoGraph** is a powerful **framework** to *instantly* build **Relay-Compliant GraphQL APIs** that adhere to industry *standards* and *best-practices*. It provides a robust set of **directives** that encapsulates *data access*, *validation*, *transformations*, and so much more!
+
 
 Feature Highlights:
-- Instant Query + Mutation + Resolver Schema Stiching
-- Declarative Schema Validation & Transformation
-- Unified Data Access / Database Abstraction
+- Instantly Connected Relay-Compliant GraphQL APIs
+- Extensible Validation & Transformation Logic
+- Unified Data Access / Abstraction Layer
 - Memoized Caching (via [DataLoader](https://www.npmjs.com/package/dataloader))
 - Transactions, Pagination, and more!
 

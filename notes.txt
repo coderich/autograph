@@ -32,3 +32,4 @@ Open Questions:
 
 Refs:
   * https://jbt.github.io/markdown-editor/
+  * https://gist.github.com/rxaviers/7360908
