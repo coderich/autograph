@@ -18,46 +18,43 @@ npm i @coderich/autograph --save
 ```
 
 ## Schema API
-#### Directives
-##### @model
-| arg | value | description |
-| :--- | :--- | :--- |
-| `id` | `String` | Define a model
-| `meta` | `String` | Define a model
-| `alias` | `String` | Define a model
-| `scope` | `AutoGraphScopeEnum` | Define a model
-| `driver` | `String` | Define a model
-| `namespace` | `String` | Define a model
-| `createdAt` | `TIMESTAMP` | Define a model
-| `updatedAt` | `TIMESTAMP` | Define a model
-
-```graphql
-enum AutoGraphScopeEnum { private protected public restricted }
-```
-
-
-##### @field
-| arg | value | description |
-| :--- | :--- | :--- |
-| `alias` | `String` | Define a model
-| `scope` | `AutoGraphScopeEnum` |  Define a model
-| `enforce` | `[AutoGraphEnforceEnum!]` | Define a model
-| `noRepeat` | `Boolean` | Define a model
-| `onDelete` | `AutoGraphOnDeleteEnum` | Define a model
-| `transform` | `[AutoGraphTransformEnum!]` | Define a model
-| `materializeBy` | `String` | Define a model
-
+#### Custom Types
 ```gql
+scalar AutoGraphMixed
 enum AutoGraphScopeEnum { private protected public restricted }
 enum AutoGraphOnDeleteEnum { cascade nullify restrict }
+enum AutoGraphIndexEnum { unique }
 ```
+#### Custom Directives
+##### @model
+| arg | type | description |
+| :--- | :--- | :--- |
+| `id` | `String` | Specify database id field name (default: `id`)
+| `meta` | `String` | Define a model
+| `alias` | `String` | Specify database table name (default models's name)
+| `scope` | `AutoGraphScopeEnum` | Access scope for this model (default `protected`)
+| `driver` | `String` | Specify database driver (default `default`)
+| `namespace` | `String` | Define a custom namespace
+| `createdAt` | `String` | TBD
+| `updatedAt` | `String` | TBD
+
+##### @field
+| arg | type | description |
+| :--- | :--- | :--- |
+| `alias` | `String` | Specify database field name (default field's name)
+| `scope` | `AutoGraphScopeEnum` | Access scope for this field (default `protected`)
+| `enforce` | `[AutoGraphEnforceEnum!]` | List of `Rules` to enforce
+| `noRepeat` | `Boolean` | TBD
+| `onDelete` | `AutoGraphOnDeleteEnum` | Specify *onDelete* behavior
+| `transform` | `[AutoGraphTransformEnum!]` | List of `Transformers` to apply
+| `materializeBy` | `String` | Define a virtual field
 
 ##### @index
-| arg | value | description |
+| arg | type | description |
 | :--- | :--- | :--- |
-| `on` | `[String!]!` | Define a model
-| `type` | `{ unique }!` | Define a model
-| `name` | `String` | Define a model
+| `on` | `[String!]!` | The field names to use for this index
+| `type` | `AutoGraphIndexEnum!` | The type of index to create
+| `name` | `String` | The name of the index
 
 ## Data API
 #### Data Access
