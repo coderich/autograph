@@ -34,9 +34,9 @@ exports.makeExecutableSchema = (gqlSchema, directives) => {
 
     directive @model(
       id: String
+      meta: AutoGraphMetaInput
       alias: String
       scope: AutoGraphScopeEnum
-      meta: AutoGraphMetaInput
       driver: String
       namespace: String
       createdAt: String
@@ -47,17 +47,17 @@ exports.makeExecutableSchema = (gqlSchema, directives) => {
       ${directives.join('\n\t    ')}
       alias: String
       scope: AutoGraphScopeEnum
-      norepeat: Boolean
-      materializeBy: String
-      onDelete: AutoGraphOnDeleteEnum
       enforce: [AutoGraphEnforceEnum!]
+      noRepeat: Boolean
+      onDelete: AutoGraphOnDeleteEnum
       transform: [AutoGraphTransformEnum!]
+      materializeBy: String
     ) on FIELD_DEFINITION
 
     directive @index(
-      name: String
+      on: [String!]!
       type: AutoGraphIndexEnum!
-      on: [String]!
+      name: String
     ) repeatable on OBJECT
   `);
 

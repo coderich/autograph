@@ -97,7 +97,7 @@ module.exports = {
       @model
     {
       type: String! @field(enforce: colors)
-      isDefault: Boolean @field(norepeat: true)
+      isDefault: Boolean @field(noRepeat: true)
     }
 
     type Art
