@@ -67,15 +67,18 @@ exports.makeExecutableSchema = (gqlSchema, directives) => {
 
 exports.extendSchemaDataTypes = (schema) => {
   const extSchema = `${Object.entries(exports.getSchemaDataTypes(schema)).map(([key, value]) => {
-    // const model = new Model(this, value);
+    const fieldNames = value.astNode.fields.map(field => field.name.value);
+    const hasID = fieldNames.includes('id');
+    const hasCreatedAt = fieldNames.includes('createdAt');
+    const hasUpdatedAt = fieldNames.includes('updatedAt');
     // const createdAt = model.getDirectiveArg('model', 'createdAt', 'createdAt');
     // const updatedAt = model.getDirectiveArg('model', 'updatedAt', 'updatedAt');
-    const createdAt = 'createdAt';
-    const updatedAt = 'updatedAt';
+    const createdAt = hasCreatedAt ? null : 'createdAt';
+    const updatedAt = hasUpdatedAt ? null : 'updatedAt';
 
     return `
       extend type ${key} {
-        id: ID @field(scope: private)
+        ${hasID ? '' : 'id: ID @field(scope: private)'}
         ${createdAt ? `createdAt: Int @field(alias: "${createdAt}", scope: private)` : ''}
         ${updatedAt ? `updatedAt: Int @field(alias: "${updatedAt}", scope: private)` : ''}
       }

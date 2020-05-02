@@ -6,6 +6,7 @@ Ideas:
 
 Bugs:
   * What if you defined @index without @model?
+  * You need to differentiate between entities and regular models!
   * Embedded documents do not work!
     - Currently embedded document is being saved as it's own collection/node
     - Cannot update apartment.building

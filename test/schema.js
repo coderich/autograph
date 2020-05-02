@@ -107,5 +107,10 @@ module.exports = {
       bids: [Float]
       comments: [String] @field(enforce: artComment)
     }
+
+    type PlainJane {
+      id: ID!
+      name: String
+    }
   `,
 };

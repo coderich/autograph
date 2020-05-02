@@ -1,3 +1,4 @@
+const { get } = require('lodash');
 const { isListType, isNonNullType, getNamedType } = require('graphql');
 const { uvl, isScalarDataType } = require('../service/app.service');
 const Directive = require('./Directive');
@@ -6,7 +7,7 @@ module.exports = class Type {
   constructor(schema, ast) {
     this.schema = schema;
     this.ast = ast;
-    this.directives = this.ast.astNode.directives.map(directive => new Directive(directive));
+    this.directives = get(ast, 'astNode.directives', []).map(directive => new Directive(directive));
     this.toString = () => `${this.getName()}`;
   }
 
