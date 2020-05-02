@@ -115,6 +115,7 @@ module.exports = class extends Schema {
         `,
 
         `type Schema {
+          __noop: String
           ${this.getVisibleModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} @authz`)}
           ${this.getVisibleModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection! @authz(model: "${model.getName()}")`)}
           ${this.getVisibleModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int! @authz(model: "${model.getName()}")`)}
@@ -129,12 +130,14 @@ module.exports = class extends Schema {
         }`,
 
         `type Mutation {
+          __noop: String
           ${this.getVisibleModels().map(model => `create${model.getName()}(data: ${model.getName()}InputCreate!): ${model.getName()}! @authz`)}
           ${this.getVisibleModels().map(model => `update${model.getName()}(id: ID! data: ${model.getName()}InputUpdate!): ${model.getName()}! @authz`)}
           ${this.getVisibleModels().map(model => `delete${model.getName()}(id: ID!): ${model.getName()}! @authz`)}
         }`,
 
         `type Subscription {
+          __noop: String
           ${this.getVisibleModels().map(model => `${model.getName()}Trigger(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
           ${this.getVisibleModels().map(model => `${model.getName()}Changed(query: ${ucFirst(model.getName())}InputQuery): [${model.getName()}Subscription]!`)}
         }`,

@@ -1,5 +1,7 @@
 module.exports = {
   typeDefs: `
+    scalar Mixed
+
     type Person {
       name: String!
       authored: [Book]
