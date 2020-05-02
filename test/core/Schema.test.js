@@ -1,17 +1,24 @@
 const Schema = require('../../src/core/Schema');
 const stores = require('../stores');
-const simpleSchema = require('../simpleSchema');
-const noSchema = require('../noSchema');
+const simpleSchema = require('../simple.graphql');
+const bareSchema = require('../bare.graphql');
+const gozioSchema = require('../gozio.graphql');
 
 describe('Schema', () => {
   test('simpleSchema', () => {
-    const schema = new Schema(simpleSchema, stores);
+    const schema = new Schema({ typeDefs: simpleSchema }, stores);
     expect(schema).toBeDefined();
     schema.makeServerApiSchema();
   });
 
-  test('noSchema', () => {
-    const schema = new Schema(noSchema, stores);
+  test('bareSchema', () => {
+    const schema = new Schema({ typeDefs: bareSchema }, stores);
+    expect(schema).toBeDefined();
+    schema.makeServerApiSchema();
+  });
+
+  test('gozioSchema', () => {
+    const schema = new Schema({ typeDefs: gozioSchema }, stores);
     expect(schema).toBeDefined();
     schema.makeServerApiSchema();
   });

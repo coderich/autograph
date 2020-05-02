@@ -163,6 +163,10 @@ module.exports = class Model {
     return this.model.getName();
   }
 
+  getType() {
+    return this.model.getType();
+  }
+
   getAlias() {
     return this.model.getDirectiveArg('model', 'alias', this.getName());
   }

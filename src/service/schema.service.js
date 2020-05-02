@@ -16,6 +16,7 @@ exports.makeExecutableSchema = (gqlSchema, directives) => {
   // Ensure schema
   gqlSchema.typeDefs = gqlSchema.typeDefs || [];
   gqlSchema.typeDefs = Array.isArray(gqlSchema.typeDefs) ? gqlSchema.typeDefs : [gqlSchema.typeDefs];
+  gqlSchema.resolvers = gqlSchema.resolvers || {};
   gqlSchema.schemaDirectives = Object.assign(gqlSchema.schemaDirectives || {}, { model: SchemaDirective, field: SchemaDirective });
 
   // Merge schema

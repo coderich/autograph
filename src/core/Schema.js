@@ -1,5 +1,5 @@
 const GraphqlFields = require('graphql-fields');
-const { makeExecutableSchema, mergeSchemas } = require('graphql-tools');
+const { makeExecutableSchema, transformSchema, mergeSchemas } = require('graphql-tools');
 const Model = require('../data/Model');
 const Drivers = require('../driver');
 const Schema = require('../graphql/Schema');
@@ -27,6 +27,7 @@ module.exports = class extends Schema {
     }, {});
 
     // Create models
+    this.gqlSchema = gqlSchema;
     this.models = super.getModels().map(model => new Model(this, model, drivers));
     this.models.forEach(model => model.referentialIntegrity(identifyOnDeletes(this.models, model)));
   }
@@ -41,6 +42,8 @@ module.exports = class extends Schema {
 
   makeServerApiSchema() {
     const resolver = new ServerResolver();
+
+    // console.log(this.getModels().map(model => model.getName()));
 
     const apiSchema = {
       typeDefs: this.getModels().map((model) => {
@@ -215,6 +218,22 @@ module.exports = class extends Schema {
       },
     };
 
-    return mergeSchemas({ schemas: [this.getExecutableSchema(), makeExecutableSchema(apiSchema)], mergeDirectives: true });
+    return transformSchema(this.getExecutableSchema(), [
+    ]);
+
+    // return mergeSchemas({
+    //   schemas: [
+    //     this.getExecutableSchema(),
+    //     makeExecutableSchema(apiSchema);
+    //   ],
+    //   mergeDirectives: true,
+    // });
+
+    // return mergeSchemas({
+    //   subschemas: [
+    //     { schema: this.getExecutableSchema() },
+    //     { schema: makeExecutableSchema(apiSchema) },
+    //   ],
+    // });
   }
 };

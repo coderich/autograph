@@ -65,19 +65,20 @@ module.exports = class Field {
   }
 
   getModelRef() {
-    return this.schema.getModel(this.getDataRef());
+    return this.field.getModelRef();
+  }
+
+  getModelDataRef() {
+    return this.field.getModelDataRef();
   }
 
   getVirtualModel() {
-    return this.schema.getModel(this.getSimpleType());
+    return this.field.getVirtualModel();
   }
 
   getVirtualField() {
-    return this.getVirtualModel().getField(this.getVirtualRef());
-    // return this.field.getVirtualField();
+    return this.field.getVirtualField();
   }
-
-  // GTG
 
   getName() {
     return this.field.getName();
@@ -152,7 +153,8 @@ module.exports = class Field {
 
   getGQLType(suffix) {
     let type = this.getSimpleType();
-    if (suffix && !isScalarDataType(type)) type = this.isEmbedded() ? `${type}${suffix}` : 'ID';
+    const isModel = Boolean(this.getDataRef());
+    if (suffix && !isScalarDataType(type)) type = (this.isEmbedded() ? (isModel ? `${type}${suffix}` : type) : 'ID');
     // if (this.options.enum) type = `${this.model.getName()}${ucFirst(this.getName())}Enum`;
     type = this.isArray() ? `[${type}]` : type;
     if (suffix !== 'InputUpdate' && this.isRequired()) type += '!';
@@ -163,6 +165,8 @@ module.exports = class Field {
     const fieldName = this.getName();
     const type = this.getGQLType();
     const ref = this.getDataRef();
+
+    // console.log(fieldName, ref, typeof ref);
 
     if (ref) {
       if (this.isArray()) return `${fieldName}(first: Int after: String last: Int before: String query: ${ref}InputQuery): Connection`;

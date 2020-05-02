@@ -1,0 +1,1736 @@
+directive @_authzModel on OBJECT
+
+directive @_authzMutation on FIELD_DEFINITION
+
+directive @authz(model: String, operation: MutationOperation) on FIELD_DEFINITION
+
+directive @_filter on FIELD_DEFINITION
+
+directive @resolveMultiLang on FIELD_DEFINITION
+
+directive @validateMultiLang(fields: [String!]!) on FIELD_DEFINITION
+
+directive @_references on FIELD_DEFINITION
+
+directive @_task on FIELD_DEFINITION
+
+type ActionLink {
+  id: ID!
+  name(multiLangFormat: MultiLangFormat = array): MultiLang
+  type: ActionLinkType!
+  icon: Icon
+  data: Mixed!
+  order: Int!
+  category: Category
+  curatedList: NetworkCuratedList
+  destination: AppDestination
+  url: String!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input ActionLinkInputIdentity {
+  id: ID
+  name: [MultiLangInputIdentity!]!
+  type: ActionLinkType!
+  data: Mixed!
+  imageId: ID
+  order: Int = 0
+}
+
+enum ActionLinkType {
+  category
+  list
+  in_app
+  external_app
+  phone
+  website
+}
+
+type Address {
+  street1: String!
+  street2: String
+  streetName: String!
+  streetNumber: String
+  city: String!
+  state: String!
+  zip: String!
+  neighborhood: String
+  county: String
+  country: String
+  resolution: AddressResolution!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input AddressInputIdentity {
+  street1: String!
+  street2: String
+  streetName: String!
+  streetNumber: String
+  city: String!
+  state: String!
+  zip: String!
+  neighborhood: String
+  county: String
+  country: String
+}
+
+input AddressInputResolvable {
+  street1: String
+  street2: String
+  city: String
+  state: String
+  zip: String
+}
+
+type AddressResolution {
+  address: Address
+  position: Position
+  location: Location
+  site: Site
+  building: Building
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type AppDestination {
+  id: ID!
+  type: String!
+  label: String!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type Availability {
+  location: Location
+  provider: Provider
+  startDateTime: DateTime
+  endDateTime: DateTime
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type Building {
+  id: Int!
+  name(multiLangFormat: MultiLangFormat = array): MultiLang
+  description(multiLangFormat: MultiLangFormat = array): MultiLang
+  floors(filterBy: Mixed): [Floor]
+  dataChannels(filterBy: Mixed): [String]
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type Category {
+  id: ID!
+  externalId: Int!
+  name(multiLangFormat: MultiLangFormat = array): MultiLang
+  tags(filterBy: Mixed): [Tag]!
+  icon: SystemIcon
+  parent: Category
+  children(filterBy: Mixed): [Category]
+  sites(filterBy: Mixed): [Site]
+  places(filterBy: Mixed): [Place]
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input CategoryInputIdentity {
+  name: [MultiLangInputIdentity!]!
+  tags: [TagInputIdentity]
+  iconId: ID
+  parentId: ID
+}
+
+input ColorInputIdentity {
+  key: ThemeColorKey!
+  value: String!
+}
+
+input CreateNetworkDashboardCardGroupInput {
+  dashboardId: ID!
+  type: NetworkDashboardCardGroupType!
+  arrayPosition: Int
+  cards: [CreateNetworkDashboardCardInput]!
+}
+
+input CreateNetworkDashboardCardInput {
+  title: [MultiLangInputIdentity]!
+  overline: [MultiLangInputIdentity]
+  subtitle: [MultiLangInputIdentity]
+  textAlignment: TextAlignment
+  backgroundImageUrl: String
+  backgroundColor: String
+  iconUrl: String
+  textColor: String
+  dismissable: Boolean
+  expires: DateTime
+  iconText: String
+  locations: NetworkDashboardCardSelectedLocationsInput
+  measurements: NetworkDashboardCardMeasurementsInput
+  waitTimes: NetworkDashboardCardWaitTimesInput
+  linkData: ActionLinkInputIdentity
+}
+
+input CreateNetworkDashboardInput {
+  personas: [ID!]
+}
+
+enum cropRule {
+  scale
+  fit
+  limit
+  mfit
+  fill
+  lfill
+  pad
+  lpad
+  mpad
+  fill_pad
+  crop
+  thumb
+  imagga_crop
+  imagga_scale
+}
+
+type DataPackage {
+  id: ID!
+  progress: Int
+  state: String
+  externalId: Int
+  errorDetails(filterBy: Mixed): [DataPackageError]
+  network: Network!
+  begin: DateTime
+  createdAt: DateTime
+  modifiedAt: DateTime
+  message: String
+  services: DataPackageServices
+  isBad: Boolean
+  zipUrl: String
+  publishEvent: DataPackageEvents
+  previewEvent: DataPackageEvents
+  createdBy: User
+  networkId: ID
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type DataPackageError {
+  error: DataPackageErrorDetails
+  handler: String
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type DataPackageErrorDetails {
+  message: String
+  stack: String
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input DataPackageEventInput {
+  event: Events!
+  dataPackageId: ID!
+  description: String
+}
+
+type DataPackageEvents {
+  id: ID
+  dataPackage: DataPackage!
+  createdAt: DateTime
+  createdBy: DataPackageEventsUser
+  description: String
+  event: Events!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type DataPackageEventsUser {
+  id: String
+  name: String
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input DataPackageMetaInput {
+  description: String
+  urgent: Boolean
+  purge: Boolean
+  revert: Boolean
+}
+
+type DataPackageService {
+  isComplete: Boolean
+  version: String
+  steps: DataPackageServiceSteps
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input DataPackageServiceInput {
+  isComplete: Boolean
+  version: String
+  steps: DataPackageServiceStepsInput
+}
+
+type DataPackageServices {
+  mobile(filterBy: Mixed): [DataPackageService]
+  kiosk(filterBy: Mixed): [DataPackageService]
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input DataPackageServicesInput {
+  mobile: [DataPackageServiceInput]
+  kiosk: [DataPackageServiceInput]
+}
+
+type DataPackageServiceSteps {
+  complete: Int
+  total: Int
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input DataPackageServiceStepsInput {
+  complete: Int
+  total: Int
+}
+
+input DataPackageUpdateInput {
+  state: State
+  isBad: Boolean
+  services: DataPackageServicesInput
+  progress: Int
+  message: String
+}
+
+input DateRange {
+  startDate: DateTime
+  endDate: DateTime
+}
+
+scalar DateTime
+
+enum DayOfTheWeek {
+  monday
+  tuesday
+  wednesday
+  thursday
+  friday
+  saturday
+  sunday
+}
+
+input DeleteNetworkDashboardCardGroupInput {
+  cardGroupId: ID!
+  dashboardId: ID!
+}
+
+type Environment {
+  env: String!
+  dataUrl: String!
+  searchUrl: String!
+  versionUrl: String!
+  networkUrl: String!
+  customerContentBaseUrl: String!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input EnvironmentInput {
+  env: String!
+  dataUrl: String!
+  searchUrl: String!
+  versionUrl: String!
+  networkUrl: String!
+  customerContentBaseUrl: String!
+}
+
+enum Events {
+  packaged
+  errored
+  published
+  unpublished
+  markedAsBad
+  unmarkedAsBad
+  movedToPreview
+}
+
+enum FeatureFlag {
+  on
+  off
+}
+
+type File {
+  id: ID!
+  filename: String!
+  mimetype: String!
+  encoding: String!
+  path: String!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type Floor {
+  name: String
+  osmId: Int
+  poiIds(filterBy: Mixed): [String]
+  isDefault: Boolean
+  mapEnabled: Boolean
+  navigationEnabled: Boolean
+  dataChannels(filterBy: Mixed): [String]
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+enum Gender {
+  male
+  female
+}
+
+scalar HoursOfOperation
+
+type Icon {
+  url(protocol: urlProtocol): String!
+  image: Image!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type Image {
+  id: ID!
+  publicId: String!
+  url(protocol: urlProtocol): String!
+  originalUrl(protocol: urlProtocol): String
+  tags(filterBy: Mixed): [String]
+  etag: String
+  originalEtag: String
+  signature: String
+  isDeleted: Boolean
+  resourceType: String
+  width: Int
+  height: Int
+  format: String
+  bytes: Int
+  version: Int
+  meta(filterBy: Mixed): [Mixed]
+  transformations(names: [String!], filterBy: Mixed): [ImageTransformation!]
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type ImageTransform {
+  id: ID!
+  name: String!
+  rules: Mixed!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type ImageTransformation {
+  url(protocol: urlProtocol): String!
+  transform: ImageTransform!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input ImageTransformInputIdentity {
+  name: String!
+  rules: ImageTransformRuleInput!
+}
+
+input ImageTransformRuleInput {
+  width: String
+  height: String
+  crop: cropRule
+  aspect_ratio: String
+  gravity: String
+  zoom: String
+  x: String
+  y: String
+  format: String
+  fetch_format: String
+  quality: String
+  radius: String
+  angle: String
+  effect: String
+  opacity: String
+  border: String
+  background: String
+  overlay: String
+  underlay: String
+  default_image: String
+  delay: Int
+  color: String
+  color_space: String
+  dpr: String
+  page: String
+  density: String
+  flags: String
+  _operator_: String
+  transformation: String
+  if: String
+  custom_function: String
+  variable: String
+}
+
+type Location {
+  id: ID!
+  externalId: Int!
+  name: String!
+  description: String
+  position: Position!
+  address: Address
+  phone: String
+  fax: String
+  type: LocationType
+  sources(filterBy: Mixed): [LocationSource]
+  providers(filterBy: Mixed): [Provider]
+  resolution: LocationResolution!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input LocationInputIdentity {
+  name: String!
+  phone: String
+  fax: String
+  type: String
+  position: PositionInputIdentity!
+  source: LocationInputSourceIdentity!
+  address: AddressInputIdentity!
+}
+
+input LocationInputResolvable {
+  name: String
+  phone: String
+  fax: String
+  type: String
+  departmentId: String
+  address: AddressInputResolvable
+}
+
+input LocationInputSourceIdentity {
+  systemId: String!
+  systemName: String!
+}
+
+type LocationResolution {
+  address: Address
+  position: Position
+  location: Location
+  site: Site
+  building: Building
+  place: Place
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type LocationSearchResult {
+  id: String!
+  type: LocationSearchResultType!
+  name: String!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+enum LocationSearchResultType {
+  site
+  place
+  building
+}
+
+type LocationSource {
+  networkId: ID!
+  externalId: Int!
+  systemId: String!
+  systemName: String!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+enum LocationType {
+  primary
+  urgent
+  quick
+  er
+}
+
+scalar Mixed
+
+scalar MultiLang
+
+enum MultiLangFormat {
+  array
+  object
+}
+
+input MultiLangInputIdentity {
+  lang: String!
+  label: String!
+}
+
+type Mutation {
+  noop: String
+  createImageTransform(input: ImageTransformInputIdentity!): ImageTransform!
+  replaceImageTransform(id: ID!, input: ImageTransformInputIdentity!): ImageTransform!
+  deleteImageTransform(id: ID!): ImageTransform!
+  createNetworkNotification(input: NetworkNotificationInput!): NetworkNotification!
+  createItDoug(name: Mixed!): Mixed!
+  createCategory(input: CategoryInputIdentity!): Category!
+  replaceCategory(id: ID!, input: CategoryInputIdentity!): Category!
+  deleteCategory(id: ID!, newId: ID): Category!
+  setCategoryTags(id: ID!, tags: [TagInputIdentity]!): Category!
+  setCategoryIcon(id: ID!, iconId: ID!): Category!
+  setCategoryParent(id: ID!, parentId: ID!): Category!
+  updateDataPackage(id: ID!, input: DataPackageUpdateInput!, meta: DataPackageMetaInput): DataPackage!
+  createDataPackageEvent(input: DataPackageEventInput!): DataPackageEvents!
+  createSingleUpload(file: Upload!): File!
+  createNetwork(input: NetworkInputName): Network!
+  setNetworkPublishingState(networkId: ID!, input: NetworkPublishState!): Network!
+  setNetworkTheme(networkId: ID!, theme: ThemeInputIdentity!): Network!
+  setNetworkThemeColor(networkId: ID!, color: ColorInputIdentity!): Network!
+  createNetworkBannerMessage(input: NetworkBannerMessageCreate!, meta: NetworkBannerMessageMetaInput): NetworkBannerMessage!
+  updateNetworkBannerMessage(id: ID!, input: NetworkBannerMessageUpdate!, meta: NetworkBannerMessageMetaInput): NetworkBannerMessage!
+  setNetworkVersionControl(input: NetworkVersionControlInput!): Network!
+  setNetworkFeatures(input: NetworkFeaturesUpdate!): Network!
+  createNetworkCuratedList(input: NetworkCuratedListInputIdentity!): NetworkCuratedList!
+  replaceNetworkCuratedList(id: ID!, input: NetworkCuratedListInputUpdate!): NetworkCuratedList!
+  setNetworkCuratedListDefault(id: ID!, isNetworkDefault: Boolean!): NetworkCuratedList!
+  deleteNetworkCuratedList(id: ID!): NetworkCuratedList!
+  addNetworkCuratedListSection(input: NetworkCuratedListSectionInputIdentity!): NetworkCuratedListSection!
+  editNetworkCuratedListSection(id: ID!, input: NetworkCuratedListSectionInputIdentity!): NetworkCuratedListSection!
+  removeNetworkCuratedListSection(id: ID!): NetworkCuratedListSection!
+  addNetworkCuratedListSectionLocation(input: NetworkCuratedListSectionLocationInputIdentity!): NetworkCuratedListSection!
+  editNetworkCuratedListSectionLocation(id: ID!, input: NetworkCuratedListSectionLocationEdit!): NetworkCuratedListSection!
+  editNetworkCuratedListSectionLocations(sectionId: ID!, input: [NetworkCuratedListSectionLocationsEdit!]!): NetworkCuratedListSection!
+  removeNetworkCuratedListSectionLocation(id: ID!): NetworkCuratedListSectionLocation!
+  createNetworkDashboard(input: CreateNetworkDashboardInput): NetworkDashboard!
+  updateNetworkDashboard(input: UpdateNetworkDashboardInput): NetworkDashboard!
+  createNetworkDashboardCardGroup(input: CreateNetworkDashboardCardGroupInput!): NetworkDashboardCardGroup!
+  deleteNetworkDashboardCardGroup(input: DeleteNetworkDashboardCardGroupInput!): NetworkDashboardCardGroup!
+  updateNetworkDashboardCard(input: UpdateNetworkDashboardCardInput!): NetworkDashboardCard!
+  createNetworkExplorePanel(input: NetworkExplorePanelInputIdentity!): NetworkExplorePanel!
+  replaceNetworkExplorePanel(id: ID!, input: NetworkExplorePanelInputIdentity!): NetworkExplorePanel!
+  replaceNetworkExplorePanelAction(panelId: ID!, actionId: ID!, input: NetworkExplorePanelActionInputIdentity!): NetworkExplorePanelAction!
+  deleteNetworkExplorePanel(id: ID!): NetworkExplorePanel!
+  createNetworkIcon(input: NetworkIconInputIdentity!): NetworkIcon!
+  updateNetworkIcon(id: ID!, input: NetworkIconInputUpdate!): NetworkIcon!
+  replaceNetworkIconImage(id: ID!, imageId: ID!): NetworkIcon!
+  createNetworkNavigation(input: NetworkNavigationInputIdentity!): NetworkNavigation!
+  replaceNetworkNavigation(id: ID!, input: NetworkNavigationInputIdentity!): NetworkNavigation!
+  setNetworkNavigationTab(id: ID!, tab: ActionLinkInputIdentity): NetworkNavigation!
+  setNetworkNavigationItem(id: ID!, item: ActionLinkInputIdentity): NetworkNavigation!
+  removeNetworkNavigationAction(id: ID!, actionId: ID!): NetworkNavigation!
+  createNetworkPersona(input: NetworkPersonaInputCreate!): NetworkPersona!
+  updateNetworkPersona(id: ID!, input: NetworkPersonaInputUpdate!): NetworkPersona!
+  deleteNetworkPersona(id: ID!): NetworkPersona!
+  createNetworkPlaceholder(input: NetworkPlaceholderInputIdentity!): NetworkPlaceholder!
+  replaceNetworkPlaceholderImage(id: ID!, imageId: ID!): NetworkPlaceholder!
+  createNetworkTypeahead(input: NetworkTypeaheadInputIdentity!): NetworkTypeahead!
+  replaceNetworkTypeahead(id: ID!, input: NetworkTypeaheadInputIdentity!): NetworkTypeahead!
+  deleteNetworkTypeahead(id: ID!): NetworkTypeahead!
+  setPlaceCategory(id: ID!, categoryId: ID!): Place!
+  findOrCreateProviderExternalIdBySource(systemName: String!, systemId: String!): Int!
+  setSiteCategory(id: ID!, categoryId: ID!): Site!
+  setSystemEnvironment(input: EnvironmentInput!): System!
+  createSystemExplorePanel(input: SystemExplorePanelInputIdentity!): SystemExplorePanel!
+  replaceSystemExplorePanel(id: ID!, input: SystemExplorePanelInputIdentity!): SystemExplorePanel!
+  replaceSystemExplorePanelAction(panelId: ID!, actionId: ID!, input: SystemExplorePanelActionInputIdentity!): SystemExplorePanelAction!
+  createSystemIcon(input: SystemIconInputIdentity!): SystemIcon!
+  replaceSystemIconImage(id: ID!, imageId: ID!): SystemIcon!
+  createSystemNavigation(input: SystemNavigationInputIdentity!): SystemNavigation!
+  replaceSystemNavigation(id: ID!, input: SystemNavigationInputIdentity!): SystemNavigation!
+  setSystemNavigationTab(id: ID!, tab: ActionLinkInputIdentity): SystemNavigation!
+  setSystemNavigationItem(id: ID!, item: ActionLinkInputIdentity): SystemNavigation!
+  removeSystemNavigationAction(id: ID!, actionId: ID!): SystemNavigation!
+  createSystemTypeahead(input: SystemTypeaheadInputIdentity!): SystemTypeahead!
+  replaceSystemTypeahead(id: ID!, input: SystemTypeaheadInputIdentity!): SystemTypeahead!
+  deleteSystemTypeahead(id: ID!): SystemTypeahead!
+}
+
+enum MutationOperation {
+  create
+  update
+  delete
+}
+
+type Network {
+  id: ID!
+  name: String
+  humanName: String
+  logo: NetworkIcon
+  theme: NetworkTheme
+  publishingState: PublishingStates
+  sites(filterBy: Mixed): [Site]
+  icons(filterBy: Mixed): [NetworkIcon]
+  placeholders(filterBy: Mixed): [NetworkPlaceholder]
+  configuration: NetworkConfiguration
+  providers(pointRadius: PointRadius, filterBy: Mixed): [Provider]
+  locations(pointRadius: PointRadius, filterBy: Mixed): [Location]
+  typeaheads(filterBy: Mixed): [NetworkTypeahead]
+  curatedLists(filterBy: Mixed): [NetworkCuratedList]
+  explorePanels(filterBy: Mixed): [NetworkExplorePanel]
+  navigation: NetworkNavigation
+  personas(filterBy: Mixed): [NetworkPersona]
+  notifications(filterBy: Mixed): [NetworkNotification]
+  dataPackageLive: DataPackage
+  dataPackagePreview: DataPackage
+  hasChangedData: Boolean
+  previousGoodPackage: DataPackage
+  mobileApps(filterBy: Mixed): [NetworkMobileApp]
+  dashboards(filterBy: Mixed): [NetworkDashboard]
+  bannerMessages(filterBy: Mixed): [NetworkBannerMessage]
+  waittimeEndpointUrl: String
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type NetworkBannerMessage {
+  id: ID!
+  network: Network!
+  backgroundColor: String
+  backgroundImage: Image
+  status: NetworkBannerMessageStatus!
+  scale: NetworkBannerMessageScale!
+  theme: NetworkBannerMessageTheme!
+  colors: NetworkBannerMessageColors!
+  title(multiLangFormat: MultiLangFormat = array): MultiLang
+  subtitle(multiLangFormat: MultiLangFormat = array): MultiLang
+  buttonLabel(multiLangFormat: MultiLangFormat = array): MultiLang
+  actionLink: ActionLink
+  startDate: DateTime
+  endDate: DateTime
+  publishedDate: DateTime
+  unpublishedDate: DateTime
+  createdAt: DateTime!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+enum NetworkBannerMessageAction {
+  publish
+  revert
+}
+
+type NetworkBannerMessageColors {
+  title: String!
+  subtitle: String!
+  background: String!
+  buttonLabel: String!
+  buttonBackground: String!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkBannerMessageCreate {
+  backgroundColor: String
+  backgroundImageId: ID
+  scale: NetworkBannerMessageScale
+  theme: NetworkBannerMessageTheme
+  title: [MultiLangInputIdentity!]
+  subtitle: [MultiLangInputIdentity!]
+  buttonLabel: [MultiLangInputIdentity!]
+  actionLink: ActionLinkInputIdentity
+  startDate: DateTime
+  endDate: DateTime
+}
+
+input NetworkBannerMessageMetaInput {
+  action: NetworkBannerMessageAction
+}
+
+enum NetworkBannerMessageScale {
+  center
+  fill
+  aspectFill
+  aspectFit
+}
+
+enum NetworkBannerMessageStatus {
+  draft
+  active
+  published
+}
+
+enum NetworkBannerMessageTheme {
+  dark
+  light
+}
+
+input NetworkBannerMessageUpdate {
+  backgroundColor: String
+  backgroundImageId: ID
+  scale: NetworkBannerMessageScale
+  theme: NetworkBannerMessageTheme
+  title: [MultiLangInputIdentity!]
+  subtitle: [MultiLangInputIdentity!]
+  buttonLabel: [MultiLangInputIdentity!]
+  actionLink: ActionLinkInputIdentity
+  startDate: DateTime
+  endDate: DateTime
+}
+
+type NetworkConfiguration {
+  features: NetworkConfigurationFeatures
+  iosControl: NetworkConfigurationControl
+  androidControl: NetworkConfigurationControl
+  mobileToken: String
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type NetworkConfigurationControl {
+  notSupported(filterBy: Mixed): [NetworkConfigurationControlVersion]
+  endOfLife(filterBy: Mixed): [NetworkConfigurationControlVersion]
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkConfigurationControlInput {
+  notSupported: [NetworkConfigurationControlVersionInput!]!
+  endOfLife: [NetworkConfigurationControlVersionInput!]!
+}
+
+type NetworkConfigurationControlVersion {
+  version: String
+  message: String
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkConfigurationControlVersionInput {
+  version: String!
+  message: String!
+}
+
+type NetworkConfigurationFeatures {
+  languages(filterBy: Mixed): [String]!
+  personas: FeatureFlag!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type NetworkCuratedList {
+  id: ID!
+  externalId: Int!
+  type(filterBy: Mixed): NetworkCuratedListType!
+  name(multiLangFormat: MultiLangFormat = array): MultiLang
+  sections(filterBy: Mixed): [NetworkCuratedListSection]!
+  availableLocations(filterBy: Mixed): [NetworkCuratedListAvailableLocation]
+  isNetworkDefault: Boolean!
+  network: Network!
+  site: Site
+  personas(filterBy: Mixed): [NetworkPersona]!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type NetworkCuratedListAvailableLocation {
+  id: String!
+  name(multiLangFormat: MultiLangFormat = array): MultiLang!
+  type: NetworkCuratedListSectionLocationType!
+  externalId: ID
+  details: String
+  children(filterBy: Mixed): [NetworkCuratedListAvailableLocation]
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkCuratedListInputIdentity {
+  networkId: ID!
+  type: NetworkCuratedListType!
+  name: [MultiLangInputIdentity!]!
+  isNetworkDefault: Boolean = false
+  siteId: ID
+  personas: [ID]
+}
+
+input NetworkCuratedListInputUpdate {
+  name: [MultiLangInputIdentity!]!
+  isNetworkDefault: Boolean = false
+  personas: [ID]
+}
+
+type NetworkCuratedListSection {
+  id: ID!
+  name(multiLangFormat: MultiLangFormat = array): MultiLang
+  locations(filterBy: Mixed): [NetworkCuratedListSectionLocation]!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkCuratedListSectionInputIdentity {
+  curatedListId: ID!
+  name: [MultiLangInputIdentity!]!
+}
+
+type NetworkCuratedListSectionLocation {
+  id: ID!
+  externalId: Int!
+  name(multiLangFormat: MultiLangFormat = array): MultiLang
+  type: NetworkCuratedListSectionLocationType!
+  children(filterBy: Mixed): [NetworkCuratedListSectionLocation]
+  order: Int!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkCuratedListSectionLocationEdit {
+  order: Int!
+}
+
+input NetworkCuratedListSectionLocationInputIdentity {
+  curatedListSectionId: ID!
+  targetId: ID!
+  targetType: NetworkCuratedListSectionLocationTargetType!
+  includeSubcategories: Boolean
+  includeAllBuildings: Boolean
+  includeAllPlaces: Boolean
+}
+
+input NetworkCuratedListSectionLocationsEdit {
+  id: ID!
+  order: Int!
+}
+
+enum NetworkCuratedListSectionLocationTargetType {
+  location
+  category
+}
+
+enum NetworkCuratedListSectionLocationType {
+  site
+  building
+  place
+  offsite
+}
+
+enum NetworkCuratedListType {
+  network
+  site
+  list
+}
+
+type NetworkDashboard {
+  id: ID!
+  network: Network!
+  availableSites(filterBy: Mixed): [Site]
+  cardGroups(filterBy: Mixed): [NetworkDashboardCardGroup]
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type NetworkDashboardCard {
+  id: ID!
+  title(multiLangFormat: MultiLangFormat = array): MultiLang!
+  overline(multiLangFormat: MultiLangFormat = array): MultiLang
+  subtitle(multiLangFormat: MultiLangFormat = array): MultiLang
+  textAlignment: TextAlignment
+  backgroundImageUrl: String
+  backgroundColor: String
+  iconUrl: String
+  textColor: String
+  dismissable: Boolean
+  expires: DateTime
+  iconText: String
+  locations: NetworkDashboardCardSelectedLocations
+  measurements: NetworkDashboardCardMeasurements
+  waitTimes: NetworkDashboardCardWaitTimes
+  linkData: ActionLink
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type NetworkDashboardCardBuilding {
+  site: Site
+  building: Building
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkDashboardCardBuildingInput {
+  siteId: ID!
+  externalId: Int!
+}
+
+type NetworkDashboardCardCustomLocations {
+  sites(filterBy: Mixed): [Site]
+  places(filterBy: Mixed): [Place]
+  buildings(filterBy: Mixed): [NetworkDashboardCardBuilding]
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkDashboardCardCustomLocationsInput {
+  sites: [ID!]
+  places: [ID!]
+  buildings: [NetworkDashboardCardBuildingInput]
+}
+
+type NetworkDashboardCardGroup {
+  id: ID!
+  type: NetworkDashboardCardGroupType!
+  cards(filterBy: Mixed): [NetworkDashboardCard]!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+enum NetworkDashboardCardGroupType {
+  temporary
+  expandable
+  one
+  two
+  three
+  four
+}
+
+enum NetworkDashboardCardHeight {
+  short
+  medium
+  tall
+}
+
+type NetworkDashboardCardMeasurements {
+  size: String
+  height: NetworkDashboardCardHeight
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkDashboardCardMeasurementsInput {
+  height: NetworkDashboardCardHeight
+}
+
+type NetworkDashboardCardSelectedLocations {
+  allUrgentCare: Boolean
+  allEmergencyDepartments: Boolean
+  custom: NetworkDashboardCardCustomLocations
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkDashboardCardSelectedLocationsInput {
+  allUrgentCare: Boolean
+  allEmergencyDepartments: Boolean
+  custom: NetworkDashboardCardCustomLocationsInput
+}
+
+type NetworkDashboardCardWaitTimes {
+  included: Boolean
+  showWhenCollapsed: Boolean
+  label(multiLangFormat: MultiLangFormat = array): MultiLang
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkDashboardCardWaitTimesInput {
+  included: Boolean!
+  showWhenCollapsed: Boolean!
+  label: [MultiLangInputIdentity]
+}
+
+type NetworkExplorePanel {
+  id: ID!
+  network: Network!
+  name(multiLangFormat: MultiLangFormat = array): MultiLang
+  site: Site
+  color: String
+  template: NetworkExplorePanelTemplateType!
+  status: NetworkExplorePanelStatusType!
+  type: NetworkExplorePanelType!
+  actions(filterBy: Mixed): [NetworkExplorePanelAction]!
+  personas(filterBy: Mixed): [NetworkPersona]!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type NetworkExplorePanelAction {
+  id: ID!
+  name(multiLangFormat: MultiLangFormat = array): MultiLang
+  icon: Icon
+  type: NetworkExplorePanelActionType
+  category: Category
+  list: NetworkCuratedList
+  order: Int!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkExplorePanelActionInputIdentity {
+  id: ID
+  name: [MultiLangInputIdentity!]!
+  imageId: ID
+  type: NetworkExplorePanelActionType
+  listId: ID
+  categoryId: ID
+  order: Int
+}
+
+enum NetworkExplorePanelActionType {
+  list
+  category
+}
+
+input NetworkExplorePanelInputIdentity {
+  networkId: ID!
+  name: [MultiLangInputIdentity!]
+  siteId: ID
+  color: String
+  template: NetworkExplorePanelTemplateType
+  type: NetworkExplorePanelType
+  actions: [NetworkExplorePanelActionInputIdentity]
+  personas: [ID]
+}
+
+enum NetworkExplorePanelStatusType {
+  complete
+  incomplete
+}
+
+enum NetworkExplorePanelTemplateType {
+  four_actions
+  eight_actions
+}
+
+enum NetworkExplorePanelType {
+  network
+  site
+}
+
+input NetworkFeaturesUpdate {
+  personas: FeatureFlag!
+}
+
+type NetworkIcon {
+  id: ID!
+  type: String!
+  url(protocol: urlProtocol): String!
+  tint(withTheme: Boolean): String
+  network: Network!
+  image: Image!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkIconInputIdentity {
+  imageId: ID!
+  type: String!
+  tint: String
+  ignoreTheme: Boolean
+}
+
+input NetworkIconInputUpdate {
+  tint: String
+  ignoreTheme: Boolean
+}
+
+input NetworkInputName {
+  name: String!
+  humanName: String!
+}
+
+type NetworkMobileApp {
+  id: ID!
+  name: String!
+  type: NetworkMobileAppTypeEnum!
+  apnsApplicationArn: String
+  gcmApplicationArn: String
+  network: Network!
+  token: String
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+enum NetworkMobileAppTypeEnum {
+  customerDevelopment
+  customerRelease
+  connectDevelopment
+  connectRelease
+}
+
+type NetworkNavigation {
+  id: ID!
+  network: Network!
+  fillColor: String!
+  selectedColor: String!
+  backgroundColor: String
+  template: NetworkNavigationTemplateType!
+  status: NetworkNavigationStatusType!
+  tabs(filterBy: Mixed): [ActionLink]!
+  items(filterBy: Mixed): [ActionLink]!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkNavigationInputIdentity {
+  fillColor: String!
+  selectedColor: String!
+  backgroundColor: String
+  template: NetworkNavigationTemplateType = four_actions
+  tabs: [ActionLinkInputIdentity] = []
+  items: [ActionLinkInputIdentity] = []
+}
+
+enum NetworkNavigationStatusType {
+  complete
+  incomplete
+}
+
+enum NetworkNavigationTemplateType {
+  three_actions
+  four_actions
+}
+
+type NetworkNotification {
+  id: ID!
+  mobileApp: ID!
+  body(multiLangFormat: MultiLangFormat = array): MultiLang!
+  title(multiLangFormat: MultiLangFormat = array): MultiLang!
+  network: Network!
+  type: NetworkNotificationTypeEnum!
+  actionUrl(multiLangFormat: MultiLangFormat = array): MultiLang
+  geofence: NetworkNotificationGeofence
+  image: Image
+  createdAt: DateTime!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type NetworkNotificationGeofence {
+  latitude: Float!
+  longitude: Float!
+  radius: Float!
+  type: NetworkNotificationGeofenceTypeEnum!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkNotificationGeofenceInput {
+  latitude: Float!
+  longitude: Float!
+  radius: Int!
+  type: NetworkNotificationGeofenceTypeEnum!
+}
+
+enum NetworkNotificationGeofenceTypeEnum {
+  inside
+  outside
+}
+
+input NetworkNotificationInput {
+  imageId: ID
+  mobileAppId: ID!
+  body: [MultiLangInputIdentity]!
+  title: [MultiLangInputIdentity]!
+  actionUrl: [MultiLangInputIdentity]
+  geofence: NetworkNotificationGeofenceInput
+}
+
+enum NetworkNotificationTypeEnum {
+  message
+  data
+}
+
+type NetworkPersona {
+  id: ID!
+  network: Network!
+  icon: Icon!
+  name(multiLangFormat: MultiLangFormat = array): MultiLang!
+  isDefault: Boolean!
+  publishable: Boolean!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkPersonaInputCreate {
+  imageId: ID!
+  name: [MultiLangInputIdentity!]!
+  publishable: Boolean
+}
+
+input NetworkPersonaInputUpdate {
+  imageId: ID!
+  name: [MultiLangInputIdentity!]!
+  isDefault: Boolean!
+  publishable: Boolean!
+}
+
+type NetworkPlaceholder {
+  id: ID!
+  type: String!
+  url(protocol: urlProtocol): String!
+  network: Network!
+  image: Image!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkPlaceholderInputIdentity {
+  imageId: ID!
+  type: String!
+}
+
+input NetworkPublishState {
+  publishingState: PublishingStates!
+}
+
+type NetworkTheme {
+  colors(filterBy: Mixed): [ThemeColor]!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type NetworkTypeahead {
+  id: ID!
+  externalId: Int!
+  network: Network!
+  icon: Icon
+  label(multiLangFormat: MultiLangFormat = array): MultiLang
+  sortBy: TypeaheadSort!
+  matchBy: TypeaheadMatch!
+  actionType: TypeaheadAction!
+  tags(filterBy: Mixed): [Tag]!
+  category: Category
+  curatedList: NetworkCuratedList
+  includeTags(filterBy: Mixed): [Tag]!
+  excludeCategoryTags(filterBy: Mixed): [ID]!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input NetworkTypeaheadInputIdentity {
+  networkId: ID!
+  label: [MultiLangInputIdentity!]!
+  sortBy: TypeaheadSort!
+  matchBy: TypeaheadMatch!
+  actionType: TypeaheadAction! = category
+  targetId: ID!
+  includeTags: [TagInputIdentity]
+  excludeCategoryTags: [ID]
+}
+
+input NetworkVersionControlInput {
+  iosControl: NetworkConfigurationControlInput
+  androidControl: NetworkConfigurationControlInput
+}
+
+type Packager {
+  mobile: PackagerMobile!
+  kiosk: PackagerKiosk!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type PackagerKiosk {
+  currentVersion: Int!
+  supportedVersions(filterBy: Mixed): [Int!]!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type PackagerMobile {
+  currentVersion: Int!
+  supportedVersions(filterBy: Mixed): [Int!]!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type Place {
+  id: ID!
+  externalId: Int!
+  network: Network!
+  name(multiLangFormat: MultiLangFormat = array): MultiLang
+  shortName(multiLangFormat: MultiLangFormat = array): MultiLang
+  description(multiLangFormat: MultiLangFormat = array): MultiLang
+  phone: String
+  hours: HoursOfOperation
+  waitTime: Int
+  category: Category
+  site: Site
+  building: Building
+  floor: Floor
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input PointRadius {
+  lat: Float!
+  lng: Float!
+  radius: Int!
+}
+
+type Position {
+  latitude: Float!
+  longitude: Float!
+  distance: Float
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input PositionInputIdentity {
+  latitude: Float!
+  longitude: Float!
+}
+
+type Provider {
+  id: ID
+  externalId: Int!
+  firstName: String
+  lastName: String
+  middleName: String
+  suffix: String
+  gender: Gender
+  specialty: String
+  degrees(filterBy: Mixed): [String]
+  insuranceAccepted(filterBy: Mixed): [ProviderInsuranceAccepted]
+  isAcceptingNewPatients: Boolean
+  canDirectBook: Boolean
+  source: ProviderSource
+  network: Network
+  locations(filterBy: Mixed): [Location]
+  review: ProviderReview
+  imageUrl: String
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type ProviderInsuranceAccepted {
+  name: String
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type ProviderReview {
+  averageRating: Float
+  reviewCount: Int
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type ProviderSource {
+  networkId: ID!
+  externalId: Int!
+  systemId: String!
+  systemName: String!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+enum PublishingStates {
+  enabled
+  admin
+  disabled
+}
+
+type Query {
+  noop: String
+  findImageTransforms(filterBy: Mixed): [ImageTransform]!
+  findImageTransformById(id: String!): ImageTransform
+  findImageTransformByName(name: String!): ImageTransform
+  healthcheck: String!
+  resolveAddress(resolvable: AddressInputResolvable!): AddressResolution!
+  findAvailabilityByPointRadiusDateRange(pointRadius: PointRadius!, dateRange: DateRange!, filterBy: Mixed): [Availability]!
+  findAvailabilityByLocationExternalIdDateRange(id: Int!, dateRange: DateRange!, filterBy: Mixed): [Availability]!
+  findCategories(filterBy: Mixed): [Category]!
+  findCategoryById(id: String!): Category
+  findDataPackages(filterBy: Mixed): [DataPackage]
+  findDataPackagesByNetworkId(id: ID!, filterBy: Mixed): [DataPackage]
+  findDataPackageById(id: ID!): DataPackage
+  findDataPackageEventById(id: String!): DataPackageEvents
+  findDataPackageEventsByNetworkId(id: String!, filterBy: Mixed): [DataPackageEvents]
+  findDataPackageEventsByDataPackageId(id: String!, filterBy: Mixed): [DataPackageEvents]
+  uploads(filterBy: Mixed): [File]
+  findImageById(id: ID!): Image
+  findLocationById(id: ID!): Location
+  findLocationByExternalId(id: Int!): Location
+  resolveLocation(resolvable: LocationInputResolvable!, saveDepartmentId: Boolean): LocationResolution!
+  findLocationsByPointRadius(pointRadius: PointRadius!, filterBy: Mixed): [Location]!
+  locationSearchTypeahead(query: String!, siteId: ID, filterBy: Mixed): [LocationSearchResult]
+  findNetworks(filterBy: Mixed): [Network]!
+  findNetworkById(id: String!): Network
+  findNetworkByName(name: String!): Network
+  findNetworkCuratedLists(filterBy: Mixed): [NetworkCuratedList]!
+  findNetworkCuratedListById(id: ID!): NetworkCuratedList
+  findNetworkCuratedListsByNetworkId(id: ID!, filterBy: Mixed): [NetworkCuratedList]
+  findNetworkDashboardsByNetworkId(id: ID!, filterBy: Mixed): [NetworkDashboard]
+  findNetworkDashboardById(id: ID!): NetworkDashboard
+  findNetworkDashboardCardGroupById(id: ID!): NetworkDashboardCardGroup
+  findNetworkDashboardCardById(id: ID!): NetworkDashboardCard
+  findNetworkExplorePanels(filterBy: Mixed): [NetworkExplorePanel]!
+  findNetworkExplorePanelById(id: ID!): NetworkExplorePanel
+  findNetworkExplorePanelsByNetworkId(id: ID!, filterBy: Mixed): [NetworkExplorePanel]
+  findNetworkIconById(id: ID!): NetworkIcon
+  findNetworkIconsByNetworkId(id: ID!, filterBy: Mixed): [NetworkIcon]
+  findMobileApps(filterBy: Mixed): [NetworkMobileApp]
+  findMobileAppsByType(type: NetworkMobileAppTypeEnum!, filterBy: Mixed): [NetworkMobileApp]
+  findNetworkPersonaById(id: ID!): NetworkPersona
+  findNetworkPlaceholderById(id: ID!): NetworkPlaceholder
+  findNetworkTypeaheads(filterBy: Mixed): [NetworkTypeahead]!
+  findNetworkTypeaheadById(id: ID!): NetworkTypeahead
+  packager: Packager!
+  findPlaceById(id: String!): Place
+  findPlaceByDepartmentId(id: String!): Place
+  findProviderById(id: ID!): Provider
+  findProviderByExternalId(id: Int!): Provider
+  findProvidersByNetworkId(id: ID!, filterBy: Mixed): [Provider]!
+  findProvidersByPointRadius(pointRadius: PointRadius!, filterBy: Mixed): [Provider]!
+  findSiteById(id: String!): Site
+  findSiteByDepartmentId(id: String!): Site
+  system: System!
+  findSystemExplorePanelById(id: ID!): SystemExplorePanel
+  findSystemIcons(filterBy: Mixed): [SystemIcon]!
+  findSystemIconById(id: ID!): SystemIcon
+  findSystemIconByType(type: String!): SystemIcon
+  findSystemTypeaheads(filterBy: Mixed): [SystemTypeahead]!
+  findSystemTypeaheadById(id: ID!): SystemTypeahead
+  findUserById: User
+  findUserByToken: User
+}
+
+type Reference {
+  model: String!
+  path: String!
+  operation: String!
+  data: Mixed!
+  elements(filterBy: Mixed): [Mixed]!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type Site {
+  id: ID!
+  network: Network!
+  externalId: Int!
+  mapId: Int
+  name(multiLangFormat: MultiLangFormat = array): MultiLang
+  shortName(multiLangFormat: MultiLangFormat = array): MultiLang
+  description(multiLangFormat: MultiLangFormat = array): MultiLang
+  type: String
+  phone: String
+  places(filterBy: Mixed): [Place]
+  buildings(filterBy: Mixed): [Building]
+  hours: HoursOfOperation
+  waitTime: Int
+  dataChannels(filterBy: Mixed): [String]
+  category: Category
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type Source {
+  systemId: String!
+  systemName: String!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+enum State {
+  preview
+  live
+  packaging
+  packaged
+  errored
+}
+
+type Subscription {
+  noop: String
+  subscribeDataPackage(id: ID!): DataPackage!
+}
+
+type System {
+  packager: Packager!
+  environments(filterBy: Mixed): [Environment!]!
+  typeaheads(filterBy: Mixed): [SystemTypeahead]
+  explorePanel: SystemExplorePanel
+  navigation: SystemNavigation
+  appDestinations(filterBy: Mixed): [AppDestination]
+  configuration: SystemConfiguration
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type SystemConfiguration {
+  mutedNameTags(filterBy: Mixed): [Tag]!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type SystemExplorePanel {
+  id: ID!
+  name(multiLangFormat: MultiLangFormat = array): MultiLang
+  color: String
+  template: SystemExplorePanelTemplateType!
+  status: SystemExplorePanelStatusType!
+  actions(filterBy: Mixed): [SystemExplorePanelAction]!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type SystemExplorePanelAction {
+  id: ID!
+  name(multiLangFormat: MultiLangFormat = array): MultiLang
+  icon: Icon
+  type: SystemExplorePanelActionType
+  category: Category
+  list: NetworkCuratedList
+  order: Int!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input SystemExplorePanelActionInputIdentity {
+  id: ID
+  name: [MultiLangInputIdentity!]!
+  imageId: ID
+  type: SystemExplorePanelActionType
+  listId: ID
+  categoryId: ID
+  order: Int
+}
+
+enum SystemExplorePanelActionType {
+  list
+  category
+}
+
+input SystemExplorePanelInputIdentity {
+  name: [MultiLangInputIdentity!]
+  color: String
+  template: SystemExplorePanelTemplateType
+  actions: [SystemExplorePanelActionInputIdentity]
+}
+
+enum SystemExplorePanelStatusType {
+  complete
+  incomplete
+}
+
+enum SystemExplorePanelTemplateType {
+  four_actions
+  eight_actions
+}
+
+type SystemIcon {
+  id: ID!
+  type: String!
+  url(protocol: urlProtocol): String!
+  image: Image!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input SystemIconInputIdentity {
+  imageId: ID!
+  type: String!
+}
+
+type SystemNavigation {
+  id: ID!
+  fillColor: String!
+  selectedColor: String!
+  backgroundColor: String
+  template: SystemNavigationTemplateType!
+  status: SystemNavigationStatusType!
+  tabs(filterBy: Mixed): [ActionLink]!
+  items(filterBy: Mixed): [ActionLink]!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input SystemNavigationInputIdentity {
+  fillColor: String!
+  selectedColor: String!
+  backgroundColor: String
+  template: SystemNavigationTemplateType = four_actions
+  tabs: [ActionLinkInputIdentity] = []
+  items: [ActionLinkInputIdentity] = []
+}
+
+enum SystemNavigationStatusType {
+  complete
+  incomplete
+}
+
+enum SystemNavigationTemplateType {
+  three_actions
+  four_actions
+}
+
+type SystemTypeahead {
+  id: ID!
+  externalId: Int!
+  icon: Icon
+  label(multiLangFormat: MultiLangFormat = array): MultiLang
+  sortBy: TypeaheadSort!
+  matchBy: TypeaheadMatch!
+  actionType: TypeaheadAction!
+  tags(filterBy: Mixed): [Tag]!
+  category: Category
+  includeTags(filterBy: Mixed): [Tag]!
+  excludeCategoryTags(filterBy: Mixed): [ID]!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input SystemTypeaheadInputIdentity {
+  label: [MultiLangInputIdentity!]!
+  sortBy: TypeaheadSort!
+  matchBy: TypeaheadMatch!
+  actionType: TypeaheadAction! = category
+  targetId: ID!
+  includeTags: [TagInputIdentity]
+  excludeCategoryTags: [ID]
+}
+
+type Tag {
+  id: ID!
+  name(multiLangFormat: MultiLangFormat = array): MultiLang
+  weight(unit: TagWeightUnit! = enum): Mixed!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+input TagInputIdentity {
+  name: [MultiLangInputIdentity!]!
+  weight: TagWeight!
+}
+
+enum TagWeight {
+  low
+  medium
+  high
+}
+
+enum TagWeightUnit {
+  enum
+  number
+}
+
+enum TextAlignment {
+  left
+  center
+}
+
+type ThemeColor {
+  key: ThemeColorKey!
+  value: String!
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+enum ThemeColorKey {
+  primary
+  first_accent
+  toolbar_bg
+  detail_icon_accent
+  status_bar_bg
+  drawer_arrow_bg
+  pager_dot_bg
+  favorite_button_tint
+  splash_screen_bg
+  navigation_item_bg_normal
+  navigation_item_bg_pressed
+  navigation_item_text
+  dashboard_accent
+  dashboard_bg
+  dashboard_card_expand_icon_tint
+  dashboard_card_button_bg
+  physician_detail_banner_bg
+  status_bar_style
+  site_map_marker_tint
+  site_map_marker_tint_selected
+}
+
+input ThemeInputIdentity {
+  colors: [ColorInputIdentity]!
+}
+
+enum TypeaheadAction {
+  category
+  list
+}
+
+enum TypeaheadMatch {
+  tag
+  numeric
+}
+
+enum TypeaheadSort {
+  default
+  alphanumeric
+  distance
+  relevance
+}
+
+input UpdateNetworkDashboardCardInput {
+  cardId: ID!
+  cardGroupId: ID!
+  title: [MultiLangInputIdentity]
+  overline: [MultiLangInputIdentity]
+  subtitle: [MultiLangInputIdentity]
+  textAlignment: TextAlignment
+  backgroundImageUrl: String
+  backgroundColor: String
+  iconUrl: String
+  textColor: String
+  dismissable: Boolean
+  expires: DateTime
+  iconText: String
+  locations: NetworkDashboardCardSelectedLocationsInput
+  measurements: NetworkDashboardCardMeasurementsInput
+  waitTimes: NetworkDashboardCardWaitTimesInput
+  linkData: ActionLinkInputIdentity
+}
+
+input UpdateNetworkDashboardInput {
+  dashboardId: ID!
+  cardGroups: [ID!]
+  personas: [ID!]
+}
+
+"""The `Upload` scalar type represents a file upload."""
+scalar Upload
+
+enum urlProtocol {
+  secure
+  none
+}
+
+type User {
+  id: String
+  profile: UserProfile
+  referencedBy(filterBy: Mixed): [Reference]
+}
+
+type UserProfile {
+  firstName: String
+  lastName: String
+  language: String
+  referencedBy(filterBy: Mixed): [Reference]
+}

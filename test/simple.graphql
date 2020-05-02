@@ -1,0 +1,31 @@
+enum LocationType {
+  primary
+  urgent
+  quick
+  er
+}
+
+type Person @model {
+  name: String!
+  authored: [Book]
+  emailAddress: String!
+  home: Building
+  status: String @field(scope: private)
+}
+
+type Book @model {
+  name: String!
+  price: Float!
+  author: Person!
+  bestSeller: Boolean
+  bids: [Float]
+}
+
+type Building {
+  name: String!
+  location: LocationType
+}
+
+type Query {
+  findThemBooks: [Book]!
+}
