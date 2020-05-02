@@ -1,7 +1,9 @@
 // https://hasura.io/blog/the-ultimate-guide-to-schema-stitching-in-graphql-f30178ac0072/#d677
+// https://graphql.org/graphql-js/type/
+// https://graphql.org/graphql-js/utilities/
 
 const { uniqWith } = require('lodash');
-const { GraphQLObjectType } = require('graphql');
+const { GraphQLScalarType, GraphQLObjectType, GraphQLInterfaceType, GraphQLUnionType, GraphQLEnumType, GraphQLInputObjectType } = require('graphql');
 const { SchemaDirectiveVisitor, makeExecutableSchema, mergeSchemas } = require('graphql-tools');
 const Rule = require('../core/Rule');
 const Transformer = require('../core/Transformer');
@@ -12,7 +14,7 @@ class SchemaDirective extends SchemaDirectiveVisitor {
   visitObject() {} // eslint-disable-line
 }
 
-exports.makeExecutableSchema = (gqlSchema, directives) => {
+exports.makeExecutableSchema = (gqlSchema) => {
   // Ensure schema
   gqlSchema.typeDefs = gqlSchema.typeDefs || [];
   gqlSchema.typeDefs = Array.isArray(gqlSchema.typeDefs) ? gqlSchema.typeDefs : [gqlSchema.typeDefs];
@@ -45,7 +47,6 @@ exports.makeExecutableSchema = (gqlSchema, directives) => {
     ) on OBJECT
 
     directive @field(
-      ${directives.join('\n\t    ')}
       alias: String
       scope: AutoGraphScopeEnum
       enforce: [AutoGraphEnforceEnum!]
@@ -105,22 +106,48 @@ exports.extendSchemaDataTypes = (schema) => {
 };
 
 exports.getSchemaData = (schema) => {
-  const ignores = ['__'];
   const operations = ['Query', 'Mutation', 'Subscription'];
 
   return Object.entries(schema.getTypeMap()).reduce((prev, [key, value]) => {
-    if (ignores.some(el => key.startsWith(el))) return prev;
+    let type;
 
-    if (operations.some(el => key.startsWith(el))) {
-      Object.assign(prev.operations, { [key]: value });
+    if (value instanceof GraphQLScalarType) {
+      type = 'scalars';
+    } else if (value instanceof GraphQLEnumType) {
+      type = 'enums';
+    } else if (value instanceof GraphQLUnionType) {
+      type = 'unions';
+    } else if (value instanceof GraphQLInterfaceType) {
+      type = 'interfaces';
+    } else if (value instanceof GraphQLInputObjectType) {
+      type = 'inputs';
     } else if (value instanceof GraphQLObjectType) {
-      Object.assign(prev.models, { [key]: value });
+      if (operations.includes(key)) {
+        type = 'operations';
+      } else {
+        type = 'models';
+      }
+    }
+
+    if (type) {
+      if (!key.startsWith('__')) {
+        prev[type][key] = value;
+      }
+    } else {
+      console.log(`Unknown schema type { ${key}: ${value} }`);
     }
 
     return prev;
   }, {
+    enums: {},
     models: {},
+    inputs: {},
+    unions: {},
+    scalars: {},
     operations: {},
+    directives: {},
+    interfaces: {},
+    enumerations: {},
   });
 };
 

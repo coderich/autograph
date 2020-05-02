@@ -21,6 +21,7 @@ Todo:
   * Get a list of references that would be onDelete affected
   * Currently there is no way to count regular elements of an array (try to count bids)
   * URL, RGB, RGBA, validator?
+  * Allow Field and Model to be extended (directive fields)
 
 Figure out:
   * createdBy? (Audit trail)
