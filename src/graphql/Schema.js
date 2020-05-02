@@ -1,12 +1,12 @@
 const Model = require('./Model');
-const { makeExecutableSchema, getSchemaDataTypes } = require('../service/schema.service');
+const { makeExecutableSchema, getSchemaData } = require('../service/schema.service');
 
 const customDirectives = [];
 
 module.exports = class Schema {
   constructor(gqlSchema) {
     this.schema = makeExecutableSchema(gqlSchema, customDirectives);
-    this.models = Object.values(getSchemaDataTypes(this.schema)).map(value => new Model(this, value));
+    this.models = Object.values(getSchemaData(this.schema).models).map(value => new Model(this, value));
   }
 
   getModels() {

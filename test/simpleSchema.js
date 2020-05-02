@@ -14,5 +14,9 @@ module.exports = {
       bestSeller: Boolean
       bids: [Float]
     }
+
+    type Query {
+      findThemBooks: [Book]!
+    }
   `,
 };

@@ -5,7 +5,7 @@ const Drivers = require('../driver');
 const Schema = require('../graphql/Schema');
 const AuthzDirective = require('../directive/authz.directive');
 const ServerResolver = require('./ServerResolver');
-const { ucFirst, toGUID, fromGUID } = require('../service/app.service');
+const { ucFirst, fromGUID } = require('../service/app.service');
 const { identifyOnDeletes } = require('../service/schema.service');
 
 // Export class
@@ -29,6 +29,14 @@ module.exports = class extends Schema {
     // Create models
     this.models = super.getModels().map(model => new Model(this, model, drivers));
     this.models.forEach(model => model.referentialIntegrity(identifyOnDeletes(this.models, model)));
+  }
+
+  getVisibleModels() {
+    return this.models.filter(model => model.isVisible());
+  }
+
+  getEntityModels() {
+    return this.getModels().filter(model => model.isEntity());
   }
 
   makeServerApiSchema() {
@@ -106,15 +114,15 @@ module.exports = class extends Schema {
         directive @authz(model: String) on OBJECT | FIELD_DEFINITION
         `,
 
-        `type Query {
-          Schema: Schema!
-          node(id: ID!): Node
+        `type Schema {
           ${this.getVisibleModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} @authz`)}
           ${this.getVisibleModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection! @authz(model: "${model.getName()}")`)}
           ${this.getVisibleModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int! @authz(model: "${model.getName()}")`)}
         }`,
 
-        `type Schema {
+        `type Query {
+          Schema: Schema!
+          node(id: ID!): Node
           ${this.getVisibleModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} @authz`)}
           ${this.getVisibleModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection! @authz(model: "${model.getName()}")`)}
           ${this.getVisibleModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int! @authz(model: "${model.getName()}")`)}

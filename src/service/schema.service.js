@@ -66,7 +66,7 @@ exports.makeExecutableSchema = (gqlSchema, directives) => {
 };
 
 exports.extendSchemaDataTypes = (schema) => {
-  const extSchema = `${Object.entries(exports.getSchemaDataTypes(schema)).map(([key, value]) => {
+  const extSchema = `${Object.entries(exports.getSchemaData(schema).models).map(([key, value]) => {
     const fieldNames = value.astNode.fields.map(field => field.name.value);
     const hasID = fieldNames.includes('id');
     const hasCreatedAt = fieldNames.includes('createdAt');
@@ -103,11 +103,24 @@ exports.extendSchemaDataTypes = (schema) => {
   return mergeSchemas({ schemas: [schema, extSchema], mergeDirectives: true });
 };
 
-exports.getSchemaDataTypes = (schema) => {
+exports.getSchemaData = (schema) => {
+  const ignores = ['__'];
+  const operations = ['Query', 'Mutation', 'Subscription'];
+
   return Object.entries(schema.getTypeMap()).reduce((prev, [key, value]) => {
-    if (!key.startsWith('__') && value instanceof GraphQLObjectType) Object.assign(prev, { [key]: value });
+    if (ignores.some(el => key.startsWith(el))) return prev;
+
+    if (operations.some(el => key.startsWith(el))) {
+      Object.assign(prev.operations, { [key]: value });
+    } else if (value instanceof GraphQLObjectType) {
+      Object.assign(prev.models, { [key]: value });
+    }
+
     return prev;
-  }, {});
+  }, {
+    models: {},
+    operations: {},
+  });
 };
 
 
