@@ -1,13 +1,15 @@
 const Field = require('./Field');
 const ResultSet = require('./ResultSet');
+const Model = require('../graphql/Model');
 const { lcFirst } = require('../service/app.service');
 
-module.exports = class Model {
+module.exports = class extends Model {
   constructor(schema, model, drivers) {
+    super(schema, model.getAST());
+
     this.schema = schema;
-    this.model = model;
     this.driver = drivers[this.getDriverName()];
-    this.fields = model.getFields().map(field => new Field(schema, this, field));
+    this.fields = super.getFields().map(field => new Field(schema, this, field));
     this.toString = () => `${model}`;
 
     // Create collections (mongo)
@@ -51,7 +53,7 @@ module.exports = class Model {
   }
 
   idField() {
-    return this.model.getDirectiveArg('model', 'id', this.driver.idField());
+    return this.getDirectiveArg('model', 'id', this.driver.idField());
   }
 
   async hydrate(resolver, results, query = {}) {
@@ -149,7 +151,7 @@ module.exports = class Model {
   }
 
   getDriverName() {
-    return this.model.getDirectiveArg('model', 'driver', 'default');
+    return this.getDirectiveArg('model', 'driver', 'default');
   }
 
   referentialIntegrity(refs) {
@@ -157,45 +159,15 @@ module.exports = class Model {
     return this.referentials;
   }
 
-  // GTG
-
-  getName() {
-    return this.model.getName();
-  }
-
-  getType() {
-    return this.model.getType();
-  }
-
-  getAlias() {
-    return this.model.getDirectiveArg('model', 'alias', this.getName());
-  }
-
   getNamespace() {
-    return this.model.getDirectiveArg('model', 'namespace', this.getName());
+    return this.getDirectiveArg('model', 'namespace', this.getName());
   }
 
   getIndexes() {
-    return this.model.getDirectives('index').map(d => d.getArgs());
+    return this.getDirectives('index').map(d => d.getArgs());
   }
 
   isVisible() {
-    return this.model.isEntity();
-  }
-
-  isEntity() {
-    return this.model.isEntity();
-  }
-
-  serialize(value, mapper) {
-    return this.model.serialize(value, mapper);
-  }
-
-  transform(value, mapper) {
-    return this.model.transform(value, mapper);
-  }
-
-  validate(value, mapper) {
-    return this.model.validate(value, mapper);
+    return this.isEntity();
   }
 };

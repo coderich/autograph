@@ -11,6 +11,10 @@ module.exports = class Type {
     this.toString = () => `${this.getName()}`;
   }
 
+  getAST() {
+    return this.ast;
+  }
+
   getName() {
     return this.ast.name;
   }

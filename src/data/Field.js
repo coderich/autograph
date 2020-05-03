@@ -1,11 +1,13 @@
 const _ = require('lodash');
+const Field = require('../graphql/Field');
 const { isScalarValue, isScalarDataType } = require('../service/app.service');
 
-module.exports = class Field {
+module.exports = class extends Field {
   constructor(schema, model, field) {
+    super(schema, model, field.getAST());
+
     this.schema = schema;
     this.model = model;
-    this.field = field;
     this.toString = () => `${field}`;
   }
 
@@ -60,93 +62,17 @@ module.exports = class Field {
 
   // Transitional
 
-  cast(value) {
-    return this.field.cast(value);
-  }
-
-  getModelRef() {
-    return this.field.getModelRef();
-  }
-
-  getModelDataRef() {
-    return this.field.getModelDataRef();
-  }
-
-  getVirtualModel() {
-    return this.field.getVirtualModel();
-  }
-
-  getVirtualField() {
-    return this.field.getVirtualField();
-  }
-
-  getName() {
-    return this.field.getName();
-  }
-
   getSimpleType() {
-    return this.field.getType();
-  }
-
-  getDataType() {
-    return this.field.getDataType();
-  }
-
-  getDataRef() {
-    return this.field.getDataRef();
-  }
-
-  isArray() {
-    return this.field.isArray();
-  }
-
-  isScalar() {
-    return this.field.isScalar();
-  }
-
-  isRequired() {
-    return this.field.isRequired();
-  }
-
-  getAlias(defaultValue) {
-    return this.field.getAlias(defaultValue);
-  }
-
-  isVirtual() {
-    return this.field.isVirtual();
-  }
-
-  getVirtualRef() {
-    return this.field.getVirtualRef();
-  }
-
-  isEmbedded() {
-    return this.field.isEmbedded();
+    return this.getType();
   }
 
   getOnDelete() {
-    return this.field.getDirectiveArg('field', 'onDelete');
+    return this.getDirectiveArg('field', 'onDelete');
   }
 
   isImmutable() {
-    const enforce = this.field.getDirectiveArg('field', 'enforce', '');
+    const enforce = this.getDirectiveArg('field', 'enforce', '');
     return Boolean(JSON.stringify(enforce).indexOf('immutable') > -1);
-  }
-
-  isPrivate() {
-    return this.field.isPrivate();
-  }
-
-  serialize(value, mapper) {
-    return this.field.serialize(value, mapper);
-  }
-
-  transform(value, mapper) {
-    return this.field.transform(value, mapper);
-  }
-
-  validate(value, mapper) {
-    return this.field.validate(value, mapper);
   }
 
   //
