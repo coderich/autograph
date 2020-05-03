@@ -27,6 +27,10 @@ module.exports = class Type {
     return `${getNamedType(this.ast.type)}`;
   }
 
+  getSimpleType() {
+    return this.getType();
+  }
+
   getDataType() {
     const type = this.getType();
     if (!this.isArray()) return type;
@@ -36,6 +40,22 @@ module.exports = class Type {
   getDataRef() {
     const ref = this.getType();
     return isScalarDataType(ref) ? null : ref;
+  }
+
+  getOnDelete() {
+    return this.getDirectiveArg('field', 'onDelete');
+  }
+
+  getDriverName() {
+    return this.getDirectiveArg('model', 'driver', 'default');
+  }
+
+  getNamespace() {
+    return this.getDirectiveArg('model', 'namespace', this.getName());
+  }
+
+  getIndexes() {
+    return this.getDirectives('index').map(d => d.getArgs());
   }
 
   getVirtualRef() {
@@ -120,5 +140,10 @@ module.exports = class Type {
 
   isPrivate() {
     return Boolean(this.getScope() === 'private');
+  }
+
+  isImmutable() {
+    const enforce = this.getDirectiveArg('field', 'enforce', '');
+    return Boolean(JSON.stringify(enforce).indexOf('immutable') > -1);
   }
 };

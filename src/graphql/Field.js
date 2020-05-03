@@ -6,7 +6,6 @@ const { isPlainObject, ensureArray } = require('../service/app.service');
 module.exports = class Field extends Type {
   constructor(schema, model, type) {
     super(schema, type);
-
     this.model = model;
     this.rules = [];
     this.transformers = [];

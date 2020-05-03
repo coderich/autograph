@@ -5,9 +5,6 @@ const { isScalarValue, isScalarDataType } = require('../service/app.service');
 module.exports = class extends Field {
   constructor(schema, model, field) {
     super(schema, model, field.getAST());
-
-    this.schema = schema;
-    this.model = model;
     this.toString = () => `${field}`;
   }
 
@@ -59,23 +56,6 @@ module.exports = class extends Field {
 
     return resolver.match(dataType).id(value).one({ required: this.isRequired() });
   }
-
-  // Transitional
-
-  getSimpleType() {
-    return this.getType();
-  }
-
-  getOnDelete() {
-    return this.getDirectiveArg('field', 'onDelete');
-  }
-
-  isImmutable() {
-    const enforce = this.getDirectiveArg('field', 'enforce', '');
-    return Boolean(JSON.stringify(enforce).indexOf('immutable') > -1);
-  }
-
-  //
 
   getGQLType(suffix) {
     let type = this.getSimpleType();

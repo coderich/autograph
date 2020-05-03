@@ -45,6 +45,34 @@ module.exports = class Model extends Type {
     return this.fields.filter(field => Boolean(field.getDataRef()));
   }
 
+  // getDataRefFields() {
+  //   return this.fields.filter(field => Boolean(field.getDataRef() && !field.isEmbedded()));
+  // }
+
+  getOnDeleteFields() {
+    return this.fields.filter(field => Boolean(field.getDataRef()) && Boolean(field.getOnDelete()));
+  }
+
+  getEmbeddedArrayFields() {
+    return this.fields.filter(field => field.isArray() && !field.isVirtual());
+  }
+
+  getCountableFields() {
+    return this.fields.filter(field => field.isArray() && field.getDataRef());
+  }
+
+  getSelectFields() {
+    return this.fields.filter(field => field.getName() !== 'id');
+  }
+
+  getCreateFields() {
+    return this.fields.filter(field => !field.isVirtual() && !field.isPrivate());
+  }
+
+  getUpdateFields() {
+    return this.fields.filter(field => !field.isVirtual() && !field.isImmutable() && !field.isPrivate());
+  }
+
   serialize(data, mapper) {
     if (data == null) data = {};
 

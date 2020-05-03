@@ -6,8 +6,6 @@ const { lcFirst } = require('../service/app.service');
 module.exports = class extends Model {
   constructor(schema, model, drivers) {
     super(schema, model.getAST());
-
-    this.schema = schema;
     this.driver = drivers[this.getDriverName()];
     this.fields = super.getFields().map(field => new Field(schema, this, field));
     this.toString = () => `${model}`;
@@ -95,76 +93,13 @@ module.exports = class extends Model {
     return isArray ? data : data[0];
   }
 
-  // Transitional
-  getField(path) {
-    const [name, ...rest] = path.split('.');
-    const field = this.fields.find(f => f.getName() === name);
-    if (field == null) return field;
-
-    if (rest.length) {
-      const modelRef = field.getModelRef();
-      if (modelRef) return modelRef.getField(rest.join('.'));
-      return null;
-    }
-
-    return field;
-  }
-
-  getFields() {
-    return this.fields;
-  }
-
-  getEmbeddedArrayFields() {
-    return this.fields.filter(field => field.isArray() && !field.isVirtual());
-  }
-
-  getCountableFields() {
-    return this.fields.filter(field => field.isArray() && field.getDataRef());
-  }
-
-  getSelectFields() {
-    return this.fields.filter(field => field.getName() !== 'id');
-  }
-
-  getCreateFields() {
-    return this.fields.filter(field => !field.isVirtual() && !field.isPrivate());
-  }
-
-  getUpdateFields() {
-    return this.fields.filter(field => !field.isVirtual() && !field.isImmutable() && !field.isPrivate());
-  }
-
-  getDataRefFields() {
-    return this.fields.filter(field => Boolean(field.getDataRef() && !field.isEmbedded()));
-  }
-
-  getOnDeleteFields() {
-    return this.fields.filter(field => Boolean(field.getDataRef()) && Boolean(field.getOnDelete()));
-  }
-
-  getScalarFields() {
-    return this.fields.filter(field => field.isScalar());
-  }
-
   getDriver() {
     return this.driver.dao;
-  }
-
-  getDriverName() {
-    return this.getDirectiveArg('model', 'driver', 'default');
   }
 
   referentialIntegrity(refs) {
     if (refs) this.referentials = refs;
     return this.referentials;
-  }
-
-  getNamespace() {
-    return this.getDirectiveArg('model', 'namespace', this.getName());
-  }
-
-  getIndexes() {
-    return this.getDirectives('index').map(d => d.getArgs());
   }
 
   isVisible() {
