@@ -1,3 +1,4 @@
+// const { buildSchema, printSchema } = require('graphql');
 const Schema = require('../../src/core/Schema');
 const stores = require('../stores');
 const simpleSchema = require('../simple.graphql');
@@ -23,9 +24,12 @@ describe('CoreSchema', () => {
     schema.makeServerApiSchema();
   });
 
-  test('typeDefsSchema', () => {
-    const schema = new Schema(typeDefsSchema, stores);
-    expect(schema).toBeDefined();
-    schema.makeServerApiSchema();
-  });
+  // test('buildSchema', () => {
+  //   const schema1 = buildSchema('type User { name: String }');
+  //   expect(schema1).toBeDefined();
+  //   const s = printSchema(schema1);
+  //   console.log(s);
+  //   const schema2 = buildSchema(s);
+  //   expect(schema2).toBeDefined();
+  // });
 });

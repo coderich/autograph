@@ -22,6 +22,7 @@ Todo:
   * Currently there is no way to count regular elements of an array (try to count bids)
   * URL, RGB, RGBA, validator?
   * Allow Field and Model to be extended (directive fields)
+  * Computed fields?
 
 Figure out:
   * createdBy? (Audit trail)

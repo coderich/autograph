@@ -39,14 +39,11 @@ module.exports = (driver = 'mongo') => {
     beforeAll(async () => {
       jest.setTimeout(60000);
 
-      const driverArgs = {};
-
       // Start in-memory db
       switch (driver) {
         case 'redis': {
           // const redisClient = Redis.createClient();
           stores.default.type = 'redis';
-          // driverArgs.redis = redisClient;
           break;
         }
         case 'neo4jDriver': {
@@ -69,7 +66,7 @@ module.exports = (driver = 'mongo') => {
       }
 
       // Create core classes
-      const schema = new Schema(gql, stores, driverArgs);
+      const schema = new Schema(gql, stores);
       schema.makeServerApiSchema(); // Just call the API to make sure no errors
       resolver = new Resolver(schema);
 

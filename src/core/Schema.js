@@ -10,7 +10,7 @@ const { identifyOnDeletes } = require('../service/schema.service');
 
 // Export class
 module.exports = class extends Schema {
-  constructor(gqlSchema, stores, driverArgs = {}) {
+  constructor(gqlSchema, stores) {
     super(gqlSchema);
 
     // Create drivers
@@ -19,7 +19,7 @@ module.exports = class extends Schema {
 
       return Object.assign(prev, {
         [key]: {
-          dao: new Driver(uri, this, options, driverArgs[type]),
+          dao: new Driver(uri, this, options),
           idValue: Driver.idValue,
           idField: Driver.idField,
         },
@@ -42,8 +42,6 @@ module.exports = class extends Schema {
 
   makeServerApiSchema() {
     const resolver = new ServerResolver();
-
-    // console.log(this.getModels().map(model => model.getName()));
 
     const apiSchema = {
       typeDefs: this.getModels().map((model) => {
