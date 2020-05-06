@@ -14,13 +14,21 @@ module.exports = class Type extends Node {
   }
 
   isScalar() {
-    console.log(this.ast);
-    return this.getKind() === Kind.SCALAR_TYPE_DEFINITION || scalars.indexOf(this.getName()) > -1;
+    return scalars.indexOf(this.getName()) > -1;
   }
 
   isRequired() {
     return this.getKind() === Kind.NON_NULL_TYPE;
   }
+
+  // isVirtual() {
+  //   return Boolean(this.getDirectiveArg('field', 'materializeBy'));
+  // }
+
+  // isImmutable() {
+  //   const enforce = this.getDirectiveArg('field', 'enforce', '');
+  //   return Boolean(JSON.stringify(enforce).indexOf('immutable') > -1);
+  // }
 
   // getDataType() {
   //   const type = this.getType();
