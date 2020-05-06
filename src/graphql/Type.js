@@ -62,21 +62,9 @@ module.exports = class Type {
     return this.schema.getModel(this.getDataRef());
   }
 
-  getModelDataRef() {
-    const model = this.schema.getModel(this.getDataRef());
-    if (!model) return undefined;
-    const ref = model.getType();
-    return isScalarDataType(ref) ? null : ref;
-  }
-
-  getVirtualModel() {
-    return this.schema.getModel(this.getType());
-  }
-
   getVirtualField() {
-    const vModel = this.getVirtualModel();
-    if (vModel) return vModel.getField(this.getVirtualRef());
-    return null;
+    const model = this.getModelRef();
+    return model ? model.getField(this.getVirtualRef()) : null;
   }
 
   getDirective(name) {

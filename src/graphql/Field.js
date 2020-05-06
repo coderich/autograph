@@ -50,7 +50,7 @@ module.exports = class Field extends Type {
 
     // // Delegate transformations to the actual field responsible
     // const field = this.resolveField();
-    // if (field !== this) return field.transform(value, mapper);
+    // if (field !== this) return field.transform(value, mapper, serialize);
 
     // If we're a dataRef field, need to either id(value) or delegate object to model
     if (modelRef) {

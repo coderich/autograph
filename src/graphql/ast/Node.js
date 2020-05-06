@@ -23,7 +23,7 @@ module.exports = class Node {
   }
 
   getValue(ast = this.ast) {
-    const { value = {} } = ast;
+    const { value } = ast;
 
     if (!value) return undefined;
 
@@ -71,11 +71,48 @@ module.exports = class Node {
   }
 
   // Framework Methods
+  getAlias(defaultValue) {
+    return uvl(this.getDirectiveArg('model', 'alias'), this.getDirectiveArg('field', 'alias'), defaultValue, this.getName());
+  }
+
+  getOnDelete() {
+    return this.getDirectiveArg('field', 'onDelete');
+  }
+
+  getDriverName() {
+    return this.getDirectiveArg('model', 'driver', 'default');
+  }
+
+  getNamespace() {
+    return this.getDirectiveArg('model', 'namespace', this.getName());
+  }
+
+  getIndexes() {
+    return this.getDirectives('index').map(d => d.getArgs());
+  }
+
+  getVirtualRef() {
+    return this.getDirectiveArg('field', 'materializeBy');
+  }
+
   getScope() {
     return this.getDirectiveArg('field', 'scope', this.getDirectiveArg('model', 'scope', 'protected'));
   }
 
   isPrivate() {
     return Boolean(this.getScope() === 'private');
+  }
+
+  isEntity() {
+    return Boolean(this.getDirective('model'));
+  }
+
+  isVirtual() {
+    return Boolean(this.getDirectiveArg('field', 'materializeBy'));
+  }
+
+  isImmutable() {
+    const enforce = this.getDirectiveArg('field', 'enforce', '');
+    return Boolean(JSON.stringify(enforce).indexOf('immutable') > -1);
   }
 };

@@ -42,11 +42,13 @@ describe('Documents', () => {
     expect(personFields.map(f => f.getType())).toEqual(['String', 'Book', 'String', 'Mixed']);
     expect(personFields.map(f => f.isArray())).toEqual([false, true, false, false]);
     expect(personFields.map(f => f.isScalar())).toEqual([true, false, true, true]);
+    expect(personFields.map(f => f.isRequired())).toEqual([true, false, true, false]);
     expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
     expect(bookFields.map(f => f.getName())).toEqual(['name', 'price', 'author', 'bestSeller', 'bids']);
     expect(bookFields.map(f => f.getType())).toEqual(['String', 'Float', 'Person', 'Boolean', 'Float']);
     expect(bookFields.map(f => f.isArray())).toEqual([false, false, false, false, true]);
     expect(bookFields.map(f => f.isScalar())).toEqual([true, true, false, true, true]);
+    expect(bookFields.map(f => f.isRequired())).toEqual([true, true, true, false, false]);
     expect(Book.getField('bestSeller').getDirective('default').getArg('value')).toBe(false);
   });
 });

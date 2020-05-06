@@ -27,8 +27,4 @@ module.exports = class Model extends Node {
   getFieldMap() {
     return this.getFields().reduce((prev, field) => Object.assign(prev, { [field.getName()]: field }), {});
   }
-
-  isEntity() {
-    return Boolean(this.getDirective('model'));
-  }
 };

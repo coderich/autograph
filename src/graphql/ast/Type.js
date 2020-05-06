@@ -20,24 +20,4 @@ module.exports = class Type extends Node {
   isRequired() {
     return this.getKind() === Kind.NON_NULL_TYPE;
   }
-
-  // isVirtual() {
-  //   return Boolean(this.getDirectiveArg('field', 'materializeBy'));
-  // }
-
-  // isImmutable() {
-  //   const enforce = this.getDirectiveArg('field', 'enforce', '');
-  //   return Boolean(JSON.stringify(enforce).indexOf('immutable') > -1);
-  // }
-
-  // getDataType() {
-  //   const type = this.getType();
-  //   if (!this.isArray()) return type;
-  //   return [type];
-  // }
-
-  // getDataRef() {
-  //   const ref = this.getType();
-  //   return isScalarDataType(ref) ? null : ref;
-  // }
 };
