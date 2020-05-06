@@ -1,13 +1,13 @@
 const { get } = require('lodash');
 const { isListType, isNonNullType, getNamedType } = require('graphql');
 const { uvl, isScalarDataType } = require('../service/app.service');
-const Directive = require('./Directive');
+const Node = require('./Node');
 
 module.exports = class Type {
   constructor(schema, ast) {
     this.schema = schema;
     this.ast = ast;
-    this.directives = get(ast, 'astNode.directives', []).map(directive => new Directive(directive));
+    this.directives = get(ast, 'astNode.directives', []).map(directive => new Node(directive));
     this.toString = () => `${this.getName()}`;
   }
 
@@ -25,10 +25,6 @@ module.exports = class Type {
 
   getType() {
     return `${getNamedType(this.ast.type)}`;
-  }
-
-  getSimpleType() {
-    return this.getType();
   }
 
   getDataType() {

@@ -4,7 +4,7 @@ type Person {
   name: String!
   authored: [Book]
   emailAddress: String!
-  status: String
+  status: Mixed
 }
 
 type Book {

@@ -14,7 +14,7 @@ class SchemaDirective extends SchemaDirectiveVisitor {
   visitObject() {} // eslint-disable-line
 }
 
-exports.makeExecutableSchema = (gqlSchema) => {
+exports.makeExecutableSchema = (gqlSchema, withAPI) => {
   // Ensure schema
   gqlSchema.typeDefs = gqlSchema.typeDefs || [];
   gqlSchema.typeDefs = Array.isArray(gqlSchema.typeDefs) ? gqlSchema.typeDefs : [gqlSchema.typeDefs];

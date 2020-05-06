@@ -2,8 +2,8 @@ const Model = require('./Model');
 const { makeExecutableSchema, getSchemaData } = require('../service/schema.service');
 
 module.exports = class Schema {
-  constructor(gqlSchema) {
-    this.schema = makeExecutableSchema(gqlSchema);
+  constructor(gqlSchema, withAPI) {
+    this.schema = makeExecutableSchema(gqlSchema, withAPI);
     this.models = Object.values(getSchemaData(this.schema).models).map(value => new Model(this, value));
   }
 

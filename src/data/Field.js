@@ -58,7 +58,7 @@ module.exports = class extends Field {
   }
 
   getGQLType(suffix) {
-    let type = this.getSimpleType();
+    let type = this.getType();
     const isModel = Boolean(this.getDataRef());
     if (suffix && !isScalarDataType(type)) type = (this.isEmbedded() ? (isModel ? `${type}${suffix}` : type) : 'ID');
     // if (this.options.enum) type = `${this.model.getName()}${ucFirst(this.getName())}Enum`;
