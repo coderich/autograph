@@ -1,4 +1,4 @@
-module.exports = class AbstractSourceTree {
+module.exports = class Node {
   constructor(ast) {
     this.ast = ast;
   }

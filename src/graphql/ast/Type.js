@@ -1,12 +1,12 @@
 const { Kind } = require('graphql');
-const AbstractSourceTree = require('./AbstractSourceTree');
+const Node = require('./Node');
 
 const scalars = ['ID', 'String', 'Float', 'Int', 'Boolean'];
 
-module.exports = class Type extends AbstractSourceTree {
+module.exports = class Type extends Node {
   getName() {
     const { type = this.ast } = this.ast;
-    return new AbstractSourceTree(type).getName();
+    return new Node(type).getName();
   }
 
   isArray() {

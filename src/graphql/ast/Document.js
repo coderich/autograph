@@ -1,8 +1,8 @@
 const { Kind } = require('graphql');
-const AbstractSourceTree = require('./AbstractSourceTree');
+const Node = require('./Node');
 const Model = require('./Model');
 
-module.exports = class Document extends AbstractSourceTree {
+module.exports = class Document extends Node {
   constructor(ast) {
     super(ast);
 

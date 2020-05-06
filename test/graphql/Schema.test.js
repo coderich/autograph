@@ -1,6 +1,6 @@
 const { parse } = require('graphql');
 const { importSchema } = require('graphql-import');
-const Document = require('../../src/graphql/type/Document');
+const Document = require('../../src/graphql/ast/Document');
 // const { getSchemaData } = require('../../src/service/schema.service');
 
 describe('Documents', () => {

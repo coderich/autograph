@@ -1,7 +1,7 @@
-const AbstractDefinition = require('./AbstractDefinition');
+const Node = require('./Node');
 const Type = require('./Type');
 
-module.exports = class Field extends AbstractDefinition {
+module.exports = class Field extends Node {
   constructor(ast) {
     super(ast);
     this.type = new Type(this.ast.type);
@@ -14,6 +14,6 @@ module.exports = class Field extends AbstractDefinition {
   }
 
   getArguments() {
-    return this.ast.arguments.map(a => new AbstractDefinition(a));
+    return this.ast.arguments.map(a => new Node(a));
   }
 };
