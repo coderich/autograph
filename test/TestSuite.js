@@ -4,7 +4,7 @@ const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { timeout } = require('../src/service/app.service');
 const Schema = require('../src/core/Schema');
 const Resolver = require('../src/core/Resolver');
-const gql = require('./schema');
+const gql = require('./fixtures/schema');
 const stores = require('./stores');
 
 let resolver;

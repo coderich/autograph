@@ -2,6 +2,9 @@ const { get } = require('lodash');
 const { Kind } = require('graphql');
 const { uvl } = require('../../service/app.service');
 
+const operations = ['Query', 'Mutation', 'Subscription'];
+const modelKinds = [Kind.OBJECT_TYPE_DEFINITION, Kind.OBJECT_TYPE_EXTENSION];
+
 module.exports = class Node {
   constructor(ast) {
     this.ast = ast;
@@ -114,5 +117,9 @@ module.exports = class Node {
   isImmutable() {
     const enforce = this.getDirectiveArg('field', 'enforce', '');
     return Boolean(JSON.stringify(enforce).indexOf('immutable') > -1);
+  }
+
+  isModel() {
+    return Boolean(modelKinds.some(k => this.getKind() === k) && operations.every(o => this.getName() !== o));
   }
 };

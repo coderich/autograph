@@ -1,4 +1,4 @@
-const Rule = require('../src/core/Rule');
+const Rule = require('../../src/core/Rule');
 
 Rule.extend('bookName', Rule.deny('The Bible'));
 Rule.extend('bookPrice', Rule.range(0, 100));

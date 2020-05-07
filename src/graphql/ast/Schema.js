@@ -1,35 +1,54 @@
-const { Kind } = require('graphql');
+const { Kind, parse, print } = require('graphql');
+const { makeExecutableSchema } = require('graphql-tools');
 const Node = require('./Node');
 const Model = require('./Model');
 
-const operations = ['Query', 'Mutation', 'Subscription'];
-const modelKinds = [Kind.OBJECT_TYPE_DEFINITION, Kind.OBJECT_TYPE_EXTENSION];
+const merge = (arr) => {
+  return arr.reduce((prev, curr) => {
+    const original = prev.find(el => el.kind === curr.kind && el.name.value === curr.name.value);
 
-const consolidate = (models) => {
-  return models.reduce((prev, model) => {
-    const existingModel = prev.find(m => m.getName() === model.getName());
+    if (original) {
+      Object.entries(curr).forEach(([key, value]) => {
+        if (Array.isArray(value)) {
+          original[key] = merge((original[key] || []).concat(value));
+        } else {
+          original[key] = value;
+        }
+      });
 
-    if (existingModel) {
-      existingModel.extend(model.getAST());
       return prev;
     }
 
-    return prev.concat(model);
+    return prev.concat(curr);
   }, []);
 };
 
-module.exports = class Schema extends Node {
-  constructor(ast) {
-    super(ast);
+const consolidate = (gql) => {
+  // Step 1: Ensure AST!
+  const ast = typeof gql === 'string' ? parse(gql) : gql;
 
-    this.models = consolidate(ast.definitions.filter((d) => {
-      const node = new Node(d);
-      return modelKinds.some(k => node.getKind() === k) && operations.every(o => node.getName() !== o);
-    }).map(d => new Model(this, d)));
+  // Step 2: All extensions become definitions
+  ast.definitions.forEach((definition) => {
+    if (definition.kind === Kind.OBJECT_TYPE_EXTENSION) definition.kind = Kind.OBJECT_TYPE_DEFINITION;
+  });
+
+  // Step 3: Merge like objects
+  ast.definitions = merge(ast.definitions);
+
+  // Step 4: Return!
+  return ast;
+};
+
+module.exports = class Schema extends Node {
+  constructor(gql) {
+    super(consolidate(gql));
+    this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
   }
 
-  extend(...asts) {
-    this.models = consolidate(this.models.concat(...asts.reduce((p, ast) => p.concat(new Schema(ast).getModels()), [])));
+  extend(...gqls) {
+    const definitions = gqls.map(gql => consolidate(gql).definitions);
+    this.ast.definitions = merge(this.ast.definitions.concat(...definitions));
+    this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
   }
 
   getModels() {
@@ -46,5 +65,9 @@ module.exports = class Schema extends Node {
 
   getModelMap() {
     return this.getModels().reduce((prev, model) => Object.assign(prev, { [model.getName()]: model }), {});
+  }
+
+  makeExecutableSchema() {
+    return makeExecutableSchema({ typeDefs: print(this.ast) });
   }
 };

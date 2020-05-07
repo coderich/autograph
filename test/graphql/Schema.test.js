@@ -1,10 +1,11 @@
-const { parse } = require('graphql');
-// const { importSchema } = require('graphql-import');
 const Schema = require('../../src/graphql/ast/Schema');
+const complexSchema = require('../fixtures/complex.graphql');
 
 const typeDefs = `
   scalar Mixed
-  directive @_authzModel on OBJECT
+  directive @model(scope: Mixed) on OBJECT
+  directive @field(transform: [Mixed] enforce: Mixed onDelete: Mixed) on FIELD_DEFINITION
+  directive @default(value: Boolean) on FIELD_DEFINITION
   enum Gender { male female }
   input SomeInput { id: ID! name: String! }
   type Query { noop: String }
@@ -26,7 +27,7 @@ const typeDefs = `
     bids: [Float]
   }
 
-  extend type Person {
+  type Person {
     age: Int
   }
 `;
@@ -43,12 +44,15 @@ const buildingDef = `
     bids: [String]
     store: Building
   }
+
+  type Person {
+    name: String! @default(value: "Rich")
+  }
 `;
 
 describe('Documents', () => {
   test('foundation', () => {
-    const ast = parse(typeDefs);
-    const schema = new Schema(ast);
+    const schema = new Schema(typeDefs);
     expect(schema).toBeDefined();
 
     // Models
@@ -60,8 +64,6 @@ describe('Documents', () => {
     // Fields
     const [Person, Book] = models;
     const [personFields, bookFields] = models.map(m => m.getFields());
-    expect(personFields.length).toBe(5);
-    expect(bookFields.length).toBe(5);
     expect(personFields.map(f => f.getName())).toEqual(['name', 'authored', 'emailAddress', 'status', 'age']);
     expect(personFields.map(f => f.getType())).toEqual(['String', 'Book', 'String', 'Mixed', 'Int']);
     expect(personFields.map(f => f.isArray())).toEqual([false, true, false, false, false]);
@@ -74,17 +76,30 @@ describe('Documents', () => {
     expect(bookFields.map(f => f.isScalar())).toEqual([true, true, false, true, true]);
     expect(bookFields.map(f => f.isRequired())).toEqual([true, true, true, false, false]);
     expect(Book.getField('bestSeller').getDirective('default').getArg('value')).toBe(false);
+
+    // Executable Schema
+    expect(schema.makeExecutableSchema()).toBeDefined();
+  });
+
+  test('complexSchema', () => {
+    const schema = new Schema(complexSchema);
+    expect(schema).toBeDefined();
+    expect(schema.makeExecutableSchema()).toBeDefined();
   });
 
   test('extendSchema', () => {
-    const ast = parse(typeDefs);
-    const schema = new Schema(ast);
-    schema.extend(parse(buildingDef));
+    const schema = new Schema(typeDefs);
+    schema.extend(buildingDef);
 
     expect(schema.getModels().length).toBe(3);
     expect(schema.getModelNames()).toEqual(['Person', 'Book', 'Building']);
     const bookFields = schema.getModel('Book').getFields();
     expect(bookFields.map(f => f.getName())).toEqual(['name', 'price', 'author', 'bestSeller', 'bids', 'store']);
     expect(bookFields.map(f => f.getType())).toEqual(['String', 'Float', 'Person', 'Boolean', 'String', 'Building']);
+    expect(schema.getModel('Person').getField('name').getDirective('default').getArg('value')).toEqual('Rich');
+    expect(schema.getModel('Person').getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
+
+    // Executable Schema
+    expect(schema.makeExecutableSchema()).toBeDefined();
   });
 });

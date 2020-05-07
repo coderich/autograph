@@ -1,8 +1,8 @@
 const Schema = require('../../src/core/Schema');
 const stores = require('../stores');
-const simpleSchema = require('../simple.graphql');
-const bareSchema = require('../bare.graphql');
-const gozioSchema = require('../gozio.graphql');
+const simpleSchema = require('../fixtures/simple.graphql');
+const bareSchema = require('../fixtures/bare.graphql');
+const complexSchema = require('../fixtures/complex.graphql');
 
 describe('CoreSchema', () => {
   test('simpleSchema', () => {
@@ -17,8 +17,8 @@ describe('CoreSchema', () => {
     // schema.makeServerApiSchema();
   });
 
-  test('gozioSchema', () => {
-    const schema = new Schema({ typeDefs: gozioSchema }, stores);
+  test('complexSchema', () => {
+    const schema = new Schema({ typeDefs: complexSchema }, stores);
     expect(schema).toBeDefined();
     // schema.makeServerApiSchema();
   });

@@ -23,6 +23,8 @@ Todo:
   * URL, RGB, RGBA, validator?
   * Allow Field and Model to be extended (directive fields)
   * Computed fields?
+  * Add @field(default: <value>)
+  * Are you able to flatten fields? (ie. firstName, lastName but save to profile.firstName, profile.lastName in DB)
 
 Figure out:
   * createdBy? (Audit trail)

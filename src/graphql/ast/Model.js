@@ -8,16 +8,6 @@ module.exports = class Model extends Node {
     this.fields = this.ast.fields.map(f => new Field(this, f));
   }
 
-  extend(...asts) {
-    asts.forEach((ast) => {
-      new Model(this.schema, ast).getFields().forEach((newField) => {
-        const index = this.fields.findIndex(f => f.getName() === newField.getName());
-        if (index > -1) this.fields.splice(index, 1, newField);
-        else this.fields.push(newField);
-      });
-    });
-  }
-
   getSchema() {
     return this.schema;
   }
