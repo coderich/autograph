@@ -11,7 +11,7 @@ module.exports = class extends Schema {
     super(schema);
 
     // Create drivers
-    const drivers = Object.entries(stores).reduce((prev, [key, { type, uri, options }]) => {
+    this.drivers = Object.entries(stores).reduce((prev, [key, { type, uri, options }]) => {
       const Driver = Drivers.require(type);
 
       return Object.assign(prev, {
@@ -24,15 +24,18 @@ module.exports = class extends Schema {
     }, {});
 
     // Create models
-    this.models = super.getModels().map(model => new Model(this, model, drivers));
+    this.models = super.getModels().map(model => new Model(this, model, this.drivers));
     this.models.forEach(model => model.referentialIntegrity(identifyOnDeletes(this.models, model)));
-
-    // Extend
   }
 
   getSchema() {
     this.extend(frameworkExt(this));
     return super.getSchema();
+  }
+
+  extend(...schemas) {
+    super.extend(...schemas);
+    this.models = super.getModels().map(model => new Model(this, model, this.drivers));
   }
 
   getServerApiSchema() {
