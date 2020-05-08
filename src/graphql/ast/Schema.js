@@ -51,12 +51,16 @@ module.exports = class Schema extends Node {
     this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
   }
 
+  getModel(name) {
+    return this.getModels().find(model => model.getName() === name);
+  }
+
   getModels() {
     return this.models;
   }
 
-  getModel(name) {
-    return this.getModels().find(model => model.getName() === name);
+  getEntityModels() {
+    return this.getModels().find(model => model.isEntity());
   }
 
   getModelNames() {

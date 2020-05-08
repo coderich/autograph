@@ -8,8 +8,9 @@ const modelKinds = [Kind.OBJECT_TYPE_DEFINITION, Kind.OBJECT_TYPE_EXTENSION];
 module.exports = class Node {
   constructor(ast) {
     this.ast = ast;
-    this.directives = (ast.directives || []).map(el => new Node(el));
+    this.toString = this.getName();
     this.arguments = (ast.arguments || []).map(el => new Node(el));
+    this.directives = (ast.directives || []).map(el => new Node(el));
   }
 
   // Basic AST Methods
@@ -26,9 +27,7 @@ module.exports = class Node {
   }
 
   getValue(ast = this.ast) {
-    const { value } = ast;
-
-    if (!value) return undefined;
+    const { value = {} } = ast;
 
     switch (value.kind) {
       case Kind.NULL: return null;
