@@ -6,7 +6,7 @@ module.exports = class Field extends Node {
     super(ast);
     this.model = model;
     this.schema = model.getSchema();
-    this.type = new Type(this.ast.type);
+    this.type = new Type(this.ast);
     this.isArray = this.type.isArray.bind(this.type);
     this.isRequired = this.type.isRequired.bind(this.type);
   }
@@ -52,5 +52,29 @@ module.exports = class Field extends Node {
   isEmbedded() {
     const model = this.getModelRef();
     return Boolean(model && !model.isEntity());
+  }
+
+  // GQL Schema Methods
+  getGQLType(suffix) {
+    let type = this.getType();
+    const isModel = Boolean(this.getDataRef());
+    if (suffix && !this.isScalar()) type = (this.isEmbedded() ? (isModel ? `${type}${suffix}` : type) : 'ID');
+    // if (this.options.enum) type = `${this.model.getName()}${ucFirst(this.getName())}Enum`;
+    type = this.isArray() ? `[${type}]` : type;
+    if (suffix !== 'InputUpdate' && this.isRequired()) type += '!';
+    return type;
+  }
+
+  getGQLDefinition() {
+    const fieldName = this.getName();
+    const type = this.getGQLType();
+    const ref = this.getDataRef();
+
+    if (ref) {
+      if (this.isArray()) return `${fieldName}(first: Int after: String last: Int before: String query: ${ref}InputQuery): Connection`;
+      return `${fieldName}(query: ${ref}InputQuery): ${type}`;
+    }
+
+    return `${fieldName}: ${type}`;
   }
 };

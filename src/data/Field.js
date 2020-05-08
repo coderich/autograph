@@ -130,29 +130,4 @@ module.exports = class extends Field {
       return rule(this, value, cmp);
     }));
   }
-
-  getGQLType(suffix) {
-    let type = this.getType();
-    const isModel = Boolean(this.getDataRef());
-    if (suffix && !isScalarDataType(type)) type = (this.isEmbedded() ? (isModel ? `${type}${suffix}` : type) : 'ID');
-    // if (this.options.enum) type = `${this.model.getName()}${ucFirst(this.getName())}Enum`;
-    type = this.isArray() ? `[${type}]` : type;
-    if (suffix !== 'InputUpdate' && this.isRequired()) type += '!';
-    return type;
-  }
-
-  getGQLDefinition() {
-    const fieldName = this.getName();
-    const type = this.getGQLType();
-    const ref = this.getDataRef();
-
-    // console.log(fieldName, ref, typeof ref);
-
-    if (ref) {
-      if (this.isArray()) return `${fieldName}(first: Int after: String last: Int before: String query: ${ref}InputQuery): Connection`;
-      return `${fieldName}(query: ${ref}InputQuery): ${type}`;
-    }
-
-    return `${fieldName}: ${type}`;
-  }
 };

@@ -89,7 +89,7 @@ describe('Documents', () => {
 
   test('extendSchema', () => {
     const schema = new Schema({ typeDefs });
-    schema.extend(buildingDef);
+    schema.extend({ typeDefs: buildingDef });
 
     expect(schema.getModels().length).toBe(3);
     expect(schema.getModelNames()).toEqual(['Person', 'Book', 'Building']);

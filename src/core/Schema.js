@@ -1,12 +1,14 @@
 const Model = require('../data/Model');
 const Drivers = require('../driver');
 const Schema = require('../graphql/ast/Schema');
+const apiExt = require('../graphql/extension/api');
+const frameworkExt = require('../graphql/extension/framework');
 const { identifyOnDeletes } = require('../service/schema.service');
 
 // Export class
 module.exports = class extends Schema {
-  constructor(gqlSchema, stores) {
-    super(gqlSchema);
+  constructor(schema, stores) {
+    super(schema);
 
     // Create drivers
     const drivers = Object.entries(stores).reduce((prev, [key, { type, uri, options }]) => {
@@ -22,7 +24,6 @@ module.exports = class extends Schema {
     }, {});
 
     // Create models
-    this.gqlSchema = gqlSchema;
     this.models = super.getModels().map(model => new Model(this, model, drivers));
     this.models.forEach(model => model.referentialIntegrity(identifyOnDeletes(this.models, model)));
   }
@@ -31,7 +32,13 @@ module.exports = class extends Schema {
     return this.models.filter(model => model.isVisible());
   }
 
-  getEntityModels() {
-    return this.getModels().filter(model => model.isEntity());
+  makeExecutableSchema() {
+    this.extend(frameworkExt(this));
+    return super.makeExecutableSchema();
+  }
+
+  makeServerApiSchema() {
+    this.extend(frameworkExt(this), apiExt(this));
+    return super.makeExecutableSchema();
   }
 };

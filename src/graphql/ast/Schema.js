@@ -11,12 +11,6 @@ module.exports = class Schema extends Node {
     this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
   }
 
-  extend(...schemas) {
-    const definitions = schemas.map(schema => mergeASTSchema(schema).definitions);
-    this.ast.definitions = mergeASTArray(this.ast.definitions.concat(...definitions));
-    this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
-  }
-
   getModel(name) {
     return this.getModels().find(model => model.getName() === name);
   }
@@ -37,7 +31,14 @@ module.exports = class Schema extends Node {
     return this.getModels().reduce((prev, model) => Object.assign(prev, { [model.getName()]: model }), {});
   }
 
+  extend(...schemas) {
+    const definitions = schemas.map(schema => mergeASTSchema(schema.typeDefs).definitions);
+    this.ast.definitions = mergeASTArray(this.ast.definitions.concat(...definitions));
+    this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
+    return this;
+  }
+
   makeExecutableSchema() {
-    return makeExecutableSchema({ typeDefs: print(this.ast) });
+    return makeExecutableSchema(Object.assign({}, this.schema, { typeDefs: print(this.ast) }));
   }
 };

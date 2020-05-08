@@ -1,8 +1,14 @@
+scalar DateTime
+
 enum LocationType {
   primary
   urgent
   quick
   er
+}
+
+input PersonInput {
+  name: String!
 }
 
 type Person @model {
