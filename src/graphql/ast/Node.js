@@ -9,9 +9,9 @@ const modelKinds = [Kind.OBJECT_TYPE_DEFINITION, Kind.OBJECT_TYPE_EXTENSION];
 module.exports = class Node {
   constructor(astLike) {
     this.ast = mergeAST(astLike);
-    this.toString = this.getName();
     this.arguments = (this.ast.arguments || []).map(el => new Node(el));
     this.directives = (this.ast.directives || []).map(el => new Node(el));
+    this.toString = () => this.getName();
   }
 
   // Basic AST Methods

@@ -1,14 +1,13 @@
 const Field = require('./Field');
 const ResultSet = require('./ResultSet');
-const Model = require('../graphql/Model');
+const Model = require('../graphql/ast/Model');
 const { lcFirst } = require('../service/app.service');
 
 module.exports = class extends Model {
   constructor(schema, model, drivers) {
     super(schema, model.getAST());
     this.driver = drivers[this.getDriverName()];
-    this.fields = super.getFields().map(field => new Field(schema, this, field));
-    this.toString = () => `${model}`;
+    this.fields = super.getFields().map(field => new Field(this, field));
 
     // Create collections (mongo)
     if (this.driver.dao.createCollection) this.driver.dao.createCollection(this.getAlias());
