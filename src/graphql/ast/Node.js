@@ -1,16 +1,17 @@
 const { get } = require('lodash');
 const { Kind } = require('graphql');
 const { uvl } = require('../../service/app.service');
+const { mergeAST } = require('../../service/graphql.service');
 
 const operations = ['Query', 'Mutation', 'Subscription'];
 const modelKinds = [Kind.OBJECT_TYPE_DEFINITION, Kind.OBJECT_TYPE_EXTENSION];
 
 module.exports = class Node {
-  constructor(ast) {
-    this.ast = ast;
+  constructor(astLike) {
+    this.ast = mergeAST(astLike);
     this.toString = this.getName();
-    this.arguments = (ast.arguments || []).map(el => new Node(el));
-    this.directives = (ast.directives || []).map(el => new Node(el));
+    this.arguments = (this.ast.arguments || []).map(el => new Node(el));
+    this.directives = (this.ast.directives || []).map(el => new Node(el));
   }
 
   // Basic AST Methods

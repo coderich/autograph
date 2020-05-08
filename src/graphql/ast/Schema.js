@@ -1,53 +1,19 @@
-const { Kind, parse, print } = require('graphql');
+const { print } = require('graphql');
 const { makeExecutableSchema } = require('graphql-tools');
+const { mergeASTSchema, mergeASTArray } = require('../../service/graphql.service');
 const Node = require('./Node');
 const Model = require('./Model');
 
-const merge = (arr) => {
-  return arr.reduce((prev, curr) => {
-    const original = prev.find(el => el.kind === curr.kind && el.name.value === curr.name.value);
-
-    if (original) {
-      Object.entries(curr).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          original[key] = merge((original[key] || []).concat(value));
-        } else {
-          original[key] = value;
-        }
-      });
-
-      return prev;
-    }
-
-    return prev.concat(curr);
-  }, []);
-};
-
-const consolidate = (gql) => {
-  // Step 1: Ensure AST!
-  const ast = typeof gql === 'string' ? parse(gql) : gql;
-
-  // Step 2: All extensions become definitions
-  ast.definitions.forEach((definition) => {
-    if (definition.kind === Kind.OBJECT_TYPE_EXTENSION) definition.kind = Kind.OBJECT_TYPE_DEFINITION;
-  });
-
-  // Step 3: Merge like objects
-  ast.definitions = merge(ast.definitions);
-
-  // Step 4: Return!
-  return ast;
-};
-
 module.exports = class Schema extends Node {
-  constructor(gql) {
-    super(consolidate(gql));
+  constructor(schema) {
+    super(schema.typeDefs);
+    this.schema = schema;
     this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
   }
 
-  extend(...gqls) {
-    const definitions = gqls.map(gql => consolidate(gql).definitions);
-    this.ast.definitions = merge(this.ast.definitions.concat(...definitions));
+  extend(...schemas) {
+    const definitions = schemas.map(schema => mergeASTSchema(schema).definitions);
+    this.ast.definitions = mergeASTArray(this.ast.definitions.concat(...definitions));
     this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
   }
 

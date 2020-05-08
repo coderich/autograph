@@ -1,6 +1,5 @@
 const Schema = require('../../src/graphql/ast/Schema');
 const complexSchema = require('../fixtures/complex.graphql');
-const gql = require('../fixtures/schema');
 
 const typeDefs = `
   scalar Mixed
@@ -53,7 +52,7 @@ const buildingDef = `
 
 describe('Documents', () => {
   test('foundation', () => {
-    const schema = new Schema(typeDefs);
+    const schema = new Schema({ typeDefs });
     expect(schema).toBeDefined();
 
     // Models
@@ -82,20 +81,14 @@ describe('Documents', () => {
     expect(schema.makeExecutableSchema()).toBeDefined();
   });
 
-  test('testSuiteSchema', () => {
-    const schema = new Schema(gql.typeDefs);
-    expect(schema).toBeDefined();
-    // expect(schema.makeExecutableSchema()).toBeDefined();
-  });
-
   test('complexSchema', () => {
-    const schema = new Schema(complexSchema);
+    const schema = new Schema({ typeDefs: complexSchema });
     expect(schema).toBeDefined();
     expect(schema.makeExecutableSchema()).toBeDefined();
   });
 
   test('extendSchema', () => {
-    const schema = new Schema(typeDefs);
+    const schema = new Schema({ typeDefs });
     schema.extend(buildingDef);
 
     expect(schema.getModels().length).toBe(3);
