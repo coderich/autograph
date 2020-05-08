@@ -27,7 +27,7 @@ const getCrudOperation = (mutationName) => {
 };
 
 const authorize = (context, model, fields, crud) => {
-  const { schema, permissions = [] } = context;
+  const { schema, permissions = [] } = context.autograph;
   const namespace = schema.getModel(model).getNamespace();
   const parts = namespace.split('/').reverse();
 

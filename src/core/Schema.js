@@ -43,10 +43,6 @@ module.exports = class extends Schema {
     return super.getSchema();
   }
 
-  getVisibleModels() {
-    return this.models.filter(model => model.isVisible());
-  }
-
   makeServerApiSchema() {
     this.extend(frameworkExt(this), apiExt(this));
     return super.makeExecutableSchema();

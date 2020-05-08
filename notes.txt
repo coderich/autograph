@@ -1,6 +1,5 @@
 MUST:
   * Put context variables in "autograph" namespace
-  * Fix where your drivers create the damn collection when they are not supposed to!
 
 Ideas:
   * Create a Document/Record class
@@ -35,6 +34,7 @@ Figure out:
   * Composite Rule Definitions?
   * Context. (tenants, segmentation, language)
   * Authorization. Specifically owner records, segmentation, recursive data resolution
+  * dependencies vs peerDependencies (graphql)
 
 Open Questions:
   * Where/How to define stores?

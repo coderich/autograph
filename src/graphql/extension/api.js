@@ -41,7 +41,7 @@ module.exports = (schema) => {
           limit: Int
         }
       `;
-    }).concat(schema.getVisibleModels().map((model) => {
+    }).concat(schema.getEntityModels().map((model) => {
       const modelName = model.getName();
 
       return `
@@ -81,33 +81,33 @@ module.exports = (schema) => {
 
       `type Schema {
         _noop: String
-        ${schema.getVisibleModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
-        ${schema.getVisibleModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getVisibleModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
+        ${schema.getEntityModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getEntityModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getEntityModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Query {
         Schema: Schema!
         node(id: ID!): Node
-        ${schema.getVisibleModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
-        ${schema.getVisibleModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getVisibleModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
+        ${schema.getEntityModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getEntityModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getEntityModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Mutation {
         _noop: String
-        ${schema.getVisibleModels().map(model => `create${model.getName()}(data: ${model.getName()}InputCreate!): ${model.getName()}! `)}
-        ${schema.getVisibleModels().map(model => `update${model.getName()}(id: ID! data: ${model.getName()}InputUpdate!): ${model.getName()}! `)}
-        ${schema.getVisibleModels().map(model => `delete${model.getName()}(id: ID!): ${model.getName()}! `)}
+        ${schema.getEntityModels().map(model => `create${model.getName()}(data: ${model.getName()}InputCreate!): ${model.getName()}! `)}
+        ${schema.getEntityModels().map(model => `update${model.getName()}(id: ID! data: ${model.getName()}InputUpdate!): ${model.getName()}! `)}
+        ${schema.getEntityModels().map(model => `delete${model.getName()}(id: ID!): ${model.getName()}! `)}
       }`,
 
       `type Subscription {
         _noop: String
-        ${schema.getVisibleModels().map(model => `${model.getName()}Trigger(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getVisibleModels().map(model => `${model.getName()}Changed(query: ${ucFirst(model.getName())}InputQuery): [${model.getName()}Subscription]!`)}
+        ${schema.getEntityModels().map(model => `${model.getName()}Trigger(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getEntityModels().map(model => `${model.getName()}Changed(query: ${ucFirst(model.getName())}InputQuery): [${model.getName()}Subscription]!`)}
       }`,
     ]),
-    resolvers: schema.getVisibleModels().reduce((prev, model) => {
+    resolvers: schema.getEntityModels().reduce((prev, model) => {
       const modelName = model.getName();
 
       return Object.assign(prev, {
@@ -115,7 +115,7 @@ module.exports = (schema) => {
           const fieldName = field.getName();
           return Object.assign(def, { [fieldName]: root => root[`$${fieldName}`] });
         }, {
-          id: (root, args, context) => (context.legacyMode ? root.id : root.$id),
+          id: (root, args, { autograph }) => (autograph.legacyMode ? root.id : root.$id),
           countSelf: (root, args, context, info) => resolver.count(context, model, args, info),
         }),
       });
@@ -131,13 +131,13 @@ module.exports = (schema) => {
       Edge: {
         node: async (root, args, context, info) => {
           const { node } = root;
-          const { loader } = context;
+          const { autograph } = context;
           const [modelName] = fromGUID(node.$id);
           const model = schema.getModel(modelName);
-          return model.hydrate(loader, node, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+          return model.hydrate(autograph.loader, node, { fields: GraphqlFields(info, {}, { processArguments: true }) });
         },
       },
-      Query: schema.getVisibleModels().reduce((prev, model) => {
+      Query: schema.getEntityModels().reduce((prev, model) => {
         const modelName = model.getName();
 
         return Object.assign(prev, {
@@ -155,7 +155,7 @@ module.exports = (schema) => {
         },
       }),
 
-      Mutation: schema.getVisibleModels().reduce((prev, model) => {
+      Mutation: schema.getEntityModels().reduce((prev, model) => {
         const modelName = model.getName();
 
         return Object.assign(prev, {
@@ -165,7 +165,7 @@ module.exports = (schema) => {
         });
       }, {}),
 
-      Schema: schema.getVisibleModels().reduce((prev, model) => {
+      Schema: schema.getEntityModels().reduce((prev, model) => {
         const modelName = model.getName();
 
         return Object.assign(prev, {

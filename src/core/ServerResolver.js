@@ -3,11 +3,11 @@ const GraphqlFields = require('graphql-fields');
 const { NotFoundError } = require('../service/error.service');
 const { fromGUID, map } = require('../service/app.service');
 
-const guidToId = (context, guid) => (context.legacyMode ? guid : fromGUID(guid)[1]);
+const guidToId = (autograph, guid) => (autograph.legacyMode ? guid : fromGUID(guid)[1]);
 
-const unrollGuid = (context, model, data) => {
-  if (context.legacyMode) return data;
-  model = context.loader.toModel(model);
+const unrollGuid = (autograph, model, data) => {
+  if (autograph.legacyMode) return data;
+  model = autograph.loader.toModel(model);
   const fields = model.getDataRefFields().map(field => field.getName());
 
   return map(data, (doc) => {
@@ -27,22 +27,22 @@ const normalizeQuery = (args = {}, info) => {
 module.exports = class ServerResolver {
   constructor() {
     // Getter
-    this.get = (context, model, guid, required = false, info) => {
+    this.get = ({ autograph }, model, guid, required = false, info) => {
       const query = { fields: GraphqlFields(info, {}, { processArguments: true }) };
 
-      return context.loader.match(model).id(guidToId(context, guid)).query(query).one().then((doc) => {
+      return autograph.loader.match(model).id(guidToId(autograph, guid)).query(query).one().then((doc) => {
         if (!doc && required) throw new NotFoundError(`${model} Not Found`);
         return doc;
       });
     };
 
     // Query
-    this.query = ({ loader }, model, args, info) => loader.match(model).query(normalizeQuery(args, info)).many();
-    this.count = ({ loader }, model, args, info) => loader.match(model).where(args.where).count();
+    this.query = ({ autograph }, model, args, info) => autograph.loader.match(model).query(normalizeQuery(args, info)).many();
+    this.count = ({ autograph }, model, args, info) => autograph.loader.match(model).where(args.where).count();
 
     // Mutations
-    this.create = (context, model, data, query) => context.loader.match(model).select(query.fields).save(unrollGuid(context, model, data));
-    this.update = (context, model, guid, data, query) => context.loader.match(model).id(guidToId(context, guid)).select(query.fields).save(unrollGuid(context.loader, model, data));
-    this.delete = (context, model, guid, query) => context.loader.match(model).id(guidToId(context, guid)).select(query.fields).remove();
+    this.create = ({ autograph }, model, data, query) => autograph.loader.match(model).select(query.fields).save(unrollGuid(autograph, model, data));
+    this.update = ({ autograph }, model, guid, data, query) => autograph.loader.match(model).id(guidToId(autograph, guid)).select(query.fields).save(unrollGuid(autograph, model, data));
+    this.delete = ({ autograph }, model, guid, query) => autograph.loader.match(model).id(guidToId(autograph, guid)).select(query.fields).remove();
   }
 };

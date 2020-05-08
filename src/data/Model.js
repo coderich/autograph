@@ -9,11 +9,13 @@ module.exports = class extends Model {
     this.driver = drivers[this.getDriverName()];
     this.fields = super.getFields().map(field => new Field(this, field));
 
-    // Create collections (mongo)
-    if (this.driver.dao.createCollection) this.driver.dao.createCollection(this.getAlias());
+    if (this.isEntity()) {
+      // Create collections (mongo)
+      if (this.driver.dao.createCollection) this.driver.dao.createCollection(this.getAlias());
 
-    // Create indexes
-    this.driver.dao.createIndexes(this.getAlias(), this.getIndexes());
+      // Create indexes
+      this.driver.dao.createIndexes(this.getAlias(), this.getIndexes());
+    }
   }
 
   // CRUD
@@ -99,10 +101,6 @@ module.exports = class extends Model {
   referentialIntegrity(refs) {
     if (refs) this.referentials = refs;
     return this.referentials;
-  }
-
-  isVisible() {
-    return this.isEntity();
   }
 
   serialize(data, mapper) {

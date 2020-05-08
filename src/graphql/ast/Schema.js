@@ -30,7 +30,7 @@ module.exports = class Schema extends Node {
   }
 
   getEntityModels() {
-    return this.getModels().find(model => model.isEntity());
+    return this.getModels().filter(model => model.isEntity());
   }
 
   getModelNames() {

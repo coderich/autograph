@@ -14,10 +14,12 @@ class Server {
     this.server = new ApolloServer({
       schema: executableSchema,
       context: () => ({
-        schema,
-        permissions: ['**'],
-        legacyMode: true,
-        loader: new Resolver(schema),
+        autograph: {
+          schema,
+          permissions: ['**'],
+          legacyMode: true,
+          loader: new Resolver(schema),
+        },
       }),
     });
   }
