@@ -22,7 +22,7 @@ exports.mergeAST = (astLike) => {
 
 exports.mergeASTSchema = (schema) => {
   // Step 1: Ensure AST
-  const ast = exports.toAST(Array.isArray(schema) ? schema.join('\n') : schema);
+  const ast = exports.toAST(schema);
 
   // Step 2: All extensions become definitions
   ast.definitions.forEach((definition) => {
@@ -43,7 +43,6 @@ exports.mergeASTArray = (arr) => {
     if (original) {
       Object.entries(curr).forEach(([key, value]) => {
         if (Array.isArray(value)) {
-        // if (['fields', 'directives', 'arguments'].indexOf(key) > -1) {
           original[key] = exports.mergeASTArray((original[key] || []).concat(value));
         } else if (value !== undefined) {
           original[key] = value;
@@ -57,5 +56,14 @@ exports.mergeASTArray = (arr) => {
   }, []);
 };
 
-exports.toAST = a => (typeof a === 'string' ? parse(a) : a);
-exports.toGQL = a => (typeof a === 'string' ? a : print(a));
+exports.toAST = (a) => {
+  if (typeof a === 'string') return parse(a);
+  if (Array.isArray(a)) return parse(a.map(e => exports.toGQL(e)).join('\n\n'));
+  return a;
+};
+
+exports.toGQL = (a) => {
+  if (typeof a === 'string') return a;
+  if (Array.isArray(a)) return a.join('\n\n');
+  return print(a);
+};
