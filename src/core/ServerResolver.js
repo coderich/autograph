@@ -42,7 +42,7 @@ module.exports = class ServerResolver {
 
     // Mutations
     this.create = (context, model, data, query) => context.loader.match(model).select(query.fields).save(unrollGuid(context, model, data));
-    this.update = (context, model, guid, data, query) => context.loader.match(model).id(guidToId(context, guid)).select(query.fields).save(unrollGuid(loader, model, data));
+    this.update = (context, model, guid, data, query) => context.loader.match(model).id(guidToId(context, guid)).select(query.fields).save(unrollGuid(context.loader, model, data));
     this.delete = (context, model, guid, query) => context.loader.match(model).id(guidToId(context, guid)).select(query.fields).remove();
   }
 };

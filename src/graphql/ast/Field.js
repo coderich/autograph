@@ -58,7 +58,8 @@ module.exports = class Field extends Node {
   getGQLType(suffix) {
     let type = this.getType();
     const isModel = Boolean(this.getDataRef());
-    if (suffix && !this.isScalar()) type = (this.isEmbedded() ? (isModel ? `${type}${suffix}` : type) : 'ID');
+    const modelType = isModel ? `${type}${suffix}` : type;
+    if (suffix && !this.isScalar()) type = this.isEmbedded() ? modelType : 'ID';
     // if (this.options.enum) type = `${this.model.getName()}${ucFirst(this.getName())}Enum`;
     type = this.isArray() ? `[${type}]` : type;
     if (suffix !== 'InputUpdate' && this.isRequired()) type += '!';

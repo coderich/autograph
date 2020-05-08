@@ -2,7 +2,7 @@ const _ = require('lodash');
 const Field = require('../graphql/ast/Field');
 const Rule = require('../core/Rule');
 const Transformer = require('../core/Transformer');
-const { isPlainObject, ensureArray, isScalarValue, isScalarDataType } = require('../service/app.service');
+const { isPlainObject, ensureArray, isScalarValue } = require('../service/app.service');
 
 module.exports = class extends Field {
   constructor(model, field) {
