@@ -1,7 +1,6 @@
 const GraphqlFields = require('graphql-fields');
 const { ucFirst, fromGUID } = require('../../service/app.service');
 const ServerResolver = require('../../core/ServerResolver');
-const AuthzDirective = require('../directive/authz.directive');
 
 module.exports = (schema) => {
   const resolver = new ServerResolver();
@@ -11,13 +10,6 @@ module.exports = (schema) => {
       const modelName = model.getName();
 
       return `
-        type ${modelName} implements Node @authz {
-          id: ID!
-          ${model.getSelectFields().map(field => field.getGQLDefinition())}
-          ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int!`)}
-          countSelf(where: ${modelName}InputWhere): Int!
-        }
-
         type ${modelName}Subscription {
           op: String!
           model: ${modelName}!
@@ -49,7 +41,18 @@ module.exports = (schema) => {
           limit: Int
         }
       `;
-    }).concat([
+    }).concat(schema.getVisibleModels().map((model) => {
+      const modelName = model.getName();
+
+      return `
+        type ${modelName} implements Node {
+          id: ID!
+          ${model.getSelectFields().map(field => field.getGQLDefinition())}
+          ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int!`)}
+          countSelf(where: ${modelName}InputWhere): Int!
+        }
+      `;
+    })).concat([
       `
       type Connection {
         edges: [Edge]
@@ -74,30 +77,28 @@ module.exports = (schema) => {
       }
 
       enum SortOrderEnum { ASC DESC }
-
-      directive @authz(model: String) on OBJECT | FIELD_DEFINITION
       `,
 
       `type Schema {
         _noop: String
-        ${schema.getVisibleModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} @authz`)}
-        ${schema.getVisibleModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection! @authz(model: "${model.getName()}")`)}
-        ${schema.getVisibleModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int! @authz(model: "${model.getName()}")`)}
+        ${schema.getVisibleModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getVisibleModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getVisibleModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Query {
         Schema: Schema!
         node(id: ID!): Node
-        ${schema.getVisibleModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} @authz`)}
-        ${schema.getVisibleModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection! @authz(model: "${model.getName()}")`)}
-        ${schema.getVisibleModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int! @authz(model: "${model.getName()}")`)}
+        ${schema.getVisibleModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getVisibleModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getVisibleModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Mutation {
         _noop: String
-        ${schema.getVisibleModels().map(model => `create${model.getName()}(data: ${model.getName()}InputCreate!): ${model.getName()}! @authz`)}
-        ${schema.getVisibleModels().map(model => `update${model.getName()}(id: ID! data: ${model.getName()}InputUpdate!): ${model.getName()}! @authz`)}
-        ${schema.getVisibleModels().map(model => `delete${model.getName()}(id: ID!): ${model.getName()}! @authz`)}
+        ${schema.getVisibleModels().map(model => `create${model.getName()}(data: ${model.getName()}InputCreate!): ${model.getName()}! `)}
+        ${schema.getVisibleModels().map(model => `update${model.getName()}(id: ID! data: ${model.getName()}InputUpdate!): ${model.getName()}! `)}
+        ${schema.getVisibleModels().map(model => `delete${model.getName()}(id: ID!): ${model.getName()}! `)}
       }`,
 
       `type Subscription {
@@ -106,7 +107,7 @@ module.exports = (schema) => {
         ${schema.getVisibleModels().map(model => `${model.getName()}Changed(query: ${ucFirst(model.getName())}InputQuery): [${model.getName()}Subscription]!`)}
       }`,
     ]),
-    resolvers: schema.getModels().reduce((prev, model) => {
+    resolvers: schema.getVisibleModels().reduce((prev, model) => {
       const modelName = model.getName();
 
       return Object.assign(prev, {
@@ -174,8 +175,5 @@ module.exports = (schema) => {
         });
       }, {}),
     }),
-    schemaDirectives: {
-      authz: AuthzDirective,
-    },
   });
 };

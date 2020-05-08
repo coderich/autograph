@@ -26,15 +26,22 @@ module.exports = class extends Schema {
     // Create models
     this.models = super.getModels().map(model => new Model(this, model, drivers));
     this.models.forEach(model => model.referentialIntegrity(identifyOnDeletes(this.models, model)));
+
+    // Extend
+  }
+
+  getSchema() {
+    this.extend(frameworkExt(this));
+    return super.getSchema();
+  }
+
+  getServerApiSchema() {
+    this.extend(frameworkExt(this), apiExt(this));
+    return super.getSchema();
   }
 
   getVisibleModels() {
     return this.models.filter(model => model.isVisible());
-  }
-
-  makeExecutableSchema() {
-    this.extend(frameworkExt(this));
-    return super.makeExecutableSchema();
   }
 
   makeServerApiSchema() {

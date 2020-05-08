@@ -32,6 +32,12 @@ const typeDefs = `
   }
 `;
 
+const resolvers = {
+  Book: {
+    name: () => 'The Great Book',
+  },
+};
+
 const buildingDef = `
   type Building {
     year: Int
@@ -88,8 +94,18 @@ describe('Documents', () => {
   });
 
   test('extendSchema', () => {
-    const schema = new Schema({ typeDefs });
-    schema.extend({ typeDefs: buildingDef });
+    const schema = new Schema({ typeDefs, resolvers });
+    schema.extend({
+      typeDefs: buildingDef,
+      resolvers: {
+        Book: {
+          price: () => 11.45,
+        },
+        Person: {
+          name: () => 'Great Person',
+        },
+      },
+    });
 
     expect(schema.getModels().length).toBe(3);
     expect(schema.getModelNames()).toEqual(['Person', 'Book', 'Building']);
@@ -101,5 +117,8 @@ describe('Documents', () => {
 
     // Executable Schema
     expect(schema.makeExecutableSchema()).toBeDefined();
+
+    expect(schema.getModel('Person').getField('name').getDirective('default').getArg('value')).toEqual('Rich');
+    expect(schema.getModel('Person').getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
   });
 });
