@@ -54,6 +54,10 @@ module.exports = class Field extends Node {
     return Boolean(model && !model.isEntity());
   }
 
+  isSegmented() {
+    return Boolean(this.getSegment());
+  }
+
   // GQL Schema Methods
   getGQLType(suffix) {
     let type = this.getType();

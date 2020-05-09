@@ -45,6 +45,10 @@ module.exports = class Model extends Node {
     return this.getFields().filter(field => field.isArray());
   }
 
+  getRequiredFields() {
+    return this.getFields().filter(field => field.isRequired());
+  }
+
   getDataRefFields() {
     return this.getFields().filter(field => Boolean(field.getDataRef()));
   }
@@ -70,10 +74,10 @@ module.exports = class Model extends Node {
   }
 
   getCreateFields() {
-    return this.getFields().filter(field => !field.isVirtual() && !field.isPrivate() && field.getName() !== 'id');
+    return this.getFields().filter(field => !field.isVirtual() && !field.isPrivate() && !field.isSegmented() && field.getName() !== 'id');
   }
 
   getUpdateFields() {
-    return this.getFields().filter(field => !field.isVirtual() && !field.isImmutable() && !field.isPrivate() && field.getName() !== 'id');
+    return this.getCreateFields().filter(field => !field.isImmutable());
   }
 };

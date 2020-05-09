@@ -5,7 +5,7 @@ const typeDefs = `
   scalar Mixed
   directive @model(scope: Mixed) on OBJECT
   directive @field(transform: [Mixed] enforce: Mixed onDelete: Mixed) on FIELD_DEFINITION
-  directive @default(value: Boolean) on FIELD_DEFINITION
+  directive @default(value: Mixed) on FIELD_DEFINITION
   enum Gender { male female }
   input SomeInput { id: ID! name: String! }
   type Query { noop: String }
@@ -43,7 +43,7 @@ const extendDef = `
     year: Int
     type: String! @field(enforce: buildingType)
     tenants: [Person] @field(enforce: distinct, onDelete: cascade)
-    landlord: Person @field(onDelete: nullify)
+    landlord: Person @field(onDelete: nullify) @default(value: context)
   }
 
   extend type Book {
@@ -107,16 +107,21 @@ describe('Documents', () => {
     });
 
     expect(schema.getModelNames()).toEqual(['Person', 'Book', 'Building']);
-    const bookFields = schema.getModel('Book').getFields();
+    const [Person, Book, Building] = schema.getModels();
+    const bookFields = Book.getFields();
     expect(bookFields.map(f => f.getName())).toEqual(['name', 'price', 'author', 'bestSeller', 'bids', 'store']);
     expect(bookFields.map(f => f.getType())).toEqual(['String', 'Float', 'Person', 'Boolean', 'String', 'Building']);
-    expect(schema.getModel('Person').getField('name').getDirective('default').getArg('value')).toEqual('Rich');
-    expect(schema.getModel('Person').getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
+    expect(Person.getField('name').getDirective('default').getArg('value')).toEqual('Rich');
+    expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
+
+    // Default value
+    console.log(Building.getField('landlord').getDirective('default').getArgument('value').getKind());
 
     // Executable Schema
     expect(schema.makeExecutableSchema()).toBeDefined();
 
-    expect(schema.getModel('Person').getField('name').getDirective('default').getArg('value')).toEqual('Rich');
-    expect(schema.getModel('Person').getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
+    // Sanity test that nothing changed
+    expect(Person.getField('name').getDirective('default').getArg('value')).toEqual('Rich');
+    expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
   });
 });

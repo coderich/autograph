@@ -6,7 +6,7 @@ module.exports = schema => ({
     scalar AutoGraphMixed
     enum AutoGraphEnforceEnum { ${Object.keys(Rule.getInstances()).join(' ')} }
     enum AutoGraphTransformEnum  { ${Object.keys(Transformer.getInstances()).join(' ')} }
-    enum AutoGraphScopeEnum { private protected public restricted }
+    enum AutoGraphScopeEnum { private protected public user }
     enum AutoGraphOnDeleteEnum { cascade nullify restrict }
     enum AutoGraphIndexEnum { unique }
 
@@ -17,8 +17,8 @@ module.exports = schema => ({
 
     directive @model(
       id: String
-      meta: AutoGraphMetaInput
       alias: String
+      meta: AutoGraphMetaInput
       scope: AutoGraphScopeEnum
       driver: String
       namespace: String
@@ -28,6 +28,8 @@ module.exports = schema => ({
 
     directive @field(
       alias: String
+      default: AutoGraphMixed
+      segment: String
       scope: AutoGraphScopeEnum
       enforce: [AutoGraphEnforceEnum!]
       noRepeat: Boolean
@@ -37,9 +39,9 @@ module.exports = schema => ({
     ) on FIELD_DEFINITION
 
     directive @index(
+      name: String
       on: [String!]!
       type: AutoGraphIndexEnum!
-      name: String
     ) repeatable on OBJECT
   `,
 });

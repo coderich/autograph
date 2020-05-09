@@ -80,9 +80,16 @@ module.exports = class QueryWorker {
   }
 
   async create(query, data = {}) {
-    data.createdAt = Date.now();
     const { resolver } = this;
     const [model, options] = [query.getModel(), query.getOptions()];
+
+    // Set default values for creation
+    data.createdAt = Date.now();
+    model.getRequiredFields().forEach((field) => {
+      const key = field.getName();
+      if (!Object.prototype.hasOwnProperty.call(data, key)) data[key] = field.getDefaultValue();
+    });
+
     await validateModelData(model, data, {}, 'create');
 
     return createSystemEvent('Mutation', { method: 'create', model, resolver, query, data }, async () => {

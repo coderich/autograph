@@ -73,9 +73,21 @@ module.exports = class Node {
     return this.getArgs()[arg];
   }
 
+  getArguments() {
+    return this.arguments;
+  }
+
+  getArgument(name) {
+    return this.getArguments().find(arg => arg.getName() === name);
+  }
+
   // Framework Methods
   getAlias(defaultValue) {
     return uvl(this.getDirectiveArg('model', 'alias'), this.getDirectiveArg('field', 'alias'), defaultValue, this.getName());
+  }
+
+  getDefaultValue() {
+    return this.getDirectiveArg('field', 'default');
   }
 
   getOnDelete() {
@@ -88,6 +100,10 @@ module.exports = class Node {
 
   getNamespace() {
     return this.getDirectiveArg('model', 'namespace', this.getName());
+  }
+
+  getSegment() {
+    return this.getDirectiveArg('field', 'segment');
   }
 
   getIndexes() {

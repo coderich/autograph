@@ -1,6 +1,8 @@
 Next:
-  * Mutation should have meta input (how to define meta props?)
+  * Add @field(default: <value>)
   * Context. (tenants, segmentation, language)
+  * Mutation should have meta input (how to define meta props?)
+  * Define stores via appConfig (Secrets Manager)
 
 Ideas:
   * Create a Document/Record class
@@ -23,7 +25,6 @@ Todo:
   * URL, RGB, RGBA, validator?
   * Allow Field and Model to be extended (directive fields)
   * Computed fields?
-  * Add @field(default: <value>)
   * Are you able to flatten fields? (ie. firstName, lastName but save to profile.firstName, profile.lastName in DB)
 
 Figure out:
@@ -31,6 +32,7 @@ Figure out:
   * Composite Rule Definitions?
   * Authorization. Specifically owner records, segmentation, recursive data resolution
   * dependencies vs peerDependencies (graphql)
+  * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
 
 Open Questions:
   * Where/How to define stores?
