@@ -11,8 +11,7 @@ exports.getTypeInfo = (ast, info = {}) => {
 };
 
 exports.mergeAST = (astLike) => {
-  // Step 1: Ensure AST
-  const ast = exports.toAST(astLike);
+  const ast = exports.toAST(astLike); // Ensure AST
 
   switch (ast.kind) {
     case Kind.DOCUMENT: return exports.mergeASTSchema(ast);
@@ -21,18 +20,8 @@ exports.mergeAST = (astLike) => {
 };
 
 exports.mergeASTSchema = (schema) => {
-  // Step 1: Ensure AST
-  const ast = exports.toAST(schema);
-
-  // Step 2: All extensions become definitions
-  ast.definitions.forEach((definition) => {
-    if (definition.kind === Kind.OBJECT_TYPE_EXTENSION) definition.kind = Kind.OBJECT_TYPE_DEFINITION;
-  });
-
-  // Step 3: Merge like objects
-  ast.definitions = exports.mergeASTArray(ast.definitions);
-
-  // Step 4: Return!
+  const ast = exports.toAST(schema); // Ensure AST
+  ast.definitions = exports.mergeASTArray(ast.definitions); // Merge like objects
   return ast;
 };
 
