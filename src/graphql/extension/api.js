@@ -43,12 +43,16 @@ module.exports = (schema) => {
       `;
     }).concat(schema.getEntityModels().map((model) => {
       const modelName = model.getName();
+      const createdAt = model.getDirectiveArg('model', 'createdAt', 'createdAt');
+      const updatedAt = model.getDirectiveArg('model', 'updatedAt', 'updatedAt');
 
       return `
         type ${modelName} implements Node {
-          id: ID!
+          id: ID! @field(scope: private)
           ${model.getSelectFields().map(field => field.getGQLDefinition())}
           ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int!`)}
+          ${createdAt ? `createdAt: Int @field(alias: "${createdAt}", scope: private)` : ''}
+          ${updatedAt ? `updatedAt: Int @field(alias: "${updatedAt}", scope: private)` : ''}
           countSelf(where: ${modelName}InputWhere): Int!
         }
       `;

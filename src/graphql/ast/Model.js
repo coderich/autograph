@@ -70,10 +70,10 @@ module.exports = class Model extends Node {
   }
 
   getCreateFields() {
-    return this.getFields().filter(field => !field.isVirtual() && !field.isPrivate());
+    return this.getFields().filter(field => !field.isVirtual() && !field.isPrivate() && field.getName() !== 'id');
   }
 
   getUpdateFields() {
-    return this.getFields().filter(field => !field.isVirtual() && !field.isImmutable() && !field.isPrivate());
+    return this.getFields().filter(field => !field.isVirtual() && !field.isImmutable() && !field.isPrivate() && field.getName() !== 'id');
   }
 };

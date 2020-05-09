@@ -1,5 +1,4 @@
 const Merge = require('deepmerge');
-const { print } = require('graphql');
 const { makeExecutableSchema } = require('graphql-tools');
 const { mergeASTSchema, mergeASTArray } = require('../../service/graphql.service');
 const Node = require('./Node');
@@ -18,7 +17,7 @@ module.exports = class Schema extends Node {
   }
 
   getSchema() {
-    return Object.assign({}, this.schema, { typeDefs: print(this.ast) });
+    return Object.assign({}, this.schema, { typeDefs: this.ast });
   }
 
   getModel(name) {

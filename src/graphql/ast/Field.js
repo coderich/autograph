@@ -70,8 +70,9 @@ module.exports = class Field extends Node {
     const fieldName = this.getName();
     const type = this.getGQLType();
     const ref = this.getDataRef();
+    const model = this.getModelRef();
 
-    if (ref) {
+    if (ref && model.isEntity()) {
       if (this.isArray()) return `${fieldName}(first: Int after: String last: Int before: String query: ${ref}InputQuery): Connection`;
       return `${fieldName}(query: ${ref}InputQuery): ${type}`;
     }
