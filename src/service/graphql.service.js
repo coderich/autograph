@@ -1,6 +1,25 @@
 const { get } = require('lodash');
 const { Kind, parse, print } = require('graphql');
 
+//
+const mergePairs = [
+  [Kind.SCHEMA_DEFINITION, Kind.SCHEMA_EXTENSION],
+  [Kind.ENUM_TYPE_DEFINITION, Kind.ENUM_TYPE_EXTENSION],
+  [Kind.UNION_TYPE_DEFINITION, Kind.UNION_TYPE_EXTENSION],
+  [Kind.SCALAR_TYPE_DEFINITION, Kind.SCALAR_TYPE_EXTENSION],
+  [Kind.OBJECT_TYPE_DEFINITION, Kind.OBJECT_TYPE_EXTENSION],
+  [Kind.INTERFACE_TYPE_DEFINITION, Kind.INTERFACE_TYPE_EXTENSION],
+  [Kind.INPUT_OBJECT_TYPE_DEFINITION, Kind.INPUT_OBJECT_TYPE_EXTENSION],
+];
+
+exports.areMergeableASTs = (a, b) => {
+  const aKind = get(a, 'kind', 'a');
+  const bKind = get(b, 'kind', 'b');
+  const sameKind = Boolean(aKind === bKind || mergePairs.some(pair => pair.indexOf(aKind) > -1 && pair.indexOf(bKind) > -1));
+  const sameValue = get(a, 'name.value', 'a') === get(b, 'name.value', 'b');
+  return Boolean(sameKind && sameValue);
+};
+
 exports.getTypeInfo = (ast, info = {}) => {
   const { type } = ast;
   if (!type) return info;
@@ -27,22 +46,26 @@ exports.mergeASTSchema = (schema) => {
 
 exports.mergeASTArray = (arr) => {
   return arr.reduce((prev, curr) => {
-    const original = prev.find(el => get(el, 'kind', 'a') === get(curr, 'kind', 'b') && get(el, 'name.value', 'a') === get(curr, 'name.value', 'b'));
+    const match = prev.find(el => !el.deleteFlag && exports.areMergeableASTs(el, curr));
 
-    if (original) {
-      Object.entries(curr).forEach(([key, value]) => {
-        if (Array.isArray(value)) {
-          original[key] = exports.mergeASTArray((original[key] || []).concat(value));
-        } else if (value !== undefined) {
-          original[key] = value;
+    if (match) {
+      const [left, right] = [match, curr].sort((a, b) => (a.kind.indexOf('Extension') > -1 && b.kind.indexOf('Extension') === -1 ? 1 : 0));
+
+      Object.entries(right).forEach(([key, value]) => {
+        if (key !== 'kind') {
+          if (Array.isArray(value)) {
+            left[key] = exports.mergeASTArray((left[key] || []).concat(value));
+          } else if (value !== undefined) {
+            left[key] = value;
+          }
         }
       });
 
-      return prev;
+      right.deleteFlag = true;
     }
 
     return prev.concat(curr);
-  }, []);
+  }, []).filter(el => !el.deleteFlag);
 };
 
 exports.toAST = (a) => {

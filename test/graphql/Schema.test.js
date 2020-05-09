@@ -12,6 +12,10 @@ const typeDefs = `
   type Mutation { noop: String }
   type Subscription { noop: String }
 
+  extend type Person {
+    age: Int
+  }
+
   type Person @model(scope: private) {
     name: String! @field(transform: [toTitleCase, toMenaceCase])
     authored: [Book]
@@ -26,10 +30,6 @@ const typeDefs = `
     bestSeller: Boolean @default(value: false)
     bids: [Float]
   }
-
-  type Person {
-    age: Int
-  }
 `;
 
 const resolvers = {
@@ -38,7 +38,7 @@ const resolvers = {
   },
 };
 
-const buildingDef = `
+const extendDef = `
   type Building {
     year: Int
     type: String! @field(enforce: buildingType)
@@ -46,12 +46,12 @@ const buildingDef = `
     landlord: Person @field(onDelete: nullify)
   }
 
-  type Book {
+  extend type Book {
     bids: [String]
     store: Building
   }
 
-  type Person {
+  extend type Person {
     name: String! @default(value: "Rich")
   }
 `;
@@ -63,7 +63,6 @@ describe('Documents', () => {
 
     // Models
     const models = schema.getModels();
-    expect(models.length).toBe(2);
     expect(models.map(m => m.getName())).toEqual(['Person', 'Book']);
     expect(models.map(m => m.getScope())).toEqual(['private', 'protected']);
 
@@ -96,7 +95,7 @@ describe('Documents', () => {
   test('extendSchema', () => {
     const schema = new Schema({ typeDefs, resolvers });
     schema.extend({
-      typeDefs: buildingDef,
+      typeDefs: extendDef,
       resolvers: {
         Book: {
           price: () => 11.45,
@@ -107,7 +106,6 @@ describe('Documents', () => {
       },
     });
 
-    expect(schema.getModels().length).toBe(3);
     expect(schema.getModelNames()).toEqual(['Person', 'Book', 'Building']);
     const bookFields = schema.getModel('Book').getFields();
     expect(bookFields.map(f => f.getName())).toEqual(['name', 'price', 'author', 'bestSeller', 'bids', 'store']);
