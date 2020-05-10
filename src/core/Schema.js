@@ -24,6 +24,10 @@ module.exports = class extends Schema {
     }, {});
 
     // Create models
+    this.createModels();
+  }
+
+  createModels() {
     this.models = super.getModels().map(model => new Model(this, model, this.drivers));
     this.models.forEach(model => model.referentialIntegrity(identifyOnDeletes(this.models, model)));
   }
@@ -35,7 +39,7 @@ module.exports = class extends Schema {
 
   extend(...schemas) {
     super.extend(...schemas);
-    this.models = super.getModels().map(model => new Model(this, model, this.drivers));
+    this.createModels();
   }
 
   getServerApiSchema() {

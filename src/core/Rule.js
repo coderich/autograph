@@ -12,14 +12,14 @@ class Rule {
           if (val != null) {
             return Promise.all(ensureArray(map(val, async (v) => {
               const err = await cmp(field, v);
-              if (err) return Promise.reject(new Error(`Rule Error: ${name}`));
+              if (err) return Promise.reject(new Error(`Rule (${name}) failed for { ${field}: ${v} }`));
               return Promise.resolve();
             }))).then(v => resolve()).catch(e => reject(e));
           }
         } else {
           return Promise.all([(async () => {
             const err = await cmp(field, val);
-            if (err) return Promise.reject(new Error(`Rule Error: ${name}`));
+            if (err) return Promise.reject(new Error(`Rule (${name}) failed for { ${field}: ${val} }`));
             return Promise.resolve();
           })()]).then(v => resolve()).catch(e => reject(e));
         }

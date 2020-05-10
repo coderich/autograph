@@ -87,7 +87,11 @@ module.exports = class QueryWorker {
     data.createdAt = Date.now();
     model.getRequiredFields().forEach((field) => {
       const key = field.getName();
-      if (!Object.prototype.hasOwnProperty.call(data, key)) data[key] = field.getDefaultValue();
+
+      if (!Object.prototype.hasOwnProperty.call(data, key)) {
+        const value = field.getDefaultValue(resolver.getContext());
+        data[key] = value;
+      }
     });
 
     await validateModelData(model, data, {}, 'create');

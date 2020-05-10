@@ -13,8 +13,9 @@ const Transformer = require('./Transformer');
 let count = 0;
 
 module.exports = class Resolver {
-  constructor(schema) {
+  constructor(schema, context = {}) {
     this.schema = schema;
+    this.context = context;
     this.worker = new QueryWorker(this);
     this.loader = this.createLoader();
 
@@ -30,6 +31,10 @@ module.exports = class Resolver {
       const model = schema.getModel(`${modelRef}`);
       return model.idValue(v);
     });
+  }
+
+  getContext() {
+    return this.context;
   }
 
   // Encapsulate Facebook DataLoader

@@ -8,7 +8,6 @@ module.exports = class Field extends Node {
     this.schema = model.getSchema();
     this.type = new Type(this.ast);
     this.isArray = this.type.isArray.bind(this.type);
-    this.isRequired = this.type.isRequired.bind(this.type);
   }
 
   // Field Methods
@@ -58,6 +57,14 @@ module.exports = class Field extends Node {
     return Boolean(this.getSegment());
   }
 
+  isDefaulted() {
+    return Boolean(this.isSegmented() || this.getDefaultValue());
+  }
+
+  isRequired() {
+    return this.type.isRequired();
+  }
+
   // GQL Schema Methods
   getGQLType(suffix) {
     let type = this.getType();
@@ -66,7 +73,8 @@ module.exports = class Field extends Node {
     if (suffix && !this.isScalar()) type = this.isEmbedded() ? modelType : 'ID';
     // if (this.options.enum) type = `${this.model.getName()}${ucFirst(this.getName())}Enum`;
     type = this.isArray() ? `[${type}]` : type;
-    if (suffix !== 'InputUpdate' && this.isRequired()) type += '!';
+    if (!suffix && this.isRequired) type += '!';
+    if (suffix === 'InputCreate' && this.isRequired() && !this.isDefaulted()) type += '!';
     return type;
   }
 

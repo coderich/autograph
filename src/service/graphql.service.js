@@ -12,12 +12,16 @@ const mergePairs = [
   [Kind.INPUT_OBJECT_TYPE_DEFINITION, Kind.INPUT_OBJECT_TYPE_EXTENSION],
 ];
 
+// const operators = ['Query', 'Mutation', 'Subscription'];
+
 exports.areMergeableASTs = (a, b) => {
   const aKind = get(a, 'kind', 'a');
+  const aName = get(a, 'name.value', 'a');
   const bKind = get(b, 'kind', 'b');
+  const bName = get(b, 'name.value', 'b');
   const sameKind = Boolean(aKind === bKind || mergePairs.some(pair => pair.indexOf(aKind) > -1 && pair.indexOf(bKind) > -1));
-  const sameValue = get(a, 'name.value', 'a') === get(b, 'name.value', 'b');
-  return Boolean(sameKind && sameValue);
+  const sameName = aName === bName;
+  return Boolean(sameKind && sameName);
 };
 
 exports.getTypeInfo = (ast, info = {}) => {
@@ -44,23 +48,25 @@ exports.mergeASTSchema = (schema) => {
   return ast;
 };
 
+exports.mergeASTObject = (left, right) => {
+  Object.entries(right).forEach(([key, value]) => {
+    if (key !== 'kind') {
+      if (Array.isArray(value)) {
+        left[key] = exports.mergeASTArray((left[key] || []).concat(value));
+      } else if (value != null) {
+        left[key] = value;
+      }
+    }
+  });
+};
+
 exports.mergeASTArray = (arr) => {
   return arr.reduce((prev, curr) => {
     const match = prev.find(el => !el.deleteFlag && exports.areMergeableASTs(el, curr));
 
     if (match) {
       const [left, right] = [match, curr].sort((a, b) => (a.kind.indexOf('Extension') > -1 && b.kind.indexOf('Extension') === -1 ? 1 : 0));
-
-      Object.entries(right).forEach(([key, value]) => {
-        if (key !== 'kind') {
-          if (Array.isArray(value)) {
-            left[key] = exports.mergeASTArray((left[key] || []).concat(value));
-          } else if (value !== undefined) {
-            left[key] = value;
-          }
-        }
-      });
-
+      exports.mergeASTObject(left, right);
       right.deleteFlag = true;
     }
 

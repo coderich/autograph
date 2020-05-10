@@ -86,8 +86,12 @@ module.exports = class Node {
     return uvl(this.getDirectiveArg('model', 'alias'), this.getDirectiveArg('field', 'alias'), defaultValue, this.getName());
   }
 
-  getDefaultValue() {
-    return this.getDirectiveArg('field', 'default');
+  getDefaultValue(context = {}) {
+    return uvl(this.getSegmentValue(context), this.getDirectiveArg('field', 'default'));
+  }
+
+  getSegmentValue(context = {}) {
+    return get(context, `segment.${this.getSegment()}`);
   }
 
   getOnDelete() {
