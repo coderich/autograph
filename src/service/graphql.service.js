@@ -1,4 +1,4 @@
-const { get, clone } = require('lodash');
+const { get } = require('lodash');
 const { Kind, parse, print } = require('graphql');
 
 //
@@ -52,9 +52,9 @@ exports.mergeASTObject = (left, right) => {
   Object.entries(right).forEach(([key, value]) => {
     if (key !== 'kind') {
       if (Array.isArray(value)) {
-        left[key] = exports.mergeASTArray((left[key] || []).concat(...value.map(v => clone(v))));
+        left[key] = exports.mergeASTArray((left[key] || []).concat(...value));
       } else if (value != null) {
-        left[key] = clone(value);
+        left[key] = value;
       }
     }
   });
