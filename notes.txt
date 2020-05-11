@@ -2,7 +2,8 @@ Next:
   * Mutation should have meta input (how to define meta props?)
   * Define stores via appConfig (Secrets Manager)
   * Why can't I use where clause to filter network.name = choa?
-  * Sending blank "" string for ID reference hangs the server!
+  * Sending blank "" string for ID reference hangs the server (mutations)!
+  * Can you also have Transformers and Rules on the Model itself (ie. MultiLang type)
 
 Bugs:
   * Embedded documents do not work!

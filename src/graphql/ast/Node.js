@@ -122,6 +122,10 @@ module.exports = class Node {
     return this.getDirectiveArg('field', 'scope', this.getDirectiveArg('model', 'scope', 'protected'));
   }
 
+  getMeta() {
+    return this.getDirectiveArg('model', 'meta');
+  }
+
   isPrivate() {
     return Boolean(this.getScope() === 'private');
   }
