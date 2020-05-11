@@ -99,8 +99,8 @@ module.exports = (schema) => {
 
       `type Mutation {
         _noop: String
-        ${schema.getEntityModels().map(model => `create${model.getName()}(data: ${model.getName()}InputCreate!): ${model.getName()}! `)}
-        ${schema.getEntityModels().map(model => `update${model.getName()}(id: ID! data: ${model.getName()}InputUpdate!): ${model.getName()}! `)}
+        ${schema.getEntityModels().map(model => `create${model.getName()}(data: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getEntityModels().map(model => `update${model.getName()}(id: ID! data: ${model.getName()}InputUpdate! meta: ${model.getMeta()}): ${model.getName()}! `)}
         ${schema.getEntityModels().map(model => `delete${model.getName()}(id: ID!): ${model.getName()}! `)}
       }`,
 

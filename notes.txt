@@ -1,5 +1,5 @@
 Next:
-  * Mutation should have meta input (how to define meta props?)
+  * Computed fields (read only)?
   * Define stores via appConfig (Secrets Manager)
   * Why can't I use where clause to filter network.name = choa?
   * Sending blank "" string for ID reference hangs the server (mutations)!
@@ -21,7 +21,6 @@ Todo:
   * Currently there is no way to count regular elements of an array (try to count bids)
   * URL, RGB, RGBA, validator?
   * Allow Field and Model to be extended (directive fields)
-  * Computed fields?
   * Are you able to flatten fields? (ie. firstName, lastName but save to profile.firstName, profile.lastName in DB)
 
 Ideas:
@@ -44,3 +43,47 @@ Refs:
   * https://jbt.github.io/markdown-editor/
   * https://gist.github.com/rxaviers/7360908
   * https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet
+
+{ NAME: 'Name',
+  DOCUMENT: 'Document',
+  OPERATION_DEFINITION: 'OperationDefinition',
+  VARIABLE_DEFINITION: 'VariableDefinition',
+  SELECTION_SET: 'SelectionSet',
+  FIELD: 'Field',
+  ARGUMENT: 'Argument',
+  FRAGMENT_SPREAD: 'FragmentSpread',
+  INLINE_FRAGMENT: 'InlineFragment',
+  FRAGMENT_DEFINITION: 'FragmentDefinition',
+  VARIABLE: 'Variable',
+  INT: 'IntValue',
+  FLOAT: 'FloatValue',
+  STRING: 'StringValue',
+  BOOLEAN: 'BooleanValue',
+  NULL: 'NullValue',
+  ENUM: 'EnumValue',
+  LIST: 'ListValue',
+  OBJECT: 'ObjectValue',
+  OBJECT_FIELD: 'ObjectField',
+  DIRECTIVE: 'Directive',
+  NAMED_TYPE: 'NamedType',
+  LIST_TYPE: 'ListType',
+  NON_NULL_TYPE: 'NonNullType',
+  SCHEMA_DEFINITION: 'SchemaDefinition',
+  OPERATION_TYPE_DEFINITION: 'OperationTypeDefinition',
+  SCALAR_TYPE_DEFINITION: 'ScalarTypeDefinition',
+  OBJECT_TYPE_DEFINITION: 'ObjectTypeDefinition',
+  FIELD_DEFINITION: 'FieldDefinition',
+  INPUT_VALUE_DEFINITION: 'InputValueDefinition',
+  INTERFACE_TYPE_DEFINITION: 'InterfaceTypeDefinition',
+  UNION_TYPE_DEFINITION: 'UnionTypeDefinition',
+  ENUM_TYPE_DEFINITION: 'EnumTypeDefinition',
+  ENUM_VALUE_DEFINITION: 'EnumValueDefinition',
+  INPUT_OBJECT_TYPE_DEFINITION: 'InputObjectTypeDefinition',
+  DIRECTIVE_DEFINITION: 'DirectiveDefinition',
+  SCHEMA_EXTENSION: 'SchemaExtension',
+  SCALAR_TYPE_EXTENSION: 'ScalarTypeExtension',
+  OBJECT_TYPE_EXTENSION: 'ObjectTypeExtension',
+  INTERFACE_TYPE_EXTENSION: 'InterfaceTypeExtension',
+  UNION_TYPE_EXTENSION: 'UnionTypeExtension',
+  ENUM_TYPE_EXTENSION: 'EnumTypeExtension',
+  INPUT_OBJECT_TYPE_EXTENSION: 'InputObjectTypeExtension' }

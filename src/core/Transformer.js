@@ -10,12 +10,12 @@ const jsStringMethods = [
 
 class Transformer {
   constructor(thunk, options = {}) {
-    const { ignoreNull = true } = (options || {});
+    const { ignoreNull = true, itemize = true } = (options || {});
 
     return Object.defineProperty((field, val, cmp = (f, v) => thunk(f, v)) => {
       if (ignoreNull && val == null) return val;
-      if (!ignoreNull) return cmp(field, val);
-      return map(val, v => cmp(field, v));
+      if (ignoreNull && itemize) return map(val, v => cmp(field, v));
+      return cmp(field, val);
     }, 'type', { value: 'transformer' });
   }
 

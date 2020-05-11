@@ -6,27 +6,25 @@ const jsStringMethods = ['endsWith', 'includes', 'match', 'search', 'startsWith'
 
 class Rule {
   constructor(thunk, options = {}, name = 'Unknown') {
-    const { ignoreNull = true } = (options || {});
+    const { ignoreNull = true, itemize = true } = (options || {});
 
     return Object.defineProperty((field, val, cmp = (f, v) => thunk(f, v)) => {
       return new Promise((resolve, reject) => {
-        if (ignoreNull) {
-          if (val != null) {
-            return Promise.all(ensureArray(map(val, async (v) => {
-              const err = await cmp(field, v);
-              if (err) return Promise.reject(new Error(`Rule (${name}) failed for { ${field}: ${v} }`));
-              return Promise.resolve();
-            }))).then(v => resolve()).catch(e => reject(e));
-          }
-        } else {
-          return Promise.all([(async () => {
-            const err = await cmp(field, val);
-            if (err) return Promise.reject(new Error(`Rule (${name}) failed for { ${field}: ${val} }`));
+        if (ignoreNull && val == null) return resolve();
+
+        if (ignoreNull && itemize) {
+          return Promise.all(ensureArray(map(val, async (v) => {
+            const err = await cmp(field, v);
+            if (err) return Promise.reject(new Error(`Rule (${name}) failed for { ${field}: ${v} }`));
             return Promise.resolve();
-          })()]).then(v => resolve()).catch(e => reject(e));
+          }))).then(v => resolve()).catch(e => reject(e));
         }
 
-        return resolve();
+        return Promise.all([(async () => {
+          const err = await cmp(field, val);
+          if (err) return Promise.reject(new Error(`Rule (${name}) failed for { ${field}: ${val} }`));
+          return Promise.resolve();
+        })()]).then(v => resolve()).catch(e => reject(e));
       });
     }, 'type', { value: 'rule' });
   }

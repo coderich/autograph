@@ -33,6 +33,12 @@ module.exports = class Node {
     switch (value.kind) {
       case Kind.NULL: return null;
       case Kind.LIST: return value.values.map(el => this.getValue({ value: el }));
+      case Kind.OBJECT: {
+        return value.fields.reduce((prev, field) => {
+          const node = new Node(field);
+          return Object.assign(prev, { [node.getName()]: node.getValue() });
+        }, {});
+      }
       default: return value.value;
     }
   }
@@ -123,7 +129,8 @@ module.exports = class Node {
   }
 
   getMeta() {
-    return this.getDirectiveArg('model', 'meta');
+    const meta = this.getDirectiveArg('model', 'meta', {});
+    return meta.input || 'AutoGraphMixed';
   }
 
   isPrivate() {
