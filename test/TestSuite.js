@@ -67,6 +67,7 @@ module.exports = (driver = 'mongo') => {
 
       // Create core classes
       const schema = new Schema(gql, stores);
+      schema.getServerApiSchema();
       resolver = new Resolver(schema);
 
       //

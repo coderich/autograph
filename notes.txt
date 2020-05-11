@@ -1,13 +1,8 @@
 Next:
-  * Add @field(default: <value>)
-  * Context. (tenants, segmentation, language)
   * Mutation should have meta input (how to define meta props?)
   * Define stores via appConfig (Secrets Manager)
-
-Ideas:
-  * Create a Document/Record class
-    - hydrate, dehydrate, cast, etc
-  * Can you use semver over glob in some areas?
+  * Why can't I use where clause to filter network.name = choa?
+  * Sending blank "" string for ID reference hangs the server!
 
 Bugs:
   * Embedded documents do not work!
@@ -18,14 +13,20 @@ Bugs:
     - How to create index on embedded objects? building.type unique?
 
 Todo:
-  * Verify that Rules are passed parameters one would need to do custom logic
+  * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
   * Error handling; Rules need better error messages
+    - You can probably return a custom error message or (false|null|undefined) if all is good (ie. from Rule)
   * Get a list of references that would be onDelete affected
   * Currently there is no way to count regular elements of an array (try to count bids)
   * URL, RGB, RGBA, validator?
   * Allow Field and Model to be extended (directive fields)
   * Computed fields?
   * Are you able to flatten fields? (ie. firstName, lastName but save to profile.firstName, profile.lastName in DB)
+
+Ideas:
+  * Create a Document/Record class
+    - hydrate, dehydrate, cast, etc
+  * Can you use semver over glob in some areas?
 
 Figure out:
   * createdBy? (Audit trail)

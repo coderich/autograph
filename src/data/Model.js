@@ -108,7 +108,7 @@ module.exports = class extends Model {
 
     return Object.entries(data).reduce((prev, [key, value]) => {
       const field = this.getField(key);
-      if (!field) return key === '_id' ? Object.assign(prev, { [key]: value }) : prev;
+      if (!field) return Object.assign(prev, { [key]: value });
       const alias = field.getAlias();
       return Object.assign(prev, { [alias]: field.serialize(value, mapper) });
     }, {});

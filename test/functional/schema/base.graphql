@@ -1,0 +1,27 @@
+scalar Mixed
+directive @model(scope: Mixed) on OBJECT
+directive @field(transform: [Mixed] enforce: Mixed onDelete: Mixed, default: Mixed) on FIELD_DEFINITION
+enum Gender { male female }
+input SomeInput { id: ID! name: String! }
+type Query { noop: String }
+type Mutation { noop: String }
+type Subscription { noop: String }
+
+extend type Person {
+  age: Int
+}
+
+type Person @model(scope: private) {
+  name: String! @field(transform: [toTitleCase, toMenaceCase], default: "idk")
+  authored: [Book]
+  emailAddress: String!
+  status: Mixed
+}
+
+type Book {
+  name: String!
+  price: Float!
+  author: Person!
+  bestSeller: Boolean @field(default: false)
+  bids: [Float]
+}

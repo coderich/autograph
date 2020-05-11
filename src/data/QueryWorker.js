@@ -85,7 +85,7 @@ module.exports = class QueryWorker {
 
     // Set default values for creation
     data.createdAt = Date.now();
-    model.getRequiredFields().forEach((field) => {
+    model.getDefaultedFields().forEach((field) => {
       const key = field.getName();
 
       if (!Object.prototype.hasOwnProperty.call(data, key)) {

@@ -29,7 +29,7 @@ module.exports = class Schema extends Node {
   }
 
   getEntityModels() {
-    return this.getModels().filter(model => model.isEntity());
+    return this.getModels().filter(model => model.isEntity() && !model.isPrivate());
   }
 
   getModelNames() {

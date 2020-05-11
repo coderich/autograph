@@ -64,30 +64,33 @@ describe('Documents', () => {
     const schema = new Schema({ typeDefs });
     expect(schema).toBeDefined();
 
-    // Models
-    const models = schema.getModels();
-    expect(models.map(m => m.getName())).toEqual(['Person', 'Book']);
-    expect(models.map(m => m.getScope())).toEqual(['private', 'protected']);
+    const validate = () => {
+      // Models
+      const models = schema.getModels();
+      expect(models.map(m => m.getName())).toEqual(['Person', 'Book']);
+      expect(models.map(m => m.getScope())).toEqual(['private', 'protected']);
 
-    // Fields
-    const [Person, Book] = models;
-    const [personFields, bookFields] = models.map(m => m.getFields());
-    expect(personFields.map(f => f.getName())).toEqual(['name', 'authored', 'emailAddress', 'status', 'age']);
-    expect(personFields.map(f => f.getType())).toEqual(['String', 'Book', 'String', 'Mixed', 'Int']);
-    expect(personFields.map(f => f.isArray())).toEqual([false, true, false, false, false]);
-    expect(personFields.map(f => f.isScalar())).toEqual([true, false, true, true, true]);
-    expect(personFields.map(f => f.isRequired())).toEqual([true, false, true, false, false]);
-    expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
-    expect(Person.getRequiredFields().map(f => `${f}`)).toEqual(['name', 'emailAddress']);
-    expect(bookFields.map(f => f.getName())).toEqual(['name', 'price', 'author', 'bestSeller', 'bids']);
-    expect(bookFields.map(f => f.getType())).toEqual(['String', 'Float', 'Person', 'Boolean', 'Float']);
-    expect(bookFields.map(f => f.isArray())).toEqual([false, false, false, false, true]);
-    expect(bookFields.map(f => f.isScalar())).toEqual([true, true, false, true, true]);
-    expect(bookFields.map(f => f.isRequired())).toEqual([true, true, true, false, false]);
-    expect(Book.getField('bestSeller').getDefaultValue()).toBe(false);
+      // Fields
+      const [Person, Book] = models;
+      const [personFields, bookFields] = models.map(m => m.getFields());
+      expect(personFields.map(f => f.getName())).toEqual(['name', 'authored', 'emailAddress', 'status', 'age']);
+      expect(personFields.map(f => f.getType())).toEqual(['String', 'Book', 'String', 'Mixed', 'Int']);
+      expect(personFields.map(f => f.isArray())).toEqual([false, true, false, false, false]);
+      expect(personFields.map(f => f.isScalar())).toEqual([true, false, true, true, true]);
+      expect(personFields.map(f => f.isRequired())).toEqual([true, false, true, false, false]);
+      expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
+      expect(Person.getRequiredFields().map(f => `${f}`)).toEqual(['name', 'emailAddress']);
+      expect(bookFields.map(f => f.getName())).toEqual(['name', 'price', 'author', 'bestSeller', 'bids']);
+      expect(bookFields.map(f => f.getType())).toEqual(['String', 'Float', 'Person', 'Boolean', 'Float']);
+      expect(bookFields.map(f => f.isArray())).toEqual([false, false, false, false, true]);
+      expect(bookFields.map(f => f.isScalar())).toEqual([true, true, false, true, true]);
+      expect(bookFields.map(f => f.isRequired())).toEqual([true, true, true, false, false]);
+      expect(Book.getField('bestSeller').getDefaultValue()).toBe(false);
+    };
 
-    // Executable Schema
+    validate();
     expect(schema.makeExecutableSchema()).toBeDefined();
+    validate();
   });
 
   test('complexSchema', () => {
@@ -110,19 +113,21 @@ describe('Documents', () => {
       },
     });
 
-    expect(schema.getModelNames()).toEqual(['Person', 'Book', 'Building']);
-    const [Person, Book] = schema.getModels();
-    const bookFields = Book.getFields();
-    expect(bookFields.map(f => f.getName())).toEqual(['name', 'price', 'author', 'bestSeller', 'bids', 'store']);
-    expect(bookFields.map(f => f.getType())).toEqual(['String', 'Float', 'Person', 'Boolean', 'String', 'Building']);
-    expect(Person.getField('name').getDefaultValue()).toEqual('Rich');
-    expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
+    const validate = () => {
+      expect(schema.getModelNames()).toEqual(['Person', 'Book', 'Building']);
+      const [Person, Book] = schema.getModels();
+      const bookFields = Book.getFields();
+      expect(bookFields.map(f => f.getName())).toEqual(['name', 'price', 'author', 'bestSeller', 'bids', 'store']);
+      expect(bookFields.map(f => f.getType())).toEqual(['String', 'Float', 'Person', 'Boolean', 'String', 'Building']);
+      expect(bookFields.map(f => f.isArray())).toEqual([false, false, false, false, true, false]);
+      expect(bookFields.map(f => f.isScalar())).toEqual([true, true, false, true, true, false]);
+      expect(bookFields.map(f => f.isRequired())).toEqual([true, true, true, false, false, false]);
+      expect(Person.getField('name').getDefaultValue()).toEqual('Rich');
+      expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
+    };
 
-    // Executable Schema
+    validate();
     expect(schema.makeExecutableSchema()).toBeDefined();
-
-    // Sanity test that nothing changed
-    expect(Person.getField('name').getDefaultValue()).toEqual('Rich');
-    expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
+    validate();
   });
 });

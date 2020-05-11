@@ -68,12 +68,11 @@ module.exports = class Field extends Node {
   // GQL Schema Methods
   getGQLType(suffix) {
     let type = this.getType();
-    const isModel = Boolean(this.getDataRef());
-    const modelType = isModel ? `${type}${suffix}` : type;
+    const modelType = `${type}${suffix}`;
     if (suffix && !this.isScalar()) type = this.isEmbedded() ? modelType : 'ID';
     // if (this.options.enum) type = `${this.model.getName()}${ucFirst(this.getName())}Enum`;
     type = this.isArray() ? `[${type}]` : type;
-    if (!suffix && this.isRequired) type += '!';
+    if (!suffix && this.isRequired()) type += '!';
     if (suffix === 'InputCreate' && this.isRequired() && !this.isDefaulted()) type += '!';
     return type;
   }
@@ -82,9 +81,8 @@ module.exports = class Field extends Node {
     const fieldName = this.getName();
     const type = this.getGQLType();
     const ref = this.getDataRef();
-    const model = this.getModelRef();
 
-    if (ref && model.isEntity()) {
+    if (ref) {
       if (this.isArray()) return `${fieldName}(first: Int after: String last: Int before: String query: ${ref}InputQuery): Connection`;
       return `${fieldName}(query: ${ref}InputQuery): ${type}`;
     }

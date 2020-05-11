@@ -7,29 +7,6 @@ const { isPlainObject, ensureArray, isScalarValue } = require('../service/app.se
 module.exports = class extends Field {
   constructor(model, field) {
     super(model, field.getAST());
-
-    this.rules = [];
-    this.transformers = [];
-
-    Object.entries(this.getDirectiveArgs('field', {})).forEach(([key, value]) => {
-      if (!Array.isArray(value)) value = [value];
-
-      switch (key) {
-        case 'enforce': {
-          this.rules.push(...value.map(r => Rule.getInstances()[r]));
-          break;
-        }
-        case 'transform': {
-          this.transformers.push(...value.map(t => Transformer.getInstances()[t]));
-          break;
-        }
-        default: {
-          break;
-        }
-      }
-    });
-
-    if (this.isRequired() && this.getType() !== 'ID') this.rules.push(Rule.required()); // Required rule
   }
 
   // CRUD
@@ -86,13 +63,37 @@ module.exports = class extends Field {
     return this.isArray() ? ensureArray(casted) : casted;
   }
 
+  getRules() {
+    const rules = [];
+
+    Object.entries(this.getDirectiveArgs('field', {})).forEach(([key, value]) => {
+      if (!Array.isArray(value)) value = [value];
+      if (key === 'enforce') rules.push(...value.map(r => Rule.getInstances()[r]));
+    });
+
+    if (this.isRequired() && this.getType() !== 'ID') rules.push(Rule.required()); // Required rule
+
+    return rules;
+  }
+
+  getTransformers() {
+    const transformers = [];
+
+    Object.entries(this.getDirectiveArgs('field', {})).forEach(([key, value]) => {
+      if (!Array.isArray(value)) value = [value];
+      if (key === 'transform') transformers.push(...value.map(t => Transformer.getInstances()[t]));
+    });
+
+    return transformers;
+  }
+
   serialize(value, mapper) {
     return this.transform(value, mapper, true);
   }
 
   transform(value, mapper = {}, serialize) {
     const modelRef = this.getModelRef();
-    const transformers = [...this.transformers];
+    const transformers = [...this.getTransformers()];
 
     // // Delegate transformations to the actual field responsible
     // const field = this.resolveField();
@@ -114,7 +115,7 @@ module.exports = class extends Field {
 
   validate(value, mapper = {}) {
     const modelRef = this.getModelRef();
-    const rules = [...this.rules];
+    const rules = [...this.getRules()];
 
     // // Delegate transformations to the actual field responsible
     // const field = this.resolveField();

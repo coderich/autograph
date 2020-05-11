@@ -49,11 +49,10 @@ module.exports = (schema) => {
       return `
         type ${modelName} implements Node {
           id: ID! @field(scope: private)
-          ${model.getSelectFields().map(field => field.getGQLDefinition())}
-          ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int!`)}
           ${createdAt ? `createdAt: Int @field(alias: "${createdAt}", scope: private)` : ''}
           ${updatedAt ? `updatedAt: Int @field(alias: "${updatedAt}", scope: private)` : ''}
-          countSelf(where: ${modelName}InputWhere): Int!
+          ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int @field(scope: private)`)}
+          countSelf(where: ${modelName}InputWhere): Int @field(scope: private)
         }
       `;
     })).concat([

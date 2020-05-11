@@ -1,0 +1,19 @@
+type Building {
+  year: Int
+  type: String! @field(enforce: buildingType)
+  tenants: [Person] @field(enforce: distinct, onDelete: cascade)
+  landlord: Person @field(onDelete: nullify, default: context)
+}
+
+extend type Book {
+  bids: [String]
+  store: Building
+}
+
+extend type Person {
+  name: String! @field(default: "Rich")
+}
+
+extend type Query {
+  doit: String
+}
