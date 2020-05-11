@@ -5,7 +5,9 @@ const instances = {};
 const jsStringMethods = ['endsWith', 'includes', 'match', 'search', 'startsWith'];
 
 class Rule {
-  constructor(thunk, ignoreNull = true, name = 'Unknown') {
+  constructor(thunk, options = {}, name = 'Unknown') {
+    const { ignoreNull = true } = (options || {});
+
     return Object.defineProperty((field, val, cmp = (f, v) => thunk(f, v)) => {
       return new Promise((resolve, reject) => {
         if (ignoreNull) {
@@ -29,9 +31,9 @@ class Rule {
     }, 'type', { value: 'rule' });
   }
 
-  static factory(name, thunk, ignoreNull = true, descriptor = {}) {
+  static factory(name, thunk, options = {}, descriptor = {}) {
     return Object.defineProperty(Rule, name, {
-      value: (...args) => Object.defineProperty(new Rule(thunk(...args), ignoreNull, name), 'method', { value: name }),
+      value: (...args) => Object.defineProperty(new Rule(thunk(...args), options, name), 'method', { value: name }),
       ...descriptor,
     })[name];
   }
@@ -53,8 +55,8 @@ class Rule {
 
 // Factory methods
 jsStringMethods.forEach(name => Rule.factory(name, (...args) => (f, v) => !String(v)[name](...args)));
-Rule.factory('ensureId', () => (f, v) => false, true, { writable: true });
-Rule.factory('required', () => (f, v) => v == null, false, { enumerable: true });
+Rule.factory('ensureId', () => (f, v) => false, null, { writable: true });
+Rule.factory('required', () => (f, v) => v == null, { ignoreNull: false }, { enumerable: true });
 Rule.factory('allow', (...args) => (f, v) => args.indexOf(v) === -1);
 Rule.factory('deny', (...args) => (f, v) => args.indexOf(v) > -1);
 Rule.factory('range', (min, max) => {
@@ -62,9 +64,9 @@ Rule.factory('range', (min, max) => {
   if (max == null) max = undefined;
   return (f, v) => Number.isNaN(v) || v < min || v > max;
 });
-Rule.factory('email', () => (f, v) => !isEmail(v), true, { enumerable: true });
-Rule.factory('selfless', () => (f, v) => false, true, { enumerable: true });
-Rule.factory('immutable', () => (f, v) => false, true, { enumerable: true });
-Rule.factory('distinct', () => (f, v) => false, true, { enumerable: true });
+Rule.factory('email', () => (f, v) => !isEmail(v), null, { enumerable: true });
+Rule.factory('selfless', () => (f, v) => false, null, { enumerable: true });
+Rule.factory('immutable', () => (f, v) => false, null, { enumerable: true });
+Rule.factory('distinct', () => (f, v) => false, null, { enumerable: true });
 
 module.exports = Rule;
