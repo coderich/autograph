@@ -13,11 +13,17 @@ module.exports = class Schema extends Node {
     //
     super(schema.typeDefs);
     this.schema = schema;
+    this.createMyModels();
+  }
+
+  createMyModels() {
     this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
   }
 
   getSchema() {
-    return Object.assign({}, this.schema, { typeDefs: this.ast });
+    const definitions = this.ast.definitions.filter(d => !new Node(d).isPrivate());
+    const ast = Object.assign({}, this.ast, { definitions });
+    return Object.assign({}, this.schema, { typeDefs: ast });
   }
 
   getModel(name) {
@@ -52,7 +58,7 @@ module.exports = class Schema extends Node {
     const definitions = schemas.map(schema => mergeASTSchema(schema.typeDefs).definitions);
     this.ast.definitions = mergeASTArray(this.ast.definitions.concat(...definitions));
     this.schema.resolvers = schemas.reduce((prev, schema) => Merge(prev, schema.resolvers || {}), this.schema.resolvers);
-    this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
+    this.createMyModels();
     return this;
   }
 

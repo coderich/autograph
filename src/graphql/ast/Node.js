@@ -152,6 +152,10 @@ module.exports = class Node {
     return Boolean(this.getDirective('model'));
   }
 
+  isPrivate() {
+    return Boolean(this.getScope() === 'none');
+  }
+
   isVirtual() {
     return Boolean(this.getDirectiveArg('field', 'materializeBy'));
   }

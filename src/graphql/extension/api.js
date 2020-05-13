@@ -84,30 +84,30 @@ module.exports = (schema) => {
 
       `type Schema {
         _noop: String
-        ${schema.getEntityModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
-        ${schema.getEntityModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getEntityModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
+        ${schema.getReadableModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getReadableModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getReadableModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Query {
         Schema: Schema!
         node(id: ID!): Node
-        ${schema.getEntityModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
-        ${schema.getEntityModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getEntityModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
+        ${schema.getReadableModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getReadableModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getReadableModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Mutation {
         _noop: String
-        ${schema.getEntityModels().map(model => `create${model.getName()}(data: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}! `)}
-        ${schema.getEntityModels().map(model => `update${model.getName()}(id: ID! data: ${model.getName()}InputUpdate! meta: ${model.getMeta()}): ${model.getName()}! `)}
-        ${schema.getEntityModels().map(model => `delete${model.getName()}(id: ID!): ${model.getName()}! `)}
+        ${schema.getWritableModels().map(model => `create${model.getName()}(data: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getWritableModels().map(model => `update${model.getName()}(id: ID! data: ${model.getName()}InputUpdate! meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getWritableModels().map(model => `delete${model.getName()}(id: ID!): ${model.getName()}! `)}
       }`,
 
       `type Subscription {
         _noop: String
-        ${schema.getEntityModels().map(model => `${model.getName()}Trigger(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getEntityModels().map(model => `${model.getName()}Changed(query: ${ucFirst(model.getName())}InputQuery): [${model.getName()}Subscription]!`)}
+        ${schema.getWritableModels().map(model => `${model.getName()}Trigger(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getWritableModels().map(model => `${model.getName()}Changed(query: ${ucFirst(model.getName())}InputQuery): [${model.getName()}Subscription]!`)}
       }`,
     ]),
     resolvers: schema.getEntityModels().reduce((prev, model) => {
@@ -140,7 +140,7 @@ module.exports = (schema) => {
           return model.hydrate(autograph.loader, node, { fields: GraphqlFields(info, {}, { processArguments: true }) });
         },
       },
-      Query: schema.getEntityModels().reduce((prev, model) => {
+      Query: schema.getReadableModels().reduce((prev, model) => {
         const modelName = model.getName();
 
         return Object.assign(prev, {
@@ -158,7 +158,7 @@ module.exports = (schema) => {
         },
       }),
 
-      Mutation: schema.getEntityModels().reduce((prev, model) => {
+      Mutation: schema.getWritableModels().reduce((prev, model) => {
         const modelName = model.getName();
 
         return Object.assign(prev, {
@@ -168,7 +168,7 @@ module.exports = (schema) => {
         });
       }, {}),
 
-      Schema: schema.getEntityModels().reduce((prev, model) => {
+      Schema: schema.getReadableModels().reduce((prev, model) => {
         const modelName = model.getName();
 
         return Object.assign(prev, {
