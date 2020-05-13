@@ -127,15 +127,25 @@ module.exports = class Node {
   }
 
   getScope() {
-    return this.getDirectiveArg('field', 'scope', this.getDirectiveArg('model', 'scope', 'protected'));
+    return this.getDirectiveArg('field', 'scope', this.getDirectiveArg('model', 'scope', 'all'));
+  }
+
+  getAuthz() {
+    return this.getDirectiveArg('field', 'authz', this.getDirectiveArg('model', 'authz', 'private'));
   }
 
   getMeta() {
     return this.getDirectiveArg('model', 'meta', 'AutoGraphMixed');
   }
 
-  isPrivate() {
-    return Boolean(this.getScope() === 'private');
+  isReadable() {
+    const scope = this.getScope();
+    return Boolean(scope === 'all' || scope === 'read');
+  }
+
+  isWritable() {
+    const scope = this.getScope();
+    return Boolean(scope === 'all' || scope === 'write');
   }
 
   isEntity() {

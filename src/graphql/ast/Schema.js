@@ -29,7 +29,15 @@ module.exports = class Schema extends Node {
   }
 
   getEntityModels() {
-    return this.getModels().filter(model => model.isEntity() && !model.isPrivate());
+    return this.getModels().filter(model => model.isEntity() && model.getScope() !== 'none');
+  }
+
+  getReadableModels() {
+    return this.getEntityModels().filter(model => model.isReadable());
+  }
+
+  getWritableModels() {
+    return this.getEntityModels().filter(model => model.isWritable());
   }
 
   getModelNames() {

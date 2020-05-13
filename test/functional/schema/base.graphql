@@ -11,7 +11,7 @@ extend type Person {
   age: Int
 }
 
-type Person @model(scope: private) {
+type Person @model(scope: none) {
   name: String! @field(transform: [toTitleCase, toMenaceCase], default: "idk")
   authored: [Book]
   emailAddress: String!

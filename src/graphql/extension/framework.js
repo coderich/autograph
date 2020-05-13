@@ -7,14 +7,16 @@ module.exports = schema => ({
     scalar AutoGraphDriver
     enum AutoGraphEnforceEnum { ${Object.keys(Rule.getInstances()).join(' ')} }
     enum AutoGraphTransformEnum  { ${Object.keys(Transformer.getInstances()).join(' ')} }
-    enum AutoGraphScopeEnum { private protected public segment }
+    enum AutoGraphAuthzEnum { public private protected }
+    enum AutoGraphScopeEnum { all none read write }
     enum AutoGraphOnDeleteEnum { cascade nullify restrict }
     enum AutoGraphIndexEnum { unique }
 
     directive @model(
       id: String
       alias: String # Database collection name
-      scope: AutoGraphScopeEnum # Define a scope for all fields (can be overwritten at field level)
+      authz: AutoGraphAuthzEnum # Define authz rules for all fields (can be overwritten at field level)
+      scope: AutoGraphScopeEnum # Define scope for all fields (can be overwritten at field level)
       meta: String # Custom input definition used for meta
       driver: AutoGraphDriver
       namespace: String
@@ -24,7 +26,8 @@ module.exports = schema => ({
 
     directive @field(
       alias: String # Database field name
-      scope: AutoGraphScopeEnum # Access level used for authorization (default: protected)
+      authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
+      scope: AutoGraphScopeEnum # Determines where in the API the field should be used
       default: AutoGraphMixed # Define a default value
       segment: String # Define it's value from context.segment (takes precedence over default)
       enforce: [AutoGraphEnforceEnum!]

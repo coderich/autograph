@@ -7,7 +7,7 @@ const validate = (schema) => {
   // Models
   const models = schema.getModels();
   expect(models.map(m => m.getName())).toEqual(expect.arrayContaining(['Person', 'Book']));
-  expect(models.map(m => m.getScope())).toEqual(expect.arrayContaining(['private', 'protected']));
+  expect(models.map(m => m.getScope())).toEqual(expect.arrayContaining(['none', 'all']));
 
   // Fields
   const [Person, Book] = models;

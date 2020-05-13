@@ -69,16 +69,16 @@ module.exports = class Model extends Node {
     return this.getFields().filter(field => field.isArray() && !field.isVirtual());
   }
 
-  getCountableFields() {
-    return this.getFields().filter(field => field.isArray() && field.getDataRef());
+  getSelectFields() {
+    return this.getFields().filter(field => field.isReadable() && field.getName() !== 'id');
   }
 
-  getSelectFields() {
-    return this.getFields().filter(field => field.getName() !== 'id');
+  getCountableFields() {
+    return this.getSelectFields().filter(field => field.isArray() && field.getDataRef());
   }
 
   getCreateFields() {
-    return this.getFields().filter(field => !field.isVirtual() && !field.isPrivate() && !field.isSegmented() && field.getName() !== 'id');
+    return this.getFields().filter(field => field.isWritable() && !field.isVirtual() && !field.isSegmented() && field.getName() !== 'id');
   }
 
   getUpdateFields() {

@@ -15,7 +15,7 @@ const typeDefs = `
     age: Int
   }
 
-  type Person @model(scope: private) {
+  type Person @model(scope: none) {
     name: String! @field(transform: [toTitleCase, toMenaceCase], default: "idk")
     authored: [Book]
     emailAddress: String!
@@ -68,7 +68,7 @@ describe('Documents', () => {
       // Models
       const models = schema.getModels();
       expect(models.map(m => m.getName())).toEqual(['Person', 'Book']);
-      expect(models.map(m => m.getScope())).toEqual(['private', 'protected']);
+      expect(models.map(m => m.getScope())).toEqual(['none', 'all']);
 
       // Fields
       const [Person, Book] = models;

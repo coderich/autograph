@@ -16,7 +16,7 @@ type Person @model {
   authored: [Book]
   emailAddress: String!
   home: Building
-  status: String @field(scope: private)
+  status: String @field(scope: none)
 }
 
 type Book @model {
