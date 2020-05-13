@@ -209,6 +209,7 @@ module.exports = (driver = 'mongo') => {
     describe('Find', () => {
       test('Person', async () => {
         expect((await resolver.match('Person').many({ find: true })).length).toBe(2);
+        expect(await resolver.match('Person').where({ name: 'nooneatall' }).many({ find: true })).toMatchObject([]);
         expect(await resolver.match('Person').where({ name: 'richard' }).many({ find: true })).toMatchObject([{ id: richard.id, name: 'Richard' }]);
         expect(await resolver.match('Person').where({ name: 'Christie' }).many({ find: true })).toMatchObject([{ id: christie.id, name: 'Christie' }]);
         expect(await resolver.match('Person').where({ emailAddress: 'rich@coderich.com' }).many({ find: true })).toMatchObject([{ id: richard.id, name: 'Richard' }]);
@@ -219,6 +220,7 @@ module.exports = (driver = 'mongo') => {
 
       test('Book', async () => {
         expect((await resolver.match('Book').many({ find: true })).length).toBe(2);
+        expect(await resolver.match('Book').where({ author: 'no-such-id' }).many({ find: true })).toMatchObject([]);
         expect(await resolver.match('Book').where({ author: richard.id }).many({ find: true })).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick', author: richard.id }]);
         expect(await resolver.match('Book').where({ price: 9.99 }).many({ find: true })).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick', author: richard.id }]);
         expect(await resolver.match('Book').where({ price: '9.99' }).many({ find: true })).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick', author: richard.id }]);
@@ -545,6 +547,7 @@ module.exports = (driver = 'mongo') => {
       });
 
       test('Book', async () => {
+        expect(await resolver.match('Book').where({ author: { name: 'nooneatall' } }).many()).toMatchObject([]);
         expect(await resolver.match('Book').where({ author: { name: 'Richard' } }).many()).toMatchObject([{ id: mobyDick.id }]);
         expect(await resolver.match('Book').where({ author: { authored: { name: 'Moby*' } } }).many()).toMatchObject([{ id: mobyDick.id }]);
         expect(await resolver.match('Book').where({ author: { authored: { name: 'Health*' } } }).many()).toMatchObject([{ id: healthBook.id }]);

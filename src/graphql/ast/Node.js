@@ -127,7 +127,7 @@ module.exports = class Node {
   }
 
   getScope() {
-    return this.getDirectiveArg('field', 'scope', this.getDirectiveArg('model', 'scope', 'all'));
+    return this.getDirectiveArg('field', 'scope', this.getDirectiveArg('model', 'scope', 'default'));
   }
 
   getAuthz() {
@@ -139,13 +139,11 @@ module.exports = class Node {
   }
 
   isReadable() {
-    const scope = this.getScope();
-    return Boolean(scope === 'all' || scope === 'read');
+    return Boolean(['default', 'query', 'resolve'].indexOf(this.getScope()) > -1);
   }
 
   isWritable() {
-    const scope = this.getScope();
-    return Boolean(scope === 'all' || scope === 'write');
+    return Boolean(['default', 'mutation'].indexOf(this.getScope()) > -1);
   }
 
   isEntity() {

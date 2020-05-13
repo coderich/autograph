@@ -22,10 +22,12 @@ module.exports = class Schema extends Node {
 
   getSchema() {
     // Filter out private models/fields from our API
-    const definitions = this.ast.definitions.filter((d) => {
-      const node = new Node(d);
-      return !node.isModel() || !node.isPrivate();
-    }).map((definition) => {
+    // const definitions = this.ast.definitions.filter((d) => {
+    //   const node = new Node(d);
+    //   return !node.isModel() || !node.isPrivate();
+    // })
+
+    const definitions = this.ast.definitions.map((definition) => {
       definition.fields = (definition.fields || []).filter((f) => {
         const node = new Node(f);
         return !node.isPrivate();
@@ -47,7 +49,7 @@ module.exports = class Schema extends Node {
   }
 
   getEntityModels() {
-    return this.getModels().filter(model => model.isEntity() && model.getScope() !== 'none');
+    return this.getModels().filter(model => model.isEntity() && !model.isPrivate());
   }
 
   getReadableModels() {

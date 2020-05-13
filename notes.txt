@@ -44,6 +44,18 @@ Open Questions:
   * Where/How to define stores?
   * Should updatedAt be set when a document is created? Should it be configurable?
 
+Sales Pitch:
+  * Conforms to specifications
+  * Proper where clause filter
+  * Automatic CRUD
+  * Automatic Pagination
+  * Unified Schema (validations & transformations)
+  * Fixes "alias" problem - duplicate data
+  * Able to work with models naturally instead of their db fieldname counterpart
+  * Transactions
+  * Proper onDelete behavior (via transactions)
+  * Automatic timestamps (createdAt updatedAt)
+
 Refs:
   * https://jbt.github.io/markdown-editor/
   * https://gist.github.com/rxaviers/7360908

@@ -62,7 +62,7 @@ module.exports = class Field extends Node {
   }
 
   isRequired() {
-    return this.type.isRequired();
+    return Boolean(this.type.isRequired() && this.getScope() !== 'resolver');
   }
 
   // GQL Schema Methods
