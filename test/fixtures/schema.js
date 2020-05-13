@@ -13,7 +13,7 @@ module.exports = {
     }
 
     type Person
-      @model(meta: { input: PersonMetaInput, required: true })
+      @model(meta: "PersonInputMeta!")
       @index(name: "uix_person_name", type: unique, on: ["name"])
     {
       name: String! @field(transform: toTitleCase)

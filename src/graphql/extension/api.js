@@ -48,11 +48,11 @@ module.exports = (schema) => {
 
       return `
         type ${modelName} implements Node {
-          id: ID! @field(scope: private)
-          ${createdAt ? `createdAt: Int @field(alias: "${createdAt}", scope: private)` : ''}
-          ${updatedAt ? `updatedAt: Int @field(alias: "${updatedAt}", scope: private)` : ''}
-          ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int @field(scope: private)`)}
-          countSelf(where: ${modelName}InputWhere): Int @field(scope: private)
+          id: ID!
+          ${createdAt ? `createdAt: String @field(alias: "${createdAt}")` : ''}
+          ${updatedAt ? `updatedAt: String @field(alias: "${updatedAt}")` : ''}
+          ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int`)}
+          countSelf(where: ${modelName}InputWhere): Int
         }
       `;
     })).concat([

@@ -97,7 +97,9 @@ module.exports = class Node {
   }
 
   getSegmentValue(context = {}) {
-    return get(context, `segment.${this.getSegment()}`);
+    const segment = get(context, `segment.${this.getSegment()}`);
+    if (typeof segment === 'function') return segment();
+    return segment;
   }
 
   getOnDelete() {
@@ -129,8 +131,7 @@ module.exports = class Node {
   }
 
   getMeta() {
-    const meta = this.getDirectiveArg('model', 'meta', {});
-    return meta.input || 'AutoGraphMixed';
+    return this.getDirectiveArg('model', 'meta', 'AutoGraphMixed');
   }
 
   isPrivate() {

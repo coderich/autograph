@@ -2,8 +2,10 @@ Next:
   * Computed fields (read only)?
   * Define stores via appConfig (Secrets Manager)
   * Why can't I use where clause to filter network.name = choa?
-  * Sending blank "" string for ID reference hangs the server (mutations)!
+  * Sending blank "" string for ID reference hangs the server (query filter)!
   * Can you also have Transformers and Rules on the Model itself (ie. MultiLang type)
+  * MeteorUser _id is a String (not ID). How to handle?
+  * Incorporate Logger
 
 Bugs:
   * Embedded documents do not work!
@@ -22,6 +24,7 @@ Todo:
   * URL, RGB, RGBA, validator?
   * Allow Field and Model to be extended (directive fields)
   * Are you able to flatten fields? (ie. firstName, lastName but save to profile.firstName, profile.lastName in DB)
+    - Confirmed that you cannot.
 
 Ideas:
   * Create a Document/Record class
@@ -29,11 +32,13 @@ Ideas:
   * Can you use semver over glob in some areas?
 
 Figure out:
+  * Should InputUpdate be required? Does it make a difference if there's meta or no meta?
   * createdBy? (Audit trail)
   * Composite Rule Definitions?
   * Authorization. Specifically owner records, segmentation, recursive data resolution
   * dependencies vs peerDependencies (graphql)
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
+  * Password and PasswordMatch validation; enforce strength; password can be created/updated but not selected, what's the scope?
 
 Open Questions:
   * Where/How to define stores?
