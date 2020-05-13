@@ -21,7 +21,19 @@ module.exports = class Schema extends Node {
   }
 
   getSchema() {
-    const definitions = this.ast.definitions.filter(d => !new Node(d).isPrivate());
+    // Filter out private models/fields from our API
+    const definitions = this.ast.definitions.filter((d) => {
+      const node = new Node(d);
+      return !node.isModel() || !node.isPrivate();
+    }).map((definition) => {
+      definition.fields = (definition.fields || []).filter((f) => {
+        const node = new Node(f);
+        return !node.isPrivate();
+      });
+
+      return definition;
+    });
+
     const ast = Object.assign({}, this.ast, { definitions });
     return Object.assign({}, this.schema, { typeDefs: ast });
   }
