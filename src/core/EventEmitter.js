@@ -9,15 +9,16 @@ module.exports = class extends EventEmitter {
           const next = () => resolve();
           const numArgs = (wrapper.listener || wrapper).length;
 
-          if (wrapper instanceof Promise) {
-            wrapper(data, next).catch(e => reject(e)); // I'm honestly not sure why I need this but does not work without
-          } else {
-            wrapper(data, next);
-          }
+          wrapper(data, next);
+          // if (wrapper instanceof Promise) {
+          //   wrapper(data, next).catch(e => reject(e)); // I'm honestly not sure why I need this but does not work without
+          // } else {
+          //   wrapper(data, next);
+          // }
 
           if (numArgs < 2) resolve();
         } catch (e) {
-          resolve();
+          reject(e);
         }
       });
     }));

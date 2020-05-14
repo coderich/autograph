@@ -1,13 +1,14 @@
+Now:
+  * Need consistent model/field names (based off schema) and only apply alias when persisting to db
+  * Input types are not models and therefor cannot participate in Transformers|Rules
+
 Next:
-  * Computed fields (read only)?
   * Define stores via appConfig (Secrets Manager)
-  * Why can't I use where clause to filter network.name = choa?
-  * Sending blank "" string for ID reference hangs the server (query filter)!
   * Can you also have Transformers and Rules on the Model itself (ie. MultiLang type)
-  * MeteorUser _id is a String (not ID). How to handle?
-  * Incorporate Logger
+  * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
 
 Bugs:
+  * Where clause returns 404 for network.name
   * Embedded documents do not work!
     - Currently embedded document is being saved as it's own collection/node
     - Cannot update apartment.building
@@ -16,6 +17,8 @@ Bugs:
     - How to create index on embedded objects? building.type unique?
 
 Todo:
+  * Incorporate Logger
+  * MeteorUser _id is a String (not ID). How to handle?
   * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
   * Error handling; Rules need better error messages
     - You can probably return a custom error message or (false|null|undefined) if all is good (ie. from Rule)
@@ -27,17 +30,16 @@ Todo:
     - Confirmed that you cannot.
 
 Ideas:
+  * If the Query holds all the information you can move logic to it (eg. Query.validate())
   * Create a Document/Record class
     - hydrate, dehydrate, cast, etc
   * Can you use semver over glob in some areas?
 
 Figure out:
-  * Should InputUpdate be required? Does it make a difference if there's meta or no meta?
   * createdBy? (Audit trail)
   * Composite Rule Definitions?
   * Authorization. Specifically owner records, segmentation, recursive data resolution
   * dependencies vs peerDependencies (graphql)
-  * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
   * Password and PasswordMatch validation; enforce strength; password can be created/updated but not selected, what's the scope?
 
 Open Questions:
@@ -55,6 +57,7 @@ Sales Pitch:
   * Transactions
   * Proper onDelete behavior (via transactions)
   * Automatic timestamps (createdAt updatedAt)
+  * Baked in DataLoader
 
 Refs:
   * https://jbt.github.io/markdown-editor/

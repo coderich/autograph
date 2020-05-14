@@ -18,6 +18,7 @@ module.exports = class QueryBuilder {
     this.before = (before) => { query.before = before; return this; };
     this.after = (after) => { query.after = after; return this; };
     this.options = (options) => { query.options = Object.assign({}, query.options, options); return this; };
+    this.args = (args) => { query.args = Object.assign({}, query.args, args); return this; };
     this.meta = (meta) => { query.meta = Object.assign({}, query.meta, meta); return this; };
 
     // want to keep?

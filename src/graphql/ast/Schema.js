@@ -13,10 +13,6 @@ module.exports = class Schema extends Node {
     //
     super(schema.typeDefs);
     this.schema = schema;
-    this.createMyModels();
-  }
-
-  createMyModels() {
     this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
   }
 
@@ -72,7 +68,7 @@ module.exports = class Schema extends Node {
     const definitions = schemas.map(schema => mergeASTSchema(schema.typeDefs).definitions);
     this.ast.definitions = mergeASTArray(this.ast.definitions.concat(...definitions));
     this.schema.resolvers = schemas.reduce((prev, schema) => Merge(prev, schema.resolvers || {}), this.schema.resolvers);
-    this.createMyModels();
+    this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
     return this;
   }
 

@@ -39,6 +39,10 @@ module.exports = class Query {
     return this.query.id;
   }
 
+  getMeta() {
+    return this.query.meta;
+  }
+
   getSelectFields() {
     return this.selectFields;
   }

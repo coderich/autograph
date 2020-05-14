@@ -41,8 +41,8 @@ module.exports = class ServerResolver {
     this.count = ({ autograph }, model, args, info) => autograph.loader.match(model).where(args.where).count();
 
     // Mutations
-    this.create = ({ autograph }, model, data, query) => autograph.loader.match(model).select(query.fields).save(unrollGuid(autograph, model, data));
-    this.update = ({ autograph }, model, guid, data, query) => autograph.loader.match(model).id(guidToId(autograph, guid)).select(query.fields).save(unrollGuid(autograph, model, data));
-    this.delete = ({ autograph }, model, guid, query) => autograph.loader.match(model).id(guidToId(autograph, guid)).select(query.fields).remove();
+    this.create = ({ autograph }, model, data, meta, query) => autograph.loader.match(model).select(query.fields).meta(meta).save(unrollGuid(autograph, model, data));
+    this.update = ({ autograph }, model, guid, data, meta, query) => autograph.loader.match(model).id(guidToId(autograph, guid)).select(query.fields).meta(meta).save(unrollGuid(autograph, model, data));
+    this.delete = ({ autograph }, model, guid, meta, query) => autograph.loader.match(model).id(guidToId(autograph, guid)).select(query.fields).meta(meta).remove();
   }
 };
