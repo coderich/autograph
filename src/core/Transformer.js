@@ -44,7 +44,6 @@ class Transformer {
 // Factory methods
 const enumerables = ['toLowerCase', 'toUpperCase', 'trim', 'trimEnd', 'trimStart', 'toString'];
 jsStringMethods.forEach(name => Transformer.factory(name, (...args) => (f, v) => String(v)[name](...args), null, { enumerable: enumerables.indexOf(name) > -1 }));
-Transformer.factory('toId', () => (f, v) => v, null, { writable: true });
 Transformer.factory('toTitleCase', () => (f, v) => v.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()), null, { enumerable: true });
 Transformer.factory('toLocaleTitleCase', (...args) => (f, v) => v.replace(/\w\S*/g, w => w.charAt(0).toLocaleUpperCase(...args) + w.slice(1).toLocaleLowerCase()));
 Transformer.factory('toSentenceCase', () => (f, v) => v.charAt(0).toUpperCase() + v.slice(1), null, { enumerable: true });
@@ -54,5 +53,6 @@ Transformer.factory('dedupe', () => (f, a) => [...new Set(a.map(v => `${v}`))].m
 Transformer.factory('timestamp', () => (f, v) => Date.now(), null, { enumerable: true });
 Transformer.factory('cast', type => (f, v) => castCmp(type, v));
 Transformer.factory('serialize', () => (f, v) => serialize(f, v));
+Transformer.factory('toId', () => (f, v) => f.getModel().idValue(v));
 
 module.exports = Transformer;

@@ -5,6 +5,7 @@ const { mergeAST } = require('../../service/graphql.service');
 
 const operations = ['Query', 'Mutation', 'Subscription'];
 const modelKinds = [Kind.OBJECT_TYPE_DEFINITION, Kind.OBJECT_TYPE_EXTENSION];
+const inputKinds = [Kind.INPUT_OBJECT_TYPE_DEFINITION, Kind.INPUT_OBJECT_TYPE_EXTENSION];
 
 module.exports = class Node {
   constructor(astLike) {
@@ -165,5 +166,9 @@ module.exports = class Node {
 
   isModel() {
     return Boolean(modelKinds.some(k => this.getKind() === k) && operations.every(o => this.getName() !== o));
+  }
+
+  isInput() {
+    return Boolean(inputKinds.some(k => this.getKind() === k));
   }
 };

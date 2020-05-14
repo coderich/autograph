@@ -1,0 +1,30 @@
+title Request
+
+GraphQL->Resolver: <request>
+note over Resolver
+    normalize query
+    unroll guids
+end note
+Resolver->Loader: match()
+Loader->Resolver: QueryBuilder
+note over Resolver: assemble Query
+Resolver->Loader: load()
+Loader->QueryWorker: Query
+note over QueryWorker
+    transform data
+    validate data
+    create system event
+    serialize data
+end note
+QueryWorker->Model: Query
+note over Model
+    alias name
+end note
+Model->Driver: Query
+Driver->Model: ResultSet
+Model->QueryWorker: [results]
+QueryWorker->Model: hydrate()
+Model->QueryWorker: [results]
+QueryWorker->Loader: [results]
+Loader->Resolver: [results]
+Resolver->GraphQL: [results]

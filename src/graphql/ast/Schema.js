@@ -14,6 +14,7 @@ module.exports = class Schema extends Node {
     super(schema.typeDefs);
     this.schema = schema;
     this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
+    this.inputs = this.ast.definitions.filter(d => new Node(d).isInput()).map(d => new Model(this, d));
   }
 
   getSchema() {
@@ -42,6 +43,14 @@ module.exports = class Schema extends Node {
 
   getModels() {
     return this.models;
+  }
+
+  getInput(name) {
+    return this.getInputs().find(input => input.getName() === name);
+  }
+
+  getInputs() {
+    return this.inputs;
   }
 
   getEntityModels() {

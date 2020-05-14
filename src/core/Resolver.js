@@ -8,7 +8,6 @@ const Query = require('../data/Query');
 const Model = require('../data/Model');
 const { hashObject } = require('../service/app.service');
 const Rule = require('./Rule');
-const Transformer = require('./Transformer');
 
 let count = 0;
 
@@ -24,12 +23,6 @@ module.exports = class Resolver {
         if (doc) return false;
         return true;
       });
-    });
-
-    Transformer.factory('toId', () => (field, v) => {
-      const modelRef = field.getModel();
-      const model = schema.getModel(`${modelRef}`);
-      return model.idValue(v);
     });
   }
 
