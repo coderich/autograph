@@ -76,7 +76,7 @@ module.exports = class Schema extends Node {
   extend(...schemas) {
     const definitions = schemas.map(schema => mergeASTSchema(schema.typeDefs).definitions);
     this.ast.definitions = mergeASTArray(this.ast.definitions.concat(...definitions));
-    this.schema.resolvers = schemas.reduce((prev, schema) => Merge(prev, schema.resolvers || {}), this.schema.resolvers);
+    this.schema.resolvers = Merge(schemas.reduce((prev, schema) => Merge(prev, schema.resolvers || {}), {}), this.schema.resolvers);
     this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
     return this;
   }

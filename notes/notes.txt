@@ -1,9 +1,11 @@
 Now:
-  * Need consistent model/field names (based off schema) and only apply alias when persisting to db
   * Input types are not models and therefor cannot participate in Transformers|Rules
+  * Need consistent model/field names (based off schema) and only apply alias when persisting to db
+    - You can't wait until resolver to return $<fieldName>
 
 Next:
   * Define stores via appConfig (Secrets Manager)
+  * Need consistent model/field names (based off schema) and only apply alias when persisting to db
   * Can you also have Transformers and Rules on the Model itself (ie. MultiLang type)
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
 
@@ -18,6 +20,8 @@ Bugs:
 
 Todo:
   * Incorporate Logger
+  * Date conversion can be a "writable" Transformation
+  * Can you make Emitter events part of a transaction? pre vs post can be confusing... especially for data validation etc.
   * MeteorUser _id is a String (not ID). How to handle?
   * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
   * Error handling; Rules need better error messages

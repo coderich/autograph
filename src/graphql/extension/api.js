@@ -49,8 +49,8 @@ module.exports = (schema) => {
       return `
         type ${modelName} implements Node {
           id: ID!
-          ${createdAt ? `createdAt: String @field(alias: "${createdAt}")` : ''}
-          ${updatedAt ? `updatedAt: String @field(alias: "${updatedAt}")` : ''}
+          ${createdAt ? `createdAt: AutoGraphDateTime @field(alias: "${createdAt}")` : ''}
+          ${updatedAt ? `updatedAt: AutoGraphDateTime @field(alias: "${updatedAt}")` : ''}
           ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int`)}
           countSelf(where: ${modelName}InputWhere): Int
         }
