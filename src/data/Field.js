@@ -33,7 +33,7 @@ module.exports = class extends Field {
 
     const query = _.cloneDeep(q);
     const dataType = this.getDataType();
-    const value = doc[this.getAlias()];
+    const value = doc[this.getName()];
     query.where = query.where || {};
 
     // Scalar Resolvers

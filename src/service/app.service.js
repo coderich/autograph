@@ -11,7 +11,7 @@ exports.id = '3d896496-02a3-4ee5-8e42-2115eb215f7e';
 exports.generateId = () => UUID();
 exports.ucFirst = string => string.charAt(0).toUpperCase() + string.slice(1);
 exports.lcFirst = string => string.charAt(0).toLowerCase() + string.slice(1);
-exports.isPlainObject = obj => typeof obj === 'object' && !Array.isArray(obj) && !(obj instanceof ObjectID);
+exports.isPlainObject = obj => obj != null && typeof obj === 'object' && !Array.isArray(obj) && !(obj instanceof ObjectID);
 // exports.isPlainObject = obj => IPO(obj) && !Array.isArray(obj);
 exports.isScalarValue = value => typeof value !== 'object' && typeof value !== 'function';
 exports.isScalarDataType = value => ['ID', 'String', 'Float', 'Int', 'Boolean', 'DateTime'].indexOf(value) > -1;
@@ -142,7 +142,7 @@ exports.proxyDeep = (obj, handler, proxyMap = new WeakMap(), path = '') => {
 
         const plainObject = Object.entries(this).reduce((prev, [key, value]) => {
           if (Array.isArray(value)) return Object.assign(prev, { [key]: value.map(v => (v.toObject ? v.toObject(getMap) : v)) });
-          return Object.assign(prev, { [key]: value.toObject ? value.toObject(getMap) : value });
+          return Object.assign(prev, { [key]: _.get(value, 'toObject') ? value.toObject(getMap) : value });
         }, {});
 
         getMap.set(this, plainObject);

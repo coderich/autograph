@@ -1,7 +1,5 @@
 Now:
   * Input types are not models and therefor cannot participate in Transformers|Rules
-  * Need consistent model/field names (based off schema) and only apply alias when persisting to db
-    - You can't wait until resolver to return $<fieldName>
 
 Next:
   * Define stores via appConfig (Secrets Manager)

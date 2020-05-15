@@ -18,7 +18,8 @@ module.exports = class Model extends Node {
 
   getField(path = '') {
     const [name, ...rest] = path.split('.');
-    const field = this.getFields().find(f => f.getName() === name);
+    let field = this.getFields().find(f => f.getName() === name);
+    if (!field) field = this.getFields().find(f => f.getAlias() === name);
     if (field == null) return field;
 
     if (rest.length) {

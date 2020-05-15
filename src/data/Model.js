@@ -119,9 +119,10 @@ module.exports = class extends Model {
 
     return Object.entries(data).reduce((prev, [key, value]) => {
       const field = this.getField(key);
-      if (!field) return Object.assign(prev, { [key]: value });
-      return Object.assign(prev, { [key]: field.transform(value, mapper) });
-    }, {});
+      if (!field) return prev;
+      const name = field.getName();
+      return Object.assign(prev, { [name]: field.transform(value, mapper) });
+    }, data);
   }
 
   validate(data, mapper) {
