@@ -1,13 +1,11 @@
 const { ApolloServer } = require('apollo-server');
-const { importSchema } = require('graphql-import');
 const Schema = require('../src/core/Schema');
 const Resolver = require('../src/core/Resolver');
-const gqlSchema = require('./fixtures/schema');
+const gqlSchema = require('./fixtures/proxy');
 const stores = require('./stores');
 
 class Server {
   constructor() {
-    // const typeDefs = importSchema(`${__dirname}/fixtures/complex.graphql`);
     const schema = new Schema(gqlSchema, stores);
     const executableSchema = schema.makeServerApiSchema();
 
