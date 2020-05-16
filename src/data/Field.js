@@ -28,36 +28,36 @@ module.exports = class extends Field {
     return resolver.match(fieldRef).where(where).count();
   }
 
-  resolve(resolver, doc, q = {}) {
-    if (doc == null) return doc;
+  // resolve(resolver, doc, q = {}) {
+  //   if (doc == null) return doc;
 
-    const query = _.cloneDeep(q);
-    const dataType = this.getDataType();
-    const value = doc[this.getName()];
-    query.where = query.where || {};
+  //   const query = _.cloneDeep(q);
+  //   const dataType = this.getDataType();
+  //   const value = doc[this.getName()];
+  //   query.where = query.where || {};
 
-    // Scalar Resolvers
-    if (this.isScalar() || this.isEmbedded()) return value;
+  //   // Scalar Resolvers
+  //   if (this.isScalar() || this.isEmbedded()) return value;
 
-    // Array Resolvers
-    if (Array.isArray(dataType)) {
-      if (this.isVirtual()) {
-        query.where[this.getVirtualField().getAlias()] = doc.id;
-        return resolver.match(dataType[0]).query(query).many({ find: true });
-      }
-      const valueIds = (value || []).map(v => (isScalarValue(v) ? v : v.id));
-      return Promise.all(valueIds.map(id => resolver.match(dataType[0]).id(id).one({ required: this.isRequired() })));
-      // return Promise.all(valueIds.map(id => resolver.match(dataType[0]).id(id).one({ required: this.isRequired() }).catch(() => null)));
-    }
+  //   // Array Resolvers
+  //   if (Array.isArray(dataType)) {
+  //     if (this.isVirtual()) {
+  //       query.where[this.getVirtualField().getAlias()] = doc.id;
+  //       return resolver.match(dataType[0]).query(query).many({ find: true });
+  //     }
+  //     const valueIds = (value || []).map(v => (isScalarValue(v) ? v : v.id));
+  //     return Promise.all(valueIds.map(id => resolver.match(dataType[0]).id(id).one({ required: this.isRequired() })));
+  //     // return Promise.all(valueIds.map(id => resolver.match(dataType[0]).id(id).one({ required: this.isRequired() }).catch(() => null)));
+  //   }
 
-    // Object Resolvers
-    if (this.isVirtual()) {
-      query.where[this.getVirtualField().getAlias()] = doc.id;
-      return resolver.match(dataType).query(query).one({ find: true });
-    }
+  //   // Object Resolvers
+  //   if (this.isVirtual()) {
+  //     query.where[this.getVirtualField().getAlias()] = doc.id;
+  //     return resolver.match(dataType).query(query).one({ find: true });
+  //   }
 
-    return resolver.match(dataType).id(value).one({ required: this.isRequired() });
-  }
+  //   return resolver.match(dataType).id(value).one({ required: this.isRequired() });
+  // }
 
   cast(value) {
     const casted = Transformer.cast(this.getType())(this, value);
