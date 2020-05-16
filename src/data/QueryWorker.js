@@ -25,10 +25,13 @@ module.exports = class QueryWorker {
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
 
     return createSystemEvent('Query', { key: `get${model}`, method: 'get', model, resolver, query }, async () => {
-      const doc = await model.get(id, options);
+      const rs = model.get(id, options);
+      // const doc = await rs.getResults(resolver);
+      const doc = await rs.hydrate(resolver, query);
       if (!doc && required) throw new NotFoundError(`${model} Not Found`);
       if (doc == null) return null;
-      return model.hydrate(resolver, doc, { fields: query.getSelectFields() });
+      return doc;
+      // return model.hydrate(resolver, doc, { fields: query.getSelectFields() });
     });
   }
 
@@ -52,8 +55,10 @@ module.exports = class QueryWorker {
 
     return createSystemEvent('Query', { key: `find${model}`, method: 'find', model, resolver, query }, async () => {
       const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
-      const results = await model.find(resolvedWhere, options);
-      const hydratedResults = await model.hydrate(resolver, results, { fields: selectFields });
+      const rs = model.find(resolvedWhere, options);
+      // const results = await rs.getResults(resolver);
+      // const hydratedResults = await model.hydrate(resolver, results, { fields: selectFields });
+      const hydratedResults = await rs.hydrate(resolver, query);
       const filteredData = filterDataByCounts(resolver, model, hydratedResults, countFields);
       const sortedResults = sortData(filteredData, sortFields);
       const limitedResults = sortedResults.slice(0, limit > 0 ? limit : undefined);
@@ -98,8 +103,12 @@ module.exports = class QueryWorker {
     await validateModelData(model, data, {}, 'create');
 
     return createSystemEvent('Mutation', { key: `create${model}`, method: 'create', model, resolver, query, data }, async () => {
-      const doc = await model.create(model.serialize(data), options);
-      return model.hydrate(resolver, doc, { fields: query.getSelectFields() });
+      const rs = model.create(model.serialize(data), options);
+      return rs.hydrate(resolver, query);
+      // const doc = await rs.getResults(resolver);
+      // return model.hydrate(resolver, doc, { fields: query.getSelectFields() });
+      // const doc = await model.create(model.serialize(data), options).hydrate(resolver, query);
+      // return doc;
     });
   }
 
@@ -112,8 +121,12 @@ module.exports = class QueryWorker {
 
     return createSystemEvent('Mutation', { key: `update${model}`, method: 'update', model, resolver, query, data, doc }, async () => {
       const merged = model.serialize(mergeDeep(doc, data));
-      const result = await model.update(id, data, merged, options);
-      return model.hydrate(resolver, result, { fields: query.getSelectFields() });
+      const rs = model.update(id, data, merged, options);
+      return rs.hydrate(resolver, query);
+      // const result = await rs.getResults(resolver);
+      // return model.hydrate(resolver, result, { fields: query.getSelectFields() });
+      // const result = await model.update(id, data, merged, options).hydrate(resolver, query);
+      // return result;
     });
   }
 
@@ -139,8 +152,12 @@ module.exports = class QueryWorker {
 
     return createSystemEvent('Mutation', { key: `splice${model}`, method: 'splice', model, resolver, query, data, doc }, async () => {
       const merged = model.serialize(mergeDeep(doc, data));
-      const result = await model.update(id, data, merged, options);
-      return model.hydrate(resolver, result, { fields: query.getSelectFields() });
+      const rs = model.update(id, data, merged, options);
+      return rs.hydrate(resolver, query);
+      // const result = await rs.getResults(resolver);
+      // return model.hydrate(resolver, result, { fields: query.getSelectFields() });
+      // const result = await model.update(id, data, merged, options).hydrate(resolver, query);
+      // return result;
     });
   }
 
@@ -151,8 +168,12 @@ module.exports = class QueryWorker {
 
     return createSystemEvent('Mutation', { key: `delete${model}`, method: 'delete', model, resolver, query, doc }, () => {
       return resolveReferentialIntegrity(resolver, model, query, txn).then(async () => {
-        const result = await model.delete(id, doc, options);
-        return model.hydrate(resolver, result, { fields: query.getSelectFields() });
+        const rs = model.delete(id, doc, options);
+        return rs.hydrate(resolver, query);
+        // const result = await rs.getResults(resolver);
+        // return model.hydrate(resolver, result, { fields: query.getSelectFields() });
+        // const result = await model.delete(id, doc, options).hydrate(resolver, query);
+        // return result;
       });
     });
   }

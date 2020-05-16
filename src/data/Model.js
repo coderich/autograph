@@ -20,11 +20,11 @@ module.exports = class extends Model {
 
   // CRUD
   get(id, options) {
-    return this.driver.dao.get(this.getAlias(), this.idValue(id), options).then(res => (res ? new ResultSet(this, res) : res));
+    return new ResultSet(this, this.driver.dao.get(this.getAlias(), this.idValue(id), options));
   }
 
   find(where = {}, options) {
-    return this.driver.dao.find(this.getAlias(), where, options).then(res => new ResultSet(this, res));
+    return new ResultSet(this, this.driver.dao.find(this.getAlias(), where, options));
   }
 
   count(where = {}, options) {
@@ -32,15 +32,15 @@ module.exports = class extends Model {
   }
 
   create(data, options) {
-    return this.driver.dao.create(this.getAlias(), data, options).then(res => new ResultSet(this, res));
+    return new ResultSet(this, this.driver.dao.create(this.getAlias(), data, options));
   }
 
   update(id, data, doc, options) {
-    return this.driver.dao.replace(this.getAlias(), this.idValue(id), data, doc, options).then(res => new ResultSet(this, res));
+    return new ResultSet(this, this.driver.dao.replace(this.getAlias(), this.idValue(id), data, doc, options));
   }
 
   delete(id, doc, options) {
-    return this.driver.dao.delete(this.getAlias(), this.idValue(id), doc, options).then(res => new ResultSet(this, res));
+    return new ResultSet(this, this.driver.dao.delete(this.getAlias(), this.idValue(id), doc, options));
   }
 
   drop() {

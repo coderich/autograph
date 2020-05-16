@@ -45,7 +45,7 @@ module.exports = class Field extends Node {
 
   // Boolean Methods
   isScalar() {
-    return Boolean(this.type.isScalar() || !this.model.getSchema().getModel(this.getType()));
+    return Boolean(this.type.isScalar() || !this.getModelRef());
   }
 
   isEmbedded() {
