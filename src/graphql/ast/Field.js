@@ -54,11 +54,11 @@ module.exports = class Field extends Node {
   }
 
   isSegmented() {
-    return Boolean(this.getSegment());
+    return Boolean(this.getSegment() != null);
   }
 
   isDefaulted() {
-    return Boolean(this.isSegmented() || this.getDefaultValue());
+    return Boolean(this.isSegmented() || this.getDefaultValue() != null);
   }
 
   isRequired() {

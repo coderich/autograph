@@ -37,7 +37,7 @@ module.exports = class extends Field {
     query.where = query.where || {};
 
     // Scalar Resolvers
-    if (this.isScalar()) return value;
+    if (this.isScalar() || this.isEmbedded()) return value;
 
     // Array Resolvers
     if (Array.isArray(dataType)) {

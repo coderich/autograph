@@ -130,14 +130,12 @@ module.exports = (schema) => {
         edges: root => root.map(node => ({ cursor: node.$$cursor, node })),
         pageInfo: root => root.$$pageInfo,
       },
-      // Edge is needed for Trigger Subscription for some reason
       Edge: {
-        node: async (root, args, context, info) => {
+        node: async (root, args, { autograph }, info) => {
           const { node } = root;
-          const { autograph } = context;
           const [modelName] = fromGUID(node.$id);
           const model = schema.getModel(modelName);
-          return model.hydrate(autograph.loader, node, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+          return autograph.loader.match(model).id(node.id).select(GraphqlFields(info, {}, { processArguments: true })).one();
         },
       },
       Query: schema.getReadableModels().reduce((prev, model) => {

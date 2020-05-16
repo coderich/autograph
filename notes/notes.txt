@@ -1,9 +1,9 @@
 Now:
+  * Embedded objects validation, defaults...
   * Input types are not models and therefor cannot participate in Transformers|Rules
 
 Next:
   * Define stores via appConfig (Secrets Manager)
-  * Need consistent model/field names (based off schema) and only apply alias when persisting to db
   * Can you also have Transformers and Rules on the Model itself (ie. MultiLang type)
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
 
