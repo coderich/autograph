@@ -74,6 +74,10 @@ module.exports = class Model extends Node {
     return this.getFields().filter(field => field.isReadable() && field.getName() !== 'id');
   }
 
+  getWhereFields() {
+    return this.getSelectFields().filter(field => !field.isSegmented());
+  }
+
   getCountableFields() {
     return this.getSelectFields().filter(field => field.isArray() && field.getDataRef());
   }

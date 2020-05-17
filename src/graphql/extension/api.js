@@ -24,7 +24,7 @@ module.exports = (schema) => {
         }
 
         input ${modelName}InputWhere {
-          ${model.getSelectFields().map(field => `${field.getName()}: ${field.getDataRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'String'}`)}
+          ${model.getWhereFields().map(field => `${field.getName()}: ${field.getDataRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'String'}`)}
           ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}: String`)}
         }
 

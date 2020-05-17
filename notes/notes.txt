@@ -1,12 +1,11 @@
 Now:
+  * Can you also have Transformers and Rules on the Model itself (ie. MultiLang type)
 
 Next:
   * Define stores via appConfig (Secrets Manager)
-  * Can you also have Transformers and Rules on the Model itself (ie. MultiLang type)
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
 
 Bugs:
-  * Where clause returns 404 for network.name
   * Embedded documents do not work!
     - Currently embedded document is being saved as it's own collection/node
     - Cannot update apartment.building
@@ -49,12 +48,11 @@ Open Questions:
   * Where/How to define stores?
 
 Sales Pitch:
-  * Conforms to specifications
-  * Automatic CRUD
-  * Automatic Pagination
   * Unified Schema (validations & transformations)
+  * Automatic CRUD
+  * Follows Specifications
+  * Automatic Pagination, Timestamps
   * Fixes "alias" problem - duplicate data
-  * Automatic timestamps (createdAt updatedAt)
   * Transactions
   * Proper onDelete behavior (via transactions)
   * Baked in DataLoader
