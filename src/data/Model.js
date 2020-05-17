@@ -103,6 +103,27 @@ module.exports = class extends Model {
     return this.referentials;
   }
 
+  setDefaultValues(data, context) {
+    // Default fields
+    this.getDefaultedFields().forEach((field) => {
+      const key = field.getName();
+
+      if (!Object.prototype.hasOwnProperty.call(data, key)) {
+        const value = field.getDefaultValue(context);
+        data[key] = value;
+      }
+    });
+
+    // Embedded fields
+    this.getEmbeddedFields().forEach((field) => {
+      const key = field.getName();
+
+      if (Object.prototype.hasOwnProperty.call(data, key)) {
+        field.getModelRef().setDefaultValues(data[key], context);
+      }
+    });
+  }
+
   serialize(data, mapper) {
     if (data == null) data = {};
 

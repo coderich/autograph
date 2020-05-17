@@ -1,6 +1,5 @@
 Now:
-  * Embedded objects validation, defaults...
-  * Input types are not models and therefor cannot participate in Transformers|Rules
+  * Pagination for the win
 
 Next:
   * Define stores via appConfig (Secrets Manager)
@@ -16,10 +15,15 @@ Bugs:
     - Concept only fits document databases (what about neo4j and sql databases?)
     - How to create index on embedded objects? building.type unique?
 
+Enhancements:
+  * Could you construct Rule.allow() from GraphQL Enum Definition?
+  * Can you make Emitter events part of a transaction? pre vs post can be confusing... especially for data validation etc.
+  * Input types are not models and therefor cannot participate in Transformers|Rules
+    - Is this really needed? I guess perhaps when using the DOA directly...
+
 Todo:
   * Incorporate Logger
   * Date conversion can be a "writable" Transformation
-  * Can you make Emitter events part of a transaction? pre vs post can be confusing... especially for data validation etc.
   * MeteorUser _id is a String (not ID). How to handle?
   * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
   * Error handling; Rules need better error messages
@@ -33,8 +37,6 @@ Todo:
 
 Ideas:
   * If the Query holds all the information you can move logic to it (eg. Query.validate())
-  * Create a Document/Record class
-    - hydrate, dehydrate, cast, etc
   * Can you use semver over glob in some areas?
 
 Figure out:
@@ -46,20 +48,19 @@ Figure out:
 
 Open Questions:
   * Where/How to define stores?
-  * Should updatedAt be set when a document is created? Should it be configurable?
 
 Sales Pitch:
   * Conforms to specifications
-  * Proper where clause filter
   * Automatic CRUD
   * Automatic Pagination
   * Unified Schema (validations & transformations)
   * Fixes "alias" problem - duplicate data
-  * Able to work with models naturally instead of their db fieldname counterpart
+  * Automatic timestamps (createdAt updatedAt)
   * Transactions
   * Proper onDelete behavior (via transactions)
-  * Automatic timestamps (createdAt updatedAt)
   * Baked in DataLoader
+  - Able to work with models naturally instead of their db fieldname counterpart
+  - Proper where clause filter
 
 Refs:
   * https://jbt.github.io/markdown-editor/

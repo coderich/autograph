@@ -62,12 +62,12 @@ module.exports = class Model extends Node {
   //   return this.fields.filter(field => Boolean(field.getDataRef() && !field.isEmbedded()));
   // }
 
-  getOnDeleteFields() {
-    return this.getFields().filter(field => Boolean(field.getDataRef()) && Boolean(field.getOnDelete()));
+  getEmbeddedFields() {
+    return this.getFields().filter(field => field.isEmbedded());
   }
 
-  getEmbeddedArrayFields() {
-    return this.getFields().filter(field => field.isArray() && !field.isVirtual());
+  getOnDeleteFields() {
+    return this.getFields().filter(field => Boolean(field.getDataRef()) && Boolean(field.getOnDelete()));
   }
 
   getSelectFields() {

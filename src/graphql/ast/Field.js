@@ -1,5 +1,6 @@
 const Node = require('./Node');
 const Type = require('./Type');
+const { uvl } = require('../../service/app.service');
 
 module.exports = class Field extends Node {
   constructor(model, ast) {
@@ -22,6 +23,10 @@ module.exports = class Field extends Node {
 
   getDataRef() {
     return this.isScalar() ? null : this.getType();
+  }
+
+  getDefaultValue(context = {}) {
+    return uvl(this.getSegmentValue(context), this.getDirectiveArg('field', 'default'));
   }
 
   // Model Methods

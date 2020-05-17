@@ -93,10 +93,6 @@ module.exports = class Node {
     return uvl(this.getDirectiveArg('model', 'alias'), this.getDirectiveArg('field', 'alias'), defaultValue, this.getName());
   }
 
-  getDefaultValue(context = {}) {
-    return uvl(this.getSegmentValue(context), this.getDirectiveArg('field', 'default'));
-  }
-
   getSegmentValue(context = {}) {
     const segment = get(context, `segment.${this.getSegment()}`);
     if (typeof segment === 'function') return segment();

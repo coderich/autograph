@@ -85,14 +85,7 @@ module.exports = class QueryWorker {
     // Set default values for creation
     data.createdAt = Date.now();
     data.updatedAt = Date.now();
-    model.getDefaultedFields().forEach((field) => {
-      const key = field.getName();
-
-      if (!Object.prototype.hasOwnProperty.call(data, key)) {
-        const value = field.getDefaultValue(resolver.getContext());
-        data[key] = value;
-      }
-    });
+    model.setDefaultValues(data, resolver.getContext());
 
     await validateModelData(model, data, {}, 'create');
 
