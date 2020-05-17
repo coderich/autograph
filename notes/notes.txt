@@ -1,5 +1,4 @@
 Now:
-  * Pagination for the win
 
 Next:
   * Define stores via appConfig (Secrets Manager)

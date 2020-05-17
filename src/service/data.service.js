@@ -175,7 +175,7 @@ exports.sortData = (data, sortBy) => {
     orders: [],
   });
 
-  return _.orderBy(data, info.iteratees.concat('$id'), info.orders.concat('asc')).map((doc, i) => {
+  return _.orderBy(data, info.iteratees.concat('id'), info.orders.concat('asc')).map((doc, i) => {
     const cursor = toGUID(i, doc.$id);
     if (!Object.prototype.hasOwnProperty.call(doc, '$$cursor')) return Object.defineProperty(doc, '$$cursor', { writable: true, value: cursor });
     doc.$$cursor = cursor;
