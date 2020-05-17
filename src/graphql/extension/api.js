@@ -81,8 +81,8 @@ module.exports = (schema) => {
 
       `type Mutation {
         _noop: String
-        ${schema.getWritableModels().map(model => `create${model.getName()}(data: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}! `)}
-        ${schema.getWritableModels().map(model => `update${model.getName()}(id: ID! data: ${model.getName()}InputUpdate meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getWritableModels().map(model => `create${model.getName()}(input: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getWritableModels().map(model => `update${model.getName()}(id: ID! input: ${model.getName()}InputUpdate meta: ${model.getMeta()}): ${model.getName()}! `)}
         ${schema.getWritableModels().map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}! `)}
       }`,
 
@@ -142,8 +142,8 @@ module.exports = (schema) => {
         const modelName = model.getName();
 
         return Object.assign(prev, {
-          [`create${modelName}`]: (root, args, context, info) => resolver.create(context, model, args.data, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) }),
-          [`update${modelName}`]: (root, args, context, info) => resolver.update(context, model, args.id, args.data, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) }),
+          [`create${modelName}`]: (root, args, context, info) => resolver.create(context, model, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) }),
+          [`update${modelName}`]: (root, args, context, info) => resolver.update(context, model, args.id, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) }),
           [`delete${modelName}`]: (root, args, context, info) => resolver.delete(context, model, args.id, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) }),
         });
       }, {}),

@@ -77,7 +77,7 @@ module.exports = class extends SchemaDirectiveVisitor {
     const { model = dataType } = this.args;
 
     field.resolve = async function resolver(root, args, context, info) {
-      authorize(context, model, Object.keys(args.data || { id: 1 }), crudOperation);
+      authorize(context, model, Object.keys(args.input || { id: 1 }), crudOperation);
       return resolve.call(this, root, args, context, info);
     };
   }
