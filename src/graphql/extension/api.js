@@ -26,13 +26,11 @@ module.exports = (schema) => {
         input ${modelName}InputWhere {
           ${model.getSelectFields().map(field => `${field.getName()}: ${field.getDataRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'String'}`)}
           ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}: String`)}
-          countSelf: String
         }
 
         input ${modelName}InputSort {
           ${model.getSelectFields().map(field => `${field.getName()}: ${field.getDataRef() ? `${ucFirst(field.getDataRef())}InputSort` : 'SortOrderEnum'}`)}
           ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}: SortOrderEnum`)}
-          countSelf: SortOrderEnum
         }
 
         input ${modelName}InputQuery {
@@ -41,45 +39,29 @@ module.exports = (schema) => {
           limit: Int
         }
       `;
-    }).concat(schema.getEntityModels().map((model) => {
-      const modelName = model.getName();
-      const createdAt = model.getDirectiveArg('model', 'createdAt', 'createdAt');
-      const updatedAt = model.getDirectiveArg('model', 'updatedAt', 'updatedAt');
-
-      return `
-        type ${modelName} implements Node {
-          id: ID!
-          ${createdAt ? `createdAt: AutoGraphDateTime @field(alias: "${createdAt}")` : ''}
-          ${updatedAt ? `updatedAt: AutoGraphDateTime @field(alias: "${updatedAt}")` : ''}
-          ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int`)}
-          countSelf(where: ${modelName}InputWhere): Int
-        }
-      `;
-    })).concat([
+    }).concat([
       `
-      type Connection {
-        edges: [Edge]
-        pageInfo: PageInfo!
-      }
+        type Connection {
+          edges: [Edge]
+          pageInfo: PageInfo!
+        }
 
-      type Edge {
-        node: Node
-        cursor: String!
-      }
+        type Edge {
+          node: Node
+          cursor: String!
+        }
 
-      type PageInfo {
-        startCursor: String!
-        endCursor: String!
-        hasPreviousPage: Boolean!
-        hasNextPage: Boolean!
-        totalCount: Int!
-      }
+        type PageInfo {
+          startCursor: String!
+          endCursor: String!
+          hasPreviousPage: Boolean!
+          hasNextPage: Boolean!
+          totalCount: Int!
+        }
 
-      interface Node {
-        id: ID!
-      }
-
-      enum SortOrderEnum { ASC DESC }
+        interface Node {
+          id: ID!
+        }
       `,
 
       `type Schema {

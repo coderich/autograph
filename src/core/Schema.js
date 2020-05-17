@@ -2,6 +2,7 @@ const Model = require('../data/Model');
 const Drivers = require('../driver');
 const Schema = require('../graphql/ast/Schema');
 const apiExt = require('../graphql/extension/api');
+const typeExt = require('../graphql/extension/type');
 const frameworkExt = require('../graphql/extension/framework');
 const { identifyOnDeletes } = require('../service/schema.service');
 
@@ -43,12 +44,14 @@ module.exports = class extends Schema {
   }
 
   getServerApiSchema() {
-    this.extend(frameworkExt(this), apiExt(this));
+    this.extend(frameworkExt(this), typeExt(this));
+    this.extend(apiExt(this));
     return super.getSchema();
   }
 
   makeServerApiSchema() {
-    this.extend(frameworkExt(this), apiExt(this));
+    this.extend(frameworkExt(this), typeExt(this));
+    this.extend(apiExt(this));
     return super.makeExecutableSchema();
   }
 };
