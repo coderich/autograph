@@ -1,6 +1,7 @@
 const Rule = require('../../core/Rule');
 const Transformer = require('../../core/Transformer');
 
+/* eslint-disable no-underscore-dangle */
 module.exports = schema => ({
   typeDefs: `
     scalar AutoGraphMixed
