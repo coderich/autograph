@@ -1,6 +1,4 @@
 Now:
-  * Can AutoGraph be used as a standalone DAO? Migrations and such would still require 2 schemas
-  * Can you also have Transformers and Rules on the Model itself (ie. MultiLang type)
   * Enforce segmentation throughout (findNetwork, network field, ...)
 
 Next:
