@@ -37,7 +37,7 @@ module.exports = schema => ({
       onDelete: AutoGraphOnDeleteEnum
       transform: [AutoGraphTransformEnum!]
       materializeBy: String
-    ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION
+    ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
 
     directive @index(
       name: String

@@ -66,11 +66,19 @@ module.exports = class extends Field {
 
   getRules() {
     const rules = [];
+    const scalarType = this.getScalarRef();
 
     Object.entries(this.getDirectiveArgs('field', {})).forEach(([key, value]) => {
       if (!Array.isArray(value)) value = [value];
       if (key === 'enforce') rules.push(...value.map(r => Rule.getInstances()[r]));
     });
+
+    if (scalarType) {
+      Object.entries(scalarType.getDirectiveArgs('field', {})).forEach(([key, value]) => {
+        if (!Array.isArray(value)) value = [value];
+        if (key === 'enforce') rules.push(...value.map(r => Rule.getInstances()[r]));
+      });
+    }
 
     if (this.isRequired() && this.getType() !== 'ID') rules.push(Rule.required()); // Required rule
 
@@ -79,11 +87,19 @@ module.exports = class extends Field {
 
   getTransformers() {
     const transformers = [];
+    const scalarType = this.getScalarRef();
 
     Object.entries(this.getDirectiveArgs('field', {})).forEach(([key, value]) => {
       if (!Array.isArray(value)) value = [value];
       if (key === 'transform') transformers.push(...value.map(t => Transformer.getInstances()[t]));
     });
+
+    if (scalarType) {
+      Object.entries(scalarType.getDirectiveArgs('field', {})).forEach(([key, value]) => {
+        if (!Array.isArray(value)) value = [value];
+        if (key === 'transform') transformers.push(...value.map(t => Transformer.getInstances()[t]));
+      });
+    }
 
     return transformers;
   }

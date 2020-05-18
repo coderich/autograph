@@ -3,20 +3,29 @@ const { getTypeInfo } = require('../../service/graphql.service');
 
 const scalars = ['ID', 'String', 'Float', 'Int', 'Boolean'];
 
-module.exports = class Type extends Node {
-  getName() {
-    return getTypeInfo(this.ast).name;
+module.exports = class Type {
+  constructor(ast) {
+    this.node = new Node(ast.type);
+    this.node.getName = () => getTypeInfo(ast).name;
+    this.node.isArray = () => Boolean(getTypeInfo(ast).isArray);
+    this.node.isRequired = () => Boolean(getTypeInfo(ast).isRequired);
+    this.node.isScalar = () => scalars.indexOf(this.node.getName()) > -1;
+    return this.node;
   }
 
-  isArray() {
-    return Boolean(getTypeInfo(this.ast).isArray);
-  }
+  // getName() {
+  //   return getTypeInfo(this.ast).name;
+  // }
 
-  isRequired() {
-    return Boolean(getTypeInfo(this.ast).isRequired);
-  }
+  // isArray() {
+  //   return Boolean(getTypeInfo(this.ast).isArray);
+  // }
 
-  isScalar() {
-    return scalars.indexOf(this.getName()) > -1;
-  }
+  // isRequired() {
+  //   return Boolean(getTypeInfo(this.ast).isRequired);
+  // }
+
+  // isScalar() {
+  //   return scalars.indexOf(this.getName()) > -1;
+  // }
 };

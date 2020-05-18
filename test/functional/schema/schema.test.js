@@ -40,6 +40,7 @@ describe('FNSchema', () => {
     expect(schema.makeExecutableSchema()).toBeDefined();
     validate(schema);
     expect(schema.getServerApiSchema()).toBeDefined();
+    expect(schema.getModel('Person').getField('status').getRules().length).toBe(1);
     // validate(schema);
   });
 });

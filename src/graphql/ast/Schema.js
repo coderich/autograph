@@ -13,8 +13,14 @@ module.exports = class Schema extends Node {
     //
     super(schema.typeDefs);
     this.schema = schema;
-    this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
-    this.inputs = this.ast.definitions.filter(d => new Node(d).isInput()).map(d => new Model(this, d));
+    this.initialize();
+  }
+
+  initialize() {
+    const definitions = this.ast.definitions.map(d => new Node(d));
+    this.models = definitions.filter(d => d.isModel()).map(d => new Model(this, d.getAST()));
+    this.inputs = definitions.filter(d => d.isInput()).map(d => new Model(this, d.getAST()));
+    this.scalars = definitions.filter(d => d.isScalar());
   }
 
   getSchema() {
@@ -55,6 +61,14 @@ module.exports = class Schema extends Node {
     return this.inputs;
   }
 
+  getScalar(name) {
+    return this.getScalars().find(scalar => scalar.getName() === name);
+  }
+
+  getScalars() {
+    return this.scalars;
+  }
+
   getEntityModels() {
     return this.getModels().filter(model => model.isEntity() && !model.isPrivate());
   }
@@ -79,7 +93,7 @@ module.exports = class Schema extends Node {
     const definitions = schemas.map(schema => mergeASTSchema(schema.typeDefs).definitions);
     this.ast.definitions = mergeASTArray(this.ast.definitions.concat(...definitions));
     this.schema.resolvers = Merge(schemas.reduce((prev, schema) => Merge(prev, schema.resolvers || {}), {}), this.schema.resolvers);
-    this.models = this.ast.definitions.filter(d => new Node(d).isModel()).map(d => new Model(this, d));
+    this.initialize();
     return this;
   }
 

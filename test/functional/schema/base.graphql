@@ -1,6 +1,6 @@
-scalar Mixed
+scalar Mixed @field(enforce: mixed)
 directive @model(scope: Mixed) on OBJECT
-directive @field(transform: [Mixed] enforce: Mixed onDelete: Mixed, default: Mixed) on FIELD_DEFINITION
+directive @field(transform: [Mixed] enforce: Mixed onDelete: Mixed, default: Mixed) on FIELD_DEFINITION | SCALAR
 enum Gender { male female }
 input SomeInput { id: ID! name: String! }
 type Query { noop: String }

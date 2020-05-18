@@ -1,4 +1,4 @@
-scalar DateTime
+scalar DateTime @field
 
 enum LocationType {
   primary

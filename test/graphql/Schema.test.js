@@ -123,6 +123,7 @@ describe('Documents', () => {
       expect(bookFields.map(f => f.isRequired())).toEqual([true, true, true, false, false, false]);
       expect(Person.getField('name').getDefaultValue()).toEqual('Rich');
       expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
+      // expect(Person.getField('name').getDirective('field').getArg('enforce')).toEqual(['toTitleCase', 'toMenaceCase']);
     };
 
     validate();

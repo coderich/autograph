@@ -1,7 +1,7 @@
 {
   "name": "@coderich/autograph",
   "author": "Richard Livolsi (coderich)",
-  "version": "0.0.19",
+  "version": "0.0.20",
   "description": "AutoGraph",
   "keywords": [
     "graphql",
@@ -46,7 +46,7 @@
     "redis": "^2.8.0"
   },
   "devDependencies": {
-    "@coderich/ratchet": "^1.4.3",
+    "@coderich/ratchet": "^1.5.2",
     "apollo-server": "^2.12.0",
     "graphql-import": "^1.0.2",
     "mongodb": "^3.5.1",

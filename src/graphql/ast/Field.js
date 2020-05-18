@@ -25,6 +25,10 @@ module.exports = class Field extends Node {
     return this.isScalar() ? null : this.getType();
   }
 
+  getScalarRef() {
+    return this.schema.getScalar(this.getType());
+  }
+
   getDefaultValue(context = {}) {
     return uvl(this.getSegmentValue(context), this.getDirectiveArg('field', 'default'));
   }
