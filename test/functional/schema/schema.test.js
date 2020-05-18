@@ -41,6 +41,7 @@ describe('FNSchema', () => {
     validate(schema);
     expect(schema.getServerApiSchema()).toBeDefined();
     expect(schema.getModel('Person').getField('status').getRules().length).toBe(1);
+    expect(schema.getModel('User').getField('gender').getRules().length).toBe(1);
     // validate(schema);
   });
 });

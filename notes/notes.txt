@@ -1,8 +1,11 @@
 Now:
+  * Could you construct Rule.allow() from GraphQL Enum Definition?
   * Enforce segmentation throughout (findNetwork, network field, ...)
 
 Next:
-  * Define stores via appConfig (Secrets Manager)
+  * Error handling; Rules need better error messages
+  * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
+    - You can probably return a custom error message or (false|null|undefined) if all is good (ie. from Rule)
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
 
 Bugs:
@@ -14,7 +17,6 @@ Bugs:
     - How to create index on embedded objects? building.type unique?
 
 Enhancements:
-  * Could you construct Rule.allow() from GraphQL Enum Definition?
   * Can you make Emitter events part of a transaction? pre vs post can be confusing... especially for data validation etc.
   * Input types are not models and therefor cannot participate in Transformers|Rules
     - Is this really needed? I guess perhaps when using the DOA directly...
@@ -23,9 +25,6 @@ Todo:
   * Incorporate Logger
   * Date conversion can be a "writable" Transformation
   * MeteorUser _id is a String (not ID). How to handle?
-  * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
-  * Error handling; Rules need better error messages
-    - You can probably return a custom error message or (false|null|undefined) if all is good (ie. from Rule)
   * Get a list of references that would be onDelete affected
   * Currently there is no way to count regular elements of an array (try to count bids)
   * URL, RGB, RGBA, validator?
@@ -43,9 +42,6 @@ Figure out:
   * Authorization. Specifically owner records, segmentation, recursive data resolution
   * dependencies vs peerDependencies (graphql)
   * Password and PasswordMatch validation; enforce strength; password can be created/updated but not selected, what's the scope?
-
-Open Questions:
-  * Where/How to define stores?
 
 Sales Pitch:
   * Unified Schema (validations & transformations)

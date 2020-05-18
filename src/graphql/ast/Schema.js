@@ -21,6 +21,7 @@ module.exports = class Schema extends Node {
     this.models = definitions.filter(d => d.isModel()).map(d => new Model(this, d.getAST()));
     this.inputs = definitions.filter(d => d.isInput()).map(d => new Model(this, d.getAST()));
     this.scalars = definitions.filter(d => d.isScalar());
+    this.enums = definitions.filter(d => d.isEnum());
   }
 
   getSchema() {
@@ -67,6 +68,14 @@ module.exports = class Schema extends Node {
 
   getScalars() {
     return this.scalars;
+  }
+
+  getEnum(name) {
+    return this.getEnums().find(el => el.getName() === name);
+  }
+
+  getEnums() {
+    return this.enums;
   }
 
   getEntityModels() {

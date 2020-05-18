@@ -29,6 +29,10 @@ module.exports = class Field extends Node {
     return this.schema.getScalar(this.getType());
   }
 
+  getEnumRef() {
+    return this.schema.getEnum(this.getType());
+  }
+
   getDefaultValue(context = {}) {
     return uvl(this.getSegmentValue(context), this.getDirectiveArg('field', 'default'));
   }

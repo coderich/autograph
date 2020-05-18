@@ -7,6 +7,7 @@ const operations = ['Query', 'Mutation', 'Subscription'];
 const modelKinds = [Kind.OBJECT_TYPE_DEFINITION, Kind.OBJECT_TYPE_EXTENSION];
 const inputKinds = [Kind.INPUT_OBJECT_TYPE_DEFINITION, Kind.INPUT_OBJECT_TYPE_EXTENSION];
 const scalarKinds = [Kind.SCALAR_TYPE_DEFINITION, Kind.SCALAR_TYPE_EXTENSION];
+const enumKinds = [Kind.ENUM_TYPE_DEFINITION, Kind.ENUM_TYPE_EXTENSION];
 
 module.exports = class Node {
   constructor(astLike) {
@@ -41,7 +42,10 @@ module.exports = class Node {
           return Object.assign(prev, { [node.getName()]: node.getValue() });
         }, {});
       }
-      default: return value.value;
+      default: {
+        if (ast.values) return ast.values.map(v => v.name.value);
+        return value.value;
+      }
     }
   }
 
@@ -171,5 +175,9 @@ module.exports = class Node {
 
   isScalar() {
     return Boolean(scalarKinds.some(k => this.getKind() === k));
+  }
+
+  isEnum() {
+    return Boolean(enumKinds.some(k => this.getKind() === k));
   }
 };

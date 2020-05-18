@@ -25,3 +25,7 @@ type Book {
   bestSeller: Boolean @field(default: false)
   bids: [Float]
 }
+
+type User {
+  gender: Gender
+}
