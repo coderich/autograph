@@ -3,7 +3,7 @@ const Type = require('./Type');
 const Field = require('../graphql/ast/Field');
 const Rule = require('../core/Rule');
 const Transformer = require('../core/Transformer');
-const { isPlainObject, ensureArray, isScalarValue } = require('../service/app.service');
+const { uvl, isPlainObject, ensureArray, isScalarValue } = require('../service/app.service');
 
 module.exports = class extends Field {
   constructor(model, field) {
@@ -35,7 +35,7 @@ module.exports = class extends Field {
 
     const query = _.cloneDeep(q);
     const dataType = this.getDataType();
-    const value = doc[this.getName()];
+    const value = uvl(doc[this.getName()], this.getDefaultValue(resolver.getContext()));
     query.where = query.where || {};
 
     // Scalar Resolvers

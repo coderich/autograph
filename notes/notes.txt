@@ -1,5 +1,5 @@
 Now:
-  * Could you construct Rule.allow() from GraphQL Enum Definition?
+  * There is no way to test DAO when utilizing tasks (unless you go through GraphQL)
   * Enforce segmentation throughout (findNetwork, network field, ...)
 
 Next:
