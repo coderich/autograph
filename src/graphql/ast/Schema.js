@@ -89,12 +89,24 @@ module.exports = class Schema extends Node {
     return this.getModels().filter(model => model.isEntity() && !model.isPrivate());
   }
 
-  getReadableModels() {
+  getCreateModels() {
+    return this.getEntityModels().filter(model => model.isCreatable());
+  }
+
+  getReadModels() {
     return this.getEntityModels().filter(model => model.isReadable());
   }
 
-  getWritableModels() {
-    return this.getEntityModels().filter(model => model.isWritable());
+  getUpdateModels() {
+    return this.getEntityModels().filter(model => model.isUpdatable());
+  }
+
+  getDeleteModels() {
+    return this.getEntityModels().filter(model => model.isDeletable());
+  }
+
+  getChangeModels() {
+    return this.getEntityModels().filter(model => model.isCreatable() || model.isUpdatable() || model.isDeletable());
   }
 
   getModelNames() {

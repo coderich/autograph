@@ -89,4 +89,21 @@ module.exports = class Model extends Node {
   getUpdateFields() {
     return this.getCreateFields().filter(field => !field.isImmutable());
   }
+
+  // Booleans
+  isCreatable() {
+    return Boolean(this.getDirectiveArg('model', 'crud', 'crud').toLowerCase().indexOf('c') > -1);
+  }
+
+  isReadable() {
+    return Boolean(this.getDirectiveArg('model', 'crud', 'crud').toLowerCase().indexOf('r') > -1);
+  }
+
+  isUpdatable() {
+    return Boolean(this.getDirectiveArg('model', 'crud', 'crud').toLowerCase().indexOf('u') > -1);
+  }
+
+  isDeletable() {
+    return Boolean(this.getDirectiveArg('model', 'crud', 'crud').toLowerCase().indexOf('d') > -1);
+  }
 };

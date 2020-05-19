@@ -10,12 +10,13 @@ module.exports = schema => ({
     enum AutoGraphEnforceEnum { ${Object.keys(Rule.getInstances()).join(' ')} }
     enum AutoGraphTransformEnum  { ${Object.keys(Transformer.getInstances()).join(' ')} }
     enum AutoGraphAuthzEnum { private protected public }
-    enum AutoGraphScopeEnum { default query mutation resolver none }
+    enum AutoGraphScopeEnum { default query mutation resolver context none }
     enum AutoGraphOnDeleteEnum { cascade nullify restrict }
     enum AutoGraphIndexEnum { unique }
 
     directive @model(
       id: String
+      crud: String
       alias: String # Database collection name
       authz: AutoGraphAuthzEnum # Define authz rules for all fields (can be overwritten at field level)
       scope: AutoGraphScopeEnum # Define scope for all fields (can be overwritten at field level)

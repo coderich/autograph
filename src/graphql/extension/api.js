@@ -66,30 +66,30 @@ module.exports = (schema) => {
 
       `type Schema {
         _noop: String
-        ${schema.getReadableModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
-        ${schema.getReadableModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getReadableModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
+        ${schema.getReadModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getReadModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getReadModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Query {
         Schema: Schema!
         node(id: ID!): Node
-        ${schema.getReadableModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
-        ${schema.getReadableModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getReadableModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
+        ${schema.getReadModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getReadModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getReadModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Mutation {
         _noop: String
-        ${schema.getWritableModels().map(model => `create${model.getName()}(input: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}! `)}
-        ${schema.getWritableModels().map(model => `update${model.getName()}(id: ID! input: ${model.getName()}InputUpdate meta: ${model.getMeta()}): ${model.getName()}! `)}
-        ${schema.getWritableModels().map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getCreateModels().map(model => `create${model.getName()}(input: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getUpdateModels().map(model => `update${model.getName()}(id: ID! input: ${model.getName()}InputUpdate meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getDeleteModels().map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}! `)}
       }`,
 
       `type Subscription {
         _noop: String
-        ${schema.getWritableModels().map(model => `${model.getName()}Trigger(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getWritableModels().map(model => `${model.getName()}Changed(query: ${ucFirst(model.getName())}InputQuery): [${model.getName()}Subscription]!`)}
+        ${schema.getChangeModels().map(model => `${model.getName()}Trigger(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getChangeModels().map(model => `${model.getName()}Changed(query: ${ucFirst(model.getName())}InputQuery): [${model.getName()}Subscription]!`)}
       }`,
     ]),
     resolvers: schema.getEntityModels().reduce((prev, model) => {
@@ -120,7 +120,7 @@ module.exports = (schema) => {
           return autograph.loader.match(model).id(node.id).select(GraphqlFields(info, {}, { processArguments: true })).one();
         },
       },
-      Query: schema.getReadableModels().reduce((prev, model) => {
+      Query: schema.getReadModels().reduce((prev, model) => {
         const modelName = model.getName();
 
         return Object.assign(prev, {
@@ -138,17 +138,18 @@ module.exports = (schema) => {
         },
       }),
 
-      Mutation: schema.getWritableModels().reduce((prev, model) => {
+      Mutation: schema.getChangeModels().reduce((prev, model) => {
+        const obj = {};
         const modelName = model.getName();
 
-        return Object.assign(prev, {
-          [`create${modelName}`]: (root, args, context, info) => resolver.create(context, model, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) }),
-          [`update${modelName}`]: (root, args, context, info) => resolver.update(context, model, args.id, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) }),
-          [`delete${modelName}`]: (root, args, context, info) => resolver.delete(context, model, args.id, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) }),
-        });
+        if (model.isCreatable()) obj[`create${modelName}`] = (root, args, context, info) => resolver.create(context, model, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+        if (model.isUpdatable()) obj[`update${modelName}`] = (root, args, context, info) => resolver.update(context, model, args.id, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+        if (model.isDeletable()) obj[`delete${modelName}`] = (root, args, context, info) => resolver.delete(context, model, args.id, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+
+        return Object.assign(prev, obj);
       }, {}),
 
-      Schema: schema.getReadableModels().reduce((prev, model) => {
+      Schema: schema.getReadModels().reduce((prev, model) => {
         const modelName = model.getName();
 
         return Object.assign(prev, {

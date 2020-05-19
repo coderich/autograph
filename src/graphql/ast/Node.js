@@ -134,14 +134,6 @@ module.exports = class Node {
     return this.getDirectiveArg('model', 'meta', 'AutoGraphMixed');
   }
 
-  isReadable() {
-    return Boolean(['default', 'query', 'resolve'].indexOf(this.getScope()) > -1);
-  }
-
-  isWritable() {
-    return Boolean(['default', 'mutation'].indexOf(this.getScope()) > -1);
-  }
-
   isEntity() {
     return Boolean(this.getDirective('model'));
   }

@@ -37,6 +37,7 @@ Ideas:
   * Can you use semver over glob in some areas?
 
 Figure out:
+  * crud vs scope vs isPrivate() etc
   * createdBy? (Audit trail)
   * Composite Rule Definitions?
   * Authorization. Specifically owner records, segmentation, recursive data resolution

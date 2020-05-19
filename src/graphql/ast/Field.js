@@ -85,6 +85,14 @@ module.exports = class Field extends Node {
     return Boolean(this.type.isRequired() && this.getScope() !== 'resolver');
   }
 
+  isReadable() {
+    return Boolean(['default', 'query', 'resolve'].indexOf(this.getScope()) > -1);
+  }
+
+  isWritable() {
+    return Boolean(['default', 'mutation'].indexOf(this.getScope()) > -1);
+  }
+
   // GQL Schema Methods
   getGQLType(suffix) {
     let type = this.getType();
