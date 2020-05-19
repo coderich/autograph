@@ -1,5 +1,5 @@
 const EventEmitter = require('../core/EventEmitter');
-const { ucFirst } = require('./app.service');
+const { ucFirst, promiseChain } = require('./app.service');
 
 // Event emitters
 const eventEmitter = new EventEmitter();
@@ -23,3 +23,39 @@ exports.createSystemEvent = (name, event = {}, thunk = () => {}) => {
 };
 exports.eventEmitter = eventEmitter;
 exports.internalEmitter = internalEmitter;
+
+
+// Handle embedded fields
+internalEmitter.on('preMutation', async (event, next) => {
+  const { model, data, method, resolver } = event;
+
+  await promiseChain(model.getEmbeddedFields().map((field) => {
+    return () => new Promise((resolve, reject) => {
+      if (Object.prototype.hasOwnProperty.call(data, field.getName())) {
+        const newEvent = { key: `${method}${field}`, method, model: field.getModelRef(), resolver, query: {}, data: data[field.getName()] };
+        exports.createSystemEvent('Mutation', newEvent, () => resolve()).catch(e => reject(e));
+      } else {
+        resolve();
+      }
+    });
+  }));
+
+  next();
+});
+
+internalEmitter.on('postMutation', async (event, next) => {
+  const { model, data, method, resolver } = event;
+
+  await promiseChain(model.getEmbeddedFields().map((field) => {
+    return () => new Promise((resolve, reject) => {
+      if (Object.prototype.hasOwnProperty.call(data, field.getName())) {
+        const newEvent = { key: `${method}${field}`, method, model: field.getModelRef(), resolver, query: {}, data: data[field.getName()] };
+        exports.createSystemEvent('Mutation', newEvent, () => resolve()).catch(e => reject(e));
+      } else {
+        resolve();
+      }
+    });
+  }));
+
+  next();
+});

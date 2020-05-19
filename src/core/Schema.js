@@ -41,11 +41,13 @@ module.exports = class extends Schema {
   loadDir(dir) {
     super.loadDir(dir);
     this.createModels();
+    return this;
   }
 
   extend(...schemas) {
     super.extend(...schemas);
     this.createModels();
+    return this;
   }
 
   getServerApiSchema() {
