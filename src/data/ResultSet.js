@@ -95,7 +95,7 @@ module.exports = class {
         // const cursor = toGUID(i, guid);
 
         return Object.defineProperties(this.model.transform(doc), {
-          id: { value: id },
+          id: { value: id, enumerable: true, writable: true },
           $id: { value: guid },
           // $$cursor: { value: cursor },
         });

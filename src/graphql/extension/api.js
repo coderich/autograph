@@ -117,7 +117,7 @@ module.exports = (schema) => {
           const { node } = root;
           const [modelName] = fromGUID(node.$id);
           const model = schema.getModel(modelName);
-          return autograph.loader.match(model).id(node.id).select(GraphqlFields(info, {}, { processArguments: true })).one();
+          return autograph.resolver.match(model).id(node.id).select(GraphqlFields(info, {}, { processArguments: true })).one();
         },
       },
       Query: schema.getReadModels().reduce((prev, model) => {

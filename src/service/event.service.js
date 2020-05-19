@@ -1,3 +1,4 @@
+const Query = require('../data/Query');
 const EventEmitter = require('../core/EventEmitter');
 const { ucFirst, promiseChain } = require('./app.service');
 
@@ -14,9 +15,12 @@ const systemEvent = new EventEmitter().on('system', async (event, next) => {
 //
 exports.createSystemEvent = (name, event = {}, thunk = () => {}) => {
   const type = ucFirst(name);
+  event.context = event.model.getSchema().getContext();
+  event.meta = event.query.getMeta();
+  event.key = `${event.method}${event.model}`;
 
   return systemEvent.emit('system', { type: `pre${type}`, data: event }).then(() => thunk()).then((result) => {
-    event.result = result;
+    event.doc = result;
     systemEvent.emit('system', { type: `post${type}`, data: event });
     return result;
   });
@@ -32,7 +36,8 @@ const eventHandler = (event) => {
   return promiseChain(model.getEmbeddedFields().map((field) => {
     return () => new Promise((resolve, reject) => {
       if (Object.prototype.hasOwnProperty.call(input, field.getName())) {
-        const newEvent = { key: `${method}${field}`, method, model: field.getModelRef(), resolver, query: {}, input: input[field.getName()] };
+        const newModel = field.getModelRef();
+        const newEvent = { key: `${method}${field}`, method, model: newModel, resolver, query: new Query(newModel), input: input[field.getName()] };
         exports.createSystemEvent('Mutation', newEvent, () => resolve()).catch(e => reject(e));
       } else {
         resolve();

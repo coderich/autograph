@@ -16,7 +16,7 @@ class Server {
           schema,
           permissions: ['**'],
           legacyMode: true,
-          loader: new Resolver(schema),
+          resolver: new Resolver(schema),
         },
       }),
     });

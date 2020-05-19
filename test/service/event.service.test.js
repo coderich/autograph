@@ -1,5 +1,13 @@
+const Query = require('../../src/data/Query');
+const Schema = require('../../src/core/Schema');
 const { createSystemEvent, eventEmitter } = require('../../src/service/event.service');
 const { timeout } = require('../../src/service/app.service');
+const gql = require('../fixtures/bare.graphql');
+const stores = require('../stores');
+
+const schema = new Schema({ typeDefs: gql }, stores);
+const model = schema.getModel('Person');
+const query = new Query(model);
 
 describe('EventService', () => {
   test('createSystemEvent', async (done) => {
@@ -12,8 +20,8 @@ describe('EventService', () => {
 
     eventEmitter.on('preTest', cb1);
     eventEmitter.once('preTest', cb2);
-    await createSystemEvent('test');
-    await createSystemEvent('test');
+    await createSystemEvent('test', { model, query });
+    await createSystemEvent('test', { model, query });
     expect(cb1).toHaveBeenCalledTimes(2);
     expect(cb2).toHaveBeenCalledTimes(1);
     done();

@@ -1,6 +1,8 @@
 Now:
+  * scope: none on Models is incorrect
+  * How to save Date in mongo?
+  * Errors, to Boom or not to Boom
   * Enforce segmentation throughout (findNetwork, network field, ...)
-  * There is no way to test DAO when utilizing tasks (unless you go through GraphQL)
 
 Next:
   * Error handling; Rules need better error messages
