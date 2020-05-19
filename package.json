@@ -30,6 +30,7 @@
     "dataloader": "^2.0.0",
     "deepmerge": "^4.2.2",
     "fill-range": "^7.0.1",
+    "glob": "^7.1.6",
     "graphql": "^14.6.0",
     "graphql-fields": "^2.0.3",
     "graphql-tools": "^5.0.0",

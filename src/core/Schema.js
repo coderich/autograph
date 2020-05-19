@@ -38,6 +38,11 @@ module.exports = class extends Schema {
     return super.getSchema();
   }
 
+  loadDir(dir) {
+    super.loadDir(dir);
+    this.createModels();
+  }
+
   extend(...schemas) {
     super.extend(...schemas);
     this.createModels();

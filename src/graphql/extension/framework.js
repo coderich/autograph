@@ -10,7 +10,7 @@ module.exports = schema => ({
     enum AutoGraphEnforceEnum { ${Object.keys(Rule.getInstances()).join(' ')} }
     enum AutoGraphTransformEnum  { ${Object.keys(Transformer.getInstances()).join(' ')} }
     enum AutoGraphAuthzEnum { private protected public }
-    enum AutoGraphScopeEnum { default query mutation resolver context none }
+    enum AutoGraphScopeEnum { default query mutation resolver none }
     enum AutoGraphOnDeleteEnum { cascade nullify restrict }
     enum AutoGraphIndexEnum { unique }
 

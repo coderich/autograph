@@ -1,8 +1,14 @@
+const FS = require('fs');
+const Glob = require('glob');
+const Path = require('path');
 const Merge = require('deepmerge');
 const { makeExecutableSchema } = require('graphql-tools');
 const { mergeASTSchema, mergeASTArray } = require('../../service/graphql.service');
 const Node = require('./Node');
 const Model = require('./Model');
+
+const loadFile = file => FS.readFileSync(Path.resolve(file), 'utf8'); // eslint-disable-line global-require,import/no-dynamic-require
+const reqFile = file => require(Path.resolve(file)); // eslint-disable-line global-require,import/no-dynamic-require
 
 module.exports = class Schema extends Node {
   constructor(schema) {
@@ -98,8 +104,25 @@ module.exports = class Schema extends Node {
     return this.getModels().reduce((prev, model) => Object.assign(prev, { [model.getName()]: model }), {});
   }
 
+  loadDir(dir) {
+    // Typedefs
+    const typeDefs = Glob.sync(`${dir}/**/*.{gql,graphql}`).map(file => loadFile(file)).join('\n\n');
+
+    // Possibly full schema definitions
+    const schema = Glob.sync(`${dir}/**/*.js`).map(file => reqFile(file)).reduce((prev, data) => {
+      return Merge(prev, data);
+    }, {
+      typeDefs: typeDefs.length ? typeDefs : undefined,
+      context: {},
+      resolvers: {},
+      schemaDirectives: {},
+    });
+
+    return this.extend(schema);
+  }
+
   extend(...schemas) {
-    const definitions = schemas.map(schema => mergeASTSchema(schema.typeDefs).definitions);
+    const definitions = schemas.filter(schema => schema.typeDefs).map(schema => mergeASTSchema(schema.typeDefs).definitions);
     this.ast.definitions = mergeASTArray(this.ast.definitions.concat(...definitions));
     this.schema.resolvers = Merge(schemas.reduce((prev, schema) => Merge(prev, schema.resolvers || {}), {}), this.schema.resolvers);
     this.initialize();
