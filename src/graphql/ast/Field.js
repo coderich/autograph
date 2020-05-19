@@ -1,3 +1,4 @@
+const { get } = require('lodash');
 const Node = require('./Node');
 const Type = require('./Type');
 const { uvl } = require('../../service/app.service');
@@ -33,8 +34,14 @@ module.exports = class Field extends Node {
     return this.schema.getEnum(this.getType());
   }
 
-  getDefaultValue(context = {}) {
-    return uvl(this.getSegmentValue(context), this.getDirectiveArg('field', 'default'));
+  getDefaultValue() {
+    return uvl(this.getSegmentValue(), this.getDirectiveArg('field', 'default'));
+  }
+
+  getSegmentValue() {
+    const segment = get(this.schema.getContext(), this.getSegment());
+    if (typeof segment === 'function') return segment();
+    return segment;
   }
 
   // Model Methods

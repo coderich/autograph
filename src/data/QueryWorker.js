@@ -85,11 +85,11 @@ module.exports = class QueryWorker {
     // Set default values for creation
     data.createdAt = Date.now();
     data.updatedAt = Date.now();
-    model.setDefaultValues(data, resolver.getContext());
+    model.setDefaultValues(data);
 
     await validateModelData(model, data, {}, 'create');
 
-    return createSystemEvent('Mutation', { key: `create${model}`, method: 'create', model, resolver, query, data }, async () => {
+    return createSystemEvent('Mutation', { key: `create${model}`, method: 'create', model, resolver, query, input: data }, async () => {
       return model.create(model.serialize(data), options).hydrate(resolver, query);
     });
   }
@@ -101,7 +101,7 @@ module.exports = class QueryWorker {
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
     await validateModelData(model, data, doc, 'update');
 
-    return createSystemEvent('Mutation', { key: `update${model}`, method: 'update', model, resolver, query, data, doc }, async () => {
+    return createSystemEvent('Mutation', { key: `update${model}`, method: 'update', model, resolver, query, input: data, doc }, async () => {
       const merged = model.serialize(mergeDeep(doc, data));
       return model.update(id, data, merged, options).hydrate(resolver, query);
     });
@@ -127,7 +127,7 @@ module.exports = class QueryWorker {
 
     await validateModelData(model, data, doc, 'update');
 
-    return createSystemEvent('Mutation', { key: `splice${model}`, method: 'splice', model, resolver, query, data, doc }, async () => {
+    return createSystemEvent('Mutation', { key: `splice${model}`, method: 'splice', model, resolver, query, input: data, doc }, async () => {
       const merged = model.serialize(mergeDeep(doc, data));
       return model.update(id, data, merged, options).hydrate(resolver, query);
     });

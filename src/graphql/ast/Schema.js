@@ -19,6 +19,7 @@ module.exports = class Schema extends Node {
     //
     super(schema.typeDefs);
     this.schema = schema;
+    this.context = {};
     this.initialize();
   }
 
@@ -102,6 +103,15 @@ module.exports = class Schema extends Node {
 
   getModelMap() {
     return this.getModels().reduce((prev, model) => Object.assign(prev, { [model.getName()]: model }), {});
+  }
+
+  getContext() {
+    return this.context;
+  }
+
+  setContext(context = {}) {
+    this.context = context;
+    return this;
   }
 
   loadDir(dir) {

@@ -103,13 +103,13 @@ module.exports = class extends Model {
     return this.referentials;
   }
 
-  setDefaultValues(data, context) {
+  setDefaultValues(data) {
     // Default fields
     this.getDefaultedFields().forEach((field) => {
       const key = field.getName();
 
       if (!Object.prototype.hasOwnProperty.call(data, key)) {
-        const value = field.getDefaultValue(context);
+        const value = field.getDefaultValue();
         data[key] = value;
       }
     });
@@ -119,7 +119,7 @@ module.exports = class extends Model {
       const key = field.getName();
 
       if (Object.prototype.hasOwnProperty.call(data, key)) {
-        field.getModelRef().setDefaultValues(data[key], context);
+        field.getModelRef().setDefaultValues(data[key]);
       }
     });
   }

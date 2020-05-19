@@ -12,9 +12,8 @@ const Rule = require('./Rule');
 let count = 0;
 
 module.exports = class Resolver {
-  constructor(schema, context = {}) {
+  constructor(schema) {
     this.schema = schema;
-    this.context = context;
     this.worker = new QueryWorker(this);
     this.loader = this.createLoader();
 
@@ -27,7 +26,7 @@ module.exports = class Resolver {
   }
 
   getContext() {
-    return this.context;
+    return this.schema.getContext();
   }
 
   // Encapsulate Facebook DataLoader

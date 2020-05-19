@@ -1,5 +1,4 @@
 Now:
-  * Embedded model fields - ensure they run Rules/Transforms (ActionLink)
   * Enforce segmentation throughout (findNetwork, network field, ...)
   * There is no way to test DAO when utilizing tasks (unless you go through GraphQL)
 

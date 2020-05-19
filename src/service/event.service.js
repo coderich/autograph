@@ -26,36 +26,20 @@ exports.internalEmitter = internalEmitter;
 
 
 // Handle embedded fields
-internalEmitter.on('preMutation', async (event, next) => {
-  const { model, data, method, resolver } = event;
+const eventHandler = (event) => {
+  const { model, input, method, resolver } = event;
 
-  await promiseChain(model.getEmbeddedFields().map((field) => {
+  return promiseChain(model.getEmbeddedFields().map((field) => {
     return () => new Promise((resolve, reject) => {
-      if (Object.prototype.hasOwnProperty.call(data, field.getName())) {
-        const newEvent = { key: `${method}${field}`, method, model: field.getModelRef(), resolver, query: {}, data: data[field.getName()] };
+      if (Object.prototype.hasOwnProperty.call(input, field.getName())) {
+        const newEvent = { key: `${method}${field}`, method, model: field.getModelRef(), resolver, query: {}, input: input[field.getName()] };
         exports.createSystemEvent('Mutation', newEvent, () => resolve()).catch(e => reject(e));
       } else {
         resolve();
       }
     });
   }));
+};
 
-  next();
-});
-
-internalEmitter.on('postMutation', async (event, next) => {
-  const { model, data, method, resolver } = event;
-
-  await promiseChain(model.getEmbeddedFields().map((field) => {
-    return () => new Promise((resolve, reject) => {
-      if (Object.prototype.hasOwnProperty.call(data, field.getName())) {
-        const newEvent = { key: `${method}${field}`, method, model: field.getModelRef(), resolver, query: {}, data: data[field.getName()] };
-        exports.createSystemEvent('Mutation', newEvent, () => resolve()).catch(e => reject(e));
-      } else {
-        resolve();
-      }
-    });
-  }));
-
-  next();
-});
+internalEmitter.on('preMutation', async (event, next) => eventHandler(event).then(next));
+internalEmitter.on('postMutation', async (event, next) => eventHandler(event).then(next));
