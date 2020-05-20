@@ -1,6 +1,7 @@
 Now:
   * scope: none on Models is incorrect
   * Enforce segmentation throughout (findNetwork, network field, ...)
+  * Unable to filter/where by id (where: { 'network.id': id })
 
 Next:
   * Error handling; Rules need better error messages
