@@ -83,8 +83,8 @@ module.exports = class QueryWorker {
     const [model, options] = [query.getModel(), query.getOptions()];
 
     // Set default values for creation
-    data.createdAt = Date.now();
-    data.updatedAt = Date.now();
+    data.createdAt = new Date();
+    data.updatedAt = new Date();
     model.setDefaultValues(data);
 
     await validateModelData(model, data, {}, 'create');
@@ -95,7 +95,7 @@ module.exports = class QueryWorker {
   }
 
   async update(query, data = {}) {
-    data.updatedAt = Date.now();
+    data.updatedAt = new Date();
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });

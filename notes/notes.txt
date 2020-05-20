@@ -1,6 +1,5 @@
 Now:
   * scope: none on Models is incorrect
-  * How to save Date in mongo?
   * Errors, to Boom or not to Boom
   * Enforce segmentation throughout (findNetwork, network field, ...)
 
@@ -25,7 +24,6 @@ Enhancements:
 
 Todo:
   * Incorporate Logger
-  * Date conversion can be a "writable" Transformation
   * MeteorUser _id is a String (not ID). How to handle?
   * Get a list of references that would be onDelete affected
   * Currently there is no way to count regular elements of an array (try to count bids)
@@ -46,64 +44,8 @@ Figure out:
   * dependencies vs peerDependencies (graphql)
   * Password and PasswordMatch validation; enforce strength; password can be created/updated but not selected, what's the scope?
 
-Sales Pitch:
-  * Unified Schema (validations & transformations)
-  * Automatic CRUD
-  * Follows Specifications
-  * Automatic Pagination, Timestamps
-  * Fixes "alias" problem - duplicate data
-  * Transactions
-  * Proper onDelete behavior (via transactions)
-  * Baked in DataLoader
-  - Able to work with models naturally instead of their db fieldname counterpart
-  - Proper where clause filter
-
 Refs:
   * https://jbt.github.io/markdown-editor/
   * https://gist.github.com/rxaviers/7360908
   * https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet
   * https://stackoverflow.com/questions/44639309/javascript-difference-between-reflect-get-and-objfoo
-
-{ NAME: 'Name',
-  DOCUMENT: 'Document',
-  OPERATION_DEFINITION: 'OperationDefinition',
-  VARIABLE_DEFINITION: 'VariableDefinition',
-  SELECTION_SET: 'SelectionSet',
-  FIELD: 'Field',
-  ARGUMENT: 'Argument',
-  FRAGMENT_SPREAD: 'FragmentSpread',
-  INLINE_FRAGMENT: 'InlineFragment',
-  FRAGMENT_DEFINITION: 'FragmentDefinition',
-  VARIABLE: 'Variable',
-  INT: 'IntValue',
-  FLOAT: 'FloatValue',
-  STRING: 'StringValue',
-  BOOLEAN: 'BooleanValue',
-  NULL: 'NullValue',
-  ENUM: 'EnumValue',
-  LIST: 'ListValue',
-  OBJECT: 'ObjectValue',
-  OBJECT_FIELD: 'ObjectField',
-  DIRECTIVE: 'Directive',
-  NAMED_TYPE: 'NamedType',
-  LIST_TYPE: 'ListType',
-  NON_NULL_TYPE: 'NonNullType',
-  SCHEMA_DEFINITION: 'SchemaDefinition',
-  OPERATION_TYPE_DEFINITION: 'OperationTypeDefinition',
-  SCALAR_TYPE_DEFINITION: 'ScalarTypeDefinition',
-  OBJECT_TYPE_DEFINITION: 'ObjectTypeDefinition',
-  FIELD_DEFINITION: 'FieldDefinition',
-  INPUT_VALUE_DEFINITION: 'InputValueDefinition',
-  INTERFACE_TYPE_DEFINITION: 'InterfaceTypeDefinition',
-  UNION_TYPE_DEFINITION: 'UnionTypeDefinition',
-  ENUM_TYPE_DEFINITION: 'EnumTypeDefinition',
-  ENUM_VALUE_DEFINITION: 'EnumValueDefinition',
-  INPUT_OBJECT_TYPE_DEFINITION: 'InputObjectTypeDefinition',
-  DIRECTIVE_DEFINITION: 'DirectiveDefinition',
-  SCHEMA_EXTENSION: 'SchemaExtension',
-  SCALAR_TYPE_EXTENSION: 'ScalarTypeExtension',
-  OBJECT_TYPE_EXTENSION: 'ObjectTypeExtension',
-  INTERFACE_TYPE_EXTENSION: 'InterfaceTypeExtension',
-  UNION_TYPE_EXTENSION: 'UnionTypeExtension',
-  ENUM_TYPE_EXTENSION: 'EnumTypeExtension',
-  INPUT_OBJECT_TYPE_EXTENSION: 'InputObjectTypeExtension' }

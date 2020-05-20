@@ -94,6 +94,7 @@ class Cypher {
       get(target, prop, rec) {
         const value = Reflect.get(target, prop, rec);
         if (typeof value === 'function') return value.bind(target);
+        if (value instanceof Date) return value.toISOString();
         if (typeof value === 'object' && !Array.isArray(value)) return JSON.stringify(value);
         return value;
       },

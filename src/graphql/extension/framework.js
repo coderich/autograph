@@ -1,12 +1,11 @@
 const Rule = require('../../core/Rule');
 const Transformer = require('../../core/Transformer');
 
-/* eslint-disable no-underscore-dangle */
 module.exports = schema => ({
   typeDefs: `
     scalar AutoGraphMixed
     scalar AutoGraphDriver
-    scalar AutoGraphDateTime
+    scalar AutoGraphDateTime @field(transform: toDate)
     enum AutoGraphEnforceEnum { ${Object.keys(Rule.getInstances()).join(' ')} }
     enum AutoGraphTransformEnum  { ${Object.keys(Transformer.getInstances()).join(' ')} }
     enum AutoGraphAuthzEnum { private protected public }
@@ -46,19 +45,4 @@ module.exports = schema => ({
       type: AutoGraphIndexEnum!
     ) repeatable on OBJECT
   `,
-
-  resolvers: {
-    AutoGraphDateTime: {
-      __parseValue(value) { // gets invoked to parse client input that was passed through variables.
-        return new Date(value);
-      },
-      __serialize(date) { // gets invoked when serializing the result to send it back to a client.
-        if (typeof date === 'object') return date.toISOString();
-        return new Date(date).toISOString();
-      },
-      __parseLiteral(ast) { // gets invoked to parse client input that was passed inline in the query. (ast.value always a string)
-        return new Date(ast.value);
-      },
-    },
-  },
 });
