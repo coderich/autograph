@@ -1,6 +1,5 @@
 Now:
   * scope: none on Models is incorrect
-  * Errors, to Boom or not to Boom
   * Enforce segmentation throughout (findNetwork, network field, ...)
 
 Next:

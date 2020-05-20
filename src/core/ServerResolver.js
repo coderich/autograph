@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const GraphqlFields = require('graphql-fields');
-const { NotFoundError } = require('../service/error.service');
+const Boom = require('./Boom');
 const { fromGUID, map } = require('../service/app.service');
 
 const guidToId = (autograph, guid) => (autograph.legacyMode ? guid : fromGUID(guid)[1]);
@@ -31,7 +31,7 @@ module.exports = class ServerResolver {
       const query = { fields: GraphqlFields(info, {}, { processArguments: true }) };
 
       return autograph.resolver.match(model).id(guidToId(autograph, guid)).query(query).one().then((doc) => {
-        if (!doc && required) throw new NotFoundError(`${model} Not Found`);
+        if (!doc && required) throw Boom.notFound(`${model} Not Found`);
         return doc;
       });
     };

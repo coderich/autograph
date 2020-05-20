@@ -1,7 +1,7 @@
 const _ = require('lodash');
+const Boom = require('../core/Boom');
 const { mergeDeep, hashObject } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
-const { NotFoundError, BadRequestError } = require('../service/error.service');
 const {
   validateModelData,
   resolveModelWhereClause,
@@ -26,7 +26,7 @@ module.exports = class QueryWorker {
 
     return createSystemEvent('Query', { method: 'get', model, resolver, query }, async () => {
       const doc = await model.get(id, options).hydrate(resolver, query);
-      if (!doc && required) throw new NotFoundError(`${model} Not Found`);
+      if (!doc && required) throw Boom.notFound(`${model} Not Found`);
       if (doc == null) return null;
       return doc;
     });
@@ -111,7 +111,7 @@ module.exports = class QueryWorker {
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const field = model.getField(key);
-    if (!field || !field.isArray()) return Promise.reject(new BadRequestError(`Cannot splice field '${key}'`));
+    if (!field || !field.isArray()) return Promise.reject(Boom.badRequest(`Cannot splice field '${key}'`));
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
     const $from = model.transform({ [key]: from })[key];
     const $to = model.transform({ [key]: to })[key];

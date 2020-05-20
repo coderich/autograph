@@ -53,7 +53,7 @@ class Rule {
 
 // Factory methods
 jsStringMethods.forEach(name => Rule.factory(name, (...args) => (f, v) => !String(v)[name](...args)));
-// Rule.factory('ensureId', () => (f, v) => false, null, { writable: true });
+Rule.factory('ensureId', () => (f, v) => false, null, { writable: true });
 Rule.factory('required', () => (f, v) => v == null, { ignoreNull: false }, { enumerable: true });
 Rule.factory('allow', (...args) => (f, v) => args.indexOf(v) === -1);
 Rule.factory('deny', (...args) => (f, v) => args.indexOf(v) > -1);
