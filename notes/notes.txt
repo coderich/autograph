@@ -1,6 +1,8 @@
 Now:
+  * Test selection against dev db
   * scope: none on Models is incorrect
   * Enforce segmentation throughout (findNetwork, network field, ...)
+    - But that means you can't use the resolver straight up and say where { 'network.name': 'name' }
   * Unable to filter/where by id (where: { 'network.id': id })
 
 Next:
