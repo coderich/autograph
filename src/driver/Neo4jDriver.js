@@ -3,10 +3,9 @@ const Neo4j = require('neo4j-driver');
 const { promiseChain, globToRegex, proxyDeep, isScalarValue } = require('../service/app.service');
 
 class Cypher {
-  constructor(uri, schema, options = {}) {
-    this.uri = uri;
+  constructor(config, schema) {
+    this.config = config;
     this.schema = schema;
-    this.options = options;
   }
 
   get(model, id, options) {
@@ -124,11 +123,11 @@ class Cypher {
 
 // https://neo4j.com/docs/http-api/3.5/actions/begin-a-transaction/
 exports.Neo4jRestDriver = class Neo4jRestDriver extends Cypher {
-  constructor(uri, options) {
-    super(uri, options);
+  constructor(config, schema) {
+    super(config, schema);
 
     // Grab our endpoints
-    const dbData = Axios.get(`${uri}/db/data/`).then(({ data }) => data);
+    const dbData = Axios.get(`${config.uri}/db/data/`).then(({ data }) => data);
     this.session = dbData.then(data => data.cypher);
     this.txn = dbData.then(data => data.transaction);
   }
@@ -189,9 +188,9 @@ exports.Neo4jRestDriver = class Neo4jRestDriver extends Cypher {
 };
 
 exports.Neo4jDriver = class Neo4jDriver extends Cypher {
-  constructor(uri, options) {
-    super(uri, options);
-    this.driver = Neo4j.driver(uri, null, { disableLosslessIntegers: true });
+  constructor(config, schema) {
+    super(config, schema);
+    this.driver = Neo4j.driver(config.uri, null, { disableLosslessIntegers: true });
   }
 
   query(query, params = {}, options = {}) {

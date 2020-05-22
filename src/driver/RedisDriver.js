@@ -18,7 +18,7 @@ const toPromise = (caller, fn, ...args) => {
 };
 
 module.exports = class {
-  constructor(uri, schema, options, mockClient) {
+  constructor({ uri }, schema, options, mockClient) {
     this.schema = schema;
     this.client = mockClient || Redis.createClient();
     this.indexes = {};

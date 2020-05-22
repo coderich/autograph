@@ -2,14 +2,18 @@ const { MongoClient, ObjectID } = require('mongodb');
 const { promiseRetry, globToRegex, proxyDeep, isScalarDataType } = require('../service/app.service');
 
 module.exports = class MongoDriver {
-  constructor(uri, schema) {
-    this.uri = uri;
+  constructor(config, schema) {
+    this.config = config;
     this.schema = schema;
     this.connection = this.connect();
   }
 
   connect() {
-    return MongoClient.connect(this.uri, { useUnifiedTopology: true });
+    return MongoClient.connect(this.config.uri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      tlsInsecure: true,
+    });
   }
 
   query(collection, method, ...args) {
@@ -21,13 +25,27 @@ module.exports = class MongoDriver {
   }
 
   find(model, where = {}, options) {
-    const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where);
-    return this.query(model, 'aggregate', $where, options).then(results => results.toArray());
+    const { version = 0 } = this.config;
+
+    if (version >= 4) {
+      const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where);
+      return this.query(model, 'aggregate', $where, options).then(results => results.toArray());
+    }
+
+    const $where = MongoDriver.normalizeWhere(where);
+    return this.query(model, 'find', $where, options).then(results => results.toArray());
   }
 
   count(model, where = {}, options) {
-    const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where, true);
-    return this.query(model, 'aggregate', $where, options).then(cursor => cursor.next().then(data => (data ? data.count : 0)));
+    const { version = 0 } = this.config;
+
+    if (version >= 4) {
+      const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where, true);
+      return this.query(model, 'aggregate', $where, options).then(cursor => cursor.next().then(data => (data ? data.count : 0)));
+    }
+
+    const $where = MongoDriver.normalizeWhere(where);
+    return this.query(model, 'countDocuments', $where, options);
   }
 
   create(model, data, options) {
@@ -115,6 +133,7 @@ module.exports = class MongoDriver {
     const model = schema.getModel(modelName);
     const $match = MongoDriver.normalizeWhere(where);
 
+    // Determine which fields need to be cast for the query
     const fields = model.getFields().filter((field) => {
       const fieldName = field.getName();
       const val = where[fieldName];

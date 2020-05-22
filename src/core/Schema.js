@@ -12,12 +12,13 @@ module.exports = class extends Schema {
     super(schema);
 
     // Create drivers
-    this.drivers = Object.entries(stores).reduce((prev, [key, { type, uri, options }]) => {
+    this.drivers = Object.entries(stores).reduce((prev, [key, value]) => {
+      const { type } = value;
       const Driver = Drivers.require(type);
 
       return Object.assign(prev, {
         [key]: {
-          dao: new Driver(uri, this, options),
+          dao: new Driver(value, this),
           idValue: Driver.idValue,
           idField: Driver.idField,
         },

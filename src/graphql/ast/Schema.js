@@ -7,7 +7,7 @@ const { mergeASTSchema, mergeASTArray } = require('../../service/graphql.service
 const Node = require('./Node');
 const Model = require('./Model');
 
-const loadFile = file => FS.readFileSync(Path.resolve(file), 'utf8'); // eslint-disable-line global-require,import/no-dynamic-require
+const loadFile = file => FS.readFileSync(Path.resolve(file), 'utf8');
 const reqFile = file => require(Path.resolve(file)); // eslint-disable-line global-require,import/no-dynamic-require
 
 module.exports = class Schema extends Node {
