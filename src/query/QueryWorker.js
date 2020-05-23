@@ -22,10 +22,10 @@ module.exports = class QueryWorker {
 
   get(query, required) {
     const { resolver } = this;
-    const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
+    const model = query.getModel();
 
     return createSystemEvent('Query', { method: 'get', model, resolver, query }, async () => {
-      const doc = await model.get(id, options).hydrate(resolver, query);
+      const doc = await model.get(query).hydrate(resolver, query);
       if (!doc && required) throw Boom.notFound(`${model} Not Found`);
       if (doc == null) return null;
       return doc;
@@ -48,9 +48,9 @@ module.exports = class QueryWorker {
   find(query) {
     const { resolver } = this;
     const [model, where, limit, countFields, sortFields, options] = [query.getModel(), query.getWhere(), query.getLimit(), query.getCountFields(), query.getSortFields(), query.getOptions()];
-    const $where = model.transform(where);
 
     return createSystemEvent('Query', { method: 'find', model, resolver, query }, async () => {
+      const $where = model.transform(where);
       const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
       const hydratedResults = await model.find(resolvedWhere, options).hydrate(resolver, query);
       const filteredData = filterDataByCounts(resolver, model, hydratedResults, countFields);
@@ -63,9 +63,9 @@ module.exports = class QueryWorker {
   count(query) {
     const { resolver } = this;
     const [model, where, countFields, countPaths, options] = [query.getModel(), query.getWhere(), query.getCountFields(), query.getCountPaths(), query.getOptions()];
-    const $where = model.transform(where);
 
     return createSystemEvent('Query', { method: 'count', model, resolver, query }, async () => {
+      const $where = model.transform(where);
       const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
 
       if (countPaths.length) {
@@ -78,32 +78,32 @@ module.exports = class QueryWorker {
     });
   }
 
-  async create(query, data = {}) {
+  async create(query, input = {}) {
     const { resolver } = this;
     const [model, options] = [query.getModel(), query.getOptions()];
 
     // Set default values for creation
-    data.createdAt = new Date();
-    data.updatedAt = new Date();
-    model.setDefaultValues(data);
+    input.createdAt = new Date();
+    input.updatedAt = new Date();
+    model.setDefaultValues(input);
 
-    await validateModelData(model, data, {}, 'create');
+    await validateModelData(model, input, {}, 'create');
 
-    return createSystemEvent('Mutation', { method: 'create', model, resolver, query, input: data }, async () => {
-      return model.create(model.serialize(data), options).hydrate(resolver, query);
+    return createSystemEvent('Mutation', { method: 'create', model, resolver, query, input }, async () => {
+      return model.create(model.serialize(input), options).hydrate(resolver, query);
     });
   }
 
-  async update(query, data = {}) {
-    data.updatedAt = new Date();
+  async update(query, input = {}) {
+    input.updatedAt = new Date();
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
-    await validateModelData(model, data, doc, 'update');
+    await validateModelData(model, input, doc, 'update');
 
-    return createSystemEvent('Mutation', { method: 'update', model, resolver, query, input: data, doc }, async () => {
-      const merged = model.serialize(mergeDeep(doc, data));
-      return model.update(id, data, merged, options).hydrate(resolver, query);
+    return createSystemEvent('Mutation', { method: 'update', model, resolver, query, input, doc }, async () => {
+      const merged = model.serialize(mergeDeep(doc, input));
+      return model.update(id, input, merged, options).hydrate(resolver, query);
     });
   }
 

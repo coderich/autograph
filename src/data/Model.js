@@ -19,8 +19,8 @@ module.exports = class extends Model {
   }
 
   // CRUD
-  get(id, options) {
-    this.normalizeOptions(options);
+  get(query) {
+    const [id, options] = [query.getId(), this.normalizeOptions(query.getOptions())];
     return new ResultSet(this, this.driver.dao.get(this.getAlias(), this.idValue(id), options));
   }
 

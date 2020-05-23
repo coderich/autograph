@@ -18,8 +18,8 @@ module.exports = class QueryBuilder {
     this.before = (before) => { query.before = before; return this; };
     this.after = (after) => { query.after = after; return this; };
     this.options = (options) => { query.options = Object.assign({}, query.options, options); return this; };
-    this.args = (args) => { query.args = Object.assign({}, query.args, args); return this; };
     this.meta = (meta) => { query.meta = Object.assign({}, query.meta, meta); return this; };
+    // this.args = (args) => { query.args = Object.assign({}, query.args, args); return this; };
 
     // want to keep?
     this.query = (q) => { Object.assign(query, _.cloneDeep(q)); return this; };
@@ -98,10 +98,10 @@ module.exports = class QueryBuilder {
         return Promise.reject(new Error(`${cmd} requires an id() or where()`));
       }
       case 'save': {
-        const [data] = args;
+        const [input] = args;
 
         // Single update
-        if (id) return resolver.load({ method: 'update', model, query, args: [data] });
+        if (id) return resolver.load({ method: 'update', model, query, args: [input] });
 
         // Multi update (transaction)
         if (where) {
@@ -120,7 +120,7 @@ module.exports = class QueryBuilder {
         }
 
         // Single save
-        return resolver.load({ method: 'create', model, query, args: [data] });
+        return resolver.load({ method: 'create', model, query, args: [input] });
       }
       case 'remove': {
         // Single document remove
