@@ -21,11 +21,13 @@ module.exports = class MongoDriver {
   }
 
   get(model, id, options) {
+    MongoDriver.normalizeOptions(options);
     return this.query(model, 'findOne', { _id: id }, options);
   }
 
   find(model, where = {}, options) {
     const { version = 0 } = this.config;
+    MongoDriver.normalizeOptions(options);
 
     if (version >= 4) {
       const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where);
@@ -38,6 +40,7 @@ module.exports = class MongoDriver {
 
   count(model, where = {}, options) {
     const { version = 0 } = this.config;
+    MongoDriver.normalizeOptions(options);
 
     if (version >= 4) {
       const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where, true);
@@ -49,14 +52,17 @@ module.exports = class MongoDriver {
   }
 
   create(model, data, options) {
+    MongoDriver.normalizeOptions(options);
     return this.query(model, 'insertOne', data, options).then(result => Object.assign(data, { _id: result.insertedId }));
   }
 
   replace(model, id, data, doc, options) {
+    MongoDriver.normalizeOptions(options);
     return this.query(model, 'replaceOne', { _id: id }, doc, options).then(() => doc);
   }
 
   delete(model, id, doc, options) {
+    MongoDriver.normalizeOptions(options);
     return this.query(model, 'deleteOne', { _id: id }, options).then(() => doc);
   }
 
@@ -114,6 +120,16 @@ module.exports = class MongoDriver {
     } catch (e) {
       return value;
     }
+  }
+
+  static normalizeOptions(options = {}) {
+    options.fields = options.fields || [];
+
+    options.fields = options.fields.reduce((prev, key) => {
+      return Object.assign(prev, { [key]: 1 });
+    }, {});
+
+    return options;
   }
 
   static normalizeWhere(where) {

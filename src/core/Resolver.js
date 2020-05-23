@@ -171,7 +171,9 @@ module.exports = class Resolver {
 
   createLoader() {
     return new FBDataLoader(keys => Promise.all(keys.map(({ method, query, args }) => this.worker[method](query, ...args))), {
-      cacheKeyFn: ({ method, model, query, args }) => hashObject({ method, model: `${model}`, query: query.toObject(), args }),
+      cacheKeyFn: ({ method, model, query }) => {
+        return hashObject({ method, model: `${model}`, query: query.getCacheKey() });
+      },
     });
   }
 };

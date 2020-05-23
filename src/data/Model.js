@@ -20,26 +20,32 @@ module.exports = class extends Model {
 
   // CRUD
   get(id, options) {
+    this.normalizeOptions(options);
     return new ResultSet(this, this.driver.dao.get(this.getAlias(), this.idValue(id), options));
   }
 
   find(where = {}, options) {
+    this.normalizeOptions(options);
     return new ResultSet(this, this.driver.dao.find(this.getAlias(), where, options));
   }
 
   count(where = {}, options) {
+    this.normalizeOptions(options);
     return this.driver.dao.count(this.getAlias(), where, options);
   }
 
   create(data, options) {
+    this.normalizeOptions(options);
     return new ResultSet(this, this.driver.dao.create(this.getAlias(), data, options));
   }
 
   update(id, data, doc, options) {
+    this.normalizeOptions(options);
     return new ResultSet(this, this.driver.dao.replace(this.getAlias(), this.idValue(id), data, doc, options));
   }
 
   delete(id, doc, options) {
+    this.normalizeOptions(options);
     return new ResultSet(this, this.driver.dao.delete(this.getAlias(), this.idValue(id), doc, options));
   }
 
@@ -53,6 +59,10 @@ module.exports = class extends Model {
 
   idField() {
     return this.getDirectiveArg('model', 'id', this.driver.idField());
+  }
+
+  normalizeOptions(options) {
+    options.fields = this.getSelectFields().map(f => f.getAlias());
   }
 
   async hydrate(resolver, results, query = {}) {

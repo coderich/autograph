@@ -1,4 +1,4 @@
-const _ = require('lodash');
+const { get, unset } = require('lodash');
 const { keyPaths, mergeDeep } = require('../service/app.service');
 
 module.exports = class Query {
@@ -13,13 +13,13 @@ module.exports = class Query {
     // Sorting
     const sortFields = keyPaths(sortBy).reduce((prev, path) => {
       const $path = path.split('.').map(s => (s.indexOf('count') === 0 || s.indexOf('.count') === 0 ? s : `$${s}`)).join('.');
-      return Object.assign(prev, { [$path]: _.get(sortBy, path) });
+      return Object.assign(prev, { [$path]: get(sortBy, path) });
     }, {});
 
     // Counting
     const countPaths = keyPaths(where).filter(p => p.indexOf('count') === 0 || p.indexOf('.count') > 0);
-    const countFields = countPaths.reduce((prev, path) => Object.assign(prev, { [path]: _.get(where, path) }), {});
-    countPaths.forEach(p => _.unset(where, p));
+    const countFields = countPaths.reduce((prev, path) => Object.assign(prev, { [path]: get(where, path) }), {});
+    countPaths.forEach(p => unset(where, p));
 
     //
     this.query = query;
@@ -87,14 +87,16 @@ module.exports = class Query {
     return this.query;
   }
 
-  toObject() {
+  getCacheKey() {
     return {
-      ...this.query,
-      pagination: this.pagination,
-      selectFields: this.selectFields,
+      // ...this.query,
+      id: this.query.id,
+      where: this.query.where,
+      limit: this.query.limit,
+      sortBy: this.query.sortBy,
       countFields: this.countFields,
-      countPaths: this.countPaths,
-      sortFields: this.sortFields,
+      selectFields: this.selectFields,
+      pagination: this.query.pagination,
     };
   }
 };

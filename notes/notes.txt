@@ -1,9 +1,7 @@
 Now:
-  * Model.getFields() returns "count<Model>"; is that wanted/expected?
   * scope: none on Models is incorrect
   * Enforce segmentation throughout (findNetwork, network field, ...)
     - But that means you can't use the resolver straight up and say where { 'network.name': 'name' }
-  * Unable to filter/where by id (where: { 'network.id': id })
   * Should only select fields that are part of the schema
 
 Next:
@@ -21,6 +19,7 @@ Bugs:
     - How to create index on embedded objects? building.type unique?
 
 Enhancements:
+  * Where clause allow explicit NULL to be searchable (ie. where { authored: null } gives those who have not authored anything)
   * Can you make Emitter events part of a transaction? pre vs post can be confusing... especially for data validation etc.
   * Input types are not models and therefor cannot participate in Transformers|Rules
     - Is this really needed? I guess perhaps when using the DOA directly...
