@@ -1,4 +1,4 @@
-const Query = require('../data/Query');
+const Query = require('../query/Query');
 const EventEmitter = require('../core/EventEmitter');
 const { ucFirst, promiseChain } = require('./app.service');
 

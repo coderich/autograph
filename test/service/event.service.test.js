@@ -1,4 +1,4 @@
-const Query = require('../../src/data/Query');
+const Query = require('../../src/query/Query');
 const Schema = require('../../src/core/Schema');
 const { createSystemEvent, eventEmitter } = require('../../src/service/event.service');
 const { timeout } = require('../../src/service/app.service');

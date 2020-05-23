@@ -1,7 +1,7 @@
 const { ApolloServer } = require('apollo-server');
 const Schema = require('../src/core/Schema');
 const Resolver = require('../src/core/Resolver');
-const gqlSchema = require('./fixtures/proxy');
+const gqlSchema = require('./fixtures/schema');
 const stores = require('./stores');
 
 class Server {

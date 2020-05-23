@@ -1,14 +1,15 @@
 Now:
-  * Test selection against dev db
+  * Model.getFields() returns "count<Model>"; is that wanted/expected?
   * scope: none on Models is incorrect
   * Enforce segmentation throughout (findNetwork, network field, ...)
     - But that means you can't use the resolver straight up and say where { 'network.name': 'name' }
   * Unable to filter/where by id (where: { 'network.id': id })
+  * Should only select fields that are part of the schema
 
 Next:
   * Error handling; Rules need better error messages
-  * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
     - You can probably return a custom error message or (false|null|undefined) if all is good (ie. from Rule)
+  * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
 
 Bugs:
@@ -39,7 +40,6 @@ Ideas:
   * Can you use semver over glob in some areas?
 
 Figure out:
-  * crud vs scope vs isPrivate() etc
   * createdBy? (Audit trail)
   * Composite Rule Definitions?
   * Authorization. Specifically owner records, segmentation, recursive data resolution

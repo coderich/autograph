@@ -134,7 +134,7 @@ module.exports = class MongoDriver {
     const $match = MongoDriver.normalizeWhere(where);
 
     // Determine which fields need to be cast for the query
-    const fields = model.getFields().filter((field) => {
+    const fields = model.getSelectFields().filter((field) => {
       const fieldName = field.getName();
       const val = where[fieldName];
       const type = field.getDataType();

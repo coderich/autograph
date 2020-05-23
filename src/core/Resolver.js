@@ -1,11 +1,11 @@
 const _ = require('lodash');
 const FBDataLoader = require('dataloader');
 const TreeMap = require('../data/TreeMap');
-const QueryBuilder = require('../data/QueryBuilder');
-const TxnQueryBuilder = require('../data/TransactionQueryBuilder');
-const QueryWorker = require('../data/QueryWorker');
-const Query = require('../data/Query');
 const Model = require('../data/Model');
+const QueryBuilder = require('../query/QueryBuilder');
+const TxnQueryBuilder = require('../query/TransactionQueryBuilder');
+const QueryWorker = require('../query/QueryWorker');
+const Query = require('../query/Query');
 const { hashObject } = require('../service/app.service');
 const Rule = require('./Rule');
 
