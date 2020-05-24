@@ -1,3 +1,5 @@
+Error.stackTraceLimit = 100;
+
 // const Rule = require('../src/core/Rule');
 
 // Rule.extend('bookName', Rule.deny('The Bible'));

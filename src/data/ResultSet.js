@@ -1,4 +1,11 @@
-const { map, toGUID } = require('../service/app.service');
+const DataResolver = require('./DataResolver');
+const { map, lcFirst, ensureArray, toGUID } = require('../service/app.service');
+
+const handlePromise = (doc, prop, promise) => {
+  // const dataResolver = new DataResolver(promise);
+  doc[prop] = promise;
+  return promise;
+};
 
 module.exports = class {
   constructor(model, promise) {
@@ -7,52 +14,78 @@ module.exports = class {
   }
 
   async hydrate(resolver, query) {
-    return this.model.hydrate(resolver, await this.getResults(), { fields: query.getSelectFields() });
+    return this.getResults(resolver, query);
+    // return this.model.hydrate(resolver, await this.getResults(), { fields: query.getSelectFields() });
   }
 
-  // getCountField(prop) {
-  //   const [, countProp] = prop.split('count').map(v => lcFirst(v));
-  //   return this.model.getField(countProp);
-  // }
+  getResults(resolver, query) {
+    return this.promise.then((docs) => {
+      return map(docs, (doc, i) => {
+        const id = doc[this.model.idField()];
+        const guid = toGUID(this.model.getName(), id);
+        const tdoc = this.model.transform(doc);
+        const dataResolver = new DataResolver(tdoc, (data, prop) => this.resolve(data, prop, resolver, query));
 
-  // resolve(resolver, doc, prop, query) {
-  //   const value = doc[prop];
-  //   const { fields = {} } = cloneDeep(query);
-  //   query.where = query.where || {};
+        return Object.defineProperties(dataResolver, {
+          id: { value: id, enumerable: true, writable: true },
+          $id: { value: guid },
+        });
+      });
+    });
+  }
 
-  //   // Must be in selection
-  //   if (!Object.prototype.hasOwnProperty.call(fields, prop)) return Promise.resolve(value);
+  resolve(doc, prop, resolver, query) {
+    // Value check
+    const value = doc[prop];
+    if (value !== undefined) return value; // Already resolved
+    if (typeof prop === 'symbol') return value;
 
-  //   // Count resolver
-  //   const countField = this.getCountField(prop);
-  //   if (countField) return countField.count(resolver, doc);
+    // // Count resolver
+    // const countField = this.getCountField(prop);
+    // if (countField) {
+    //   return countField.count(resolver, doc).then((v) => {
+    //     console.log(prop, v);
+    //     doc[prop] = v;
+    //     return v;
+    //   });
+    // }
 
-  //   // Field resolver
-  //   const field = this.model.getField(prop);
-  //   if (!field) return Promise.resolve(value);
-  //   if (field.isScalar() || field.isEmbedded()) return Promise.resolve(value);
+    // Hydration check
+    const [, $prop] = prop.split('$');
+    if (!$prop) return value; // Nothing to hydrate
 
-  //   // Model resolver
-  //   const [arg = {}] = (fields[field].__arguments || []).filter(el => el.query).map(el => el.query.value);
-  //   const fieldModel = field.getModelRef();
+    // Field check
+    const field = this.model.getField($prop);
+    if (!field) return value; // Unknown field
 
-  //   if (field.isArray()) {
-  //     if (field.isVirtual()) {
-  //       query.where[field.getVirtualField().getAlias()] = doc.id;
-  //       return resolver.match(fieldModel).query({ ...query, ...arg }).many({ find: true });
-  //     }
+    // Set $value to the original unhydrated value
+    const $value = doc[$prop];
+    if (field.isScalar() || field.isEmbedded()) return handlePromise(doc, prop, $value); // No hydration needed; apply $value
 
-  //     return Promise.all(ensureArray(value).map(id => resolver.match(fieldModel).id(id).one({ required: field.isRequired() })));
-  //   }
+    // Model resolver
+    const fieldModel = field.getModelRef();
 
-  //   if (field.isVirtual()) {
-  //     query.where[field.getVirtualField().getAlias()] = doc.id;
-  //     return resolver.match(fieldModel).query({ ...query, ...arg }).one({ find: true });
-  //   }
+    if (field.isArray()) {
+      if (field.isVirtual()) {
+        query.where[field.getVirtualField().getAlias()] = doc.id;
+        return handlePromise(doc, prop, resolver.match(fieldModel).query({ ...query }).many({ find: true }));
+      }
 
-  //   return resolver.match(fieldModel).id(value).one({ required: field.isRequired() });
-  // }
+      return handlePromise(doc, prop, Promise.all(ensureArray(value).map(id => resolver.match(fieldModel).id(id).one({ required: field.isRequired() }))));
+    }
 
+    if (field.isVirtual()) {
+      query.where[field.getVirtualField().getAlias()] = doc.id;
+      return handlePromise(doc, prop, resolver.match(fieldModel).query({ ...query }).one({ find: true }));
+    }
+
+    return handlePromise(doc, prop, resolver.match(fieldModel).id(value).one({ required: field.isRequired() }));
+  }
+
+  getCountField(prop) {
+    const [, countProp] = prop.split('count').map(v => lcFirst(v));
+    return this.model.getField(countProp);
+  }
 
   // async hydrate(resolver, query) {
   //   const results = await this.getResults();
@@ -85,21 +118,4 @@ module.exports = class {
 
   //   return isArray ? data : data[0];
   // }
-
-
-  getResults(resolver) {
-    return this.promise.then((docs) => {
-      return map(docs, (doc, i) => {
-        const id = doc[this.model.idField()];
-        const guid = toGUID(this.model.getName(), id);
-        // const cursor = toGUID(i, guid);
-
-        return Object.defineProperties(this.model.transform(doc), {
-          id: { value: id, enumerable: true, writable: true },
-          $id: { value: guid },
-          // $$cursor: { value: cursor },
-        });
-      });
-    });
-  }
 };
