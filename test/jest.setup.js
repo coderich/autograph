@@ -1,4 +1,4 @@
-Error.stackTraceLimit = 100;
+Error.stackTraceLimit = 50;
 
 // const Rule = require('../src/core/Rule');
 

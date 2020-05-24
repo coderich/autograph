@@ -1,14 +1,9 @@
 const { get, unset } = require('lodash');
-const { keyPaths, mergeDeep } = require('../service/app.service');
+const { keyPaths } = require('../service/app.service');
 
 module.exports = class Query {
   constructor(model, query = {}) {
-    const { fields, where = {}, sortBy = {}, limit, pagination = {}, options = {} } = query;
-
-    // Fields
-    const modelFields = model.getScalarFields();
-    const selectFields = fields || modelFields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: {} }), {});
-    const finalSelectFields = mergeDeep(where, sortBy, selectFields);
+    const { where = {}, sortBy = {}, limit, pagination = {}, options = {} } = query;
 
     // Sorting
     const sortFields = keyPaths(sortBy).reduce((prev, path) => {
@@ -24,7 +19,6 @@ module.exports = class Query {
     //
     this.query = query;
     this.model = model;
-    this.selectFields = finalSelectFields;
     this.countFields = countFields;
     this.countPaths = countPaths;
     this.sortFields = sortFields;
@@ -41,10 +35,6 @@ module.exports = class Query {
 
   getMeta() {
     return this.query.meta;
-  }
-
-  getSelectFields() {
-    return this.selectFields;
   }
 
   getCountFields() {
@@ -95,7 +85,6 @@ module.exports = class Query {
       limit: this.query.limit,
       sortBy: this.query.sortBy,
       countFields: this.countFields,
-      selectFields: this.selectFields,
       pagination: this.query.pagination,
     };
   }

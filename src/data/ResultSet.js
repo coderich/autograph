@@ -1,10 +1,9 @@
 const DataResolver = require('./DataResolver');
-const { map, lcFirst, ensureArray, toGUID } = require('../service/app.service');
+const { keyPaths, map, lcFirst, ensureArray, toGUID } = require('../service/app.service');
 
-const handlePromise = (doc, prop, promise) => {
-  // const dataResolver = new DataResolver(promise);
-  doc[prop] = promise;
-  return promise;
+const assignValue = (doc, prop, value) => {
+  Object.defineProperty(doc, prop, { value });
+  return value;
 };
 
 module.exports = class {
@@ -14,7 +13,25 @@ module.exports = class {
   }
 
   async hydrate(resolver, query) {
-    return this.getResults(resolver, query);
+    return this.getResults(resolver, query).then(async (results) => {
+      return results;
+
+      // const paths = [...new Set([
+      //   // ...keyPaths(query.getWhere()).map(path => path.split('.').map(seg => `$${seg}`).join('.')),
+      //   ...keyPaths(query.getSortFields()),
+      // ])];
+
+      // return Promise.all(ensureArray(results).map((doc) => {
+      //   return Promise.all(paths.map((path) => {
+      //     return path.split('.').reduce((promise, prop) => {
+      //       return promise.then((subdoc) => {
+      //         return subdoc[prop];
+      //       });
+      //     }, Promise.resolve(doc));
+      //   }));
+      // })).then(() => results);
+    });
+
     // return this.model.hydrate(resolver, await this.getResults(), { fields: query.getSelectFields() });
   }
 
@@ -44,7 +61,6 @@ module.exports = class {
     // const countField = this.getCountField(prop);
     // if (countField) {
     //   return countField.count(resolver, doc).then((v) => {
-    //     console.log(prop, v);
     //     doc[prop] = v;
     //     return v;
     //   });
@@ -60,7 +76,7 @@ module.exports = class {
 
     // Set $value to the original unhydrated value
     const $value = doc[$prop];
-    if (field.isScalar() || field.isEmbedded()) return handlePromise(doc, prop, $value); // No hydration needed; apply $value
+    if (field.isScalar() || field.isEmbedded()) return assignValue(doc, prop, $value); // No hydration needed; apply $value
 
     // Model resolver
     const fieldModel = field.getModelRef();
@@ -68,18 +84,20 @@ module.exports = class {
     if (field.isArray()) {
       if (field.isVirtual()) {
         query.where[field.getVirtualField().getAlias()] = doc.id;
-        return handlePromise(doc, prop, resolver.match(fieldModel).query({ ...query }).many({ find: true }));
+        return assignValue(doc, prop, resolver.match(fieldModel).query({ ...query }).many({ find: true }));
       }
 
-      return handlePromise(doc, prop, Promise.all(ensureArray(value).map(id => resolver.match(fieldModel).id(id).one({ required: field.isRequired() }))));
+      return assignValue(doc, prop, Promise.all(ensureArray(value).map(id => resolver.match(fieldModel).id(id).one())));
+      // return assignValue(doc, prop, Promise.all(ensureArray(value).map(id => resolver.match(fieldModel).id(id).one({ required: field.isRequired() }))));
     }
 
     if (field.isVirtual()) {
       query.where[field.getVirtualField().getAlias()] = doc.id;
-      return handlePromise(doc, prop, resolver.match(fieldModel).query({ ...query }).one({ find: true }));
+      return assignValue(doc, prop, resolver.match(fieldModel).query({ ...query }).one({ find: true }));
     }
 
-    return handlePromise(doc, prop, resolver.match(fieldModel).id(value).one({ required: field.isRequired() }));
+    return assignValue(doc, prop, resolver.match(fieldModel).id(value).one());
+    // return assignValue(doc, prop, resolver.match(fieldModel).id(value).one({ required: field.isRequired() }));
   }
 
   getCountField(prop) {
