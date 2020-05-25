@@ -184,20 +184,16 @@ exports.sortData = (data, sortBy) => {
 };
 
 exports.filterDataByCounts = (resolver, model, data, countPaths) => {
-  return data;
+  const pathValue = (doc, path) => {
+    const realPath = path.split('.').map(s => (s.indexOf('count') === 0 ? s : `$${s}`)).join('.');
+    const realVals = getDeep(doc, realPath);
+    return realVals;
+  };
 
-  // const pathValue = (doc, path) => {
-  //   const realPath = path.split('.').map(s => (s.indexOf('count') === 0 ? s : `$${s}`)).join('.');
-  //   const realVals = getDeep(doc, realPath);
-  //   return realVals;
-  // };
-
-  // return data.filter(doc => Object.entries(countPaths).every(([path, value]) => pathValue(doc, path).some(el => String(el).match(globToRegexp(value)))));
+  return data.filter(doc => Object.entries(countPaths).every(([path, value]) => pathValue(doc, path).some(el => String(el).match(globToRegexp(value)))));
 };
 
 exports.paginateResults = (results = [], pagination = {}) => {
-  // if (Object.keys(pagination).length) console.log(results, pagination);
-
   const applyCursorsToEdges = (allEdges, before, after) => {
     const edges = [...allEdges];
 

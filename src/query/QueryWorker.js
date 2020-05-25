@@ -1,4 +1,4 @@
-const _ = require('lodash');
+const { get, remove } = require('lodash');
 const Boom = require('../core/Boom');
 const { mergeDeep, hashObject } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
@@ -110,10 +110,10 @@ module.exports = class QueryWorker {
     let data;
 
     if (from) { // 'from' is correct here because we're testing what was passed into slice() to determine behavior
-      data = { [key]: _.get(doc, key, []) };
-      _.remove(data[key], el => $from.find(v => hashObject(v) === hashObject(el)));
+      data = { [key]: get(doc, key, []) };
+      remove(data[key], el => $from.find(v => hashObject(v) === hashObject(el)));
     } else {
-      data = { [key]: _.get(doc, key, []).concat($to) };
+      data = { [key]: get(doc, key, []).concat($to) };
     }
 
     await validateModelData(model, data, doc, 'update');
