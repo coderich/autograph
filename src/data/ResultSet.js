@@ -2,8 +2,10 @@ const DataResolver = require('./DataResolver');
 const { keyPaths, map, lcFirst, ensureArray, toGUID } = require('../service/app.service');
 
 const assignValue = (doc, prop, value) => {
-  Object.defineProperty(doc, prop, { value });
-  return value;
+  return Promise.resolve(value).then(($value) => {
+    Object.defineProperty(doc, prop, { value: $value });
+    return $value;
+  });
 };
 
 module.exports = class {
@@ -14,25 +16,23 @@ module.exports = class {
 
   async hydrate(resolver, query) {
     return this.getResults(resolver, query).then(async (results) => {
-      return results;
+      const paths = [...new Set([
+        // ...keyPaths(query.getWhere()).map(path => path.split('.').map(seg => `$${seg}`).join('.')),
+        ...keyPaths(query.getSortFields()),
+      ])];
 
-      // const paths = [...new Set([
-      //   // ...keyPaths(query.getWhere()).map(path => path.split('.').map(seg => `$${seg}`).join('.')),
-      //   ...keyPaths(query.getSortFields()),
-      // ])];
-
-      // return Promise.all(ensureArray(results).map((doc) => {
-      //   return Promise.all(paths.map((path) => {
-      //     return path.split('.').reduce((promise, prop) => {
-      //       return promise.then((subdoc) => {
-      //         return subdoc[prop];
-      //       });
-      //     }, Promise.resolve(doc));
-      //   }));
-      // })).then(() => results);
+      return Promise.all(ensureArray(results).map((doc) => {
+        return Promise.all(paths.map((path) => {
+          return path.split('.').reduce((promise, prop) => {
+            return promise.then((subdoc) => {
+              if (subdoc == null) return Promise.resolve(null);
+              if (Array.isArray(subdoc)) return Promise.all(subdoc.map(sd => Promise.resolve(sd[prop])));
+              return Promise.resolve(subdoc[prop]);
+            });
+          }, Promise.resolve(doc));
+        }));
+      })).then(() => results);
     });
-
-    // return this.model.hydrate(resolver, await this.getResults(), { fields: query.getSelectFields() });
   }
 
   getResults(resolver, query) {
@@ -83,57 +83,23 @@ module.exports = class {
 
     if (field.isArray()) {
       if (field.isVirtual()) {
-        query.where[field.getVirtualField().getAlias()] = doc.id;
-        return assignValue(doc, prop, resolver.match(fieldModel).query({ ...query }).many({ find: true }));
+        const where = { [field.getVirtualField().getAlias()]: doc.id };
+        return assignValue(doc, prop, resolver.match(fieldModel).query({ where }).many({ find: true }));
       }
 
-      return assignValue(doc, prop, Promise.all(ensureArray(value).map(id => resolver.match(fieldModel).id(id).one())));
-      // return assignValue(doc, prop, Promise.all(ensureArray(value).map(id => resolver.match(fieldModel).id(id).one({ required: field.isRequired() }))));
+      return assignValue(doc, prop, Promise.all(ensureArray(value).map(id => resolver.match(fieldModel).id(id).one({ required: field.isRequired() }))));
     }
 
     if (field.isVirtual()) {
-      query.where[field.getVirtualField().getAlias()] = doc.id;
-      return assignValue(doc, prop, resolver.match(fieldModel).query({ ...query }).one({ find: true }));
+      const where = { [field.getVirtualField().getAlias()]: doc.id };
+      return assignValue(doc, prop, resolver.match(fieldModel).query({ where }).one({ find: true }));
     }
 
-    return assignValue(doc, prop, resolver.match(fieldModel).id(value).one());
-    // return assignValue(doc, prop, resolver.match(fieldModel).id(value).one({ required: field.isRequired() }));
+    return assignValue(doc, prop, resolver.match(fieldModel).id(value).one({ required: field.isRequired() }));
   }
 
   getCountField(prop) {
     const [, countProp] = prop.split('count').map(v => lcFirst(v));
     return this.model.getField(countProp);
   }
-
-  // async hydrate(resolver, query) {
-  //   const results = await this.getResults();
-  //   if (results == null) return results;
-
-  //   const isArray = Array.isArray(results);
-
-  //   const data = await Promise.all(ensureArray(results).map((doc) => {
-  //     if (doc == null) return doc;
-  //     if (Object.prototype.hasOwnProperty.call(doc, '$hydrated')) return doc;
-
-  //     // const id = doc[this.model.idField()];
-  //     // const guid = toGUID(this.model.getName(), id);
-  //     // Object.defineProperty(doc, 'id', { value: id });
-  //     // Object.defineProperty(doc, '$id', { value: guid });
-  //     Object.defineProperty(doc, '$hydrated', { value: true });
-
-  //     return Promise.all(Object.keys(doc).map((key) => {
-  //       return this.resolve(resolver, doc, key, { fields: query.getSelectFields() });
-  //     })).then(($values) => {
-  //       $values.forEach(($value, i) => {
-  //         const key = Object.keys(doc)[i];
-  //         const $key = this.getCountField(key) ? key : `$${key}`;
-  //         if (!Object.prototype.hasOwnProperty.call(doc, $key)) Object.defineProperty(doc, $key, { value: $value });
-  //       });
-
-  //       return this.model.transform(doc);
-  //     });
-  //   }));
-
-  //   return isArray ? data : data[0];
-  // }
 };
