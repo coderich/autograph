@@ -6,12 +6,12 @@ const Resolver = require('../src/core/Resolver');
 const gqlSchema = require('./fixtures/schema');
 const stores = require('./stores');
 
-const loadFile = file => FS.readFileSync(Path.resolve(file), 'utf8');
+// const loadFile = file => FS.readFileSync(Path.resolve(file), 'utf8');
+// const typeDefs = loadFile(`${__dirname}/fixtures/complex.graphql`);
 
 class Server {
   constructor() {
-    const typeDefs = loadFile(`${__dirname}/fixtures/complex.graphql`);
-    const schema = new Schema({ typeDefs }, stores);
+    const schema = new Schema(gqlSchema, stores);
     const executableSchema = schema.makeServerApiSchema();
 
     this.server = new ApolloServer({
