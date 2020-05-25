@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const UUID = require('uuid/v4');
 const PicoMatch = require('picomatch');
 const FillRange = require('fill-range');
 const DeepMerge = require('deepmerge');
@@ -8,7 +7,6 @@ const ObjectHash = require('object-hash');
 // const IPO = require('is-plain-object');
 
 exports.id = '3d896496-02a3-4ee5-8e42-2115eb215f7e';
-exports.generateId = () => UUID();
 exports.ucFirst = string => string.charAt(0).toUpperCase() + string.slice(1);
 exports.lcFirst = string => string.charAt(0).toLowerCase() + string.slice(1);
 exports.isPlainObject = obj => obj != null && typeof obj === 'object' && !Array.isArray(obj) && !(obj instanceof ObjectID) && !(obj instanceof Date);
