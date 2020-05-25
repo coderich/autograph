@@ -1,4 +1,5 @@
 Now:
+  * What was the reason for Query vs Find? Do you need it? I know it had to do with final stage of sorting/filtering/pagination.
   * scope: none on Models is incorrect
   * Enforce segmentation throughout (findNetwork, network field, ...)
     - But that means you can't use the resolver straight up and say where { 'network.name': 'name' }
@@ -18,6 +19,7 @@ Bugs:
     - How to create index on embedded objects? building.type unique?
 
 Enhancements:
+  * Add 'filterBy' as an option for post query filtering (this can alleviate the depth-first where clause problem)
   * Where clause allow explicit NULL to be searchable (ie. where { authored: null } gives those who have not authored anything)
   * Can you make Emitter events part of a transaction? pre vs post can be confusing... especially for data validation etc.
   * Input types are not models and therefor cannot participate in Transformers|Rules
