@@ -493,7 +493,7 @@ module.exports = (driver = 'mongo') => {
         expect(await resolver.match('Book').where({ chapters: { name: ['chapter1', 'no-chapter'] } }).many({ find: true })).toMatchObject([{ id: healthBook.id }]);
         expect(await resolver.match('Book').where({ chapters: { name: '*' } }).many({ find: true })).toMatchObject([{ id: healthBook.id }]);
         expect(await resolver.match('Book').where({ chapters: { pages: { number: 1 } } }).many({ find: true })).toMatchObject([{ id: healthBook.id }]);
-        // expect(await resolver.match('Book').where({ chapters: [{ name: 'HongKong' }, chapter1.id] }).many({ find: true })).toMatchObject([{ id: healthBook.id }]);
+        expect(await resolver.match('Book').where({ chapters: [{ name: 'HongKong' }, chapter1.id] }).many({ find: true })).toMatchObject([{ id: healthBook.id }]);
       });
     });
 
