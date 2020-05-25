@@ -1,7 +1,6 @@
 const Field = require('./Field');
 const ResultSet = require('./ResultSet');
 const Model = require('../graphql/ast/Model');
-const { lcFirst } = require('../service/app.service');
 
 module.exports = class extends Model {
   constructor(schema, model, drivers) {
@@ -63,45 +62,6 @@ module.exports = class extends Model {
 
   normalizeOptions(options) {
     options.fields = this.getSelectFields().map(f => f.getAlias());
-  }
-
-  async hydrate(resolver, results, query = {}) {
-    const { fields = {} } = query;
-    const isArray = Array.isArray(results);
-    const modelFields = this.getFields().map(f => f.getName());
-    const fieldEntries = Object.entries(fields).filter(([k]) => modelFields.indexOf(k) > -1);
-    const countEntries = Object.entries(fields).filter(([k]) => modelFields.indexOf(lcFirst(k.substr(5))) > -1); // eg. countAuthored
-    results = isArray ? results : [results];
-
-    const data = await Promise.all(results.map(async (doc) => {
-      if (doc == null) return doc;
-
-      // Resolve all values
-      const [fieldValues, countValues] = await Promise.all([
-        Promise.all(fieldEntries.map(async ([field, subFields]) => {
-          const [arg = {}] = (fields[field].__arguments || []).filter(el => el.query).map(el => el.query.value); // eslint-disable-line
-          const ref = this.getField(field).getModelRef();
-          const resolved = await this.getField(field).resolve(resolver, doc, { ...query, ...arg });
-          if (Object.keys(subFields).length && ref) return ref.hydrate(resolver, resolved, { ...query, ...arg, fields: subFields });
-          return resolved;
-        })),
-        Promise.all(countEntries.map(async ([field, subFields]) => {
-          const [arg = {}] = (fields[field].__arguments || []).filter(el => el.where).map(el => el.where.value); // eslint-disable-line
-          return this.getField(lcFirst(field.substr(5))).count(resolver, doc, arg);
-        })),
-      ]);
-
-      return fieldEntries.reduce((prev, [field], i) => {
-        const $key = `$${field}`;
-        const $value = fieldValues[i];
-        if (!Object.prototype.hasOwnProperty.call(prev, $key)) Object.defineProperty(prev, $key, { value: $value });
-        return prev;
-      }, countEntries.reduce((prev, [field], i) => {
-        return Object.assign(prev, { [field]: countValues[i] });
-      }, doc));
-    }));
-
-    return isArray ? data : data[0];
   }
 
   getDriver() {

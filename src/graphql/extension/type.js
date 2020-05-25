@@ -12,8 +12,8 @@ module.exports = (schema) => {
           id: ID!
           ${createdAt ? `createdAt: AutoGraphDateTime @field(scope: query, alias: "${createdAt}")` : ''}
           ${updatedAt ? `updatedAt: AutoGraphDateTime @field(scope: query, alias: "${updatedAt}")` : ''}
-          ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int @field(scope: resolver)`)}
-          countSelf(where: ${modelName}InputWhere): Int @field(scope: resolver)
+          # ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int @field(scope: resolver)`)}
+          # countSelf(where: ${modelName}InputWhere): Int @field(scope: resolver)
         }
       `;
     }).concat(`

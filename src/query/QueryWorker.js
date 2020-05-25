@@ -34,17 +34,6 @@ module.exports = class QueryWorker {
 
   query(query) {
     return this.find(query);
-
-    // const { resolver } = this;
-    // const [model, where, limit, fields, countFields, sortFields, pagination, options] = [query.getModel(), query.getWhere(), query.getLimit(), query.getSelectFields(), query.getCountFields(), query.getSortFields(), query.getPagination(), query.getOptions()];
-
-    // return createSystemEvent('Query', { method: 'query', model, resolver, query }, async () => {
-    //   const results = await resolver.match(model).select(fields).where(where).options(options).many({ find: true });
-    //   const filteredData = filterDataByCounts(resolver, model, results, countFields);
-    //   const sortedResults = sortData(filteredData, sortFields);
-    //   const limitedResults = sortedResults.slice(0, limit > 0 ? limit : undefined);
-    //   return paginateResults(limitedResults, pagination);
-    // });
   }
 
   find(query) {

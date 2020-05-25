@@ -25,12 +25,12 @@ module.exports = (schema) => {
 
         input ${modelName}InputWhere {
           ${model.getWhereFields().map(field => `${field.getName()}: ${field.getDataRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'String'}`)}
-          ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}: String`)}
+          # ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}: String`)}
         }
 
         input ${modelName}InputSort {
           ${model.getSelectFields().map(field => `${field.getName()}: ${field.getDataRef() ? `${ucFirst(field.getDataRef())}InputSort` : 'SortOrderEnum'}`)}
-          ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}: SortOrderEnum`)}
+          # ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}: SortOrderEnum`)}
         }
 
         input ${modelName}InputQuery {
@@ -101,7 +101,7 @@ module.exports = (schema) => {
           return Object.assign(def, { [fieldName]: root => root[`$${fieldName}`] });
         }, {
           id: (root, args, { autograph }) => (autograph.legacyMode ? root.id : root.$id),
-          countSelf: (root, args, context, info) => resolver.count(context, model, args, info),
+          // countSelf: (root, args, context, info) => resolver.count(context, model, args, info),
         }),
       });
     }, {

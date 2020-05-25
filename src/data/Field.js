@@ -3,7 +3,7 @@ const Type = require('./Type');
 const Field = require('../graphql/ast/Field');
 const Rule = require('../core/Rule');
 const Transformer = require('../core/Transformer');
-const { uvl, isPlainObject, ensureArray, isScalarValue } = require('../service/app.service');
+const { isPlainObject, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Field {
   constructor(model, field) {
@@ -28,37 +28,6 @@ module.exports = class extends Field {
     const ids = (doc[this.getName()] || []);
     where[fieldRef.idField()] = ids;
     return resolver.match(fieldRef).where(where).count();
-  }
-
-  resolve(resolver, doc, q = {}) {
-    if (doc == null) return doc;
-
-    const query = _.cloneDeep(q);
-    const dataType = this.getDataType();
-    const value = uvl(doc[this.getName()], this.getDefaultValue());
-    query.where = query.where || {};
-
-    // Scalar Resolvers
-    if (this.isScalar() || this.isEmbedded()) return value;
-
-    // Array Resolvers
-    if (Array.isArray(dataType)) {
-      if (this.isVirtual()) {
-        query.where[this.getVirtualField().getAlias()] = doc.id;
-        return resolver.match(dataType[0]).query(query).many({ find: true });
-      }
-      const valueIds = (value || []).map(v => (isScalarValue(v) ? v : v.id));
-      return Promise.all(valueIds.map(id => resolver.match(dataType[0]).id(id).one({ required: this.isRequired() })));
-      // return Promise.all(valueIds.map(id => resolver.match(dataType[0]).id(id).one({ required: this.isRequired() }).catch(() => null)));
-    }
-
-    // Object Resolvers
-    if (this.isVirtual()) {
-      query.where[this.getVirtualField().getAlias()] = doc.id;
-      return resolver.match(dataType).query(query).one({ find: true });
-    }
-
-    return resolver.match(dataType).id(value).one({ required: this.isRequired() });
   }
 
   cast(value) {

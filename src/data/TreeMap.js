@@ -1,3 +1,9 @@
+/**
+ * TreeMap.
+ *
+ * A utility class to help build and access elements in a tree-like structure. Used
+ * primarly when handling nested transactions.
+ */
 module.exports = class TreeMap {
   constructor() {
     this.map = new Map();
