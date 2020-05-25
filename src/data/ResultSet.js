@@ -59,12 +59,7 @@ module.exports = class {
 
     // // Count resolver
     // const countField = this.getCountField(prop);
-    // if (countField) {
-    //   return countField.count(resolver, doc).then((v) => {
-    //     doc[prop] = v;
-    //     return v;
-    //   });
-    // }
+    // if (countField) return assignValue(doc, prop, countField.count(resolver, doc));
 
     // Hydration check
     const [, $prop] = prop.split('$');
@@ -87,7 +82,7 @@ module.exports = class {
         return assignValue(doc, prop, resolver.match(fieldModel).query({ where }).many({ find: true }));
       }
 
-      return assignValue(doc, prop, Promise.all(ensureArray(value).map(id => resolver.match(fieldModel).id(id).one({ required: field.isRequired() }))));
+      return assignValue(doc, prop, Promise.all(ensureArray($value).map(id => resolver.match(fieldModel).id(id).one({ required: field.isRequired() }))));
     }
 
     if (field.isVirtual()) {
@@ -95,7 +90,7 @@ module.exports = class {
       return assignValue(doc, prop, resolver.match(fieldModel).query({ where }).one({ find: true }));
     }
 
-    return assignValue(doc, prop, resolver.match(fieldModel).id(value).one({ required: field.isRequired() }));
+    return assignValue(doc, prop, resolver.match(fieldModel).id($value).one({ required: field.isRequired() }));
   }
 
   getCountField(prop) {
