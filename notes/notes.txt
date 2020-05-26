@@ -1,6 +1,4 @@
-
 Now:
-  * What was the reason for Query vs Find? Do you need it? I know it had to do with final stage of sorting/filtering/pagination.
   * scope: none on Models is incorrect
   * Enforce segmentation throughout (findNetwork, network field, ...)
     - But that means you can't use the resolver straight up and say where { 'network.name': 'name' }
@@ -46,6 +44,7 @@ Figure out:
   * Authorization. Specifically owner records, segmentation, recursive data resolution
   * dependencies vs peerDependencies (graphql)
   * Password and PasswordMatch validation; enforce strength; password can be created/updated but not selected, what's the scope?
+  * What was the reason for Query vs Find? Do you need it? I know it had to do with final stage of sorting/filtering/pagination.
 
 Refs:
   * https://jbt.github.io/markdown-editor/
