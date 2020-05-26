@@ -106,4 +106,13 @@ module.exports = class Model extends Node {
   isDeletable() {
     return Boolean(this.getDirectiveArg('model', 'crud', 'crud').toLowerCase().indexOf('d') > -1);
   }
+
+  // Misc
+  getIndexes() {
+    return this.getDirectives('index').map((d) => {
+      const args = d.getArgs();
+      args.on = args.on.map(el => this.getField(el).getAlias()); // Convert to alias name
+      return args;
+    });
+  }
 };

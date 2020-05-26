@@ -114,10 +114,6 @@ module.exports = class Node {
     return this.getDirectiveArg('field', 'segment');
   }
 
-  getIndexes() {
-    return this.getDirectives('index').map(d => d.getArgs());
-  }
-
   getVirtualRef() {
     return this.getDirectiveArg('field', 'materializeBy');
   }
