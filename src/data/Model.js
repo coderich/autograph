@@ -100,9 +100,9 @@ module.exports = class extends Model {
     return Object.entries(data).reduce((prev, [key, value]) => {
       const field = this.getField(key);
       if (!field) return Object.assign(prev, { [key]: value });
-      const alias = field.getAlias();
-      return Object.assign(prev, { [alias]: field.serialize(value, mapper) });
-    }, {});
+      if (value == null) value = data[field.getAlias()];
+      return Object.assign(prev, { [field.getAlias()]: field.serialize(value, mapper) });
+    }, {}); // Strip $hydrated props
   }
 
   transform(data, mapper) {
@@ -111,9 +111,9 @@ module.exports = class extends Model {
     return Object.entries(data).reduce((prev, [key, value]) => {
       const field = this.getField(key);
       if (!field) return prev;
-      const name = field.getName();
-      return Object.assign(prev, { [name]: field.transform(value, mapper) });
-    }, data);
+      if (value == null) value = data[field.getAlias()];
+      return Object.assign(prev, { [field]: field.transform(value, mapper) });
+    }, data); // Keep $hydrated props
   }
 
   validate(data, mapper) {

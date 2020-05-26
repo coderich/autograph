@@ -71,7 +71,6 @@ module.exports = class {
 
     // Set $value to the original unhydrated value
     const $value = doc[$prop];
-    console.log('resolve', $prop, $value);
     if (field.isScalar() || field.isEmbedded()) return assignValue(doc, prop, $value); // No hydration needed; apply $value
 
     // Model resolver

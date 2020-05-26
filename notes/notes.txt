@@ -1,4 +1,8 @@
+
 Now:
+  * field alias do not work (set chapter.name to "chapter_name")
+  * should @index refer to the graphql field name or alias field name?
+
   * What was the reason for Query vs Find? Do you need it? I know it had to do with final stage of sorting/filtering/pagination.
   * scope: none on Models is incorrect
   * Enforce segmentation throughout (findNetwork, network field, ...)

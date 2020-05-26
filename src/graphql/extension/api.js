@@ -112,14 +112,14 @@ module.exports = (schema) => {
         edges: root => root.map(node => ({ cursor: node.$$cursor, node })),
         pageInfo: root => root.$$pageInfo,
       },
-      Edge: {
-        node: async (root, args, { autograph }, info) => {
-          const { node } = root;
-          const [modelName] = fromGUID(node.$id);
-          const model = schema.getModel(modelName);
-          return autograph.resolver.match(model).id(node.id).select(GraphqlFields(info, {}, { processArguments: true })).one();
-        },
-      },
+      // Edge: {
+      //   node: async (root, args, { autograph }, info) => {
+      //     const { node } = root;
+      //     const [modelName] = fromGUID(node.$id);
+      //     const model = schema.getModel(modelName);
+      //     return autograph.resolver.match(model).id(node.id).select(GraphqlFields(info, {}, { processArguments: true })).one();
+      //   },
+      // },
       Query: schema.getReadModels().reduce((prev, model) => {
         const modelName = model.getName();
 
