@@ -40,7 +40,7 @@ module.exports = {
       @model
       @index(name: "uix_chapter", type: unique, on: ["name", "book"])
     {
-      name: String! @field(alias: "chapter_name" transform: toTitleCase)
+      name: String! @field(transform: toTitleCase)
       book: Book! @field(onDelete: restrict)
       pages: [Page] @field(materializeBy: "chapter")
     }
