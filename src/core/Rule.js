@@ -1,4 +1,5 @@
 const isEmail = require('validator/lib/isEmail');
+const Boom = require('./Boom');
 const { map, ensureArray } = require('../service/app.service');
 
 const instances = {};
@@ -6,7 +7,11 @@ const jsStringMethods = ['endsWith', 'includes', 'match', 'search', 'startsWith'
 
 class Rule {
   constructor(thunk, options = {}, name = 'Unknown') {
-    const { ignoreNull = true, itemize = true } = (options || {});
+    const {
+      ignoreNull = true,
+      itemize = true,
+      toError = (field, value, msg) => Boom.notAcceptable(`Rule (${name}) failed for { ${field}: ${value} }`),
+    } = (options || {});
 
     return Object.defineProperty((field, val, cmp = (f, v) => thunk(f, v)) => {
       return new Promise((resolve, reject) => {
@@ -15,14 +20,14 @@ class Rule {
         if (ignoreNull && itemize) {
           return Promise.all(ensureArray(map(val, async (v) => {
             const err = await cmp(field, v);
-            if (err) return Promise.reject(new Error(`Rule (${name}) failed for { ${field}: ${v} }`));
+            if (err) return Promise.reject(toError(field, v));
             return Promise.resolve();
           }))).then(v => resolve()).catch(e => reject(e));
         }
 
         return Promise.all([(async () => {
           const err = await cmp(field, val);
-          if (err) return Promise.reject(new Error(`Rule (${name}) failed for { ${field}: ${val} }`));
+          if (err) return Promise.reject(toError(field, val));
           return Promise.resolve();
         })()]).then(v => resolve()).catch(e => reject(e));
       });

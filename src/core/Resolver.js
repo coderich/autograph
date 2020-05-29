@@ -1,4 +1,4 @@
-const _ = require('lodash');
+const { flatten } = require('lodash');
 const FBDataLoader = require('dataloader');
 const TreeMap = require('../data/TreeMap');
 const Model = require('../data/Model');
@@ -87,8 +87,8 @@ module.exports = class Resolver {
         const [commits, rollbacks] = map.ready();
 
         if (commits && rollbacks) {
-          const rollbackData = _.flatten(rollbacks.map(tnx => tnx.data));
-          const commitData = _.flatten(commits.map(tnx => tnx.data));
+          const rollbackData = flatten(rollbacks.map(tnx => tnx.data));
+          const commitData = flatten(commits.map(tnx => tnx.data));
 
           Promise.all(rollbackData.map(rbd => rbd.$rollback())).then(() => {
             if (commits.length) resolver.clearAll();
@@ -119,7 +119,7 @@ module.exports = class Resolver {
           return () => {
             return Promise.all(Array.from(driverMap.entries()).map(([driver, ops]) => driver.transaction(ops))).then((results) => {
               data = results;
-              return _.flatten(results);
+              return flatten(results);
             });
           };
         },

@@ -4,8 +4,6 @@ Now:
     - But that means you can't use the resolver straight up and say where { 'network.name': 'name' }
 
 Next:
-  * Error handling; Rules need better error messages
-    - You can probably return a custom error message or (false|null|undefined) if all is good (ie. from Rule)
   * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
 
@@ -25,6 +23,7 @@ Enhancements:
     - Is this really needed? I guess perhaps when using the DOA directly...
 
 Todo:
+  * Concept of "incomplete" and "what's missing" as part of data retrieval
   * Incorporate Logger
   * MeteorUser _id is a String (not ID). How to handle?
   * Get a list of references that would be onDelete affected
