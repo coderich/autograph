@@ -2,8 +2,7 @@ const FS = require('fs');
 const Glob = require('glob');
 const Path = require('path');
 const Merge = require('deepmerge');
-const { makeExecutableSchema } = require('graphql-tools');
-const { mergeASTSchema, mergeASTArray } = require('../../service/graphql.service');
+const { validateSchema, makeExecutableSchema, mergeASTSchema, mergeASTArray } = require('../../service/graphql.service');
 const Node = require('./Node');
 const Model = require('./Model');
 
@@ -48,7 +47,9 @@ module.exports = class Schema extends Node {
     });
 
     const ast = Object.assign({}, this.ast, { definitions });
-    return Object.assign({}, this.schema, { typeDefs: ast });
+    const schema = Object.assign({}, this.schema, { typeDefs: ast });
+    validateSchema(schema);
+    return schema;
   }
 
   getModel(name) {

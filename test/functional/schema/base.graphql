@@ -1,8 +1,8 @@
-scalar Mixed @field(enforce: mixed)
-directive @model(scope: Mixed) on OBJECT
-directive @field(transform: [Mixed] enforce: Mixed onDelete: Mixed, default: Mixed) on FIELD_DEFINITION | SCALAR
+scalar Mixed @field(enforce: required)
 enum Gender { male female }
 input SomeInput { id: ID! name: String! }
+directive @model(scope: Mixed) on OBJECT
+directive @field(transform: [Mixed] enforce: Mixed onDelete: Mixed, default: Mixed, gender: Gender) on FIELD_DEFINITION | SCALAR
 type Query { noop: String }
 type Mutation { noop: String }
 type Subscription { noop: String }
@@ -12,7 +12,7 @@ extend type Person {
 }
 
 type Person @model {
-  name: String! @field(transform: [toTitleCase, toMenaceCase], default: "idk")
+  name: String! @field(transform: [toTitleCase, toUpperCase], default: "idk")
   authored: [Book]
   emailAddress: String!
   status: Mixed

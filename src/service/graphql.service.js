@@ -1,5 +1,7 @@
 const { get } = require('lodash');
 const { Kind, parse, print } = require('graphql');
+const { validate } = require('graphql/validation');
+const { makeExecutableSchema } = require('graphql-tools');
 
 //
 const mergePairs = [
@@ -50,11 +52,12 @@ exports.mergeASTSchema = (schema) => {
 
 exports.mergeASTObject = (left, right) => {
   Object.entries(right).forEach(([key, value]) => {
-    if (key !== 'kind') {
+    if (key !== 'kind' && key !== 'loc') {
       if (Array.isArray(value)) {
         left[key] = exports.mergeASTArray((left[key] || []).concat(...value));
       } else if (value != null) {
         left[key] = value;
+        // left[key] = merge(left[key], value);
       }
     }
   });
@@ -73,6 +76,13 @@ exports.mergeASTArray = (arr) => {
     return prev.concat(curr);
   }, []).filter(el => !el.deleteFlag);
 };
+
+exports.validateSchema = (ast) => {
+  const errs = validate(makeExecutableSchema(ast), ast.typeDefs).filter(({ message }) => message.indexOf('not executable') === -1).map(({ message }) => message);
+  if (errs.length) throw new Error(errs.join('\n'));
+};
+
+exports.makeExecutableSchema = makeExecutableSchema;
 
 exports.toAST = (a) => {
   if (typeof a === 'string') return parse(a);

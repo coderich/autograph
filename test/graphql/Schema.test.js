@@ -3,9 +3,9 @@ const complexSchema = require('../fixtures/complex.graphql');
 
 const typeDefs = `
   scalar Mixed
+  enum Gender { male female }
   directive @model(scope: Mixed) on OBJECT
   directive @field(transform: [Mixed] enforce: Mixed onDelete: Mixed, default: Mixed) on FIELD_DEFINITION
-  enum Gender { male female }
   input SomeInput { id: ID! name: String! }
   type Query { noop: String }
   type Mutation { noop: String }
@@ -16,7 +16,7 @@ const typeDefs = `
   }
 
   type Person @model {
-    name: String! @field(transform: [toTitleCase, toMenaceCase], default: "idk")
+    name: String! @field(transform: [toTitleCase, toUpperCase], default: "idk")
     authored: [Book]
     emailAddress: String!
     status: Mixed
@@ -77,7 +77,7 @@ describe('Documents', () => {
       expect(personFields.map(f => f.isArray())).toEqual([false, true, false, false, false]);
       expect(personFields.map(f => f.isScalar())).toEqual([true, false, true, true, true]);
       expect(personFields.map(f => f.isRequired())).toEqual([true, false, true, false, false]);
-      expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
+      expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toUpperCase']);
       expect(Person.getRequiredFields().map(f => `${f}`)).toEqual(['name', 'emailAddress']);
       expect(bookFields.map(f => f.getName())).toEqual(['name', 'price', 'author', 'bestSeller', 'bids']);
       expect(bookFields.map(f => f.getType())).toEqual(['String', 'Float', 'Person', 'Boolean', 'Float']);
@@ -122,8 +122,8 @@ describe('Documents', () => {
       expect(bookFields.map(f => f.isScalar())).toEqual([true, true, false, true, true, false]);
       expect(bookFields.map(f => f.isRequired())).toEqual([true, true, true, false, false, false]);
       expect(Person.getField('name').getDefaultValue()).toEqual('Rich');
-      expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toMenaceCase']);
-      // expect(Person.getField('name').getDirective('field').getArg('enforce')).toEqual(['toTitleCase', 'toMenaceCase']);
+      expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toUpperCase']);
+      // expect(Person.getField('name').getDirective('field').getArg('enforce')).toEqual(['toTitleCase', 'toUpperCase']);
     };
 
     validate();
