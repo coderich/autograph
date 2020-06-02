@@ -10,7 +10,8 @@ module.exports = (schema) => {
       enum AutoGraphEnforceEnum { ${Object.keys(Rule.getInstances()).join(' ')} }
       enum AutoGraphTransformEnum  { ${Object.keys(Transformer.getInstances()).join(' ')} }
       enum AutoGraphAuthzEnum { private protected public }
-      enum AutoGraphScopeEnum { default query mutation resolver context none }
+      enum AutoGraphScopeEnum { default query resolver mutation context none }
+      enum AutoGraphResolveScopeEnum { self context }
       enum AutoGraphOnDeleteEnum { cascade nullify restrict }
       enum AutoGraphIndexEnum { unique }
 
@@ -31,13 +32,22 @@ module.exports = (schema) => {
         alias: String # Database field name
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
         scope: AutoGraphScopeEnum # Determines where in the API the field should be used
+
         default: AutoGraphMixed # Define a default value
         segment: String # Define it's value from context.segment (takes precedence over default)
+        parent: String # Define it's value from parent path (takes precedence over default)
+
         enforce: [AutoGraphEnforceEnum!]
         noRepeat: Boolean
         onDelete: AutoGraphOnDeleteEnum
         transform: [AutoGraphTransformEnum!]
         materializeBy: String
+      ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
+
+      directive @resolve(
+        scope: AutoGraphResolveScopeEnum!
+        path: String!
+        merge: Boolean
       ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
 
       directive @index(

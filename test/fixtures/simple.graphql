@@ -1,15 +1,6 @@
 scalar DateTime @field
-
-enum LocationType {
-  primary
-  urgent
-  quick
-  er
-}
-
-input PersonInput {
-  name: String!
-}
+enum LocationType { primary urgent quick er }
+input PersonInput { name: String! }
 
 type Person @model {
   name: String!

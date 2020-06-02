@@ -1,5 +1,5 @@
 Now:
-  * scope: none on Models is incorrect
+  * scope: none on Models is incorrect (use crud?)
   * Enforce segmentation throughout (findNetwork, network field, ...)
     - But that means you can't use the resolver straight up and say where { 'network.name': 'name' }
 
