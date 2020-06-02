@@ -1,0 +1,16 @@
+type Place {
+  location: Location! @field(scope: parent)
+  parent: Place
+}
+
+type Location {
+  address: Address
+}
+
+type Address {
+  street1: String!
+  street2: String
+  city: String!
+  state: String!
+  zip: String!
+}
