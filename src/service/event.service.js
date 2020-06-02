@@ -35,7 +35,7 @@ const eventHandler = (event) => {
 
   return promiseChain(model.getEmbeddedFields().map((field) => {
     return () => new Promise((resolve, reject) => {
-      if (Object.prototype.hasOwnProperty.call(input, field.getName())) {
+      if (Object.prototype.hasOwnProperty.call(input || {}, field.getName())) {
         const newModel = field.getModelRef();
         const newEvent = { key: `${method}${field}`, method, model: newModel, resolver, query: new Query(newModel), input: input[field.getName()] };
         exports.createSystemEvent('Mutation', newEvent, () => resolve()).catch(e => reject(e));
