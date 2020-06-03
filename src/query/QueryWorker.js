@@ -92,7 +92,6 @@ module.exports = class QueryWorker {
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
 
     await validateModelData(model, input, doc, 'update');
-    if (`${model}` === 'Person') { console.log(input); }
 
     return createSystemEvent('Mutation', { method: 'update', model, resolver, query, input, doc }, async () => {
       const merged = mergeDeep(doc, input);

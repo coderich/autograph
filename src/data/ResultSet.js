@@ -40,7 +40,7 @@ module.exports = class {
       return map(docs, (doc, i) => {
         const id = doc[this.model.idField()];
         const guid = toGUID(this.model.getName(), id);
-        const tdoc = this.model.transform(doc);
+        const tdoc = this.model.deserialize(doc);
         const dataResolver = new DataResolver(tdoc, (data, prop) => this.resolve(data, prop, resolver, query));
 
         return Object.defineProperties(dataResolver, {
