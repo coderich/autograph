@@ -1,3 +1,8 @@
+* All fields must be in the list of model fields (id, createdAt, updatedAt, etc)
+* Only save fields that are in the model list
+  - Filter out fields that are not meant to be persisted (scope: query|none)
+* ResultSet.resolve may need to be consolidated to Field.resolve and used both in-out of DB
+
 Now:
   * scope: none on Models is incorrect (use crud?)
   * Enforce segmentation throughout (findNetwork, network field, ...)
@@ -6,6 +11,7 @@ Now:
 Next:
   * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
+  * Can context be derived from the schema instead of being explicitly set?
 
 Bugs:
   * Embedded documents do not work!

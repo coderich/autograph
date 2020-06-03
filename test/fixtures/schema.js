@@ -22,6 +22,7 @@ module.exports = {
       friends: [Person] @field(transform: dedupe, enforce: selfless, onDelete: cascade)
       status: String @field(alias: "state")
       telephone: String
+      network: String @value(scope: segment, path: "network.id")
     }
 
     type Book

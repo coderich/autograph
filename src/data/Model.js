@@ -73,7 +73,7 @@ module.exports = class extends Model {
     return this.referentials;
   }
 
-  setDefaultValues(data) {
+  resolveDefaultValues(data) {
     // Default fields
     this.getDefaultedFields().forEach((field) => {
       const key = field.getName();
@@ -89,10 +89,31 @@ module.exports = class extends Model {
       const key = field.getName();
 
       if (Object.prototype.hasOwnProperty.call(data, key)) {
-        field.getModelRef().setDefaultValues(data[key]);
+        field.getModelRef().resolveDefaultValues(data[key]);
       }
     });
   }
+
+  // resolveValues(data) {
+  //   // Default fields
+  //   this.getDefaultedFields().forEach((field) => {
+  //     const key = field.getName();
+
+  //     if (!Object.prototype.hasOwnProperty.call(data, key)) {
+  //       const value = field.getDefaultValue();
+  //       data[key] = value;
+  //     }
+  //   });
+
+  //   // Embedded fields
+  //   this.getEmbeddedFields().forEach((field) => {
+  //     const key = field.getName();
+
+  //     if (Object.prototype.hasOwnProperty.call(data, key)) {
+  //       field.getModelRef().resolveDefaultValues(data[key]);
+  //     }
+  //   });
+  // }
 
   serialize(data, mapper) {
     if (data == null) data = {};

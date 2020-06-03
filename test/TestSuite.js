@@ -66,7 +66,7 @@ module.exports = (driver = 'mongo') => {
       }
 
       // Create core classes
-      const schema = new Schema(gql, stores);
+      const schema = new Schema(gql, stores).setContext({ network: { id: 'networkId' } });
       schema.getServerApiSchema();
       schema.makeExecutableSchema();
       resolver = new Resolver(schema);
@@ -87,6 +87,8 @@ module.exports = (driver = 'mongo') => {
         christie = await resolver.match('Person').save({ name: 'Christie', emailAddress: 'christie@gmail.com', friends: [richard.id] });
         expect(christie.id).toBeDefined();
         expect(christie.friends).toEqual([richard.id]);
+
+        // expect(richard.network).toBe('networkId');
       });
 
       test('Book', async () => {

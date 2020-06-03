@@ -110,10 +110,6 @@ module.exports = class Node {
     return this.getDirectiveArg('model', 'namespace', this.getName());
   }
 
-  getSegment() {
-    return this.getDirectiveArg('field', 'segment');
-  }
-
   getVirtualRef() {
     return this.getDirectiveArg('field', 'materializeBy');
   }

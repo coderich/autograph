@@ -76,8 +76,8 @@ module.exports = class QueryWorker {
     // Set default values for creation
     input.createdAt = new Date();
     input.updatedAt = new Date();
-    model.setDefaultValues(input);
 
+    await model.resolveDefaultValues(input);
     await validateModelData(model, input, {}, 'create');
 
     return createSystemEvent('Mutation', { method: 'create', model, resolver, query, input }, async () => {

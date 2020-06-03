@@ -1,7 +1,7 @@
 const { get } = require('lodash');
 const Node = require('./Node');
 const Type = require('./Type');
-const { uvl } = require('../../service/app.service');
+const { uvl, mergeDeep } = require('../../service/app.service');
 
 module.exports = class Field extends Node {
   constructor(model, ast) {
@@ -35,13 +35,30 @@ module.exports = class Field extends Node {
   }
 
   getDefaultValue() {
-    return uvl(this.getSegmentValue(), this.getDirectiveArg('field', 'default'));
+    return uvl(this.getDirectiveArg('field', 'default'));
   }
 
-  getSegmentValue() {
-    const segment = get(this.schema.getContext(), this.getSegment());
-    if (typeof segment === 'function') return segment();
-    return segment;
+  getResolvedValue(initialValue) {
+    if (!this.isValueBound()) return initialValue;
+
+    let promise;
+    const context = this.schema.getContext();
+    const { scope, path, merge } = this.getDirectiveArgs('value');
+
+    switch (scope) {
+      case 'context': case 'segment': {
+        const value = get(context, path);
+        promise = (typeof value === 'function') ? Promise.resolve(value()) : Promise.resolve(value);
+        break;
+      }
+      default:
+        promise = path.split('.').map();
+        break;
+    }
+
+    return promise.then((value) => {
+      return merge ? mergeDeep(initialValue, value) : value;
+    });
   }
 
   // Model Methods
@@ -74,7 +91,11 @@ module.exports = class Field extends Node {
   }
 
   isSegmented() {
-    return Boolean(this.getSegment() != null);
+    return Boolean(this.getDirectiveArg('value', 'scope') === 'segment');
+  }
+
+  isValueBound() {
+    return Boolean(this.getDirective('value'));
   }
 
   isDefaulted() {
@@ -82,7 +103,7 @@ module.exports = class Field extends Node {
   }
 
   isRequired() {
-    return Boolean(this.type.isRequired() && this.getScope() !== 'resolver');
+    return Boolean(this.type.isRequired() && !this.isValueBound());
   }
 
   isReadable() {
