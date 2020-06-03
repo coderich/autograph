@@ -20,7 +20,7 @@ module.exports = {
       authored: [Book] @field(materializeBy: "author")
       emailAddress: String! @field(alias: "email_address", enforce: email)
       friends: [Person] @field(transform: dedupe, enforce: selfless, onDelete: cascade)
-      status: String
+      status: String @field(alias: "state")
       telephone: String
     }
 

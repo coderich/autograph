@@ -35,12 +35,12 @@ module.exports = class extends Model {
 
   create(data, options) {
     this.normalizeOptions(options);
-    return new ResultSet(this, this.driver.dao.create(this.getAlias(), data, options));
+    return new ResultSet(this, this.driver.dao.create(this.getAlias(), this.serialize(data), options));
   }
 
   update(id, data, doc, options) {
     this.normalizeOptions(options);
-    return new ResultSet(this, this.driver.dao.replace(this.getAlias(), this.idValue(id), data, doc, options));
+    return new ResultSet(this, this.driver.dao.replace(this.getAlias(), this.idValue(id), this.serialize(data), this.serialize(doc), options));
   }
 
   delete(id, doc, options) {

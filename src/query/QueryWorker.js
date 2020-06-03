@@ -81,7 +81,7 @@ module.exports = class QueryWorker {
     await validateModelData(model, input, {}, 'create');
 
     return createSystemEvent('Mutation', { method: 'create', model, resolver, query, input }, async () => {
-      return model.create(model.serialize(input), options).hydrate(resolver, query);
+      return model.create(input, options).hydrate(resolver, query);
     });
   }
 
@@ -90,10 +90,12 @@ module.exports = class QueryWorker {
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
+
     await validateModelData(model, input, doc, 'update');
+    if (`${model}` === 'Person') { console.log(input); }
 
     return createSystemEvent('Mutation', { method: 'update', model, resolver, query, input, doc }, async () => {
-      const merged = model.serialize(mergeDeep(doc, input));
+      const merged = mergeDeep(doc, input);
       return model.update(id, input, merged, options).hydrate(resolver, query);
     });
   }
@@ -119,7 +121,7 @@ module.exports = class QueryWorker {
     await validateModelData(model, data, doc, 'update');
 
     return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, input: data, doc }, async () => {
-      const merged = model.serialize(mergeDeep(doc, data));
+      const merged = mergeDeep(doc, data);
       return model.update(id, data, merged, options).hydrate(resolver, query);
     });
   }
