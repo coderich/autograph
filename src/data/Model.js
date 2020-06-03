@@ -74,6 +74,8 @@ module.exports = class extends Model {
   }
 
   setDefaultValues(data) {
+    if (data == null) return data;
+
     // Default fields
     this.getDefaultedFields().forEach((field) => {
       const key = field.getName();
@@ -89,9 +91,11 @@ module.exports = class extends Model {
       const key = field.getName();
 
       if (Object.prototype.hasOwnProperty.call(data, key)) {
-        field.getModelRef().setDefaultValues(data[key]);
+        data[key] = field.getModelRef().setDefaultValues(data[key]);
       }
     });
+
+    return data;
   }
 
   serialize(data, mapper) {

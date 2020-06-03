@@ -1,6 +1,6 @@
 const { get, remove } = require('lodash');
 const Boom = require('../core/Boom');
-const { mergeDeep, hashObject } = require('../service/app.service');
+const { mergeDeep, hashObject, stripObjectNulls } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
 const {
   validateModelData,
@@ -76,7 +76,7 @@ module.exports = class QueryWorker {
     // Set default values for creation
     input.createdAt = new Date();
     input.updatedAt = new Date();
-    model.setDefaultValues(input);
+    input = model.setDefaultValues(stripObjectNulls(input));
 
     await validateModelData(model, input, {}, 'create');
 
