@@ -35,12 +35,12 @@ module.exports = class extends Model {
 
   create(data, options) {
     this.normalizeOptions(options);
-    return new ResultSet(this, this.driver.dao.create(this.getAlias(), data, options));
+    return new ResultSet(this, this.driver.dao.create(this.getAlias(), this.serialize(data), options));
   }
 
   update(id, data, doc, options) {
     this.normalizeOptions(options);
-    return new ResultSet(this, this.driver.dao.replace(this.getAlias(), this.idValue(id), data, doc, options));
+    return new ResultSet(this, this.driver.dao.replace(this.getAlias(), this.idValue(id), this.serialize(data), this.serialize(doc), options));
   }
 
   delete(id, doc, options) {
@@ -100,9 +100,20 @@ module.exports = class extends Model {
     return Object.entries(data).reduce((prev, [key, value]) => {
       const field = this.getField(key);
       if (!field) return Object.assign(prev, { [key]: value });
-      if (value == null) value = data[field.getAlias()];
+      if (value === undefined) value = data[field.getAlias()];
       return Object.assign(prev, { [field.getAlias()]: field.serialize(value, mapper) });
     }, {}); // Strip $hydrated props
+  }
+
+  deserialize(data, mapper) {
+    if (data == null) data = {};
+
+    return Object.entries(data).reduce((prev, [key, value]) => {
+      const field = this.getField(key);
+      if (!field) return prev;
+      if (value == null) value = data[field.getAlias()];
+      return Object.assign(prev, { [field]: field.transform(value, mapper) });
+    }, data); // Keep $hydrated props
   }
 
   transform(data, mapper) {
@@ -111,7 +122,6 @@ module.exports = class extends Model {
     return Object.entries(data).reduce((prev, [key, value]) => {
       const field = this.getField(key);
       if (!field) return prev;
-      if (value == null) value = data[field.getAlias()];
       return Object.assign(prev, { [field]: field.transform(value, mapper) });
     }, data); // Keep $hydrated props
   }
