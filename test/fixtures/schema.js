@@ -14,7 +14,7 @@ module.exports = {
 
     type Person
       @model(meta: "PersonInputMeta")
-      @index(name: "uix_person_name", type: unique, on: ["name"])
+      @index(name: "uix_person_name", type: unique, on: [name])
     {
       name: String! @field(transform: toTitleCase)
       authored: [Book] @field(materializeBy: "author")
@@ -27,7 +27,7 @@ module.exports = {
 
     type Book
       @model
-      @index(name: "uix_book", type: unique, on: ["name", "author"])
+      @index(name: "uix_book", type: unique, on: [name, author])
     {
       name: String! @field(transform: toTitleCase, enforce: bookName)
       price: Float! @field(enforce: bookPrice)
@@ -39,7 +39,7 @@ module.exports = {
 
     type Chapter
       @model
-      @index(name: "uix_chapter", type: unique, on: ["name", "book"])
+      @index(name: "uix_chapter", type: unique, on: [name, book])
     {
       name: String! @field(alias: "chapter_name" transform: toTitleCase)
       book: Book! @field(onDelete: restrict)
@@ -48,7 +48,7 @@ module.exports = {
 
     type Page
       @model
-      @index(name: "uix_page", type: unique, on: ["number", "chapter"])
+      @index(name: "uix_page", type: unique, on: [number, chapter])
     {
       number: Int!
       verbage: String
@@ -57,7 +57,7 @@ module.exports = {
 
     type BookStore
       @model
-      @index(name: "uix_bookstore", type: unique, on: ["name"])
+      @index(name: "uix_bookstore", type: unique, on: [name])
     {
       name: String! @field(transform: toTitleCase)
       location: String
@@ -67,8 +67,8 @@ module.exports = {
 
     type Library
       @model
-      @index(name: "uix_library", type: unique, on: ["name"])
-      @index(name: "uix_library_bulding", type: unique, on: ["building"])
+      @index(name: "uix_library", type: unique, on: [name])
+      @index(name: "uix_library_bulding", type: unique, on: [building])
     {
       name: String! @field(transform: toTitleCase)
       location: String,
@@ -78,8 +78,8 @@ module.exports = {
 
     type Apartment
       @model
-      @index(name: "uix_apartment", type: unique, on: ["name"])
-      @index(name: "uix_apartment_bulding", type: unique, on: ["building"])
+      @index(name: "uix_apartment", type: unique, on: [name])
+      @index(name: "uix_apartment_bulding", type: unique, on: [building])
     {
       name: String! @field(transform: toTitleCase)
       location: String
