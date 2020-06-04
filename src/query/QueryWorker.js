@@ -69,7 +69,8 @@ module.exports = class QueryWorker {
     });
   }
 
-  async create(query, input = {}) {
+  async create(query, input) {
+    input = input || {};
     const { resolver } = this;
     const [model, options] = [query.getModel(), query.getOptions()];
 
@@ -84,7 +85,8 @@ module.exports = class QueryWorker {
     });
   }
 
-  async update(query, input = {}) {
+  async update(query, input) {
+    input = input || {};
     input.updatedAt = new Date();
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
