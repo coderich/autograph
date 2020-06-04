@@ -8,6 +8,10 @@ module.exports = class MongoDriver {
     this.connection = this.connect();
   }
 
+  getConfig() {
+    return this.config;
+  }
+
   connect() {
     return MongoClient.connect(this.config.uri, {
       useNewUrlParser: true,

@@ -105,18 +105,29 @@ module.exports = class QueryBuilder {
 
         // Multi update (transaction)
         if (where) {
-          const txn = resolver.transaction(parentTxn);
           const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
           const docs = await resolver.match(model).where(resolvedWhere).many();
-          docs.forEach(doc => txn.match(model).id(doc.id).query(query).save(...args));
-          return txn.run();
+
+          if (model.getDriver().getConfig().transactions !== false) {
+            const txn = resolver.transaction(parentTxn);
+            docs.forEach(doc => txn.match(model).id(doc.id).query(query).save(...args));
+            return txn.run();
+          }
+
+          // Treat as separate calls
+          return Promise.all(docs.map(doc => resolver.match(model).id(doc.id).query(query).save(...args)));
         }
 
         // Multi save (transaction)
         if (args.length > 1) {
-          const txn = resolver.transaction(parentTxn);
-          args.forEach(arg => txn.match(model).query(query).save(arg));
-          return txn.run();
+          if (model.getDriver().getConfig().transactions !== false) {
+            const txn = resolver.transaction(parentTxn);
+            args.forEach(arg => txn.match(model).query(query).save(arg));
+            return txn.run();
+          }
+
+          // Treat as separate calls
+          return Promise.all(args.map(arg => resolver.load({ method: 'create', model, query, args: [arg] })));
         }
 
         // Single save
