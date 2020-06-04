@@ -42,7 +42,7 @@ module.exports = (schema) => {
 
       directive @index(
         name: String
-        on: [String!]!
+        on: [AutoGraphMixed!]!
         type: AutoGraphIndexEnum!
       ) repeatable on OBJECT
     `,

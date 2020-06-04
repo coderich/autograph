@@ -27,10 +27,25 @@ module.exports = class extends Schema {
 
     // Create models
     this.createModels();
+
+    // Create model indexes
+    this.models.forEach((model) => {
+      if (model.isEntity()) {
+        const alias = model.getAlias();
+        const indexes = model.getIndexes();
+        const driver = model.getDriver();
+
+        // Create collections (mongo)
+        if (driver.createCollection) driver.createCollection(alias);
+
+        // Create indexes
+        driver.createIndexes(alias, indexes);
+      }
+    });
   }
 
   createModels() {
-    this.models = super.getModels().map(model => new Model(this, model, this.drivers));
+    this.models = super.getModels().map(model => new Model(this, model, this.drivers[model.getDriverName()]));
     this.models.forEach(model => model.referentialIntegrity(identifyOnDeletes(this.models, model)));
   }
 

@@ -110,9 +110,18 @@ module.exports = class Model extends Node {
   // Misc
   getIndexes() {
     return this.getDirectives('index').map((d) => {
-      const args = d.getArgs();
-      args.on = args.on.map(el => this.getField(el).getAlias()); // Convert to alias name
-      return args;
+      return Object.entries(d.getArgs()).reduce((prev, [key, value]) => {
+        if (key === 'on') {
+          // Convert "on" field to alias
+          value = value.map((el) => {
+            const field = this.getField(el);
+            if (!field) throw new Error(`Cannot create index on ${this}; Unknown fieldName '${el}'`);
+            return field.getAlias();
+          });
+        }
+
+        return Object.assign(prev, { [key]: value });
+      }, {});
     });
   }
 };

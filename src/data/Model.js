@@ -3,18 +3,10 @@ const ResultSet = require('./ResultSet');
 const Model = require('../graphql/ast/Model');
 
 module.exports = class extends Model {
-  constructor(schema, model, drivers) {
+  constructor(schema, model, driver) {
     super(schema, model.getAST());
-    this.driver = drivers[this.getDriverName()];
+    this.driver = driver;
     this.fields = super.getFields().map(field => new Field(this, field));
-
-    if (this.isEntity()) {
-      // Create collections (mongo)
-      if (this.driver.dao.createCollection) this.driver.dao.createCollection(this.getAlias());
-
-      // Create indexes
-      this.driver.dao.createIndexes(this.getAlias(), this.getIndexes());
-    }
   }
 
   // CRUD
