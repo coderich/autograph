@@ -1,3 +1,7 @@
+Breaking changes:
+  * scope: no longer supports resolver|segment (use @value and set scope to what you want)
+  * alias -> key
+
 * All fields must be in the list of model fields (id, createdAt, updatedAt, etc)
 * Only save fields that are in the model list
   - Filter out fields that are not meant to be persisted (scope: query|none)

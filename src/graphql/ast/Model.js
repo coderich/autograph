@@ -19,7 +19,7 @@ module.exports = class Model extends Node {
   getField(path = '') {
     const [name, ...rest] = path.split('.');
     let field = this.getFields().find(f => f.getName() === name);
-    if (!field) field = this.getFields().find(f => f.getAlias() === name);
+    if (!field) field = this.getFields().find(f => f.getKey() === name);
     if (field == null) return field;
 
     if (rest.length) {
@@ -75,7 +75,7 @@ module.exports = class Model extends Node {
   }
 
   getWhereFields() {
-    return this.getSelectFields().filter(field => !field.isSegmented());
+    return this.getSelectFields();
   }
 
   getCountableFields() {
@@ -83,7 +83,7 @@ module.exports = class Model extends Node {
   }
 
   getCreateFields() {
-    return this.getFields().filter(field => field.isWritable() && !field.isVirtual() && !field.isSegmented() && field.getName() !== 'id');
+    return this.getFields().filter(field => field.isWritable() && !field.isVirtual() && field.getName() !== 'id');
   }
 
   getUpdateFields() {
@@ -112,11 +112,11 @@ module.exports = class Model extends Node {
     return this.getDirectives('index').map((d) => {
       return Object.entries(d.getArgs()).reduce((prev, [key, value]) => {
         if (key === 'on') {
-          // Convert "on" field to alias
+          // Convert "on" field to key
           value = value.map((el) => {
             const field = this.getField(el);
             if (!field) throw new Error(`Cannot create index on ${this}; Unknown fieldName '${el}'`);
-            return field.getAlias();
+            return field.getKey();
           });
         }
 

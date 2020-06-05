@@ -18,9 +18,9 @@ module.exports = {
     {
       name: String! @field(transform: toTitleCase)
       authored: [Book] @field(materializeBy: "author")
-      emailAddress: String! @field(alias: "email_address", enforce: email)
+      emailAddress: String! @field(key: "email_address", enforce: email)
       friends: [Person] @field(transform: dedupe, enforce: selfless, onDelete: cascade)
-      status: String @field(alias: "state")
+      status: String @field(key: "state")
       telephone: String
       # network: String @value(scope: segment, path: "network.id")
     }
@@ -41,7 +41,7 @@ module.exports = {
       @model
       @index(name: "uix_chapter", type: unique, on: [name, book])
     {
-      name: String! @field(alias: "chapter_name" transform: toTitleCase)
+      name: String! @field(key: "chapter_name" transform: toTitleCase)
       book: Book! @field(onDelete: restrict)
       pages: [Page] @field(materializeBy: "chapter")
     }

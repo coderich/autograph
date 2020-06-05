@@ -94,8 +94,8 @@ module.exports = class Node {
   }
 
   // Framework Methods
-  getAlias(defaultValue) {
-    return uvl(this.getDirectiveArg('model', 'alias'), this.getDirectiveArg('field', 'alias'), defaultValue, this.getName());
+  getKey(defaultValue) {
+    return uvl(this.getDirectiveArg('model', 'key'), this.getDirectiveArg('field', 'key'), defaultValue, this.getName());
   }
 
   getOnDelete() {

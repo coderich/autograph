@@ -12,36 +12,36 @@ module.exports = class extends Model {
   // CRUD
   get(query) {
     const [id, options] = [query.getId(), this.normalizeOptions(query.getOptions())];
-    return new ResultSet(this, this.driver.dao.get(this.getAlias(), this.idValue(id), options));
+    return new ResultSet(this, this.driver.dao.get(this.getKey(), this.idValue(id), options));
   }
 
   find(where = {}, options) {
     this.normalizeOptions(options);
-    return new ResultSet(this, this.driver.dao.find(this.getAlias(), where, options));
+    return new ResultSet(this, this.driver.dao.find(this.getKey(), where, options));
   }
 
   count(where = {}, options) {
     this.normalizeOptions(options);
-    return this.driver.dao.count(this.getAlias(), where, options);
+    return this.driver.dao.count(this.getKey(), where, options);
   }
 
   create(data, options) {
     this.normalizeOptions(options);
-    return new ResultSet(this, this.driver.dao.create(this.getAlias(), this.serialize(data), options));
+    return new ResultSet(this, this.driver.dao.create(this.getKey(), this.serialize(data), options));
   }
 
   update(id, data, doc, options) {
     this.normalizeOptions(options);
-    return new ResultSet(this, this.driver.dao.replace(this.getAlias(), this.idValue(id), this.serialize(data), this.serialize(doc), options));
+    return new ResultSet(this, this.driver.dao.replace(this.getKey(), this.idValue(id), this.serialize(data), this.serialize(doc), options));
   }
 
   delete(id, doc, options) {
     this.normalizeOptions(options);
-    return new ResultSet(this, this.driver.dao.delete(this.getAlias(), this.idValue(id), doc, options));
+    return new ResultSet(this, this.driver.dao.delete(this.getKey(), this.idValue(id), doc, options));
   }
 
   drop() {
-    return this.driver.dao.dropModel(this.getAlias());
+    return this.driver.dao.dropModel(this.getKey());
   }
 
   idValue(id) {
@@ -53,7 +53,7 @@ module.exports = class extends Model {
   }
 
   normalizeOptions(options) {
-    options.fields = this.getSelectFields().map(f => f.getAlias());
+    options.fields = this.getSelectFields().map(f => f.getKey());
   }
 
   getDriver() {
@@ -117,8 +117,8 @@ module.exports = class extends Model {
     return Object.entries(data).reduce((prev, [key, value]) => {
       const field = this.getField(key);
       if (!field) return Object.assign(prev, { [key]: value });
-      if (value === undefined) value = data[field.getAlias()];
-      return Object.assign(prev, { [field.getAlias()]: field.serialize(value, mapper) });
+      if (value === undefined) value = data[field.getKey()];
+      return Object.assign(prev, { [field.getKey()]: field.serialize(value, mapper) });
     }, {}); // Strip $hydrated props
   }
 
@@ -128,7 +128,7 @@ module.exports = class extends Model {
     return Object.entries(data).reduce((prev, [key, value]) => {
       const field = this.getField(key);
       if (!field) return prev;
-      if (value == null) value = data[field.getAlias()];
+      if (value == null) value = data[field.getKey()];
       return Object.assign(prev, { [field]: field.transform(value, mapper) });
     }, data); // Keep $hydrated props
   }

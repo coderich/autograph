@@ -54,7 +54,7 @@ module.exports = class Schema extends Node {
 
   getModel(name) {
     let model = this.getModels().find(m => m.getName() === name);
-    if (!model) model = this.getModels().find(m => m.getAlias() === name);
+    if (!model) model = this.getModels().find(m => m.getKey() === name);
     return model;
   }
 

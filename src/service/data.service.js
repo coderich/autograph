@@ -12,13 +12,13 @@ exports.validateModelData = (model, data, oldData, op) => {
 
 // exports.resolveModelWhereClause = (resolver, model, where) => new Where(resolver, model, where).resolve();
 
-exports.resolveModelWhereClause = (resolver, model, where = {}, fieldAlias = '', lookups2D = [], index = 0) => {
+exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', lookups2D = [], index = 0) => {
   const mName = model.getName();
   const fields = model.getFields();
 
   //
   lookups2D[index] = lookups2D[index] || {
-    parentFieldAlias: fieldAlias,
+    parentFieldKey: fieldKey,
     parentModel: model,
     parentFields: fields,
     parentDataRefs: new Set(model.getDataRefFields().map(f => f.getDataRef())),
@@ -36,7 +36,7 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldAlias = '',
 
         if (ref) {
           if (isPlainObject(value)) {
-            exports.resolveModelWhereClause(resolver, ref, value, field.getAlias(key), lookups2D, index + 1);
+            exports.resolveModelWhereClause(resolver, ref, value, field.getKey(key), lookups2D, index + 1);
             return prev;
           }
 
@@ -48,21 +48,21 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldAlias = '',
               scalars.push(v);
               return null;
             }).filter(v => v);
-            norm.forEach(val => exports.resolveModelWhereClause(resolver, ref, val, field.getAlias(key), lookups2D, index + 1));
+            norm.forEach(val => exports.resolveModelWhereClause(resolver, ref, val, field.getKey(key), lookups2D, index + 1));
             if (scalars.length) prev[key] = scalars;
             return prev;
           }
 
           if (field.isVirtual()) {
-            exports.resolveModelWhereClause(resolver, ref, { [ref.idField()]: value }, field.getAlias(key), lookups2D, index + 1);
+            exports.resolveModelWhereClause(resolver, ref, { [ref.idField()]: value }, field.getKey(key), lookups2D, index + 1);
             return prev;
           }
         }
 
-        return Object.assign(prev, { [field.getAlias(key)]: value });
+        return Object.assign(prev, { [field.getKey(key)]: value });
       }
 
-      return Object.assign(prev, { [field.getAlias(key)]: value });
+      return Object.assign(prev, { [field.getKey(key)]: value });
     }, {}),
   });
 
@@ -76,7 +76,7 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldAlias = '',
       return () => Promise.all(lookups.map(async ({ modelName, query }) => {
         const parentLookup = lookups2D[index2D + 1] || { parentDataRefs: new Set() };
         const { parentModel, parentFields, parentDataRefs } = parentLookup;
-        const { parentModel: currentModel, parentFields: currentFields, parentFieldAlias: currentFieldAlias } = lookups2D[index2D];
+        const { parentModel: currentModel, parentFields: currentFields, parentFieldKey: currentFieldKey } = lookups2D[index2D];
 
         return resolver.match(modelName).where(query).many({ find: true }).then((results) => {
           if (parentDataRefs.has(modelName)) {
@@ -88,17 +88,17 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldAlias = '',
                 if (ref === modelName) {
                   if (field.isVirtual()) {
                     const cField = currentFields.find(f => f.getName() === field.getVirtualRef());
-                    const cAlias = cField.getAlias(field.getVirtualRef());
+                    const cKey = cField.getKey(field.getVirtualRef());
 
                     Object.assign(lookup.query, {
                       [parentModel.idField()]: results.map((result) => {
-                        const cValue = result[cAlias];
+                        const cValue = result[cKey];
                         return parentModel.idValue(cValue);
                       }),
                     });
                   } else {
                     Object.assign(lookup.query, {
-                      [currentFieldAlias]: results.map(result => currentModel.idValue(result.id)),
+                      [currentFieldKey]: results.map(result => currentModel.idValue(result.id)),
                     });
                   }
                 }

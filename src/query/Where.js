@@ -53,15 +53,14 @@ module.exports = class Where {
 
     // If we're flat we're done
     if (maxDepth === 1) {
-      console.log(`${model} ${JSON.stringify(where)}`);
       // return uniqPaths.reduce((prev, path) => {
       //   const { lookupField, lookupValue } = getPathInfo(model, where, `${model}.${path}`);
-      //   return Object.assign(prev, { [lookupField.getAlias()]: lookupValue });
+      //   return Object.assign(prev, { [lookupField.getKey()]: lookupValue });
       // }, {});
       return Object.entries(where).reduce((prev, [key, value]) => {
         const field = model.getField(key);
-        const alias = field ? field.getAlias() : key;
-        return Object.assign(prev, { [alias]: value });
+        const fieldKey = field ? field.getKey() : key;
+        return Object.assign(prev, { [fieldKey]: value });
       }, {});
     }
 
@@ -76,7 +75,7 @@ module.exports = class Where {
 
           // console.log(`${path}: Looking up ${lookupModel}.${lookupField} === ${lookupValue}`);
 
-          return resolver.match(lookupModel).where({ [lookupField.getAlias()]: lookupValue }).many().then((results) => {
+          return resolver.match(lookupModel).where({ [lookupField.getKey()]: lookupValue }).many().then((results) => {
             const value = results.map(r => r[prop]);
             return this.resolve(unravelObject({ [key]: value }));
           });
@@ -106,8 +105,8 @@ module.exports = class Where {
 //   if (maxDepth === 1) {
 //     return Object.entries(where).reduce((prev, [key, value]) => {
 //       const field = model.getField(key);
-//       const alias = field ? field.getAlias() : key;
-//       return Object.assign(prev, { [alias]: value });
+//       const fieldKey = field ? field.getKey() : key;
+//       return Object.assign(prev, { [fieldKey]: value });
 //     }, {});
 //   }
 
@@ -127,7 +126,7 @@ module.exports = class Where {
 //       console.log(`${path}: Looking up ${lookupModel}.${lookupField} === ${lookupValue}`);
 //       console.log(`currentField ${currentField}`);
 
-//       return resolver.match(lookupModel).where({ [lookupField.getAlias()]: lookupValue }).many().then((results) => {
+//       return resolver.match(lookupModel).where({ [lookupField.getKey()]: lookupValue }).many().then((results) => {
 //         const offset = currentField.isVirtual() ? -1 : -2;
 //         const prop = parentField.isVirtual() ? parentField.getVirtualField() : 'id';
 //         const key = segments.slice(0, offset).join('.') || 'id';

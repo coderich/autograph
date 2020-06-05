@@ -31,15 +31,15 @@ module.exports = class extends Schema {
     // Create model indexes
     this.models.forEach((model) => {
       if (model.isEntity()) {
-        const alias = model.getAlias();
+        const key = model.getKey();
         const indexes = model.getIndexes();
         const driver = model.getDriver();
 
         // Create collections (mongo)
-        if (driver.createCollection) driver.createCollection(alias);
+        if (driver.createCollection) driver.createCollection(key);
 
         // Create indexes
-        driver.createIndexes(alias, indexes);
+        driver.createIndexes(key, indexes);
       }
     });
   }

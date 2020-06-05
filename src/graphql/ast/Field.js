@@ -39,7 +39,7 @@ module.exports = class Field extends Node {
   }
 
   getResolvedValue(initialValue) {
-    if (!this.isValueBound()) return initialValue;
+    if (!this.hasBoundValue()) return initialValue;
 
     let promise;
     const context = this.schema.getContext();
@@ -90,24 +90,20 @@ module.exports = class Field extends Node {
     return Boolean(model && !model.isEntity());
   }
 
-  isSegmented() {
-    return Boolean(this.getDirectiveArg('value', 'scope') === 'segment');
-  }
-
-  isValueBound() {
+  hasBoundValue() {
     return Boolean(this.getDirective('value'));
   }
 
   isDefaulted() {
-    return Boolean(this.isSegmented() || this.getDefaultValue() != null);
+    return Boolean(this.hasBoundValue() || this.getDefaultValue() != null);
   }
 
   isRequired() {
-    return Boolean(this.type.isRequired() && !this.isValueBound());
+    return Boolean(this.type.isRequired() && !this.hasBoundValue());
   }
 
   isReadable() {
-    return Boolean(['default', 'query', 'resolve'].indexOf(this.getScope()) > -1);
+    return Boolean(['default', 'query'].indexOf(this.getScope()) > -1);
   }
 
   isWritable() {

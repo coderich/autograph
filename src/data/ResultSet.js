@@ -78,7 +78,7 @@ module.exports = class {
 
     if (field.isArray()) {
       if (field.isVirtual()) {
-        const where = { [field.getVirtualField().getAlias()]: doc.id };
+        const where = { [field.getVirtualField().getKey()]: doc.id };
         return assignValue(doc, prop, resolver.match(fieldModel).query({ where }).many({ find: true }));
       }
 
@@ -86,7 +86,7 @@ module.exports = class {
     }
 
     if (field.isVirtual()) {
-      const where = { [field.getVirtualField().getAlias()]: doc.id };
+      const where = { [field.getVirtualField().getKey()]: doc.id };
       return assignValue(doc, prop, resolver.match(fieldModel).query({ where }).one({ find: true }));
     }
 

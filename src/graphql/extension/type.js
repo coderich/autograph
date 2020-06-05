@@ -9,9 +9,9 @@ module.exports = (schema) => {
 
       return `
         extend type ${modelName} implements Node {
-          id: ID! @field(alias: "${model.idField()}")
-          ${createdAt ? `createdAt: AutoGraphDateTime @field(scope: query, alias: "${createdAt}")` : ''}
-          ${updatedAt ? `updatedAt: AutoGraphDateTime @field(scope: query, alias: "${updatedAt}")` : ''}
+          id: ID! @field(key: "${model.idField()}")
+          ${createdAt ? `createdAt: AutoGraphDateTime @field(scope: query, key: "${createdAt}")` : ''}
+          ${updatedAt ? `updatedAt: AutoGraphDateTime @field(scope: query, key: "${updatedAt}")` : ''}
           # ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int @field(scope: resolver)`)}
           # countSelf(where: ${modelName}InputWhere): Int @field(scope: resolver)
         }

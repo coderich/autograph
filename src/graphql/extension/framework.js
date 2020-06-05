@@ -11,17 +11,17 @@ module.exports = (schema) => {
       enum AutoGraphTransformEnum  { ${Object.keys(Transformer.getInstances()).join(' ')} }
       enum AutoGraphAuthzEnum { private protected public }
       enum AutoGraphScopeEnum { default query mutation none }
-      enum AutoGraphValueScopeEnum { self context segment }
+      enum AutoGraphValueScopeEnum { self context }
       enum AutoGraphOnDeleteEnum { cascade nullify restrict }
       enum AutoGraphIndexEnum { unique }
 
       directive @model(
         id: String
-        crud: String
-        alias: String # Database collection name
-        authz: AutoGraphAuthzEnum # Define authz rules for all fields (can be overwritten at field level)
-        scope: AutoGraphScopeEnum # Define scope for all fields (can be overwritten at field level)
-        meta: String # Custom input definition used for meta
+        key: String # Specify it's key during transit
+        crud: String # Dictate what APIs to auto-generate
+        meta: String # Custom input 'meta' field for mutations
+        scope: AutoGraphScopeEnum # Can be set to 'none' to have no impact on schema
+        authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
         driver: AutoGraphDriver
         namespace: String
         createdAt: String
@@ -29,12 +29,12 @@ module.exports = (schema) => {
       ) on OBJECT
 
       directive @field(
-        alias: String # Database field name
+        key: String # Specify it's key during transit
+        scope: AutoGraphScopeEnum # Determines if the field is readable|writable or private
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
-        scope: AutoGraphScopeEnum # Determines where in the API the field should be used
         default: AutoGraphMixed # Define a default value
-        enforce: [AutoGraphEnforceEnum!]
         noRepeat: Boolean
+        enforce: [AutoGraphEnforceEnum!]
         onDelete: AutoGraphOnDeleteEnum
         transform: [AutoGraphTransformEnum!]
         materializeBy: String
