@@ -26,7 +26,7 @@ module.exports = class extends Field {
     }
 
     const ids = (doc[this.getName()] || []);
-    where[fieldRef.idField()] = ids;
+    where[fieldRef.idKey()] = ids;
     return resolver.match(fieldRef).where(where).count();
   }
 

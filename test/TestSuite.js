@@ -88,7 +88,7 @@ module.exports = (driver = 'mongo') => {
         expect(christie.id).toBeDefined();
         expect(christie.friends).toEqual([richard.id]);
 
-        // expect(richard.network).toBe('networkId');
+        expect(richard.network).toBe('networkId');
       });
 
       test('Book', async () => {

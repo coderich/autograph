@@ -111,7 +111,7 @@ module.exports = class MongoDriver {
     }));
   }
 
-  static idField() {
+  static idKey() {
     return '_id';
   }
 

@@ -19,8 +19,8 @@ module.exports = class extends Schema {
       return Object.assign(prev, {
         [key]: {
           dao: new Driver(value, this),
+          idKey: Driver.idKey,
           idValue: Driver.idValue,
-          idField: Driver.idField,
         },
       });
     }, {});

@@ -48,8 +48,8 @@ module.exports = class extends Model {
     return this.driver.idValue(id);
   }
 
-  idField() {
-    return this.getDirectiveArg('model', 'id', this.driver.idField());
+  idKey() {
+    return this.getDirectiveArg('model', 'id', this.driver.idKey());
   }
 
   normalizeOptions(options) {

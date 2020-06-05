@@ -73,7 +73,7 @@ exports.serialize = (field, value) => {
   if (!exports.isPlainObject(value)) return value;
   const model = field.getModelRef();
   if (!model) return value;
-  const key = model.idField();
+  const key = model.idKey();
   return value[key];
 };
 

@@ -44,7 +44,7 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', l
             const scalars = [];
             const norm = value.map((v) => {
               if (isPlainObject(v)) return v;
-              if (field.isVirtual() && isIdValue(v)) return { [ref.idField()]: v };
+              if (field.isVirtual() && isIdValue(v)) return { [ref.idKey()]: v };
               scalars.push(v);
               return null;
             }).filter(v => v);
@@ -54,7 +54,7 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', l
           }
 
           if (field.isVirtual()) {
-            exports.resolveModelWhereClause(resolver, ref, { [ref.idField()]: value }, field.getKey(key), lookups2D, index + 1);
+            exports.resolveModelWhereClause(resolver, ref, { [ref.idKey()]: value }, field.getKey(key), lookups2D, index + 1);
             return prev;
           }
         }
@@ -91,7 +91,7 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', l
                     const cKey = cField.getKey(field.getVirtualRef());
 
                     Object.assign(lookup.query, {
-                      [parentModel.idField()]: results.map((result) => {
+                      [parentModel.idKey()]: results.map((result) => {
                         const cValue = result[cKey];
                         return parentModel.idValue(cValue);
                       }),
