@@ -119,8 +119,6 @@ module.exports = class Resolver {
           return () => {
             return Promise.all(Array.from(driverMap.entries()).map(([driver, ops]) => {
               if (driver.getConfig().transactions === false) {
-                console.warn('Warning: Database does not support transactions; consider upgrading');
-
                 return Promise.all(ops.map(op => op.exec())).then((results) => {
                   results.$commit = () => resolver.clearAll();
                   results.$rollback = () => resolver.clearAll();

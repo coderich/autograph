@@ -134,7 +134,7 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('Building', async () => {
         bookBuilding = { year: 1990, type: 'business', tenants: [christie.id] };
         libraryBuilding = { type: 'business', tenants: [christie.id] };
-        apartmentBuilding = { type: 'home', tenants: [richard.id, christie.id], landlord: richard.id };
+        apartmentBuilding = { type: 'home', year: 1980, tenants: [richard.id, christie.id], landlord: richard.id };
         expect(1).toBe(1);
       });
 
@@ -160,6 +160,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         apartment = await resolver.match('Apartment').save({ name: 'Piedmont Beauty', building: apartmentBuilding });
         expect(apartment.id).toBeDefined();
         expect(apartment.building.type).toEqual('home');
+        expect(apartment.building.tenants).toEqual([richard.id, christie.id]);
       });
     });
 
@@ -272,11 +273,14 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect((await resolver.match('Library').many({ find: true })).length).toBe(1);
       });
 
-      // // TODO Embedded tests
-      // test('Apartment', async () => {
-      //   expect((await resolver.match('Apartment').where({ 'building.tenants': 'nobody' }).many({ find: true })).length).toBe(0);
-      //   expect((await resolver.match('Apartment').where({ 'building.tenants': richard.id }).many({ find: true })).length).toBe(1);
-      // });
+      // TODO Embedded tests for non-document databases
+      if (driver === 'mongo') {
+        test('Apartment', async () => {
+          expect((await resolver.match('Apartment').where({ 'building.tenants': 'nobody' }).many({ find: true })).length).toBe(0);
+          expect((await resolver.match('Apartment').where({ 'building.year': 1980 }).many({ find: true })).length).toBe(1);
+          expect((await resolver.match('Apartment').where({ 'building.tenants': richard.id }).many({ find: true })).length).toBe(1);
+        });
+      }
     });
 
 
@@ -485,8 +489,7 @@ module.exports = (driver = 'mongo', options = {}) => {
 
       test('Apartment', async () => {
         expect(await resolver.match('Apartment').id(apartment.id).save({ 'building.year': 1978 })).toMatchObject({ building: { year: 1978 } });
-        expect(await resolver.match('Apartment').id(apartment.id).save({ 'building.tenants': [] })).toMatchObject({ building: { tenants: [] } });
-        expect(await resolver.match('Apartment').id(apartment.id).one()).toMatchObject({ name: apartment.name, building: { year: 1978, tenants: [] } });
+        expect(await resolver.match('Apartment').id(apartment.id).one()).toMatchObject({ name: apartment.name, building: { year: 1978, tenants: [richard.id, christie.id] } });
       });
 
       test('Push/Pull', async () => {

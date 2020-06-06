@@ -1,5 +1,5 @@
 const { MongoClient, ObjectID } = require('mongodb');
-const { promiseRetry, globToRegex, proxyDeep, isScalarDataType } = require('../service/app.service');
+const { promiseRetry, globToRegex, proxyDeep, isScalarDataType, toKeyObj } = require('../service/app.service');
 
 module.exports = class MongoDriver {
   constructor(config, schema) {
@@ -137,7 +137,7 @@ module.exports = class MongoDriver {
   }
 
   static normalizeWhere(where) {
-    return proxyDeep(where, {
+    return proxyDeep(toKeyObj(where), {
       get(target, prop, rec) {
         const value = Reflect.get(target, prop, rec);
         if (Array.isArray(value)) return { $in: value };
