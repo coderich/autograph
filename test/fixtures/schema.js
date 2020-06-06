@@ -62,7 +62,7 @@ module.exports = {
       name: String! @field(transform: toTitleCase)
       location: String
       books: [Book] @field(onDelete: cascade)
-      building: Building! @field(onDelete: cascade)
+      building: Building!
     }
 
     type Library
@@ -73,7 +73,7 @@ module.exports = {
       name: String! @field(transform: toTitleCase)
       location: String,
       books: [Book] @field(onDelete: cascade)
-      building: Building! @field(onDelete: cascade)
+      building: Building!
     }
 
     type Apartment
@@ -83,7 +83,7 @@ module.exports = {
     {
       name: String! @field(transform: toTitleCase)
       location: String
-      building: Building! @field(onDelete: cascade)
+      building: Building!
     }
 
     type Building

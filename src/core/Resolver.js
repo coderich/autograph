@@ -61,7 +61,7 @@ module.exports = class Resolver {
   }
 
   match(model) {
-    return new QueryBuilder(this.toModel(model), this);
+    return new QueryBuilder(this.toModelEntity(model), this);
   }
 
   // Public Transaction API
@@ -107,7 +107,7 @@ module.exports = class Resolver {
       return {
         get match() {
           return (modelName) => {
-            const model = resolver.toModel(modelName);
+            const model = resolver.toModelEntity(modelName);
             const driver = model.getDriver();
             const op = new TxnQueryBuilder(model, resolver, this);
             if (!driverMap.has(driver)) driverMap.set(driver, []);
@@ -167,6 +167,13 @@ module.exports = class Resolver {
   // Helpers
   toModel(model) {
     return model instanceof Model ? model : this.schema.getModel(model);
+  }
+
+  toModelEntity(model) {
+    const entity = this.toModel(model);
+    if (!entity) throw new Error(`${model} is not defined in schema`);
+    if (!entity.isEntity()) throw new Error(`${model} is not an entity`);
+    return entity;
   }
 
   createLoader() {

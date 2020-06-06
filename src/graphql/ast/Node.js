@@ -128,7 +128,7 @@ module.exports = class Node {
 
   // Booleans
   isEntity() {
-    return Boolean(this.getDirective('model') && !this.isEmbedded());
+    return Boolean(this.getDirective('model')) && !this.isEmbedded();
   }
 
   isVirtual() {
