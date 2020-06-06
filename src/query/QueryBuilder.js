@@ -13,6 +13,7 @@ module.exports = class QueryBuilder {
     this.id = (id) => { query.id = `${id}`; return this; };
     this.select = (fields) => { query.fields = unravelObject(fields); return this; };
     this.where = (where) => { query.where = unravelObject(where); return this; };
+    this.native = (where) => { query.native = where; return this; }; // Native where clause
     this.sortBy = (sortBy) => { query.sortBy = unravelObject(sortBy); return this; };
     this.limit = (limit) => { query.limit = limit; return this; };
     this.before = (before) => { query.before = before; return this; };
@@ -39,12 +40,12 @@ module.exports = class QueryBuilder {
     this.pull = (...args) => this.makeTheCall(query, 'pull', args);
     // this.splice = (...args) => this.makeTheCall(query, 'splice', args);
     this.remove = (...args) => this.makeTheCall(query, 'remove', args);
+    this.delete = (...args) => this.makeTheCall(query, 'delete', args);
+    // this.driver = (...args) => model.driver(...args); // Access raw driver
 
     // Food for thought...
     this.archive = (...args) => this.makeTheCall(query, 'archive', args); // Soft Delete
     this.stream = (...args) => this.makeTheCall(query, 'stream', args); // Stream records 1 by 1
-    this.driver = (...args) => this.makeTheCall(query, 'driver', args); // Access raw underlying driver
-    this.native = (...args) => this.makeTheCall(query, 'native', args); // Perhaps write a native query and hide the driver?
     this.sum = (...args) => this.makeTheCall(query, 'sum', args); // Would sum be different than count?
     this.rollup = (...args) => this.makeTheCall(query, 'rollup', args); // Like sum, but for nested attributes (eg. Person.rollupAuthoredChaptersPages)
   }
@@ -122,7 +123,7 @@ module.exports = class QueryBuilder {
         // Single save
         return resolver.load({ method: 'create', model, query, args: [input] });
       }
-      case 'remove': {
+      case 'remove': case 'delete': {
         // Single document remove
         if (id) return resolver.load({ method: 'delete', model, query, args: [parentTxn] });
 

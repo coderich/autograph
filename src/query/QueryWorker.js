@@ -20,6 +20,10 @@ module.exports = class QueryWorker {
     this.pull = (query, key, values) => this.splice(query, key, values);
   }
 
+  query(query) {
+    return this.find(query);
+  }
+
   get(query, required) {
     const { resolver } = this;
     const model = query.getModel();
@@ -32,18 +36,19 @@ module.exports = class QueryWorker {
     });
   }
 
-  query(query) {
-    return this.find(query);
-  }
-
   find(query) {
     const { resolver } = this;
     const [model, where, limit, countFields, sortFields, options] = [query.getModel(), query.getWhere(), query.getLimit(), query.getCountFields(), query.getSortFields(), query.getOptions()];
 
+    let hydratedResults;
     return createSystemEvent('Query', { method: 'find', model, resolver, query }, async () => {
-      const $where = model.transform(where);
-      const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
-      const hydratedResults = await model.find(resolvedWhere, options).hydrate(resolver, query);
+      if (query.isNative()) {
+        hydratedResults = await model.native('find', query.getNative(), options).hydrate(resolver, query);
+      } else {
+        const $where = model.transform(where);
+        const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
+        hydratedResults = await model.find(resolvedWhere, options).hydrate(resolver, query);
+      }
       const filteredData = filterDataByCounts(resolver, model, hydratedResults, countFields);
       const sortedResults = sortData(filteredData, sortFields);
       const limitedResults = sortedResults.slice(0, limit > 0 ? limit : undefined);
@@ -56,6 +61,8 @@ module.exports = class QueryWorker {
     const [model, where, countFields, countPaths, options] = [query.getModel(), query.getWhere(), query.getCountFields(), query.getCountPaths(), query.getOptions()];
 
     return createSystemEvent('Query', { method: 'count', model, resolver, query }, async () => {
+      if (query.isNative()) return model.native('count', query.getNative(), options);
+
       const $where = model.transform(where);
       const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
 
@@ -91,7 +98,6 @@ module.exports = class QueryWorker {
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
-
     await validateModelData(model, input, doc, 'update');
 
     return createSystemEvent('Mutation', { method: 'update', model, resolver, query, input, doc }, async () => {

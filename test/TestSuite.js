@@ -747,5 +747,25 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(results).toMatchObject([{ type: 'blue' }, { type: 'green' }]);
       });
     });
+
+
+    describe('Native Queries', () => {
+      test('get', async () => {
+        switch (driver) {
+          case 'mongo': {
+            expect(await resolver.match('Person').native({ name: 'Richard' }).one()).not.toBeDefined();
+            expect(await resolver.match('Person').native({ name: 'christie' }).one()).not.toBeDefined(); // case sensitive
+            expect(await resolver.match('Person').native({ name: 'Christie' }).one()).toMatchObject({ id: christie.id, name: 'Christie' });
+            expect(await resolver.match('Person').native({ name: 'Richard' }).count()).toBe(0);
+            expect(await resolver.match('Person').native({ name: 'christie' }).count()).toBe(0);
+            expect(await resolver.match('Person').native({ name: 'Christie' }).count()).toBe(1);
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      });
+    });
   });
 };

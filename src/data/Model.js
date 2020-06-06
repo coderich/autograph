@@ -40,6 +40,13 @@ module.exports = class extends Model {
     return new ResultSet(this, this.driver.dao.delete(this.getKey(), this.idValue(id), doc, options));
   }
 
+  native(method, ...args) {
+    switch (method) {
+      case 'count': return this.driver.dao.native(this.getKey(), method, ...args);
+      default: return new ResultSet(this, this.driver.dao.native(this.getKey(), method, ...args));
+    }
+  }
+
   drop() {
     return this.driver.dao.dropModel(this.getKey());
   }

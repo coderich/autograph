@@ -77,12 +77,21 @@ module.exports = class Query {
     return this.query;
   }
 
+  getNative() {
+    return this.query.native;
+  }
+
+  isNative() {
+    return Boolean(this.query.native);
+  }
+
   getCacheKey() {
     return {
       // ...this.query,
       id: this.query.id,
       where: this.query.where,
       limit: this.query.limit,
+      native: this.query.native,
       sortBy: this.query.sortBy,
       countFields: this.countFields,
       pagination: this.query.pagination,

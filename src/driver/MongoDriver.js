@@ -70,6 +70,13 @@ module.exports = class MongoDriver {
     return this.query(model, 'deleteOne', { _id: id }, options).then(() => doc);
   }
 
+  native(model, method, ...args) {
+    switch (method) {
+      case 'count': return this.query(model, 'countDocuments', ...args);
+      default: return this.query(model, method, ...args).then(results => results.toArray());
+    }
+  }
+
   dropModel(model) {
     return this.query(model, 'deleteMany');
   }
