@@ -108,17 +108,28 @@ module.exports = class Resolver {
         get match() {
           return (modelName) => {
             const model = resolver.toModelEntity(modelName);
-            // if (model.getDriver().getConfig().transactions === false) return new QueryBuilder(model, resolver);
             const driver = model.getDriver();
-            const op = new TxnQueryBuilder(model, resolver, this);
             if (!driverMap.has(driver)) driverMap.set(driver, []);
+            const op = new TxnQueryBuilder(model, resolver, this);
             driverMap.get(driver).push(op);
             return op;
           };
         },
         get exec() {
           return () => {
-            return Promise.all(Array.from(driverMap.entries()).map(([driver, ops]) => driver.transaction(ops))).then((results) => {
+            return Promise.all(Array.from(driverMap.entries()).map(([driver, ops]) => {
+              if (driver.getConfig().transactions === false) {
+                console.warn('Warning: Database does not support transactions; consider upgrading');
+
+                return Promise.all(ops.map(op => op.exec())).then((results) => {
+                  results.$commit = () => resolver.clearAll();
+                  results.$rollback = () => resolver.clearAll();
+                  return results;
+                });
+              }
+
+              return driver.transaction(ops);
+            })).then((results) => {
               data = results;
               return flatten(results);
             });

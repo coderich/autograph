@@ -4,7 +4,6 @@ module.exports = class TransactionQueryBuilder extends QueryBuilder {
   constructor(model, resolver, transaction) {
     super(model, resolver);
     this.transaction = transaction;
-    this.driver = model.getDriver();
   }
 
   makeTheCall(query, cmd, args) {

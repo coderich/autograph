@@ -25,6 +25,7 @@ exports.fromGUID = guid => Buffer.from(`${guid}`, 'base64').toString('ascii').sp
 exports.ensureArray = a => (Array.isArray(a) ? a : [a]);
 exports.uvl = (...values) => values.reduce((prev, value) => (prev === undefined ? value : prev), undefined);
 exports.stripObjectNulls = obj => Object.entries(obj).reduce((prev, [key, value]) => (value == null ? prev : Object.assign(prev, { [key]: value })), {});
+exports.pushIt = (arr, it) => arr[arr.push(it) - 1];
 
 exports.getDeep = (obj, path, defaultValue) => {
   const results = [];

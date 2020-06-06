@@ -47,12 +47,6 @@ module.exports = class QueryBuilder {
     this.native = (...args) => this.makeTheCall(query, 'native', args); // Perhaps write a native query and hide the driver?
     this.sum = (...args) => this.makeTheCall(query, 'sum', args); // Would sum be different than count?
     this.rollup = (...args) => this.makeTheCall(query, 'rollup', args); // Like sum, but for nested attributes (eg. Person.rollupAuthoredChaptersPages)
-
-    // // Faux transaction API
-    // this.commit = () => null;
-    // this.rollback = () => null;
-    // this.run = () => null;
-    // this.exec = () => null;
   }
 
   async makeTheCall(query, cmd, args, parentTxn) {
@@ -95,15 +89,9 @@ module.exports = class QueryBuilder {
         if (where) {
           const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
           const docs = await resolver.match(model).where(resolvedWhere).many({ find: true });
-
-          if (parentTxn || model.getDriver().getConfig().transactions !== false) {
-            const txn = resolver.transaction(parentTxn);
-            docs.forEach(doc => txn.match(model).id(doc.id).query(query)[cmd](...args));
-            return txn.run();
-          }
-
-          // Treat as separate calls
-          return Promise.all(docs.map(doc => resolver.match(model).id(doc.id).query(query)[cmd](...args)));
+          const txn = resolver.transaction(parentTxn);
+          docs.forEach(doc => txn.match(model).id(doc.id).query(query)[cmd](...args));
+          return txn.run();
         }
 
         // Best to require explicit intent
@@ -119,27 +107,16 @@ module.exports = class QueryBuilder {
         if (where) {
           const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
           const docs = await resolver.match(model).where(resolvedWhere).many();
-
-          if (parentTxn || model.getDriver().getConfig().transactions !== false) {
-            const txn = resolver.transaction(parentTxn);
-            docs.forEach(doc => txn.match(model).id(doc.id).query(query).save(...args));
-            return txn.run();
-          }
-
-          // Treat as separate calls
-          return Promise.all(docs.map(doc => resolver.match(model).id(doc.id).query(query).save(...args)));
+          const txn = resolver.transaction(parentTxn);
+          docs.forEach(doc => txn.match(model).id(doc.id).query(query).save(...args));
+          return txn.run();
         }
 
         // Multi save (transaction)
         if (args.length > 1) {
-          if (parentTxn || model.getDriver().getConfig().transactions !== false) {
-            const txn = resolver.transaction(parentTxn);
-            args.forEach(arg => txn.match(model).query(query).save(arg));
-            return txn.run();
-          }
-
-          // Treat as separate calls
-          return Promise.all(args.map(arg => resolver.load({ method: 'create', model, query, args: [arg] })));
+          const txn = resolver.transaction(parentTxn);
+          args.forEach(arg => txn.match(model).query(query).save(arg));
+          return txn.run();
         }
 
         // Single save
@@ -153,15 +130,9 @@ module.exports = class QueryBuilder {
         if (where) {
           const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
           const docs = await resolver.match(model).where(resolvedWhere).many({ find: true });
-
-          if (parentTxn || model.getDriver().getConfig().transactions !== false) {
-            const txn = resolver.transaction(parentTxn);
-            docs.forEach(doc => txn.match(model).id(doc.id).remove());
-            return txn.run();
-          }
-
-          // Treat as separate calls
-          return Promise.all(docs.map(doc => resolver.match(model).id(doc.id).remove()));
+          const txn = resolver.transaction(parentTxn);
+          docs.forEach(doc => txn.match(model).id(doc.id).remove());
+          return txn.run();
         }
 
         // Best to require explicit intent
