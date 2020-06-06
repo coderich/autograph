@@ -114,10 +114,6 @@ module.exports = class Node {
     return this.getDirectiveArg('field', 'materializeBy');
   }
 
-  getScope() {
-    return this.getDirectiveArg('field', 'scope', this.getDirectiveArg('model', 'scope', 'default'));
-  }
-
   getAuthz() {
     return this.getDirectiveArg('field', 'authz', this.getDirectiveArg('model', 'authz', 'private'));
   }
@@ -126,21 +122,21 @@ module.exports = class Node {
     return this.getDirectiveArg('model', 'meta', 'AutoGraphMixed');
   }
 
-  isEntity() {
-    return Boolean(this.getDirective('model'));
+  getCrud() {
+    return uvl(this.getDirectiveArg('field', 'crud'), this.getDirectiveArg('model', 'crud'), 'crud');
   }
 
-  isPrivate() {
-    return Boolean(this.getScope() === 'none');
+  // Booleans
+  isEntity() {
+    return Boolean(this.getDirective('model') && !this.isEmbedded());
   }
 
   isVirtual() {
     return Boolean(this.getDirectiveArg('field', 'materializeBy'));
   }
 
-  isImmutable() {
-    const enforce = this.getDirectiveArg('field', 'enforce', '');
-    return Boolean(JSON.stringify(enforce).indexOf('immutable') > -1);
+  isEmbedded() {
+    return Boolean(this.getDirectiveArg('model', 'embed'));
   }
 
   isModel() {
@@ -157,5 +153,32 @@ module.exports = class Node {
 
   isEnum() {
     return Boolean(enumKinds.some(k => this.getKind() === k));
+  }
+
+  // API
+  isCreatable() {
+    return Boolean(this.getCrud().toLowerCase().indexOf('c') > -1);
+  }
+
+  isReadable() {
+    return Boolean(this.getCrud().toLowerCase().indexOf('r') > -1);
+  }
+
+  isUpdatable() {
+    return Boolean(this.getCrud().toLowerCase().indexOf('u') > -1);
+  }
+
+  isDeletable() {
+    return Boolean(this.getCrud().toLowerCase().indexOf('d') > -1);
+  }
+
+  // Storage
+  isPersistable() {
+    return uvl(this.getDirectiveArg('field', 'persist'), this.getDirectiveArg('model', 'persist'), true);
+  }
+
+  isImmutable() {
+    const enforce = this.getDirectiveArg('field', 'enforce', '');
+    return Boolean(JSON.stringify(enforce).indexOf('immutable') > -1);
   }
 };

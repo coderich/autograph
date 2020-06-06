@@ -116,10 +116,11 @@ module.exports = class extends Model {
 
     return Object.entries(data).reduce((prev, [key, value]) => {
       const field = this.getField(key);
-      if (!field) return Object.assign(prev, { [key]: value });
+      if (!field) return prev;
+      if (!field.isPersistable()) return prev;
       if (value === undefined) value = data[field.getKey()];
       return Object.assign(prev, { [field.getKey()]: field.serialize(value, mapper) });
-    }, {}); // Strip $hydrated props
+    }, {}); // Strip away all props not in schema
   }
 
   deserialize(data, mapper) {

@@ -1,5 +1,6 @@
 Breaking changes:
   * scope: no longer supports resolver|segment (use @value and set scope to what you want)
+  * scope completely removed!
   * alias -> key
 
 * All fields must be in the list of model fields (id, createdAt, updatedAt, etc)

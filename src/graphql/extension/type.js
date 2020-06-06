@@ -10,10 +10,10 @@ module.exports = (schema) => {
       return `
         extend type ${modelName} implements Node {
           id: ID! @field(key: "${model.idKey()}")
-          ${createdAt ? `createdAt: AutoGraphDateTime @field(scope: query, key: "${createdAt}")` : ''}
-          ${updatedAt ? `updatedAt: AutoGraphDateTime @field(scope: query, key: "${updatedAt}")` : ''}
-          # ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int @field(scope: resolver)`)}
-          # countSelf(where: ${modelName}InputWhere): Int @field(scope: resolver)
+          ${createdAt ? `createdAt: AutoGraphDateTime @field(crud: "r", key: "${createdAt}")` : ''}
+          ${updatedAt ? `updatedAt: AutoGraphDateTime @field(crud: "r", key: "${updatedAt}")` : ''}
+          # ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int @field(crud: "r" persist: false)`)}
+          # countSelf(where: ${modelName}InputWhere): Int @field(crud: "r" persist: false)
         }
       `;
     }).concat(`

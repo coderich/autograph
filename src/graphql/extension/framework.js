@@ -10,17 +10,17 @@ module.exports = (schema) => {
       enum AutoGraphEnforceEnum { ${Object.keys(Rule.getInstances()).join(' ')} }
       enum AutoGraphTransformEnum  { ${Object.keys(Transformer.getInstances()).join(' ')} }
       enum AutoGraphAuthzEnum { private protected public }
-      enum AutoGraphScopeEnum { default query mutation none }
       enum AutoGraphValueScopeEnum { self context }
       enum AutoGraphOnDeleteEnum { cascade nullify restrict }
       enum AutoGraphIndexEnum { unique }
 
       directive @model(
-        id: String
+        id: String # Override the ID name
         key: String # Specify it's key during transit
         crud: String # Dictate what APIs to auto-generate
         meta: String # Custom input 'meta' field for mutations
-        scope: AutoGraphScopeEnum # Can be set to 'none' to have no impact on schema
+        embed: Boolean # Mark this an embedded model (default false)
+        persist: Boolean # Persist this model (default true)
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
         driver: AutoGraphDriver
         namespace: String
@@ -30,14 +30,17 @@ module.exports = (schema) => {
 
       directive @field(
         key: String # Specify it's key during transit
-        scope: AutoGraphScopeEnum # Determines if the field is readable|writable or private
-        authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
+        crud: String # Dictate how the field can be used
+        persist: Boolean # Persist this field (default true)
         default: AutoGraphMixed # Define a default value
+
         noRepeat: Boolean
+        materializeBy: String
+
+        authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
         enforce: [AutoGraphEnforceEnum!]
         onDelete: AutoGraphOnDeleteEnum
         transform: [AutoGraphTransformEnum!]
-        materializeBy: String
       ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
 
       directive @value(

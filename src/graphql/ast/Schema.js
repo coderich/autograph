@@ -31,23 +31,17 @@ module.exports = class Schema extends Node {
   }
 
   getSchema() {
-    // Filter out private models/fields from our API
-    // const definitions = this.ast.definitions.filter((d) => {
-    //   const node = new Node(d);
-    //   return !node.isModel() || !node.isPrivate();
-    // })
+    // const definitions = this.ast.definitions.map((definition) => {
+    //   definition.fields = (definition.fields || []).filter((f) => {
+    //     const node = new Node(f);
+    //     return !node.isPrivate();
+    //   });
 
-    const definitions = this.ast.definitions.map((definition) => {
-      definition.fields = (definition.fields || []).filter((f) => {
-        const node = new Node(f);
-        return !node.isPrivate();
-      });
+    //   return definition;
+    // });
 
-      return definition;
-    });
-
-    const ast = Object.assign({}, this.ast, { definitions });
-    const schema = Object.assign({}, this.schema, { typeDefs: ast });
+    // const ast = Object.assign({}, this.ast, { this.ast.definitions });
+    const schema = Object.assign({}, this.schema, { typeDefs: this.ast });
     validateSchema(schema);
     return schema;
   }
@@ -87,7 +81,7 @@ module.exports = class Schema extends Node {
   }
 
   getEntityModels() {
-    return this.getModels().filter(model => model.isEntity() && !model.isPrivate());
+    return this.getModels().filter(model => model.isEntity());
   }
 
   getCreateModels() {
