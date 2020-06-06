@@ -20,8 +20,6 @@ Next:
 
 Bugs:
   * Embedded documents do not work!
-    - Currently embedded document is being saved as it's own collection/node
-    - Cannot update apartment.building
     - Cannot query where building.tenants, etc
     - Concept only fits document databases (what about neo4j and sql databases?)
     - How to create index on embedded objects? building.type unique?

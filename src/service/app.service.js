@@ -81,7 +81,9 @@ exports.serialize = (field, value) => {
  * Transform an object with dot.notation keys into an expanded object.
  * eg. { 'user.name': 'richard' } => { user: { name: 'richard' } }
  */
-exports.unravelObject = (obj = {}) => {
+exports.unravelObject = (obj) => {
+  if (obj == null) return obj;
+
   return exports.keyPaths(obj).reduce((prev, path) => {
     const splitPath = path.split('.');
 

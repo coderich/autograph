@@ -108,6 +108,7 @@ module.exports = class Resolver {
         get match() {
           return (modelName) => {
             const model = resolver.toModelEntity(modelName);
+            // if (model.getDriver().getConfig().transactions === false) return new QueryBuilder(model, resolver);
             const driver = model.getDriver();
             const op = new TxnQueryBuilder(model, resolver, this);
             if (!driverMap.has(driver)) driverMap.set(driver, []);
