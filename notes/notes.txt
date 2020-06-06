@@ -1,6 +1,6 @@
 Breaking changes:
   * scope: no longer supports resolver|segment (use @value and set scope to what you want)
-  * scope completely removed!
+  * scope completely removed!; use crud + persist
   * alias -> key
 
 * All fields must be in the list of model fields (id, createdAt, updatedAt, etc)
@@ -19,9 +19,7 @@ Next:
   * Can context be derived from the schema instead of being explicitly set?
 
 Bugs:
-  * Embedded documents do not work!
-    - Cannot query where building.tenants, etc
-    - Concept only fits document databases (what about neo4j and sql databases?)
+  * Embedded documents (outside of Mongo) do not work!
     - How to create index on embedded objects? building.type unique?
 
 Enhancements:

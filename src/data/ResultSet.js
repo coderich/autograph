@@ -16,10 +16,7 @@ module.exports = class {
 
   async hydrate(resolver, query) {
     return this.getResults(resolver, query).then(async (results) => {
-      const paths = [...new Set([
-        // ...keyPaths(query.getWhere()).map(path => path.split('.').map(seg => `$${seg}`).join('.')),
-        ...keyPaths(query.getSortFields()),
-      ])];
+      const paths = [...new Set([...keyPaths(query.getSortFields())])];
 
       return Promise.all(ensureArray(results).map((doc) => {
         return Promise.all(paths.map((path) => {
