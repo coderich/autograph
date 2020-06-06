@@ -1,5 +1,5 @@
 Breaking changes:
-  * scope: no longer supports resolver|segment (use @value and set scope to what you want)
+  * scope: no longer supports resolver|segment (use @value instead)
   * scope completely removed!; use crud + persist
   * alias -> key
 
@@ -9,6 +9,7 @@ Breaking changes:
 Now:
   * Enforce segmentation throughout (findNetwork, network field, ...)
     - But that means you can't use the resolver straight up and say where { 'network.name': 'name' }
+    - See if (above) is a problem since you have .native and .raw now
 
 Next:
   * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
@@ -19,35 +20,37 @@ Enhancements:
   * ResultSet have have helper methods (save(), remove(), archive(), etc())
   * Add 'filterBy' as an option for post query filtering (this can alleviate the depth-first where clause problem)
   * Where clause allow explicit NULL to be searchable (ie. where { authored: null } gives those who have not authored anything)
-  * Can you make Emitter events part of a transaction? pre vs post can be confusing... especially for data validation etc.
-  * Input types are not models and therefor cannot participate in Transformers|Rules
-    - Is this really needed? I guess perhaps when using the DOA directly...
+  * Concept of "incomplete" and "what's missing" as part of data retrieval
+  * Get a list of references that would be onDelete affected
   * URL, RGB, RGBA, validator?
+  * Composite Rule Definitions?
+  * Password and PasswordMatch validation; enforce strength; password can be created/updated but not selected, what's the scope?
+    - Answer: crud: "cu"
 
 Todo:
   * Incorporate Logger
-  * Concept of "incomplete" and "what's missing" as part of data retrieval
-  * Get a list of references that would be onDelete affected
   * MeteorUser _id is a String (not ID). How to handle?
+  * Can you make Emitter events part of a transaction? pre vs post can be confusing... especially for data validation etc.
   * Currently there is no way to count regular elements of an array (try to count bids)
   * Allow Field and Model to be extended (directive fields)
   * Are you able to flatten fields? (ie. firstName, lastName but save to profile.firstName, profile.lastName in DB)
     - Confirmed that you cannot.
+  * Input types are not models and therefor cannot participate in Transformers|Rules
+    - Is this really needed? I guess perhaps when using the DOA directly...
+  * Embedded documents (outside of Mongo) do not work!
+    - How to handle join-table in SQL?
+    - How to create index on embedded objects? building.type unique?
 
 Ideas:
   * If the Query holds all the information you can move logic to it (eg. Query.validate())
   * Can you use semver over glob in some areas?
+  * Concept of a named query (re-usable)? resolver.namedQuery(...)
 
 Figure out:
   * createdBy? (Audit trail)
-  * Composite Rule Definitions?
   * Authorization. Specifically owner records, segmentation, recursive data resolution
   * dependencies vs peerDependencies (graphql)
-  * Password and PasswordMatch validation; enforce strength; password can be created/updated but not selected, what's the scope?
   * What was the reason for Query vs Find? Do you need it? I know it had to do with final stage of sorting/filtering/pagination.
-  * Embedded documents (outside of Mongo) do not work!
-    - How to create index on embedded objects? building.type unique?
-
 
 Refs:
   * https://jbt.github.io/markdown-editor/

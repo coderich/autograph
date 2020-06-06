@@ -64,6 +64,10 @@ module.exports = class Resolver {
     return new QueryBuilder(this.toModelEntity(model), this);
   }
 
+  raw(model) {
+    return this.toModelEntity(model).raw();
+  }
+
   // Public Transaction API
   transaction(parentTxn) {
     const resolver = this;

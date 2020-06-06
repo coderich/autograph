@@ -77,6 +77,18 @@ module.exports = class MongoDriver {
     }
   }
 
+  raw(model) {
+    const promise = this.connection.then(client => client.db().collection(model));
+
+    return new Proxy(promise, {
+      get(target, prop, rec) {
+        const value = Reflect.get(target, prop, rec);
+        if (typeof value === 'function') return value.bind(target);
+        return (...args) => promise.then(db => db[prop](...args));
+      },
+    });
+  }
+
   dropModel(model) {
     return this.query(model, 'deleteMany');
   }

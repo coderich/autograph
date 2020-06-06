@@ -47,6 +47,10 @@ module.exports = class extends Model {
     }
   }
 
+  raw() {
+    return this.driver.dao.raw(this.getKey());
+  }
+
   drop() {
     return this.driver.dao.dropModel(this.getKey());
   }

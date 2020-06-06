@@ -41,7 +41,6 @@ module.exports = class QueryBuilder {
     // this.splice = (...args) => this.makeTheCall(query, 'splice', args);
     this.remove = (...args) => this.makeTheCall(query, 'remove', args);
     this.delete = (...args) => this.makeTheCall(query, 'delete', args);
-    // this.driver = (...args) => model.driver(...args); // Access raw driver
 
     // Food for thought...
     this.archive = (...args) => this.makeTheCall(query, 'archive', args); // Soft Delete

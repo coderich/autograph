@@ -755,10 +755,29 @@ module.exports = (driver = 'mongo', options = {}) => {
           case 'mongo': {
             expect(await resolver.match('Person').native({ name: 'Richard' }).one()).not.toBeDefined();
             expect(await resolver.match('Person').native({ name: 'christie' }).one()).not.toBeDefined(); // case sensitive
-            expect(await resolver.match('Person').native({ name: 'Christie' }).one()).toMatchObject({ id: christie.id, name: 'Christie' });
+            expect(await resolver.match('Person').native({ name: 'Christie' }).one()).toMatchObject({ id: christie.id, name: 'Christie', emailAddress: 'christie@gmail.com' });
             expect(await resolver.match('Person').native({ name: 'Richard' }).count()).toBe(0);
             expect(await resolver.match('Person').native({ name: 'christie' }).count()).toBe(0);
             expect(await resolver.match('Person').native({ name: 'Christie' }).count()).toBe(1);
+            expect(await resolver.match('Person').native({ email_address: 'christie@gmail.com' }).count()).toBe(1);
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      });
+    });
+
+
+    describe('Raw Queries', () => {
+      test('get', async () => {
+        switch (driver) {
+          case 'mongo': {
+            expect(await resolver.raw('Person').findOne({})).toBeDefined();
+            expect(await resolver.raw('Person').findOne({ name: 'Richard' })).toBeNull();
+            expect(await resolver.raw('Person').findOne({ name: 'christie' })).toBeNull();
+            expect(await resolver.raw('Person').findOne({ name: 'Christie' })).toMatchObject({ name: 'Christie', email_address: 'christie@gmail.com' });
             break;
           }
           default: {
