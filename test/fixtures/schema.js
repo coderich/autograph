@@ -92,6 +92,7 @@ module.exports = {
       type: String! @field(enforce: buildingType)
       tenants: [Person] @field(enforce: distinct, onDelete: cascade)
       landlord: Person @field(onDelete: nullify)
+      description: String @field(default: "A building from the bloom")
     }
 
     type Color

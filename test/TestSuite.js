@@ -149,9 +149,12 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(bookstore1.id).toBeDefined();
         expect(bookstore1.books.length).toEqual(3);
         expect(bookstore1.building.type).toEqual('business');
+        expect(bookstore1.building.description).toEqual('A building from the bloom');
         expect(bookstore2.id).toBeDefined();
         expect(bookstore2.books.length).toEqual(1);
         expect(bookstore2.building.type).toEqual('business');
+        expect(bookstore2.building.description).toEqual('A building from the bloom');
+        expect(bookBuilding.description).not.toBeDefined();
       });
 
       test('Library', async () => {

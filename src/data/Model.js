@@ -90,7 +90,9 @@ module.exports = class extends Model {
     return fieldNames.reduce((prev, fieldName) => {
       const field = this.getFieldByName(fieldName);
       if (fieldName !== '_id' && !field) return prev; // There can still be nonsense passed in via the DAO
-      let value = Object.prototype.hasOwnProperty.call(data, fieldName) ? data[fieldName] : field.getDefaultValue();
+      let value = data[fieldName];
+      // if (fieldName !== '_id' && field.isValueBound()) value = await field.resolveBoundValue(value);
+      if (value === undefined) value = field.getDefaultValue();
       if (fieldName !== '_id' && field.isEmbedded()) value = field.getModelRef().resolveDefaultValues(value);
       return Object.assign(prev, { [fieldName]: value });
     }, {});
