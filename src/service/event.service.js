@@ -37,7 +37,7 @@ const eventHandler = (event) => {
     return () => new Promise((resolve, reject) => {
       if (Object.prototype.hasOwnProperty.call(input || {}, field.getName())) {
         const newModel = field.getModelRef();
-        const newEvent = { key: `${method}${field}`, method, model: newModel, resolver, query: new Query(newModel), input: input[field.getName()] };
+        const newEvent = { key: `${method}${field}`, method, model: newModel, resolver, query: new Query(resolver, newModel), input: input[field.getName()] };
         exports.createSystemEvent('Mutation', newEvent, () => resolve()).catch(e => reject(e));
       } else {
         resolve();

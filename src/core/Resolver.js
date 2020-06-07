@@ -32,7 +32,7 @@ module.exports = class Resolver {
   // Encapsulate Facebook DataLoader
   load(key) {
     const { method, model, query: q, args } = key;
-    const query = new Query(this.toModel(model), q);
+    const query = new Query(this, this.toModel(model), q);
 
     switch (method) {
       case 'create': case 'update': case 'delete': case 'push': case 'pull': {
@@ -187,6 +187,7 @@ module.exports = class Resolver {
     const entity = this.toModel(model);
     if (!entity) throw new Error(`${model} is not defined in schema`);
     if (!entity.isEntity()) throw new Error(`${model} is not an entity`);
+    entity.setResolver(this);
     return entity;
   }
 

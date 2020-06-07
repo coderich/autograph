@@ -2,7 +2,7 @@ const { get, unset } = require('lodash');
 const { keyPaths } = require('../service/app.service');
 
 module.exports = class Query {
-  constructor(model, query = {}) {
+  constructor(resolver, model, query = {}) {
     const { where = {}, sortBy = {}, limit, pagination = {}, options = {} } = query;
 
     // Sorting
@@ -17,6 +17,7 @@ module.exports = class Query {
     countPaths.forEach(p => unset(where, p));
 
     //
+    this.resolver = resolver;
     this.query = query;
     this.model = model;
     this.countFields = countFields;

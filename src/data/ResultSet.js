@@ -12,6 +12,11 @@ module.exports = class {
   constructor(model, promise) {
     this.model = model;
     this.promise = promise;
+
+    // Object.defineProperties(promise, {
+    //   hydrate: {}, // Entire result set
+    //   populate: {}, // One attribute
+    // });
   }
 
   async hydrate(resolver, query) {

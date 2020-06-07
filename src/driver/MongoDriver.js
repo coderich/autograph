@@ -78,16 +78,7 @@ module.exports = class MongoDriver {
   }
 
   raw(model) {
-    return proxyPromise(this.connection.then(client => client.db().collection(model)))
-    // const promise = this.connection.then(client => client.db().collection(model));
-
-    // return new Proxy(promise, {
-    //   get(target, prop, rec) {
-    //     const value = Reflect.get(target, prop, rec);
-    //     if (typeof value === 'function') return value.bind(target);
-    //     return (...args) => promise.then(db => db[prop](...args));
-    //   },
-    // });
+    return proxyPromise(this.connection.then(client => client.db().collection(model)));
   }
 
   dropModel(model) {

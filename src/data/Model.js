@@ -71,6 +71,16 @@ module.exports = class extends Model {
     return this.driver.dao;
   }
 
+  // Temporary until you can rely fully on Query for resolver
+  getResolver() {
+    return this.resolver;
+  }
+
+  setResolver(resolver) {
+    this.resolver = resolver;
+  }
+  //
+
   referentialIntegrity(refs) {
     if (refs) this.referentials = refs;
     return this.referentials;

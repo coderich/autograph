@@ -751,7 +751,7 @@ module.exports = (driver = 'mongo', options = {}) => {
 
     describe('$hydrated results', () => {
       test('manual', async () => {
-        const person = await resolver.match('Person').one();
+        const person = await resolver.match('Person').id(christie.id).one();
         expect(person.$authored.name).not.toBeDefined();
 
         // Hydrate book
