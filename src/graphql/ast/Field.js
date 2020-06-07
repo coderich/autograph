@@ -1,7 +1,7 @@
 const { get } = require('lodash');
 const Node = require('./Node');
 const Type = require('./Type');
-const { uvl, mergeDeep } = require('../../service/app.service');
+const { mergeDeep } = require('../../service/graphql.service');
 
 module.exports = class Field extends Node {
   constructor(model, ast) {
@@ -35,7 +35,7 @@ module.exports = class Field extends Node {
   }
 
   getDefaultValue() {
-    return uvl(this.getDirectiveArg('field', 'default'));
+    return this.getDirectiveArg('field', 'default');
   }
 
   getResolvedValue(initialValue) {
@@ -46,7 +46,7 @@ module.exports = class Field extends Node {
     const { scope, path, merge } = this.getDirectiveArgs('value');
 
     switch (scope) {
-      case 'context': case 'segment': {
+      case 'context': {
         const value = get(context, path);
         promise = (typeof value === 'function') ? Promise.resolve(value()) : Promise.resolve(value);
         break;
@@ -88,10 +88,6 @@ module.exports = class Field extends Node {
   isEmbedded() {
     const model = this.getModelRef();
     return Boolean(model && !model.isEntity());
-  }
-
-  hasBoundValue() {
-    return Boolean(this.getDirective('value'));
   }
 
   isDefaulted() {

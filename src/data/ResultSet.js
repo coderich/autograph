@@ -39,14 +39,14 @@ module.exports = class {
 
   getResults(resolver, query) {
     return this.promise.then(async (docs) => {
-      const defaultDocs = await mapPromise(docs, doc => this.model.resolveDefaultValues(doc));
+      const defaultDocs = await mapPromise(docs, doc => this.model.resolveDefaultValues(this.model.deserialize(doc)));
 
       return map(defaultDocs, (doc) => {
         const id = doc[this.model.idKey()];
         doc.id = id;
         const guid = toGUID(this.model.getName(), id);
-        const tdoc = this.model.deserialize(doc);
-        const dataResolver = new DataResolver(tdoc, (data, prop) => this.resolve(data, prop, resolver, query));
+        // const tdoc = this.model.deserialize(doc);
+        const dataResolver = new DataResolver(doc, (data, prop) => this.resolve(data, prop, resolver, query));
 
         return Object.defineProperties(dataResolver, {
           id: { value: id, enumerable: true, writable: true },

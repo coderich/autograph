@@ -98,7 +98,6 @@ module.exports = (driver = 'mongo', options = {}) => {
         // Tricky data stuff
         expect(richard.status).toBe('alive');
         expect(richard.state).not.toBeDefined(); // DB key should be stripped
-
         // expect(richard.network).toBe('networkId');
       });
 

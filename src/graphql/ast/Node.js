@@ -155,6 +155,10 @@ module.exports = class Node {
     return Boolean(enumKinds.some(k => this.getKind() === k));
   }
 
+  hasBoundValue() {
+    return Boolean(this.getDirective('value'));
+  }
+
   // API
   isCreatable() {
     return Boolean(this.getCrud().toLowerCase().indexOf('c') > -1);

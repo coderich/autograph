@@ -3,15 +3,13 @@ Breaking changes:
   * scope completely removed!; use crud + persist
   * alias -> key
 
-* All fields must be in the list of model fields (id, createdAt, updatedAt, etc)
-* ResultSet.resolve may need to be consolidated to Field.resolve and used both in-out of DB
-
 Now:
   * Enforce segmentation throughout (findNetwork, network field, ...)
     - But that means you can't use the resolver straight up and say where { 'network.name': 'name' }
     - See if (above) is a problem since you have .native and .raw now
 
 Next:
+  * Deserialization and ids (_id) and code throughout
   * You know EventEmitter wants to emit Query (will be a breaking change so consider when to do it)
   * How do you handle the hydrate() problem? QueryWorker is hydrating, what about concept of returning ResultSet and letting user hydrate() or populate() from resolver?
   * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
@@ -19,6 +17,8 @@ Next:
   * Can context be derived from the schema instead of being explicitly set?
 
 Enhancements:
+  * createdAt, updatedAt, counts, onDeletes, references, etc should be controllable
+  * Probably need a @link directive to describe some FK relationship (composite keys, flexible structure)
   * ResultSet have have helper methods (save(), remove(), archive(), etc())
   * Add 'filterBy' as an option for post query filtering (this can alleviate the depth-first where clause problem)
   * Where clause allow explicit NULL to be searchable (ie. where { authored: null } gives those who have not authored anything)

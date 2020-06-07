@@ -72,13 +72,9 @@ module.exports = class extends Model {
   }
 
   // Temporary until you can rely fully on Query for resolver
-  getResolver() {
-    return this.resolver;
-  }
+  getResolver() { return this.resolver; }
 
-  setResolver(resolver) {
-    this.resolver = resolver;
-  }
+  setResolver(resolver) { this.resolver = resolver; }
   //
 
   referentialIntegrity(refs) {
@@ -87,7 +83,7 @@ module.exports = class extends Model {
   }
 
   resolveDefaultValues(data) {
-    if (data == null) return data;
+    data = data || {};
 
     // Default fields
     this.getDefaultedFields().forEach((field) => {
@@ -110,27 +106,6 @@ module.exports = class extends Model {
 
     return data;
   }
-
-  // resolveValues(data) {
-  //   // Default fields
-  //   this.getDefaultedFields().forEach((field) => {
-  //     const key = field.getName();
-
-  //     if (!Object.prototype.hasOwnProperty.call(data, key)) {
-  //       const value = field.getDefaultValue();
-  //       data[key] = value;
-  //     }
-  //   });
-
-  //   // Embedded fields
-  //   this.getEmbeddedFields().forEach((field) => {
-  //     const key = field.getName();
-
-  //     if (Object.prototype.hasOwnProperty.call(data, key)) {
-  //       field.getModelRef().resolveDefaultValues(data[key]);
-  //     }
-  //   });
-  // }
 
   serialize(data, mapper) {
     if (data == null) data = {};
@@ -161,10 +136,6 @@ module.exports = class extends Model {
     });
 
     return dataWithValues;
-    // return Object.entries(dataWithValues).reduce((prev, [key, value]) => {
-    //   if (key !== '_id' && !this.getFieldByName(key)) delete prev[key];
-    //   return prev;
-    // }, dataWithValues);
   }
 
   transform(data, mapper) {
