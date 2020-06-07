@@ -41,7 +41,7 @@ module.exports = class {
     return this.promise.then((results) => {
       return mapPromise(results, (result) => {
         return Promise.resolve(this.model.resolveDefaultValues(this.model.deserialize(result))).then((doc) => {
-          const id = doc[this.model.idKey()];
+          const { id } = doc;
           const guid = toGUID(this.model.getName(), id);
           const dataResolver = new DataResolver(doc, (data, prop) => this.resolve(data, prop, resolver, query));
 

@@ -145,7 +145,7 @@ module.exports = (driver = 'mongo', options = {}) => {
 
       test('BookStore', async () => {
         bookstore1 = await resolver.match('BookStore').save({ name: 'Best Books Ever', books: [mobyDick.id, mobyDick.id, healthBook.id], building: bookBuilding });
-        bookstore2 = await resolver.match('BookStore').save({ name: 'New Books', books: [mobyDick.id], building: bookBuilding });
+        bookstore2 = await resolver.match('BookStore').save({ name: 'New Books', books: [mobyDick.id], building: Object.assign({}, bookBuilding, { description: 'A building' }) });
         expect(bookstore1.id).toBeDefined();
         expect(bookstore1.books.length).toEqual(3);
         expect(bookstore1.building.type).toEqual('business');
@@ -153,7 +153,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(bookstore2.id).toBeDefined();
         expect(bookstore2.books.length).toEqual(1);
         expect(bookstore2.building.type).toEqual('business');
-        expect(bookstore2.building.description).toEqual('A building from the bloom');
+        expect(bookstore2.building.description).toEqual('A building');
         expect(bookBuilding.description).not.toBeDefined();
       });
 

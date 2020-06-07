@@ -82,7 +82,7 @@ module.exports = class extends Model {
     return this.referentials;
   }
 
-  resolveDefaultValues(data) {
+  getDefaultValues(data) {
     data = data || {};
     const defaultedFields = this.getDefaultedFields();
     const fieldNames = [...new Set(Object.keys(data).concat(defaultedFields.map(field => `${field}`)))];
@@ -93,9 +93,13 @@ module.exports = class extends Model {
       let value = data[fieldName];
       // if (fieldName !== '_id' && field.isValueBound()) value = await field.resolveBoundValue(value);
       if (value === undefined) value = field.getDefaultValue();
-      if (fieldName !== '_id' && field.isEmbedded()) value = field.getModelRef().resolveDefaultValues(value);
+      if (fieldName !== '_id' && field.isEmbedded()) value = field.getModelRef().getDefaultValues(value);
       return Object.assign(prev, { [fieldName]: value });
     }, {});
+  }
+
+  resolveDefaultValues(data) {
+    return this.getDefaultValues(data);
   }
 
   serialize(data, mapper) {
