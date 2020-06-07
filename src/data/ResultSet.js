@@ -1,5 +1,5 @@
 const DataResolver = require('./DataResolver');
-const { keyPaths, map, lcFirst, ensureArray, toGUID } = require('../service/app.service');
+const { keyPaths, map, mapPromise, lcFirst, ensureArray, toGUID } = require('../service/app.service');
 
 const assignValue = (doc, prop, value) => {
   return Promise.resolve(value).then(($value) => {
@@ -38,9 +38,12 @@ module.exports = class {
   }
 
   getResults(resolver, query) {
-    return this.promise.then((docs) => {
-      return map(docs, (doc, i) => {
+    return this.promise.then(async (docs) => {
+      const defaultDocs = await mapPromise(docs, doc => this.model.resolveDefaultValues(doc));
+
+      return map(defaultDocs, (doc) => {
         const id = doc[this.model.idKey()];
+        doc.id = id;
         const guid = toGUID(this.model.getName(), id);
         const tdoc = this.model.deserialize(doc);
         const dataResolver = new DataResolver(tdoc, (data, prop) => this.resolve(data, prop, resolver, query));

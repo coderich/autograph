@@ -28,6 +28,13 @@ exports.stripObjectNulls = obj => Object.entries(obj).reduce((prev, [key, value]
 exports.pushIt = (arr, it) => arr[arr.push(it) - 1];
 exports.toKeyObj = obj => exports.keyPaths(obj).reduce((prev, path) => Object.assign(prev, { [path]: _.get(obj, path) }), {});
 
+exports.renameObjectKey = (obj, oldKey, newKey) => {
+  if (oldKey !== newKey) {
+    Object.defineProperty(obj, newKey, Object.getOwnPropertyDescriptor(obj, oldKey));
+    delete obj[oldKey];
+  }
+};
+
 exports.getDeep = (obj, path, defaultValue) => {
   const results = [];
   const [prop, ...rest] = path.split('.');
@@ -43,6 +50,11 @@ exports.map = (mixed, fn) => {
   const arr = isArray ? mixed : [mixed];
   const results = arr.map(el => fn(el));
   return isArray ? results : results[0];
+};
+
+exports.mapPromise = (mixed, fn) => {
+  const map = exports.map(mixed, fn);
+  return Array.isArray(map) ? Promise.all(map) : Promise.resolve(map);
 };
 
 exports.castCmp = (type, value) => {

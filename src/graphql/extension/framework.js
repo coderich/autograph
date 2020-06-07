@@ -17,7 +17,7 @@ module.exports = (schema) => {
       directive @model(
         id: String # Override the ID name
         key: String # Specify it's key during transit
-        crud: String # Dictate what APIs to auto-generate
+        crud: AutoGraphMixed # Dictate what APIs to auto-generate
         meta: String # Custom input 'meta' field for mutations
         embed: Boolean # Mark this an embedded model (default false)
         persist: Boolean # Persist this model (default true)
@@ -30,7 +30,7 @@ module.exports = (schema) => {
 
       directive @field(
         key: String # Specify it's key during transit
-        crud: String # Dictate how the field can be used
+        crud: AutoGraphMixed # Dictate how the field can be used
         persist: Boolean # Persist this field (default true)
         default: AutoGraphMixed # Define a default value
 
@@ -47,7 +47,7 @@ module.exports = (schema) => {
         path: String! # The path to the data
         merge: Boolean # Should it be merged? (overwrite default)
         scope: AutoGraphValueScopeEnum # Where to look for the data (default self)
-      ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
+      ) on OBJECT | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
 
       directive @index(
         name: String

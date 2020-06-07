@@ -35,7 +35,7 @@ const sorter = (a, b) => {
 };
 
 module.exports = (driver = 'mongo', options = {}) => {
-  describe(driver, () => {
+  describe(`${driver} (${JSON.stringify(options)})`, () => {
     beforeAll(async () => {
       jest.setTimeout(60000);
 
@@ -84,14 +84,20 @@ module.exports = (driver = 'mongo', options = {}) => {
 
     describe('Create', () => {
       test('Person', async () => {
-        richard = await resolver.match('Person').save({ name: 'Richard', emailAddress: 'rich@coderich.com' });
+        richard = await resolver.match('Person').save({ name: 'Richard', status: 'alive', emailAddress: 'rich@coderich.com' });
         expect(richard.id).toBeDefined();
         expect(richard.name).toBe('Richard');
+        expect(richard.telephone).toBe('###-###-####'); // Default value
 
-        christie = await resolver.match('Person').save({ name: 'Christie', emailAddress: 'christie@gmail.com', friends: [richard.id], nonsense: 'nonsense' });
+        christie = await resolver.match('Person').save({ name: 'Christie', emailAddress: 'christie@gmail.com', friends: [richard.id], telephone: 1112223333, nonsense: 'nonsense' });
         expect(christie.id).toBeDefined();
         expect(christie.friends).toEqual([richard.id]);
         expect(christie.nonsense).not.toBeDefined();
+        expect(christie.telephone).toBe('1112223333'); // Explicitly set
+
+        // Tricky data stuff
+        expect(richard.status).toBe('alive');
+        expect(richard.state).not.toBeDefined(); // DB key should be stripped
 
         // expect(richard.network).toBe('networkId');
       });
@@ -780,6 +786,9 @@ module.exports = (driver = 'mongo', options = {}) => {
             expect(await resolver.match('Person').native({ name: 'Richard' }).count()).toBe(0);
             expect(await resolver.match('Person').native({ name: 'christie' }).count()).toBe(0);
             expect(await resolver.match('Person').native({ name: 'Christie' }).count()).toBe(1);
+            const count = await resolver.match('Person').native({ name: { $ne: 'chard' } }).count();
+            expect(count).toBeGreaterThanOrEqual(1);
+            expect(await resolver.match('Person').native({ name: { $ne: 'Christie' } }).count()).toBe(count - 1);
             expect(await resolver.match('Person').native({ email_address: 'christie@gmail.com' }).count()).toBe(1);
             break;
           }

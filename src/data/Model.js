@@ -147,12 +147,24 @@ module.exports = class extends Model {
   deserialize(data, mapper) {
     if (data == null) data = {};
 
-    return Object.entries(data).reduce((prev, [key, value]) => {
+    // You're going to get a mixed bag of DB keys and Field keys here
+    const dataWithValues = Object.entries(data).reduce((prev, [key, value]) => {
       const field = this.getField(key);
-      if (!field) return prev;
-      if (value == null) value = data[field.getKey()];
+      if (!field) return prev; // Strip completely unknown fields
+      if (value == null) value = data[field.getKey()]; // This is intended to level out what the value should be
       return Object.assign(prev, { [field]: field.transform(value, mapper) });
-    }, data); // Keep $hydrated props
+    }, data); // May have $hydrated values you want to keep
+
+    // Finally, remove unwanted database keys
+    Object.keys(dataWithValues).forEach((key) => {
+      if (key !== '_id' && !this.getFieldByName(key)) delete dataWithValues[key];
+    });
+
+    return dataWithValues;
+    // return Object.entries(dataWithValues).reduce((prev, [key, value]) => {
+    //   if (key !== '_id' && !this.getFieldByName(key)) delete prev[key];
+    //   return prev;
+    // }, dataWithValues);
   }
 
   transform(data, mapper) {

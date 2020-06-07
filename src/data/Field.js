@@ -71,7 +71,7 @@ module.exports = class extends Field {
     // const field = this.resolveField();
     // if (field !== this) return field.transform(value, mapper, serialize);
 
-    // If we're a dataRef field, need to either id(value) or delegate object to model
+    // If we're a modelRef field, need to either id(value) or delegate object to model
     if (modelRef) {
       if ((!serialize || !modelRef.isEntity()) && isPlainObject(ensureArray(value)[0])) return modelRef.transform(value, mapper); // delegate
       if (serialize) transformers.push(Transformer.serialize()); // Serializer
