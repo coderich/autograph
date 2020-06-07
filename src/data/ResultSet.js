@@ -38,19 +38,17 @@ module.exports = class {
   }
 
   getResults(resolver, query) {
-    return this.promise.then(async (docs) => {
-      const defaultDocs = await mapPromise(docs, doc => this.model.resolveDefaultValues(this.model.deserialize(doc)));
+    return this.promise.then((results) => {
+      return mapPromise(results, (result) => {
+        return Promise.resolve(this.model.resolveDefaultValues(this.model.deserialize(result))).then((doc) => {
+          const id = doc[this.model.idKey()];
+          const guid = toGUID(this.model.getName(), id);
+          const dataResolver = new DataResolver(doc, (data, prop) => this.resolve(data, prop, resolver, query));
 
-      return map(defaultDocs, (doc) => {
-        const id = doc[this.model.idKey()];
-        doc.id = id;
-        const guid = toGUID(this.model.getName(), id);
-        // const tdoc = this.model.deserialize(doc);
-        const dataResolver = new DataResolver(doc, (data, prop) => this.resolve(data, prop, resolver, query));
-
-        return Object.defineProperties(dataResolver, {
-          id: { value: id, enumerable: true, writable: true },
-          $id: { value: guid },
+          return Object.defineProperties(dataResolver, {
+            id: { value: id, enumerable: true, writable: true },
+            $id: { value: guid },
+          });
         });
       });
     });

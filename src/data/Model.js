@@ -84,27 +84,16 @@ module.exports = class extends Model {
 
   resolveDefaultValues(data) {
     data = data || {};
+    const defaultedFields = this.getDefaultedFields();
+    const fieldNames = [...new Set(Object.keys(data).concat(defaultedFields.map(field => `${field}`)))];
 
-    // Default fields
-    this.getDefaultedFields().forEach((field) => {
-      const key = field.getName();
-
-      if (!Object.prototype.hasOwnProperty.call(data, key)) {
-        const value = field.getDefaultValue();
-        data[key] = value;
-      }
-    });
-
-    // Embedded fields
-    this.getEmbeddedFields().forEach((field) => {
-      const key = field.getName();
-
-      if (Object.prototype.hasOwnProperty.call(data, key)) {
-        data[key] = field.getModelRef().resolveDefaultValues(data[key]);
-      }
-    });
-
-    return data;
+    return fieldNames.reduce((prev, fieldName) => {
+      const field = this.getFieldByName(fieldName);
+      if (fieldName !== '_id' && !field) return prev; // There can still be nonsense passed in via the DAO
+      let value = Object.prototype.hasOwnProperty.call(data, fieldName) ? data[fieldName] : field.getDefaultValue();
+      if (fieldName !== '_id' && field.isEmbedded()) value = field.getModelRef().resolveDefaultValues(value);
+      return Object.assign(prev, { [fieldName]: value });
+    }, {});
   }
 
   serialize(data, mapper) {

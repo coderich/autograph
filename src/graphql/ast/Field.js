@@ -38,8 +38,8 @@ module.exports = class Field extends Node {
     return this.getDirectiveArg('field', 'default');
   }
 
-  getResolvedValue(initialValue) {
-    if (!this.hasBoundValue()) return initialValue;
+  resolveBoundValue(initialValue) {
+    if (!this.hasBoundValue()) return Promise.resolve(initialValue);
 
     let promise;
     const context = this.schema.getContext();
@@ -56,9 +56,7 @@ module.exports = class Field extends Node {
         break;
     }
 
-    return promise.then((value) => {
-      return merge ? mergeDeep(initialValue, value) : value;
-    });
+    return promise.then(value => Promise.resolve(merge ? mergeDeep(initialValue, value) : value));
   }
 
   // Model Methods
