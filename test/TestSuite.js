@@ -749,6 +749,27 @@ module.exports = (driver = 'mongo', options = {}) => {
     });
 
 
+    describe('$hydrated results', () => {
+      test('manual', async () => {
+        const person = await resolver.match('Person').one();
+        expect(person.$authored.name).not.toBeDefined();
+
+        // Hydrate book
+        const [$book] = await person.$authored;
+        expect($book.name).toBe('Health And Wellness');
+
+        // Sanity check that you're able to await repeatedly
+        const [$book2] = await person.$authored;
+        expect($book2.name).toBe('Health And Wellness');
+      });
+
+      // test('hydrate', async () => {
+      //   const $person = await resolver.match('Person').one().hydrate();
+      //   expect($person.$authored[0].name).toBe('Health And Wellness');
+      // });
+    });
+
+
     describe('Native Queries', () => {
       test('get', async () => {
         switch (driver) {

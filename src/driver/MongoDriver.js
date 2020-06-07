@@ -1,5 +1,5 @@
 const { MongoClient, ObjectID } = require('mongodb');
-const { promiseRetry, globToRegex, proxyDeep, isScalarDataType, toKeyObj } = require('../service/app.service');
+const { promiseRetry, globToRegex, proxyDeep, isScalarDataType, toKeyObj, proxyPromise } = require('../service/app.service');
 
 module.exports = class MongoDriver {
   constructor(config, schema) {
@@ -78,15 +78,16 @@ module.exports = class MongoDriver {
   }
 
   raw(model) {
-    const promise = this.connection.then(client => client.db().collection(model));
+    return proxyPromise(this.connection.then(client => client.db().collection(model)))
+    // const promise = this.connection.then(client => client.db().collection(model));
 
-    return new Proxy(promise, {
-      get(target, prop, rec) {
-        const value = Reflect.get(target, prop, rec);
-        if (typeof value === 'function') return value.bind(target);
-        return (...args) => promise.then(db => db[prop](...args));
-      },
-    });
+    // return new Proxy(promise, {
+    //   get(target, prop, rec) {
+    //     const value = Reflect.get(target, prop, rec);
+    //     if (typeof value === 'function') return value.bind(target);
+    //     return (...args) => promise.then(db => db[prop](...args));
+    //   },
+    // });
   }
 
   dropModel(model) {

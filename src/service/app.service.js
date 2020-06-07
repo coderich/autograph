@@ -133,6 +133,16 @@ exports.promiseRetry = (fn, ms, retries = 5, cond = e => e) => {
   });
 };
 
+exports.proxyPromise = (promise) => {
+  return new Proxy(promise, {
+    get(target, prop, rec) {
+      const value = Reflect.get(target, prop, rec);
+      if (typeof value === 'function') return value.bind(target);
+      return (...args) => promise.then(result => result[prop](...args));
+    },
+  });
+};
+
 exports.proxyDeep = (obj, handler, proxyMap = new WeakMap(), path = '') => {
   obj = obj || {};
   if (proxyMap.has(obj)) return proxyMap.get(obj);
