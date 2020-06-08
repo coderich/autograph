@@ -4,6 +4,9 @@ Breaking changes:
   * alias -> key
 
 Now:
+  * Need to figure out exactly how schema is auto-generated while leaving some things untouched
+  * What if DB queried data differs from context/segmentation?
+    - Throw an error?
   * Enforce segmentation throughout (findNetwork, network field, ...)
     - But that means you can't use the resolver straight up and say where { 'network.name': 'name' }
     - See if (above) is a problem since you have .native and .raw now
