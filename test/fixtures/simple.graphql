@@ -18,7 +18,7 @@ type Book @model {
   bids: [Float]
 }
 
-type Building {
+type Building @model(embed: true) {
   name: String!
   location: LocationType
 }

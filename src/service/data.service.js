@@ -1,5 +1,4 @@
 const _ = require('lodash');
-// const Where = require('../query/Where');
 const RuleService = require('../service/rule.service');
 const { globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
 
@@ -9,8 +8,6 @@ exports.validateModelData = (model, data, oldData, op) => {
   const selfless = (f, v) => RuleService.selfless(v, oldData, op, `${f.getModel()}.${f.getName()}`);
   return model.validate(data, { required, immutable, selfless });
 };
-
-// exports.resolveModelWhereClause = (resolver, model, where) => new Where(resolver, model, where).resolve();
 
 exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', lookups2D = [], index = 0) => {
   const mName = model.getName();

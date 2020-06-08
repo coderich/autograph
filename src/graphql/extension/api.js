@@ -6,7 +6,7 @@ module.exports = (schema) => {
   const resolver = new ServerResolver();
 
   return ({
-    typeDefs: schema.getModels().map((model) => {
+    typeDefs: schema.getResolvableModels().map((model) => {
       const modelName = model.getName();
 
       return `

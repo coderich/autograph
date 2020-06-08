@@ -24,6 +24,7 @@ exports.toGUID = (model, id) => Buffer.from(`${model},${`${id}`}`).toString('bas
 exports.fromGUID = guid => Buffer.from(`${guid}`, 'base64').toString('ascii').split(',');
 exports.ensureArray = a => (Array.isArray(a) ? a : [a]);
 exports.uvl = (...values) => values.reduce((prev, value) => (prev === undefined ? value : prev), undefined);
+exports.nvl = (...values) => values.reduce((prev, value) => (prev === null ? value : prev), null);
 exports.stripObjectNulls = obj => Object.entries(obj).reduce((prev, [key, value]) => (value == null ? prev : Object.assign(prev, { [key]: value })), {});
 exports.pushIt = (arr, it) => arr[arr.push(it) - 1];
 exports.toKeyObj = obj => exports.keyPaths(obj).reduce((prev, path) => Object.assign(prev, { [path]: _.get(obj, path) }), {});

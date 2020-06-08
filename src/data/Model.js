@@ -91,7 +91,6 @@ module.exports = class extends Model {
       const field = this.getFieldByName(fieldName);
       if (fieldName !== '_id' && !field) return prev; // There can still be nonsense passed in via the DAO
       let value = data[fieldName];
-      // if (fieldName !== '_id' && field.isValueBound()) value = await field.resolveBoundValue(value);
       if (value === undefined) value = field.getDefaultValue();
       if (fieldName !== '_id' && field.isEmbedded()) value = field.getModelRef().getDefaultValues(value);
       return Object.assign(prev, { [fieldName]: value });
@@ -99,18 +98,27 @@ module.exports = class extends Model {
   }
 
   resolveDefaultValues(data) {
-    return this.getDefaultValues(data);
+    const boundFields = this.getBoundValueFields();
+    const defaultedData = this.getDefaultValues(data);
+
+    return Promise.all(boundFields.map((boundField) => {
+      return boundField.resolveBoundValue(defaultedData[boundField]);
+    })).then((values) => {
+      values.forEach((value, i) => { defaultedData[boundFields[i]] = value; }); // Assign new value
+      return defaultedData;
+    });
   }
 
   serialize(data, mapper) {
     if (data == null) data = {};
 
     return Object.entries(data).reduce((prev, [key, value]) => {
-      const field = this.getField(key);
-      if (!field) return prev;
-      if (!field.isPersistable()) return prev;
+      const field = this.getFieldByName(key) || this.getFieldByKey(key);
+      if (!field || !field.isPersistable()) return prev;
       if (value === undefined) value = data[field.getKey()];
-      return Object.assign(prev, { [field.getKey()]: field.serialize(value, mapper) });
+      value = field.serialize(value, mapper);
+      if (field.isEmbedded()) value = field.getModelRef().serialize(value, mapper);
+      return Object.assign(prev, { [field.getKey()]: value });
     }, {}); // Strip away all props not in schema
   }
 
@@ -119,10 +127,12 @@ module.exports = class extends Model {
 
     // You're going to get a mixed bag of DB keys and Field keys here
     const dataWithValues = Object.entries(data).reduce((prev, [key, value]) => {
-      const field = this.getField(key);
+      const field = this.getFieldByKey(key) || this.getFieldByName(key);
       if (!field) return prev; // Strip completely unknown fields
       if (value == null) value = data[field.getKey()]; // This is intended to level out what the value should be
-      return Object.assign(prev, { [field]: field.transform(value, mapper) });
+      value = field.transform(value, mapper);
+      if (field.isEmbedded()) value = field.getModelRef().deserialize(value, mapper);
+      return Object.assign(prev, { [field]: value });
     }, data); // May have $hydrated values you want to keep
 
     // Finally, remove unwanted database keys

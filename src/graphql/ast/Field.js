@@ -1,7 +1,7 @@
 const { get } = require('lodash');
 const Node = require('./Node');
 const Type = require('./Type');
-const { mergeDeep } = require('../../service/graphql.service');
+const { mergeDeep } = require('../../service/app.service');
 
 module.exports = class Field extends Node {
   constructor(model, ast) {

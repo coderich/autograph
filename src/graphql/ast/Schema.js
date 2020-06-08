@@ -84,6 +84,10 @@ module.exports = class Schema extends Node {
     return this.getModels().filter(model => model.isEntity());
   }
 
+  getResolvableModels() {
+    return this.getModels().filter(model => model.isResolvable());
+  }
+
   getCreateModels() {
     return this.getEntityModels().filter(model => model.isCreatable());
   }

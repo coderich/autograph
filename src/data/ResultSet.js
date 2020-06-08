@@ -1,5 +1,5 @@
 const DataResolver = require('./DataResolver');
-const { keyPaths, map, mapPromise, lcFirst, ensureArray, toGUID } = require('../service/app.service');
+const { keyPaths, mapPromise, lcFirst, ensureArray, toGUID } = require('../service/app.service');
 
 const assignValue = (doc, prop, value) => {
   return Promise.resolve(value).then(($value) => {

@@ -21,8 +21,9 @@ module.exports = {
       emailAddress: String! @field(key: "email_address", enforce: email)
       friends: [Person] @field(transform: dedupe, enforce: selfless, onDelete: cascade)
       status: String @field(key: "state")
+      # state: String @field(key: "address_state")
       telephone: String @field(default: "###-###-####")
-      # network: String @value(scope: context, path: "network.id")
+      network: String @value(scope: context, path: "network.id")
     }
 
     type Book
@@ -87,8 +88,9 @@ module.exports = {
     }
 
     type Building
+      @model(embed: true)
     {
-      year: Int
+      year: Int # @field(key: "year_built")
       type: String! @field(enforce: buildingType)
       tenants: [Person] @field(enforce: distinct, onDelete: cascade)
       landlord: Person @field(onDelete: nullify)

@@ -18,7 +18,7 @@ type Person @model {
   status: Mixed
 }
 
-type Book {
+type Book @model {
   name: String!
   price: Float!
   author: Person!

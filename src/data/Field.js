@@ -63,13 +63,10 @@ module.exports = class extends Field {
     return this.transform(value, mapper, true);
   }
 
-  transform(value, mapper = {}, serialize) {
+  transform(value, mapper, serialize) {
+    mapper = mapper || {};
     const modelRef = this.getModelRef();
     const transformers = [...this.getTransformers()];
-
-    // // Delegate transformations to the actual field responsible
-    // const field = this.resolveField();
-    // if (field !== this) return field.transform(value, mapper, serialize);
 
     // If we're a modelRef field, need to either id(value) or delegate object to model
     if (modelRef) {
@@ -85,13 +82,10 @@ module.exports = class extends Field {
     }, this.cast(value));
   }
 
-  validate(value, mapper = {}) {
+  validate(value, mapper) {
+    mapper = mapper || {};
     const modelRef = this.getModelRef();
     const rules = [...this.getRules()];
-
-    // // Delegate transformations to the actual field responsible
-    // const field = this.resolveField();
-    // if (field !== this) return field.validate(value, mapper);
 
     if (modelRef) {
       if (isPlainObject(ensureArray(value)[0])) return modelRef.validate(value, mapper); // Model delegation

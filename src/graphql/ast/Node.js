@@ -1,6 +1,6 @@
 const { get } = require('lodash');
 const { Kind } = require('graphql');
-const { uvl } = require('../../service/app.service');
+const { uvl, nvl } = require('../../service/app.service');
 const { mergeAST } = require('../../service/graphql.service');
 
 const operations = ['Query', 'Mutation', 'Subscription'];
@@ -123,12 +123,16 @@ module.exports = class Node {
   }
 
   getCrud() {
-    return uvl(this.getDirectiveArg('field', 'crud'), this.getDirectiveArg('model', 'crud'), 'crud');
+    return nvl(uvl(this.getDirectiveArg('field', 'crud'), this.getDirectiveArg('model', 'crud'), 'crud'), '');
   }
 
   // Booleans
   isEntity() {
     return Boolean(this.getDirective('model')) && !this.isEmbedded();
+  }
+
+  isResolvable() {
+    return Boolean(this.getDirective('model') && this.getCrud().length);
   }
 
   isVirtual() {

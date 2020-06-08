@@ -22,7 +22,7 @@ const typeDefs = `
     status: Mixed
   }
 
-  type Book {
+  type Book @model {
     name: String!
     price: Float!
     author: Person!
@@ -38,7 +38,7 @@ const resolvers = {
 };
 
 const extendDef = `
-  type Building {
+  type Building @model {
     year: Int
     type: String! @field(enforce: buildingType)
     tenants: [Person] @field(enforce: distinct, onDelete: cascade)

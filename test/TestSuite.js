@@ -84,12 +84,12 @@ module.exports = (driver = 'mongo', options = {}) => {
 
     describe('Create', () => {
       test('Person', async () => {
-        richard = await resolver.match('Person').save({ name: 'Richard', status: 'alive', emailAddress: 'rich@coderich.com' });
+        richard = await resolver.match('Person').save({ name: 'Richard', status: 'alive', state: 'NJ', emailAddress: 'rich@coderich.com', network: 'network' });
         expect(richard.id).toBeDefined();
         expect(richard.name).toBe('Richard');
         expect(richard.telephone).toBe('###-###-####'); // Default value
 
-        christie = await resolver.match('Person').save({ name: 'Christie', emailAddress: 'christie@gmail.com', friends: [richard.id], telephone: 1112223333, nonsense: 'nonsense' });
+        christie = await resolver.match('Person').save({ name: 'Christie', emailAddress: 'christie@gmail.com', friends: [richard.id], telephone: 1112223333, network: 'network', nonsense: 'nonsense' });
         expect(christie.id).toBeDefined();
         expect(christie.friends).toEqual([richard.id]);
         expect(christie.nonsense).not.toBeDefined();
@@ -98,7 +98,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         // Tricky data stuff
         expect(richard.status).toBe('alive');
         expect(richard.state).not.toBeDefined(); // DB key should be stripped
-        // expect(richard.network).toBe('networkId');
+        expect(richard.network).toBe('networkId');
       });
 
       test('Book', async () => {
@@ -175,8 +175,8 @@ module.exports = (driver = 'mongo', options = {}) => {
 
     describe('Get', () => {
       test('Person', async () => {
-        expect(await resolver.match('Person').id(richard.id).one()).toMatchObject({ id: richard.id, name: richard.name });
-        expect(await resolver.match('Person').id(christie.id).one()).toMatchObject({ id: christie.id, name: christie.name, friends: [richard.id] });
+        expect(await resolver.match('Person').id(richard.id).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
+        expect(await resolver.match('Person').id(christie.id).one()).toMatchObject({ id: christie.id, name: christie.name, friends: [richard.id], network: 'networkId' });
       });
 
       test('Book', async () => {

@@ -59,7 +59,11 @@ module.exports = class Model extends Node {
   }
 
   getDefaultedFields() {
-    return this.getFields().filter(field => field.isDefaulted() || field.hasBoundValue());
+    return this.getFields().filter(field => field.isDefaulted());
+  }
+
+  getBoundValueFields() {
+    return this.getFields().filter(field => field.hasBoundValue());
   }
 
   getDataRefFields() {
