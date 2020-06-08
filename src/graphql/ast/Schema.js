@@ -48,7 +48,7 @@ module.exports = class Schema extends Node {
 
     const ast = Object.assign({}, this.ast, { definitions });
     const schema = Object.assign({}, this.schema, { typeDefs: ast });
-    validateSchema(schema);
+    // validateSchema(schema);
     return schema;
   }
 

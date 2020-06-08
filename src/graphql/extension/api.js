@@ -15,13 +15,13 @@ module.exports = (schema) => {
           model: ${modelName}!
         }
 
-        input ${modelName}InputCreate {
+        ${!model.isCreatable() && model.getName() !== 'ActionLink' ? '' : `input ${modelName}InputCreate {
           ${model.getCreateFields().map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
-        }
+        }`}
 
-        input ${modelName}InputUpdate {
+        ${!model.isUpdatable() && model.getName() !== 'ActionLink' ? '' : `input ${modelName}InputUpdate {
           ${model.getUpdateFields().map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
-        }
+        }`}
 
         input ${modelName}InputWhere {
           ${model.getWhereFields().map(field => `${field.getName()}: ${field.getDataRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'String'}`)}
