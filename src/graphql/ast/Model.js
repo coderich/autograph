@@ -1,9 +1,11 @@
 const Node = require('./Node');
 const Field = require('./Field');
+const { uvl, nvl } = require('../../service/app.service');
 
 module.exports = class Model extends Node {
   constructor(schema, ast) {
     super(ast);
+    this.nodeType = 'model';
     this.schema = schema;
     this.fields = this.ast.fields.map(f => new Field(this, f));
   }

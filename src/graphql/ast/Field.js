@@ -1,12 +1,13 @@
 const { get } = require('lodash');
 const Node = require('./Node');
 const Type = require('./Type');
-const { mergeDeep } = require('../../service/app.service');
+const { nvl, uvl, mergeDeep } = require('../../service/app.service');
 
 module.exports = class Field extends Node {
   constructor(model, ast) {
     super(ast);
     this.model = model;
+    this.nodeType = 'field';
     this.schema = model.getSchema();
     this.type = new Type(this.ast);
     this.isArray = this.type.isArray.bind(this.type);

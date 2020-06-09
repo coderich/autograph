@@ -55,6 +55,10 @@ module.exports = class {
   }
 
   resolve(doc, prop, resolver, query) {
+    if (this.model === 'Building') {
+      console.log('resolve', prop);
+    }
+
     // Value check
     const value = doc[prop];
     if (value !== undefined) return value; // Already resolved

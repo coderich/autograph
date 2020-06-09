@@ -1,6 +1,6 @@
 const { get } = require('lodash');
 const { Kind } = require('graphql');
-const { uvl, nvl } = require('../../service/app.service');
+const { nvl, uvl } = require('../../service/app.service');
 const { mergeAST } = require('../../service/graphql.service');
 
 const operations = ['Query', 'Mutation', 'Subscription'];
@@ -123,16 +123,23 @@ module.exports = class Node {
   }
 
   getCrud() {
-    return nvl(uvl(this.getDirectiveArg('field', 'crud'), this.getDirectiveArg('model', 'crud'), 'crud'), '');
+    switch (this.nodeType) {
+      case 'model': {
+        if (!this.getDirective('model')) return '';
+        return nvl(uvl(this.getDirectiveArg('model', 'crud'), 'crud'), '');
+      }
+      case 'field': {
+        const modelRef = this.getModelRef();
+        if (modelRef) return modelRef.getCrud();
+        return nvl(uvl(this.getDirectiveArg('field', 'crud'), 'crud'), '');
+      }
+      default: return '';
+    }
   }
 
   // Booleans
   isEntity() {
     return Boolean(this.getDirective('model')) && !this.isEmbedded();
-  }
-
-  isResolvable() {
-    return Boolean(this.getDirective('model') && this.getCrud().length);
   }
 
   isVirtual() {
@@ -165,19 +172,39 @@ module.exports = class Node {
 
   // API
   isCreatable() {
-    return Boolean(this.getCrud().toLowerCase().indexOf('c') > -1);
+    switch (this.nodeType) {
+      case 'model': return Boolean(this.getCrud().toLowerCase().indexOf('c') > -1 && this.getCreateFields().length);
+      case 'field': return Boolean(this.getCrud().toLowerCase().indexOf('c') > -1);
+      default: return false;
+    }
   }
 
   isReadable() {
-    return Boolean(this.getCrud().toLowerCase().indexOf('r') > -1);
+    switch (this.nodeType) {
+      case 'model': return Boolean(this.getCrud().toLowerCase().indexOf('r') > -1 && this.getSelectFields().length);
+      case 'field': return Boolean(this.getCrud().toLowerCase().indexOf('r') > -1);
+      default: return false;
+    }
   }
 
   isUpdatable() {
-    return Boolean(this.getCrud().toLowerCase().indexOf('u') > -1);
+    switch (this.nodeType) {
+      case 'model': return Boolean(this.getCrud().toLowerCase().indexOf('u') > -1 && this.getUpdateFields().length);
+      case 'field': return Boolean(this.getCrud().toLowerCase().indexOf('u') > -1);
+      default: return false;
+    }
   }
 
   isDeletable() {
-    return Boolean(this.getCrud().toLowerCase().indexOf('d') > -1);
+    switch (this.nodeType) {
+      case 'model': return Boolean(this.getCrud().toLowerCase().indexOf('d') > -1);
+      case 'field': return Boolean(this.getCrud().toLowerCase().indexOf('d') > -1);
+      default: return false;
+    }
+  }
+
+  isResolvable() {
+    return Boolean(this.getCrud().length);
   }
 
   // Storage
