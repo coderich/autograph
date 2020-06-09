@@ -5,6 +5,8 @@ const Model = require('../graphql/ast/Model');
 const { ensureArray } = require('../service/app.service');
 
 const assignValue = (doc, prop, value) => {
+  if (value == null) return null; // Do not hold on to DataResolver
+
   return Promise.resolve(value).then(($value) => {
     Object.defineProperty(doc, prop, { value: $value });
     return $value;
@@ -200,7 +202,7 @@ module.exports = class extends Model {
     // Set $value to the original unhydrated value
     const $value = doc[$prop];
     if (field.isScalar()) return assignValue(doc, prop, $value); // No hydration needed; apply $value
-    if (field.isEmbedded()) return assignValue(doc, prop, new DataResolver($value, (d, p) => field.getModelRef().resolve(d, p, resolver, query))); // No hydration needed; apply $value
+    if (field.isEmbedded()) return value ? assignValue(doc, prop, new DataResolver($value, (d, p) => field.getModelRef().resolve(d, p, resolver, query))) : value; // No hydration needed; apply $value
 
     // Model resolver
     const fieldModel = field.getModelRef();

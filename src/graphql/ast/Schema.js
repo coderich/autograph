@@ -81,12 +81,16 @@ module.exports = class Schema extends Node {
     return this.enums;
   }
 
+  getMarkedModels() {
+    return this.getModels().filter(model => model.isMarkedModel());
+  }
+
   getEntityModels() {
     return this.getModels().filter(model => model.isEntity());
   }
 
   getResolvableModels() {
-    return this.getModels().filter(model => model.isResolvable());
+    return this.getModels().filter(model => model.isMarkedModel() && model.isResolvable());
   }
 
   getCreateModels() {

@@ -138,8 +138,12 @@ module.exports = class Node {
   }
 
   // Booleans
+  isMarkedModel() {
+    return Boolean(this.getDirective('model'));
+  }
+
   isEntity() {
-    return Boolean(this.getDirective('model')) && !this.isEmbedded();
+    return Boolean(this.isMarkedModel() && !this.isEmbedded());
   }
 
   isVirtual() {
@@ -204,7 +208,7 @@ module.exports = class Node {
   }
 
   isResolvable() {
-    return Boolean(this.getCrud().length);
+    return this.isScalar() || Boolean(this.getCrud().length);
   }
 
   // Storage

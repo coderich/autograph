@@ -6,7 +6,7 @@ module.exports = (schema) => {
   const resolver = new ServerResolver();
 
   return ({
-    typeDefs: schema.getResolvableModels().map((model) => {
+    typeDefs: schema.getMarkedModels().map((model) => {
       const modelName = model.getName();
 
       return `
@@ -15,13 +15,13 @@ module.exports = (schema) => {
           model: ${modelName}!
         }
 
-        ${!model.isCreatable() ? '' : `input ${modelName}InputCreate {
+        input ${modelName}InputCreate {
           ${model.getCreateFields().map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
-        }`}
+        }
 
-        ${!model.isUpdatable() ? '' : `input ${modelName}InputUpdate {
+        input ${modelName}InputUpdate {
           ${model.getUpdateFields().map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
-        }`}
+        }
 
         input ${modelName}InputWhere {
           ${model.getWhereFields().map(field => `${field.getName()}: ${field.getDataRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'String'}`)}
