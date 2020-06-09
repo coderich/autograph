@@ -174,8 +174,15 @@ module.exports = class extends Model {
 
   resolve(doc, prop, resolver, query) {
     // Value check
+    const f = this.getFieldByName(prop);
     const value = doc[prop];
-    if (value !== undefined) return value; // Already resolved
+
+    // Check if already resolved
+    if (value !== undefined) {
+      if (f && f.isEmbedded()) return new DataResolver(value, (d, p) => f.getModelRef().resolve(d, p, resolver, query));
+      return value;
+    }
+
     if (typeof prop === 'symbol') return value;
 
     // // Count resolver
