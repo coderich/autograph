@@ -15,9 +15,9 @@ const validate = (schema) => {
   expect(personFields.map(f => f.getType())).toEqual(['String', 'Book', 'String', 'Mixed', 'Int']);
   expect(personFields.map(f => f.isArray())).toEqual([false, true, false, false, false]);
   expect(personFields.map(f => f.isScalar())).toEqual([true, false, true, true, true]);
-  expect(personFields.map(f => f.isRequired())).toEqual([true, false, true, false, false]);
+  expect(personFields.map(f => f.isRequired())).toEqual([false, false, true, false, false]);
   expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toUpperCase']);
-  expect(Person.getRequiredFields().map(f => `${f}`)).toEqual(['name', 'emailAddress']);
+  expect(Person.getRequiredFields().map(f => `${f}`)).toEqual(['emailAddress']);
   expect(bookFields.map(f => f.getName())).toEqual(['name', 'price', 'author', 'bestSeller', 'bids']);
   expect(bookFields.map(f => f.getType())).toEqual(['String', 'Float', 'Person', 'Boolean', 'Float']);
   expect(bookFields.map(f => f.isArray())).toEqual([false, false, false, false, true]);

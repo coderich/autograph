@@ -1,7 +1,7 @@
 const { get } = require('lodash');
 const Node = require('./Node');
 const Type = require('./Type');
-const { nvl, uvl, mergeDeep } = require('../../service/app.service');
+const { mergeDeep } = require('../../service/app.service');
 
 module.exports = class Field extends Node {
   constructor(model, ast) {
@@ -94,7 +94,7 @@ module.exports = class Field extends Node {
   }
 
   isRequired() {
-    return Boolean(this.type.isRequired() && !this.hasBoundValue());
+    return Boolean(this.type.isRequired() && this.isCreatable() && !this.isDefaulted());
   }
 
   // GQL Schema Methods
