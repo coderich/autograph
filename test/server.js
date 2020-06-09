@@ -17,11 +17,13 @@ class Server {
     this.server = new ApolloServer({
       schema: executableSchema,
       context: () => ({
-        autograph: {
-          schema,
-          permissions: ['**'],
-          legacyMode: true,
-          resolver: new Resolver(schema),
+        get autograph() {
+          return {
+            schema: schema.setContext(this),
+            permissions: ['**'],
+            legacyMode: true,
+            resolver: new Resolver(schema),
+          };
         },
       }),
     });

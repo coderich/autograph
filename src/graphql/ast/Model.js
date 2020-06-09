@@ -83,7 +83,7 @@ module.exports = class Model extends Node {
   }
 
   getSelectFields() {
-    return this.getFields().filter(field => field.isReadable() && field.getName() !== 'id');
+    return this.getFields().filter(field => field.isReadable());
   }
 
   getWhereFields() {

@@ -15,13 +15,13 @@ module.exports = (schema) => {
           model: ${modelName}!
         }
 
-        input ${modelName}InputCreate {
+        ${!model.isCreatable() ? '' : `input ${modelName}InputCreate {
           ${model.getCreateFields().map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
-        }
+        }`}
 
-        input ${modelName}InputUpdate {
+        ${!model.isUpdatable() ? '' : `input ${modelName}InputUpdate {
           ${model.getUpdateFields().map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
-        }
+        }`}
 
         input ${modelName}InputWhere {
           ${model.getWhereFields().map(field => `${field.getName()}: ${field.getDataRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'String'}`)}
@@ -92,17 +92,15 @@ module.exports = (schema) => {
         ${schema.getChangeModels().map(model => `${model.getName()}Changed(query: ${ucFirst(model.getName())}InputQuery): [${model.getName()}Subscription]!`)}
       }`,
     ]),
-    resolvers: schema.getEntityModels().reduce((prev, model) => {
+    resolvers: schema.getResolvableModels().reduce((prev, model) => {
       const modelName = model.getName();
 
       return Object.assign(prev, {
         [modelName]: model.getSelectFields().reduce((def, field) => {
           const fieldName = field.getName();
+          if (fieldName === 'id') return Object.assign(def, { id: (root, args, { autograph }) => (autograph.legacyMode ? root.id : root.$id) });
           return Object.assign(def, { [fieldName]: root => root[`$${fieldName}`] });
-        }, {
-          id: (root, args, { autograph }) => (autograph.legacyMode ? root.id : root.$id),
-          // countSelf: (root, args, context, info) => resolver.count(context, model, args, info),
-        }),
+        }, {}),
       });
     }, {
       Node: {

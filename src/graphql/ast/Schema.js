@@ -14,11 +14,12 @@ module.exports = class Schema extends Node {
     // Ensure schema
     schema.resolvers = schema.resolvers || {};
     schema.schemaDirectives = schema.schemaDirectives || {};
+    schema.context = schema.context || {};
 
     //
     super(schema.typeDefs);
     this.schema = schema;
-    this.context = {};
+    this.serverContext = {};
     this.initialize();
   }
 
@@ -117,11 +118,11 @@ module.exports = class Schema extends Node {
   }
 
   getContext() {
-    return this.context;
+    return { ...this.schema.context, ...this.serverContext };
   }
 
   setContext(context = {}) {
-    this.context = context;
+    this.serverContext = context;
     return this;
   }
 
