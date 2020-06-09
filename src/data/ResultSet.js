@@ -1,13 +1,6 @@
 const DataResolver = require('./DataResolver');
 const { keyPaths, mapPromise, lcFirst, ensureArray, toGUID } = require('../service/app.service');
 
-const assignValue = (doc, prop, value) => {
-  return Promise.resolve(value).then(($value) => {
-    Object.defineProperty(doc, prop, { value: $value });
-    return $value;
-  });
-};
-
 module.exports = class {
   constructor(model, promise) {
     this.model = model;
@@ -43,7 +36,7 @@ module.exports = class {
         return Promise.resolve(this.model.resolveDefaultValues(this.model.deserialize(result))).then((doc) => {
           const { id } = doc;
           const guid = toGUID(this.model.getName(), id);
-          const dataResolver = new DataResolver(doc, (data, prop) => this.resolve(data, prop, resolver, query));
+          const dataResolver = new DataResolver(doc, (data, prop) => this.model.resolve(data, prop, resolver, query));
 
           return Object.defineProperties(dataResolver, {
             id: { value: id, enumerable: true, writable: true },
@@ -52,52 +45,6 @@ module.exports = class {
         });
       });
     });
-  }
-
-  resolve(doc, prop, resolver, query) {
-    if (this.model === 'Building') {
-      console.log('resolve', prop);
-    }
-
-    // Value check
-    const value = doc[prop];
-    if (value !== undefined) return value; // Already resolved
-    if (typeof prop === 'symbol') return value;
-
-    // // Count resolver
-    // const countField = this.getCountField(prop);
-    // if (countField) return assignValue(doc, prop, countField.count(resolver, doc));
-
-    // Hydration check
-    const [, $prop] = prop.split('$');
-    if (!$prop) return value; // Nothing to hydrate
-
-    // Field check
-    const field = this.model.getField($prop);
-    if (!field) return value; // Unknown field
-
-    // Set $value to the original unhydrated value
-    const $value = doc[$prop];
-    if (field.isScalar() || field.isEmbedded()) return assignValue(doc, prop, $value); // No hydration needed; apply $value
-
-    // Model resolver
-    const fieldModel = field.getModelRef();
-
-    if (field.isArray()) {
-      if (field.isVirtual()) {
-        const where = { [field.getVirtualField().getKey()]: doc.id };
-        return assignValue(doc, prop, resolver.match(fieldModel).query({ where }).many({ find: true }));
-      }
-
-      return assignValue(doc, prop, Promise.all(ensureArray($value).map(id => resolver.match(fieldModel).id(id).one({ required: field.isRequired() }))));
-    }
-
-    if (field.isVirtual()) {
-      const where = { [field.getVirtualField().getKey()]: doc.id };
-      return assignValue(doc, prop, resolver.match(fieldModel).query({ where }).one({ find: true }));
-    }
-
-    return assignValue(doc, prop, resolver.match(fieldModel).id($value).one({ required: field.isRequired() }));
   }
 
   getCountField(prop) {

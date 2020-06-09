@@ -97,8 +97,10 @@ module.exports = (driver = 'mongo', options = {}) => {
 
         // Tricky data stuff
         expect(richard.status).toBe('alive');
+        expect(await richard.$status).toBe('alive');
         expect(richard.state).not.toBeDefined(); // DB key should be stripped
         expect(richard.network).toBe('networkId');
+        expect(await richard.$network).toBe('networkId');
       });
 
       test('Book', async () => {
@@ -154,6 +156,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(bookstore2.books.length).toEqual(1);
         expect(bookstore2.building.type).toEqual('business');
         expect(bookstore2.building.description).toEqual('A building');
+        expect(await bookstore2.building.$description).toEqual('A building');
         expect(bookBuilding.description).not.toBeDefined();
       });
 
