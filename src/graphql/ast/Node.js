@@ -122,38 +122,7 @@ module.exports = class Node {
     return this.getDirectiveArg('model', 'meta', 'AutoGraphMixed');
   }
 
-  getCrud() {
-    switch (this.nodeType) {
-      case 'model': {
-        if (!this.getDirective('model')) return '';
-        return nvl(uvl(this.getDirectiveArg('model', 'crud'), 'crud'), '');
-      }
-      case 'field': {
-        const modelRef = this.getModelRef();
-        if (modelRef) return modelRef.getCrud();
-        return nvl(uvl(this.getDirectiveArg('field', 'crud'), 'crud'), '');
-      }
-      default: return '';
-    }
-  }
-
   // Booleans
-  isMarkedModel() {
-    return Boolean(this.getDirective('model'));
-  }
-
-  isEntity() {
-    return Boolean(this.isMarkedModel() && !this.isEmbedded());
-  }
-
-  isVirtual() {
-    return Boolean(this.getDirectiveArg('field', 'materializeBy'));
-  }
-
-  isEmbedded() {
-    return Boolean(this.getDirectiveArg('model', 'embed'));
-  }
-
   isModel() {
     return Boolean(modelKinds.some(k => this.getKind() === k) && operations.every(o => this.getName() !== o));
   }
@@ -170,54 +139,192 @@ module.exports = class Node {
     return Boolean(enumKinds.some(k => this.getKind() === k));
   }
 
+  isBasicType() {
+    return this.isScalar() || this.isEnum();
+  }
+
+  /**
+   * Is the field virtual; does it's value come from another model
+   */
+  isVirtual() {
+    return Boolean(this.getDirectiveArg('field', 'materializeBy'));
+  }
+
+  /**
+   * Does the model/field have a bound @value directive
+   */
   hasBoundValue() {
     return Boolean(this.getDirective('value'));
   }
 
-  // API
-  isCreatable() {
-    switch (this.nodeType) {
-      case 'model': return Boolean(this.getCrud().toLowerCase().indexOf('c') > -1 && this.getCreateFields().length);
-      case 'field': return Boolean(this.getCrud().toLowerCase().indexOf('c') > -1);
-      default: return false;
-    }
+  /**
+   * Is a model annotated with @model
+   */
+  isMarkedModel() {
+    return Boolean(this.getDirective('model'));
   }
 
-  isReadable() {
-    switch (this.nodeType) {
-      case 'model': return Boolean(this.getCrud().toLowerCase().indexOf('r') > -1 && this.getSelectFields().length);
-      case 'field': return Boolean(this.getCrud().toLowerCase().indexOf('r') > -1);
-      default: return false;
-    }
+  /**
+   * Is the model ready, willing, and able to communicate with external data
+   */
+  isEntity() {
+    return Boolean(this.getDAL() !== '' && !this.isEmbedded());
   }
 
-  isUpdatable() {
-    switch (this.nodeType) {
-      case 'model': return Boolean(this.getCrud().toLowerCase().indexOf('u') > -1 && this.getUpdateFields().length);
-      case 'field': return Boolean(this.getCrud().toLowerCase().indexOf('u') > -1);
-      default: return false;
-    }
-  }
-
-  isDeletable() {
-    switch (this.nodeType) {
-      case 'model': return Boolean(this.getCrud().toLowerCase().indexOf('d') > -1);
-      case 'field': return Boolean(this.getCrud().toLowerCase().indexOf('d') > -1);
-      default: return false;
-    }
-  }
-
-  isResolvable() {
-    return this.isScalar() || Boolean(this.getCrud().length);
-  }
-
-  // Storage
+  /**
+   * Can this be persisted to the db
+   */
   isPersistable() {
     return uvl(this.getDirectiveArg('field', 'persist'), this.getDirectiveArg('model', 'persist'), true);
   }
 
+  /**
+   * Can this be fully resolved
+   */
+  isResolvable() {
+    if (this.isBasicType()) return true;
+
+    switch (this.nodeType) {
+      case 'model': return this.getFields().every(field => field.isResolvable());
+      case 'field': return this.isEmbedded() ? this.getModelRef().isResolvable() : this.getModelRef().isEntity();
+      default: return false;
+    }
+  }
+
+  /**
+   * Is this embedded in another document
+   */
+  isEmbedded() {
+    switch (this.nodeType) {
+      case 'model': return Boolean(this.getDirectiveArg('model', 'embed'));
+      case 'field': {
+        const model = this.getModelRef();
+        return Boolean(model && !model.isEntity());
+      }
+      default: return false;
+    }
+  }
+
+  /**
+   * Can the field be changed after it's set
+   */
   isImmutable() {
     const enforce = this.getDirectiveArg('field', 'enforce', '');
     return Boolean(JSON.stringify(enforce).indexOf('immutable') > -1);
+  }
+
+  /**
+   * Define it's behavior at the Data Access Layer
+   *
+   * Model + Field:
+   *  C: Can be created (Resolver should throw. NOT the same meaning as persisted)
+   *  R: Can be read (if not must be stripped out)
+   *  U: Can be updated (if not must be stripped out)
+   *  D: Can be deleted (if not must be stripped out)
+   */
+  getDAL() {
+    switch (this.nodeType) {
+      case 'model': {
+        if (!this.isMarkedModel()) return '';
+        return nvl(uvl(this.getDirectiveArg('model', 'dal'), 'crud'), '');
+      }
+      case 'field': return nvl(uvl(this.getDirectiveArg('field', 'dal'), 'crud'), '');
+      default: return '';
+    }
+  }
+
+  /**
+   * Define it's behavior in the GraphQL API
+   *
+   * Model:
+   *  C: Generate createModel Mutation
+   *  R: Generate get|find|count Queries
+   *  U: Generate updateModel Mutation
+   *  D: Generate deleteModel Mutation
+   * Field:
+   *  C: Include this field in InputCreate
+   *  R: Include my value in the results (strip it out beforehand)
+   *  U: Include this field in InputUpdate
+   *  D: Allow the API to delete (null out)
+   */
+  getGQL() {
+    switch (this.nodeType) {
+      case 'model': {
+        if (!this.isMarkedModel()) return '';
+        return nvl(uvl(this.getDirectiveArg('model', 'gql'), 'crud'), '');
+      }
+      case 'field': return nvl(uvl(this.getDirectiveArg('field', 'gql'), 'crud'), '');
+      default: return '';
+    }
+  }
+
+  // Create
+  isCreatable() {
+    return Boolean(this.getDAL().toLowerCase().indexOf('c') > -1);
+  }
+
+  isGQLCreatable() {
+    if (!this.isCreatable()) return false;
+
+    switch (this.nodeType) {
+      case 'model': return Boolean(this.getGQL().toLowerCase().indexOf('c') > -1 && this.getCreateFields().length);
+      case 'field': return Boolean(this.getGQL().toLowerCase().indexOf('c') > -1);
+      default: return false;
+    }
+  }
+
+  // Read
+  isReadable() {
+    return Boolean(this.getDAL().toLowerCase().indexOf('r') > -1);
+  }
+
+  isGQLReadable() {
+    if (!this.isReadable()) return false;
+
+    switch (this.nodeType) {
+      case 'model': return Boolean(this.getGQL().toLowerCase().indexOf('r') > -1 && this.getSelectFields().length);
+      case 'field': return Boolean(this.getGQL().toLowerCase().indexOf('r') > -1);
+      default: return false;
+    }
+  }
+
+  // Update
+  isUpdatable() {
+    return Boolean(this.getDAL().toLowerCase().indexOf('u') > -1);
+  }
+
+  isGQLUpdatable() {
+    if (!this.isUpdatable()) return false;
+
+    switch (this.nodeType) {
+      case 'model': return Boolean(this.getGQL().toLowerCase().indexOf('u') > -1 && this.getUpdateFields().length);
+      case 'field': return Boolean(this.getGQL().toLowerCase().indexOf('u') > -1);
+      default: return false;
+    }
+  }
+
+  // Delete
+  isDeletable() {
+    return Boolean(this.getDAL().toLowerCase().indexOf('d') > -1);
+  }
+
+  isGQLDeletable() {
+    if (!this.isDeletable()) return false;
+
+    switch (this.nodeType) {
+      case 'model': return Boolean(this.getGQL().toLowerCase().indexOf('d') > -1);
+      case 'field': return Boolean(this.getGQL().toLowerCase().indexOf('d') > -1);
+      default: return false;
+    }
+  }
+
+  // Subscribe
+  isSubscribable() {
+    return Boolean(this.isCreatable() || this.isUpdatable() || this.isDeletable());
+  }
+
+  isGQLSubscribable() {
+    if (!this.isSubscribable()) return false;
+    return Boolean(this.isGQLCreatable() || this.isGQLUpdatable() || this.isGQLDeletable());
   }
 };

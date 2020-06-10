@@ -1,7 +1,8 @@
 Breaking changes:
   * scope: no longer supports resolver|segment (use @value instead)
-  * scope completely removed!; use crud + persist
+  * scope completely removed!; use api + crud + persist
   * alias -> key
+  ? persist -> crud
 
 Now:
   * Need to figure out exactly how schema is auto-generated while leaving some things untouched

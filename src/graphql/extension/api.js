@@ -10,18 +10,15 @@ module.exports = (schema) => {
       const modelName = model.getName();
 
       return `
-        type ${modelName}Subscription {
-          op: String!
-          model: ${modelName}!
-        }
+        type ${modelName}Subscription { op: String! model: ${modelName}! }
 
-        input ${modelName}InputCreate {
+        ${!model.isCreatable() ? '' : `input ${modelName}InputCreate {
           ${model.getCreateFields().map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
-        }
+        }`}
 
-        input ${modelName}InputUpdate {
+        ${!model.isUpdatable() ? '' : `input ${modelName}InputUpdate {
           ${model.getUpdateFields().map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
-        }
+        }`}
 
         input ${modelName}InputWhere {
           ${model.getWhereFields().map(field => `${field.getName()}: ${field.getDataRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'String'}`)}
@@ -66,33 +63,33 @@ module.exports = (schema) => {
 
       `type Schema {
         _noop: String
-        ${schema.getReadModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
-        ${schema.getReadModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getReadModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
+        ${schema.getGQLReadModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getGQLReadModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getGQLReadModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Query {
         Schema: Schema!
         node(id: ID!): Node
-        ${schema.getReadModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
-        ${schema.getReadModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getReadModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
+        ${schema.getGQLReadModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getGQLReadModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getGQLReadModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Mutation {
         _noop: String
-        ${schema.getCreateModels().map(model => `create${model.getName()}(input: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}! `)}
-        ${schema.getUpdateModels().map(model => `update${model.getName()}(id: ID! input: ${model.getName()}InputUpdate meta: ${model.getMeta()}): ${model.getName()}! `)}
-        ${schema.getDeleteModels().map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getGQLCreateModels().map(model => `create${model.getName()}(input: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getGQLUpdateModels().map(model => `update${model.getName()}(id: ID! input: ${model.getName()}InputUpdate meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getGQLDeleteModels().map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}! `)}
       }`,
 
       `type Subscription {
         _noop: String
-        ${schema.getChangeModels().map(model => `${model.getName()}Trigger(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getChangeModels().map(model => `${model.getName()}Changed(query: ${ucFirst(model.getName())}InputQuery): [${model.getName()}Subscription]!`)}
+        ${schema.getGQLSubscribeModels().map(model => `${model.getName()}Trigger(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getGQLSubscribeModels().map(model => `${model.getName()}Changed(query: ${ucFirst(model.getName())}InputQuery): [${model.getName()}Subscription]!`)}
       }`,
     ]),
-    resolvers: schema.getResolvableModels().reduce((prev, model) => {
+    resolvers: schema.getMarkedModels().reduce((prev, model) => {
       const modelName = model.getName();
 
       return Object.assign(prev, {
@@ -118,7 +115,7 @@ module.exports = (schema) => {
       //     return autograph.resolver.match(model).id(node.id).select(GraphqlFields(info, {}, { processArguments: true })).one();
       //   },
       // },
-      Query: schema.getReadModels().reduce((prev, model) => {
+      Query: schema.getGQLReadModels().reduce((prev, model) => {
         const modelName = model.getName();
 
         return Object.assign(prev, {
@@ -136,7 +133,7 @@ module.exports = (schema) => {
         },
       }),
 
-      Mutation: schema.getChangeModels().reduce((prev, model) => {
+      Mutation: schema.getGQLSubscribeModels().reduce((prev, model) => {
         const obj = {};
         const modelName = model.getName();
 
@@ -147,7 +144,7 @@ module.exports = (schema) => {
         return Object.assign(prev, obj);
       }, {}),
 
-      Schema: schema.getReadModels().reduce((prev, model) => {
+      Schema: schema.getGQLReadModels().reduce((prev, model) => {
         const modelName = model.getName();
 
         return Object.assign(prev, {

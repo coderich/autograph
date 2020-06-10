@@ -84,11 +84,6 @@ module.exports = class Field extends Node {
     return Boolean(this.type.isScalar() || !this.getModelRef());
   }
 
-  isEmbedded() {
-    const model = this.getModelRef();
-    return Boolean(model && !model.isEntity());
-  }
-
   isDefaulted() {
     return Boolean(this.hasBoundValue() || this.getDefaultValue() != null);
   }

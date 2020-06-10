@@ -90,27 +90,27 @@ module.exports = class Schema extends Node {
   }
 
   getResolvableModels() {
-    return this.getModels().filter(model => model.isMarkedModel() && model.isResolvable());
+    return this.getModels().filter(model => model.isResolvable());
   }
 
-  getCreateModels() {
-    return this.getEntityModels().filter(model => model.isCreatable());
+  getGQLCreateModels() {
+    return this.getEntityModels().filter(model => model.isGQLCreatable());
   }
 
-  getReadModels() {
-    return this.getEntityModels().filter(model => model.isReadable());
+  getGQLReadModels() {
+    return this.getEntityModels().filter(model => model.isGQLReadable());
   }
 
-  getUpdateModels() {
-    return this.getEntityModels().filter(model => model.isUpdatable());
+  getGQLUpdateModels() {
+    return this.getEntityModels().filter(model => model.isGQLUpdatable());
   }
 
-  getDeleteModels() {
-    return this.getEntityModels().filter(model => model.isDeletable());
+  getGQLDeleteModels() {
+    return this.getEntityModels().filter(model => model.isGQLDeletable());
   }
 
-  getChangeModels() {
-    return this.getEntityModels().filter(model => model.isCreatable() || model.isUpdatable() || model.isDeletable());
+  getGQLSubscribeModels() {
+    return this.getEntityModels().filter(model => model.isGQLSubscribable());
   }
 
   getModelNames() {

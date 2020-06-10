@@ -88,7 +88,7 @@ module.exports = class Model extends Node {
   }
 
   getWhereFields() {
-    return this.getSelectFields().filter(field => field.isResolvable());
+    return this.getSelectFields();
   }
 
   getSortFields() {
