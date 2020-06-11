@@ -5,7 +5,7 @@ const Model = require('../graphql/ast/Model');
 const { ensureArray } = require('../service/app.service');
 
 const assignValue = (doc, prop, value) => {
-  if (value == null) return null; // Do not hold on to DataResolver
+  if (value == null) return value; // Do not hold on to DataResolver
 
   return Promise.resolve(value).then(($value) => {
     Object.defineProperty(doc, prop, { value: $value });
@@ -219,7 +219,8 @@ module.exports = class extends Model {
         return assignValue(doc, prop, resolver.match(fieldModel).query({ where }).many({ find: true }));
       }
 
-      return assignValue(doc, prop, Promise.all(ensureArray($value).map(id => resolver.match(fieldModel).id(id).one({ required: field.isRequired() }))));
+      // Not a "required" query + strip out nulls
+      return assignValue(doc, prop, Promise.all(ensureArray($value).map(id => resolver.match(fieldModel).id(id).one())).then(results => results.filter(r => r != null)));
     }
 
     if (field.isVirtual()) {

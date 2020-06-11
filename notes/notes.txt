@@ -1,3 +1,18 @@
+How:
+  data: {
+    type: Mongo.Mixed,
+    required: true,
+    $onDelete: {
+      key: 'data.id',
+      op: 'unset',
+      $set: { '../../../status': 'incomplete' },
+      ref: {
+        Category: { '../../type': 'category' },
+        NetworkCuratedList: { '../../type': 'list', network_id: { $exists: 1 } },
+      },
+    },
+  }
+
 Now:
   * How to remove/null fields that are not Read?
   * What if DB queried data differs from context/segmentation?
@@ -8,6 +23,7 @@ Now:
     - See if (above) is a problem since you have .native and .raw now
 
 Next:
+  * Take a look at all Mongoose options/features (eg. minimize)
   * Neo4j does not know how to generate ids
   * Deserialization and ids (_id) and code throughout
   * You know EventEmitter wants to emit Query (will be a breaking change so consider when to do it)
@@ -17,6 +33,7 @@ Next:
   * Can context be derived from the schema instead of being explicitly set?
 
 Enhancements:
+  * Create person with books at the same time
   * createdAt, updatedAt, counts, onDeletes, references, etc should be controllable
   * Probably need a @link directive to describe some FK relationship (composite keys, flexible structure)
   * ResultSet have have helper methods (save(), remove(), archive(), etc())

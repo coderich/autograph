@@ -14,13 +14,13 @@ module.exports = class {
 
   async hydrate(resolver, query) {
     return this.getResults(resolver, query).then(async (results) => {
-      const paths = [...new Set([...keyPaths(query.getSortFields())])];
+      const paths = [...new Set([...keyPaths(query.getSortFields())])]; // Only need sortFields for hydrating (get rid of this)
 
       return Promise.all(ensureArray(results).map((doc) => {
         return Promise.all(paths.map((path) => {
           return path.split('.').reduce((promise, prop) => {
             return promise.then((subdoc) => {
-              if (subdoc == null) return Promise.resolve(null);
+              if (subdoc == null) return Promise.resolve(subdoc);
               if (Array.isArray(subdoc)) return Promise.all(subdoc.map(sd => Promise.resolve(sd[prop])));
               return Promise.resolve(subdoc[prop]);
             });

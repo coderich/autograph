@@ -101,6 +101,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(richard.state).not.toBeDefined(); // DB key should be stripped
         expect(richard.network).toBe('networkId');
         expect(await richard.$network).toBe('networkId');
+        expect(await richard.$authored).toEqual([]);
       });
 
       test('Book', async () => {
