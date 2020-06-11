@@ -88,7 +88,6 @@ module.exports = {
     }
 
     type Building
-      @model(embed: true)
     {
       year: Int # @field(key: "year_built")
       type: String! @field(enforce: buildingType)

@@ -31,11 +31,6 @@ module.exports = class extends Field {
     return resolver.match(fieldRef).where(where).count();
   }
 
-  idKey() {
-    if (!this.getDirectiveArg('field', 'id')) return undefined;
-    return this.model.idKey();
-  }
-
   cast(value) {
     const casted = Transformer.cast(this.getType())(this, value);
     return this.isArray() ? ensureArray(casted) : casted;

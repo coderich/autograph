@@ -15,7 +15,6 @@ module.exports = (schema) => {
       enum AutoGraphIndexEnum { unique }
 
       directive @model(
-        id: String # Override the ID name
         key: String # Specify it's key during transit
         gqlScope: AutoGraphMixed # Dictate how GraphQL API behaves
         dalScope: AutoGraphMixed # Dictate how the DAL behaves
@@ -26,12 +25,14 @@ module.exports = (schema) => {
         driver: AutoGraphDriver # External data driver
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
         namespace: String
+
+        # Override auto-gen
+        id: String
         createdAt: String
         updatedAt: String
       ) on OBJECT
 
       directive @field(
-        id: Boolean # Indicate if this field should behave as an ID
         key: String # Specify it's key during transit
         gqlScope: AutoGraphMixed # Dictate how GraphQL API behaves
         dalScope: AutoGraphMixed # Dictate how the DAL behaves

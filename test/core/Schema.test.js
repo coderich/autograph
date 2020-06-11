@@ -23,12 +23,7 @@ describe('CoreSchema', () => {
     const building = schema.getModel('Building');
     expect(building.isEmbedded()).toBe(true);
     const buildingId = building.getField('id');
-    expect(buildingId).toBeDefined();
-    expect(buildingId.getKey()).toBe('_id');
-    expect(buildingId.hasGQLScope('c')).toBe(true);
-    expect(buildingId.hasGQLScope('r')).toBe(true);
-    expect(buildingId.hasGQLScope('u')).toBe(true);
-    expect(buildingId.hasGQLScope('d')).toBe(true);
+    expect(buildingId).not.toBeDefined();
   });
 
   test('bareSchema', () => {

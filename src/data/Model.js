@@ -37,6 +37,11 @@ module.exports = class extends Model {
   }
 
   create(data, options) {
+    // Generate embedded ids
+    this.getEmbeddedFields().forEach((field) => {
+      const idKey = field.getModelRef().idKey();
+      if (idKey && data[field] && !data[field][idKey]) data[field][idKey] = this.idValue();
+    });
     this.normalizeOptions(options);
     return new ResultSet(this, this.driver.dao.create(this.getKey(), this.serialize(data), options));
   }
@@ -93,8 +98,9 @@ module.exports = class extends Model {
     return this.referentials;
   }
 
-  getDefaultValues(data) {
-    data = data || {};
+  getDefaultValues(data = {}) {
+    if (data === null) return null; // Explicitely being told to null out?
+
     const defaultedFields = this.getDefaultedFields();
     const fieldNames = [...new Set(Object.keys(data).concat(defaultedFields.map(field => `${field}`)))];
 
@@ -121,7 +127,7 @@ module.exports = class extends Model {
   }
 
   serialize(data, mapper) {
-    if (data == null) data = {};
+    if (data == null) return data;
 
     return Object.entries(data).reduce((prev, [key, value]) => {
       const field = this.getFieldByName(key) || this.getFieldByKey(key);
@@ -134,7 +140,7 @@ module.exports = class extends Model {
   }
 
   deserialize(data, mapper) {
-    if (data == null) data = {};
+    if (data == null) return data;
 
     // You're going to get a mixed bag of DB keys and Field keys here
     const dataWithValues = Object.entries(data).reduce((prev, [key, value]) => {
@@ -202,7 +208,10 @@ module.exports = class extends Model {
     // Set $value to the original unhydrated value
     const $value = doc[$prop];
     if (field.isScalar()) return assignValue(doc, prop, $value); // No hydration needed; apply $value
-    if (field.isEmbedded()) return $value ? assignValue(doc, prop, new DataResolver($value, (d, p) => field.getModelRef().resolve(d, p, resolver, query))) : $value;
+    if (field.isEmbedded()) {
+      console.log($value);
+      return $value ? assignValue(doc, prop, new DataResolver($value, (d, p) => field.getModelRef().resolve(d, p, resolver, query))) : $value;
+    }
 
     // Model resolver
     const fieldModel = field.getModelRef();

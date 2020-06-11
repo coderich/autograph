@@ -18,8 +18,7 @@ type Book @model {
   bids: [Float]
 }
 
-type Building @model(embed: true) {
-  id: ID! @field(id: true)
+type Building @model(id: null embed: true) {
   name: String!
   location: LocationType
 }

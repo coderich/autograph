@@ -97,7 +97,7 @@ module.exports = class Node {
   getKey(defaultValue) {
     switch (this.nodeType) {
       case 'model': return uvl(this.getDirectiveArg('model', 'key'), defaultValue, this.getName());
-      case 'field': return uvl(this.getDirectiveArg('field', 'key'), this.idKey(), defaultValue, this.getName());
+      case 'field': return uvl(this.getDirectiveArg('field', 'key'), defaultValue, this.getName());
       default: return defaultValue;
     }
   }
@@ -200,7 +200,6 @@ module.exports = class Node {
    */
   isEmbedded() {
     switch (this.nodeType) {
-      // case 'model': return !this.isMarkedModel() || Boolean(this.getDirectiveArg('model', 'embed'));
       case 'model': return Boolean(this.getDirectiveArg('model', 'embed')); // Must be marked; otherwise no way to contain the API traversal
       case 'field': {
         const model = this.getModelRef();
