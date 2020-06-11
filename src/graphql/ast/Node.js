@@ -263,7 +263,20 @@ module.exports = class Node {
   }
 
   hasGQL(el) {
+    if (this.nodeType === 'field') {
+      const model = this.getModelRef();
+      if (model && model.isMarkedModel()) return model.hasScope(el);
+    }
+
     return Boolean(this.getGQL().toLowerCase().indexOf(el.toLowerCase()) > -1);
+  }
+
+  getScope() {
+    return nvl(uvl(this.getDirectiveArg('model', 'scope'), 'crud'), '');
+  }
+
+  hasScope(el) {
+    return Boolean(this.getScope().toLowerCase().indexOf(el.toLowerCase()) > -1);
   }
 
   // Create

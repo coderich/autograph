@@ -72,7 +72,12 @@ const markGQLModels = (gql, models, weakMap = new WeakMap(), include = false) =>
   if (map.has(model)) return map;
   if (model.isMarkedModel() && !model.hasDAL(gql)) return map.set(model, false);
   if (include) return map.set(model, true);
-  if (model.hasGQL(gql)) return markGQLModels(gql, model.getEmbeddedFields().filter(field => field.hasGQL(gql)).map(f => f.getModelRef()), map.set(model, true), true);
+  if (model.hasGQL(gql)) {
+    switch (gql) {
+      case 'c': case 'u': return markGQLModels(gql, model.getEmbeddedFields().filter(field => field.hasGQL(gql)).map(f => f.getModelRef()), map.set(model, true), true);
+      default: return markGQLModels(gql, model.getModelRefFields().filter(field => field.getModelRef().hasGQL(gql)).map(f => f.getModelRef()), map.set(model, true), true);
+    }
+  }
   return map;
 }, weakMap);
 

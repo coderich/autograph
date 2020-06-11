@@ -1,5 +1,8 @@
 const { ucFirst } = require('../../service/app.service');
 
+/**
+ * Decorate Entity Models
+ */
 module.exports = (schema) => {
   return ({
     typeDefs: schema.getEntityModels().map((model) => {
@@ -9,11 +12,11 @@ module.exports = (schema) => {
 
       return `
         extend type ${modelName} implements Node {
-          id: ID! @field(key: "${model.idKey()}")
-          ${createdAt ? `createdAt: AutoGraphDateTime @field(gql: "r", key: "${createdAt}")` : ''}
-          ${updatedAt ? `updatedAt: AutoGraphDateTime @field(gql: "r", key: "${updatedAt}")` : ''}
+          id: ID! @field(gql: r, key: "${model.idKey()}")
+          ${createdAt ? `createdAt: AutoGraphDateTime @field(gql: r, key: "${createdAt}")` : ''}
+          ${updatedAt ? `updatedAt: AutoGraphDateTime @field(gql: r, key: "${updatedAt}")` : ''}
           # ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int @field(crud: "r" persist: false)`)}
-          # countSelf(where: ${modelName}InputWhere): Int @field(gql: "r" persist: false)
+          # countSelf(where: ${modelName}InputWhere): Int @field(gql: r, persist: false)
         }
       `;
     }).concat(`

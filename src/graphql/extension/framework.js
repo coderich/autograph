@@ -19,6 +19,7 @@ module.exports = (schema) => {
         key: String # Specify it's key during transit
         gql: AutoGraphMixed # Dictate how GraphQL API behaves
         dal: AutoGraphMixed # Dictate how the DAL behaves
+        scope: AutoGraphMixed # Dictate how a FIELD may use me
         meta: String # Custom input 'meta' field for mutations
         embed: Boolean # Mark this an embedded model (default false)
         persist: Boolean # Persist this model (default true)
