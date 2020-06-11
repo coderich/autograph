@@ -202,7 +202,7 @@ module.exports = class extends Model {
     // Set $value to the original unhydrated value
     const $value = doc[$prop];
     if (field.isScalar()) return assignValue(doc, prop, $value); // No hydration needed; apply $value
-    if (field.isEmbedded()) return value ? assignValue(doc, prop, new DataResolver($value, (d, p) => field.getModelRef().resolve(d, p, resolver, query))) : value; // No hydration needed; apply $value
+    if (field.isEmbedded()) return $value ? assignValue(doc, prop, new DataResolver($value, (d, p) => field.getModelRef().resolve(d, p, resolver, query))) : $value;
 
     // Model resolver
     const fieldModel = field.getModelRef();

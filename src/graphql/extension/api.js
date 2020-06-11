@@ -98,7 +98,7 @@ module.exports = (schema) => {
         ${schema.getGQLSubscribeModels().map(model => `${model.getName()}Changed(query: ${ucFirst(model.getName())}InputQuery): [${model.getName()}Subscription]!`)}
       }`,
     ]),
-    resolvers: schema.getGQLSubscribeModels().reduce((prev, model) => {
+    resolvers: schema.getEntityModels().reduce((prev, model) => {
       const modelName = model.getName();
 
       return Object.assign(prev, {
