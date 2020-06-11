@@ -9,6 +9,26 @@ describe('CoreSchema', () => {
     const schema = new Schema({ typeDefs: simpleSchema }, stores);
     expect(schema).toBeDefined();
     schema.makeServerApiSchema();
+
+    // Person id
+    const personId = schema.getModel('Person').getField('id');
+    expect(personId).toBeDefined();
+    expect(personId.getKey()).toBe('_id');
+    expect(personId.hasGQLScope('c')).toBe(false);
+    expect(personId.hasGQLScope('r')).toBe(true);
+    expect(personId.hasGQLScope('u')).toBe(false);
+    expect(personId.hasGQLScope('d')).toBe(false);
+
+    // Embedded building id
+    const building = schema.getModel('Building');
+    expect(building.isEmbedded()).toBe(true);
+    const buildingId = building.getField('id');
+    expect(buildingId).toBeDefined();
+    expect(buildingId.getKey()).toBe('_id');
+    expect(buildingId.hasGQLScope('c')).toBe(true);
+    expect(buildingId.hasGQLScope('r')).toBe(true);
+    expect(buildingId.hasGQLScope('u')).toBe(true);
+    expect(buildingId.hasGQLScope('d')).toBe(true);
   });
 
   test('bareSchema', () => {

@@ -9,6 +9,7 @@ module.exports = class extends Field {
   constructor(model, field) {
     super(model, field.getAST());
     this.type = new Type(field);
+    this.model = model;
   }
 
   // CRUD
@@ -28,6 +29,11 @@ module.exports = class extends Field {
     const ids = (doc[this.getName()] || []);
     where[fieldRef.idKey()] = ids;
     return resolver.match(fieldRef).where(where).count();
+  }
+
+  idKey() {
+    if (!this.getDirectiveArg('field', 'id')) return undefined;
+    return this.model.idKey();
   }
 
   cast(value) {

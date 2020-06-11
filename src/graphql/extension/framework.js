@@ -31,6 +31,7 @@ module.exports = (schema) => {
       ) on OBJECT
 
       directive @field(
+        id: Boolean # Indicate if this field should behave as an ID
         key: String # Specify it's key during transit
         gqlScope: AutoGraphMixed # Dictate how GraphQL API behaves
         dalScope: AutoGraphMixed # Dictate how the DAL behaves

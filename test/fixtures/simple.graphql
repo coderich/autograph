@@ -19,6 +19,7 @@ type Book @model {
 }
 
 type Building @model(embed: true) {
+  id: ID! @field(id: true)
   name: String!
   location: LocationType
 }

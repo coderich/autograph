@@ -5,22 +5,20 @@ const ServerResolver = require('../../core/ServerResolver');
 
 module.exports = (schema) => {
   const resolver = new ServerResolver();
-  const createModels = findGQLModels('c', schema.getMarkedModels());
-  const updateModels = findGQLModels('u', schema.getMarkedModels());
+  const createModels = findGQLModels('c', schema.getMarkedModels(), schema.getModels());
+  const updateModels = findGQLModels('u', schema.getMarkedModels(), schema.getModels());
   const readModels = findGQLModels('r', schema.getMarkedModels(), schema.getModels());
-
-  // console.log(readModels.map(m => m.getName()));
 
   return ({
     typeDefs: [
       ...createModels.map(model => `
         input ${model.getName()}InputCreate {
-          ${model.getFields().filter(field => field.getName() !== 'id' && field.hasGQLScope('c')).map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
+          ${model.getFields().filter(field => field.hasGQLScope('c')).map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
         }
       `),
       ...updateModels.map(model => `
         input ${model.getName()}InputUpdate {
-          ${model.getFields().filter(field => field.getName() !== 'id' && field.hasGQLScope('u')).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
+          ${model.getFields().filter(field => field.hasGQLScope('u')).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
         }
       `),
       ...readModels.map(model => `

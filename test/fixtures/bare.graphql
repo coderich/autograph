@@ -14,3 +14,7 @@ type Book {
   bestSeller: Boolean
   bids: [Float]
 }
+
+type Query {
+  _noop: String
+}
