@@ -12,15 +12,15 @@ module.exports = (schema) => {
     typeDefs: [
       ...createModels.map(model => `
         input ${model.getName()}InputCreate {
-          ${model.getFields().filter(field => field.getName() !== 'id' && field.hasGQL('c')).map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
+          ${model.getFields().filter(field => field.getName() !== 'id' && field.hasGQLScope('c')).map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
         }
       `),
       ...updateModels.map(model => `
         input ${model.getName()}InputUpdate {
-          ${model.getFields().filter(field => field.getName() !== 'id' && field.hasGQL('u')).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
+          ${model.getFields().filter(field => field.getName() !== 'id' && field.hasGQLScope('u')).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
         }
       `),
-    ].concat(schema.getMarkedModels().filter(model => model.hasGQL('r')).map((model) => {
+    ].concat(schema.getMarkedModels().filter(model => model.hasGQLScope('r')).map((model) => {
       const modelName = model.getName();
 
       return `
@@ -72,24 +72,24 @@ module.exports = (schema) => {
 
       `type Schema {
         _noop: String
-        ${schema.getMarkedModels().filter(model => model.hasGQL('r')).map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
-        ${schema.getMarkedModels().filter(model => model.hasGQL('r')).map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getMarkedModels().filter(model => model.hasGQL('r')).map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
+        ${schema.getMarkedModels().filter(model => model.hasGQLScope('r')).map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getMarkedModels().filter(model => model.hasGQLScope('r')).map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getMarkedModels().filter(model => model.hasGQLScope('r')).map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Query {
         Schema: Schema!
         node(id: ID!): Node
-        ${schema.getMarkedModels().filter(model => model.hasGQL('r')).map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
-        ${schema.getMarkedModels().filter(model => model.hasGQL('r')).map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getMarkedModels().filter(model => model.hasGQL('r')).map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
+        ${schema.getMarkedModels().filter(model => model.hasGQLScope('r')).map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getMarkedModels().filter(model => model.hasGQLScope('r')).map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getMarkedModels().filter(model => model.hasGQLScope('r')).map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Mutation {
         _noop: String
-        ${schema.getMarkedModels().filter(model => model.hasGQL('c')).map(model => `create${model.getName()}(input: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}! `)}
-        ${schema.getMarkedModels().filter(model => model.hasGQL('u')).map(model => `update${model.getName()}(id: ID! input: ${model.getName()}InputUpdate meta: ${model.getMeta()}): ${model.getName()}! `)}
-        ${schema.getMarkedModels().filter(model => model.hasGQL('d')).map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getMarkedModels().filter(model => model.hasGQLScope('c')).map(model => `create${model.getName()}(input: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getMarkedModels().filter(model => model.hasGQLScope('u')).map(model => `update${model.getName()}(id: ID! input: ${model.getName()}InputUpdate meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getMarkedModels().filter(model => model.hasGQLScope('d')).map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}! `)}
       }`,
 
       `type Subscription {
@@ -146,9 +146,9 @@ module.exports = (schema) => {
         const obj = {};
         const modelName = model.getName();
 
-        if (model.hasGQL('c')) obj[`create${modelName}`] = (root, args, context, info) => resolver.create(context, model, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
-        if (model.hasGQL('u')) obj[`update${modelName}`] = (root, args, context, info) => resolver.update(context, model, args.id, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
-        if (model.hasGQL('d')) obj[`delete${modelName}`] = (root, args, context, info) => resolver.delete(context, model, args.id, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+        if (model.hasGQLScope('c')) obj[`create${modelName}`] = (root, args, context, info) => resolver.create(context, model, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+        if (model.hasGQLScope('u')) obj[`update${modelName}`] = (root, args, context, info) => resolver.update(context, model, args.id, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+        if (model.hasGQLScope('d')) obj[`delete${modelName}`] = (root, args, context, info) => resolver.delete(context, model, args.id, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
 
         return Object.assign(prev, obj);
       }, {}),

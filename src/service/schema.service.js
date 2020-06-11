@@ -70,18 +70,24 @@ exports.identifyOnDeletes = (models, parentModel) => {
 
 const markGQLModels = (gql, models, weakMap = new WeakMap(), include = false) => models.reduce((map, model) => {
   if (map.has(model)) return map;
-  if (model.isMarkedModel() && !model.hasDAL(gql)) return map.set(model, false);
+  if (model.isMarkedModel() && !model.hasDALScope(gql)) return map.set(model, false);
   if (include) return map.set(model, true);
-  if (model.hasGQL(gql)) {
+  if (model.hasGQLScope(gql)) {
     switch (gql) {
-      case 'c': case 'u': return markGQLModels(gql, model.getEmbeddedFields().filter(field => field.hasGQL(gql)).map(f => f.getModelRef()), map.set(model, true), true);
-      default: return markGQLModels(gql, model.getModelRefFields().filter(field => field.getModelRef().hasGQL(gql)).map(f => f.getModelRef()), map.set(model, true), true);
+      case 'c': case 'u': return markGQLModels(gql, model.getEmbeddedFields().filter(field => field.hasGQLScope(gql)).map(f => f.getModelRef()), map.set(model, true), true);
+      default: {
+        const modelRefFields = model.getModelRefFields();
+        const refFields = modelRefFields.filter(field => field.hasGQLScope(gql));
+        const modelRefs = refFields.map(field => field.getModelRef());
+        modelRefs.forEach(m => map.set(m, true));
+        return markGQLModels(gql, modelRefs, map.set(model, true), true);
+      }
     }
   }
   return map;
 }, weakMap);
 
-exports.findGQLModels = (gql, models) => {
+exports.findGQLModels = (gql, models, cmpModels) => {
   const markedModels = markGQLModels(gql, models);
-  return models.filter(model => markedModels.get(model));
+  return (cmpModels || models).filter(model => markedModels.get(model));
 };

@@ -168,7 +168,7 @@ module.exports = class Node {
    * Is the model ready, willing, and able to communicate with external data
    */
   isEntity() {
-    return Boolean(this.getDAL() !== '' && !this.isEmbedded());
+    return Boolean(this.getDALScope() !== '' && !this.isEmbedded());
   }
 
   /**
@@ -185,7 +185,7 @@ module.exports = class Node {
     if (this.isBasicType()) return true;
 
     switch (this.nodeType) {
-      case 'model': return this.getDAL().length > 0;
+      case 'model': return this.getDALScope().length > 0;
       case 'field': return this.getModelRef().isResolvable();
       default: return false;
     }
@@ -222,19 +222,19 @@ module.exports = class Node {
    *  U: Can be updated (if not must be stripped out)
    *  D: Can be deleted (if not must be stripped out)
    */
-  getDAL() {
+  getDALScope() {
     switch (this.nodeType) {
       case 'model': {
         if (!this.isMarkedModel()) return '';
-        return nvl(uvl(this.getDirectiveArg('model', 'dal'), 'crud'), '');
+        return nvl(uvl(this.getDirectiveArg('model', 'dalScope'), 'crud'), '');
       }
-      case 'field': return nvl(uvl(this.getDirectiveArg('field', 'dal'), 'crud'), '');
+      case 'field': return nvl(uvl(this.getDirectiveArg('field', 'dalScope'), 'crud'), '');
       default: return '';
     }
   }
 
-  hasDAL(el) {
-    return Boolean(this.getDAL().toLowerCase().indexOf(el.toLowerCase()) > -1);
+  hasDALScope(el) {
+    return Boolean(this.getDALScope().toLowerCase().indexOf(el.toLowerCase()) > -1);
   }
 
   /**
@@ -251,90 +251,90 @@ module.exports = class Node {
    *  U: Include this field in InputUpdate
    *  D: Allow the API to delete (null out)
    */
-  getGQL() {
+  getGQLScope() {
     switch (this.nodeType) {
       case 'model': {
         if (!this.isMarkedModel()) return '';
-        return nvl(uvl(this.getDirectiveArg('model', 'gql'), 'crud'), '');
+        return nvl(uvl(this.getDirectiveArg('model', 'gqlScope'), 'crud'), '');
       }
-      case 'field': return nvl(uvl(this.getDirectiveArg('field', 'gql'), 'crud'), '');
+      case 'field': return nvl(uvl(this.getDirectiveArg('field', 'gqlScope'), 'crud'), '');
       default: return '';
     }
   }
 
-  hasGQL(el) {
+  hasGQLScope(el) {
     if (this.nodeType === 'field') {
       const model = this.getModelRef();
-      if (model && model.isMarkedModel()) return model.hasScope(el);
+      if (model && !model.hasFieldScope(el)) return false;
     }
 
-    return Boolean(this.getGQL().toLowerCase().indexOf(el.toLowerCase()) > -1);
+    return Boolean(this.getGQLScope().toLowerCase().indexOf(el.toLowerCase()) > -1);
   }
 
-  getScope() {
-    return nvl(uvl(this.getDirectiveArg('model', 'scope'), 'crud'), '');
+  getFieldScope() {
+    return nvl(uvl(this.getDirectiveArg('model', 'fieldScope'), 'crud'), '');
   }
 
-  hasScope(el) {
-    return Boolean(this.getScope().toLowerCase().indexOf(el.toLowerCase()) > -1);
+  hasFieldScope(el) {
+    return Boolean(this.getFieldScope().toLowerCase().indexOf(el.toLowerCase()) > -1);
   }
 
   // Create
   isCreatable() {
-    return Boolean(this.getDAL().toLowerCase().indexOf('c') > -1);
+    return Boolean(this.getDALScope().toLowerCase().indexOf('c') > -1);
   }
 
   isGQLCreatable() {
     if (!this.isCreatable()) return false;
 
     switch (this.nodeType) {
-      case 'model': return Boolean(this.getGQL().toLowerCase().indexOf('c') > -1);
-      case 'field': return Boolean(this.getGQL().toLowerCase().indexOf('c') > -1);
+      case 'model': return Boolean(this.getGQLScope().toLowerCase().indexOf('c') > -1);
+      case 'field': return Boolean(this.getGQLScope().toLowerCase().indexOf('c') > -1);
       default: return false;
     }
   }
 
   // Read
   isReadable() {
-    return Boolean(this.getDAL().toLowerCase().indexOf('r') > -1);
+    return Boolean(this.getDALScope().toLowerCase().indexOf('r') > -1);
   }
 
   isGQLReadable() {
     if (!this.isReadable()) return false;
 
     switch (this.nodeType) {
-      case 'model': return Boolean(this.getGQL().toLowerCase().indexOf('r') > -1);
-      case 'field': return Boolean(this.getGQL().toLowerCase().indexOf('r') > -1);
+      case 'model': return Boolean(this.getGQLScope().toLowerCase().indexOf('r') > -1);
+      case 'field': return Boolean(this.getGQLScope().toLowerCase().indexOf('r') > -1);
       default: return false;
     }
   }
 
   // Update
   isUpdatable() {
-    return Boolean(this.getDAL().toLowerCase().indexOf('u') > -1);
+    return Boolean(this.getDALScope().toLowerCase().indexOf('u') > -1);
   }
 
   isGQLUpdatable() {
     if (!this.isUpdatable()) return false;
 
     switch (this.nodeType) {
-      case 'model': return Boolean(this.getGQL().toLowerCase().indexOf('u') > -1);
-      case 'field': return Boolean(this.getGQL().toLowerCase().indexOf('u') > -1);
+      case 'model': return Boolean(this.getGQLScope().toLowerCase().indexOf('u') > -1);
+      case 'field': return Boolean(this.getGQLScope().toLowerCase().indexOf('u') > -1);
       default: return false;
     }
   }
 
   // Delete
   isDeletable() {
-    return Boolean(this.getDAL().toLowerCase().indexOf('d') > -1);
+    return Boolean(this.getDALScope().toLowerCase().indexOf('d') > -1);
   }
 
   isGQLDeletable() {
     if (!this.isDeletable()) return false;
 
     switch (this.nodeType) {
-      case 'model': return Boolean(this.getGQL().toLowerCase().indexOf('d') > -1);
-      case 'field': return Boolean(this.getGQL().toLowerCase().indexOf('d') > -1);
+      case 'model': return Boolean(this.getGQLScope().toLowerCase().indexOf('d') > -1);
+      case 'field': return Boolean(this.getGQLScope().toLowerCase().indexOf('d') > -1);
       default: return false;
     }
   }

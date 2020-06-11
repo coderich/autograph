@@ -96,7 +96,13 @@ module.exports = class Model extends Node {
   }
 
   getGQLWhereFields() {
-    return this.getGQLSelectFields().filter(field => field.isResolvable());
+    return this.getFields().filter((field) => {
+      if (field.getName() === 'id') return false;
+      if (!field.hasGQLScope('r')) return false;
+      const modelRef = field.getModelRef();
+      if (modelRef && !modelRef.isEmbedded() && !modelRef.isEntity()) return false;
+      return true;
+    });
   }
 
   getGQLSortFields() {

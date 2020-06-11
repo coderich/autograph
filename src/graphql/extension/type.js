@@ -12,11 +12,11 @@ module.exports = (schema) => {
 
       return `
         extend type ${modelName} implements Node {
-          id: ID! @field(gql: r, key: "${model.idKey()}")
-          ${createdAt ? `createdAt: AutoGraphDateTime @field(gql: r, key: "${createdAt}")` : ''}
-          ${updatedAt ? `updatedAt: AutoGraphDateTime @field(gql: r, key: "${updatedAt}")` : ''}
-          # ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int @field(crud: "r" persist: false)`)}
-          # countSelf(where: ${modelName}InputWhere): Int @field(gql: r, persist: false)
+          id: ID! @field(gqlScope: r, key: "${model.idKey()}")
+          ${createdAt ? `createdAt: AutoGraphDateTime @field(gqlScope: r, key: "${createdAt}")` : ''}
+          ${updatedAt ? `updatedAt: AutoGraphDateTime @field(gqlScope: r, key: "${updatedAt}")` : ''}
+          # ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int @field(gqlScope: r persist: false)`)}
+          # countSelf(where: ${modelName}InputWhere): Int @field(gqlScope: r, persist: false)
         }
       `;
     }).concat(`
