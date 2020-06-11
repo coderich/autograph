@@ -89,7 +89,7 @@ module.exports = class Field extends Node {
   }
 
   isRequired() {
-    return Boolean(this.type.isRequired() && this.isGQLCreatable() && !this.isDefaulted());
+    return Boolean(this.type.isRequired());
   }
 
   // GQL Schema Methods

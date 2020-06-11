@@ -1,18 +1,14 @@
-Breaking changes:
-  * scope: no longer supports resolver|segment (use @value instead)
-  * scope completely removed!; use api + crud + persist
-  * alias -> key
-  ? persist -> crud
-
 Now:
-  * Need to figure out exactly how schema is auto-generated while leaving some things untouched
+  * How to remove/null fields that are not Read?
   * What if DB queried data differs from context/segmentation?
     - Throw an error?
   * Enforce segmentation throughout (findNetwork, network field, ...)
+    - You can put @value directly on Model and that means something
     - But that means you can't use the resolver straight up and say where { 'network.name': 'name' }
     - See if (above) is a problem since you have .native and .raw now
 
 Next:
+  * Neo4j does not know how to generate ids
   * Deserialization and ids (_id) and code throughout
   * You know EventEmitter wants to emit Query (will be a breaking change so consider when to do it)
   * How do you handle the hydrate() problem? QueryWorker is hydrating, what about concept of returning ResultSet and letting user hydrate() or populate() from resolver?
