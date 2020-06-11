@@ -185,8 +185,8 @@ module.exports = class Node {
     if (this.isBasicType()) return true;
 
     switch (this.nodeType) {
-      case 'model': return this.getFields().every(field => field.isResolvable());
-      case 'field': return this.isEmbedded() ? this.getModelRef().isResolvable() : this.getModelRef().isEntity();
+      case 'model': return this.getDAL().length > 0;
+      case 'field': return this.getModelRef().isResolvable();
       default: return false;
     }
   }
@@ -233,6 +233,10 @@ module.exports = class Node {
     }
   }
 
+  hasDAL(el) {
+    return Boolean(this.getDAL().toLowerCase().indexOf(el.toLowerCase()) > -1);
+  }
+
   /**
    * Define it's behavior in the GraphQL API
    *
@@ -258,6 +262,10 @@ module.exports = class Node {
     }
   }
 
+  hasGQL(el) {
+    return Boolean(this.getGQL().toLowerCase().indexOf(el.toLowerCase()) > -1);
+  }
+
   // Create
   isCreatable() {
     return Boolean(this.getDAL().toLowerCase().indexOf('c') > -1);
@@ -267,7 +275,7 @@ module.exports = class Node {
     if (!this.isCreatable()) return false;
 
     switch (this.nodeType) {
-      case 'model': return Boolean(this.getGQL().toLowerCase().indexOf('c') > -1 && this.getCreateFields().length);
+      case 'model': return Boolean(this.getGQL().toLowerCase().indexOf('c') > -1);
       case 'field': return Boolean(this.getGQL().toLowerCase().indexOf('c') > -1);
       default: return false;
     }
@@ -282,7 +290,7 @@ module.exports = class Node {
     if (!this.isReadable()) return false;
 
     switch (this.nodeType) {
-      case 'model': return Boolean(this.getGQL().toLowerCase().indexOf('r') > -1 && this.getSelectFields().length);
+      case 'model': return Boolean(this.getGQL().toLowerCase().indexOf('r') > -1);
       case 'field': return Boolean(this.getGQL().toLowerCase().indexOf('r') > -1);
       default: return false;
     }
@@ -297,7 +305,7 @@ module.exports = class Node {
     if (!this.isUpdatable()) return false;
 
     switch (this.nodeType) {
-      case 'model': return Boolean(this.getGQL().toLowerCase().indexOf('u') > -1 && this.getUpdateFields().length);
+      case 'model': return Boolean(this.getGQL().toLowerCase().indexOf('u') > -1);
       case 'field': return Boolean(this.getGQL().toLowerCase().indexOf('u') > -1);
       default: return false;
     }

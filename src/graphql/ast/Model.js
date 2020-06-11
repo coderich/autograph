@@ -71,6 +71,10 @@ module.exports = class Model extends Node {
     return this.getFields().filter(field => Boolean(field.getDataRef()));
   }
 
+  getModelRefFields() {
+    return this.getFields().filter(field => Boolean(field.getModelRef()));
+  }
+
   // getDataRefFields() {
   //   return this.fields.filter(field => Boolean(field.getDataRef() && !field.isEmbedded()));
   // }
@@ -87,24 +91,28 @@ module.exports = class Model extends Node {
     return this.getFields().filter(field => field.isReadable());
   }
 
-  getWhereFields() {
-    return this.getSelectFields();
+  getGQLSelectFields() {
+    return this.getFields().filter(field => field.isGQLReadable());
   }
 
-  getSortFields() {
-    return this.getSelectFields();
+  getGQLWhereFields() {
+    return this.getGQLSelectFields().filter(field => field.isResolvable());
+  }
+
+  getGQLSortFields() {
+    return this.getGQLSelectFields().filter(field => field.isResolvable());
   }
 
   getCountableFields() {
     return this.getSelectFields().filter(field => field.isArray() && field.getDataRef());
   }
 
-  getCreateFields() {
-    return this.getFields().filter(field => field.isCreatable() && !field.isVirtual() && field.getName() !== 'id');
+  getGQLCreateFields() {
+    return this.getFields().filter(field => field.isGQLCreatable() && !field.isVirtual() && field.getName() !== 'id');
   }
 
-  getUpdateFields() {
-    return this.getCreateFields().filter(field => !field.isImmutable());
+  getGQLUpdateFields() {
+    return this.getGQLCreateFields().filter(field => !field.isImmutable());
   }
 
   // Misc

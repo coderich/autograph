@@ -67,3 +67,16 @@ exports.identifyOnDeletes = (models, parentModel) => {
     return uniqWith(prev, (a, b) => `${a.model}:${a.field}:${a.fieldRef}:${a.op}` === `${b.model}:${b.field}:${b.fieldRef}:${b.op}`);
   }, []);
 };
+
+const markGQLModels = (gql, models, weakMap = new WeakMap(), include = false) => models.reduce((map, model) => {
+  if (map.has(model)) return map;
+  if (model.isMarkedModel() && !model.hasDAL(gql)) return map.set(model, false);
+  if (include) return map.set(model, true);
+  if (model.hasGQL(gql)) return markGQLModels(gql, model.getEmbeddedFields().filter(field => field.hasGQL(gql)).map(f => f.getModelRef()), map.set(model, true), true);
+  return map;
+}, weakMap);
+
+exports.findGQLModels = (gql, models) => {
+  const markedModels = markGQLModels(gql, models);
+  return models.filter(model => markedModels.get(model));
+};

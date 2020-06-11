@@ -1,32 +1,41 @@
 const GraphqlFields = require('graphql-fields');
 const { ucFirst, fromGUID } = require('../../service/app.service');
+const { findGQLModels } = require('../../service/schema.service');
 const ServerResolver = require('../../core/ServerResolver');
 
 module.exports = (schema) => {
   const resolver = new ServerResolver();
+  const createModels = findGQLModels('c', schema.getMarkedModels());
+  const updateModels = findGQLModels('u', schema.getMarkedModels());
 
   return ({
-    typeDefs: schema.getMarkedModels().map((model) => {
+    typeDefs: [
+      ...createModels.map(model => `
+        input ${model.getName()}InputCreate {
+          ${model.getFields().filter(field => field.getName() !== 'id' && field.hasGQL('c')).map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
+        }
+      `),
+      ...updateModels.map(model => `
+        input ${model.getName()}InputUpdate {
+          ${model.getFields().filter(field => field.getName() !== 'id' && field.hasGQL('u')).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
+        }
+      `),
+    ].concat(schema.getMarkedModels().map((model) => {
       const modelName = model.getName();
 
       return `
-        type ${modelName}Subscription { op: String! model: ${modelName}! }
-
-        ${!model.isCreatable() ? '' : `input ${modelName}InputCreate {
-          ${model.getCreateFields().map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
-        }`}
-
-        ${!model.isUpdatable() ? '' : `input ${modelName}InputUpdate {
-          ${model.getUpdateFields().map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
-        }`}
+        ${model.isGQLSubscribable() ? `type ${modelName}Subscription {
+          op: String!
+          model: ${modelName}!
+        }` : ''}
 
         input ${modelName}InputWhere {
-          ${model.getWhereFields().map(field => `${field.getName()}: ${field.getDataRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'String'}`)}
+          ${model.getGQLWhereFields().map(field => `${field.getName()}: ${field.getDataRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'String'}`)}
           # ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}: String`)}
         }
 
         input ${modelName}InputSort {
-          ${model.getSelectFields().map(field => `${field.getName()}: ${field.getDataRef() ? `${ucFirst(field.getDataRef())}InputSort` : 'SortOrderEnum'}`)}
+          ${model.getGQLSortFields().map(field => `${field.getName()}: ${field.getDataRef() ? `${ucFirst(field.getDataRef())}InputSort` : 'SortOrderEnum'}`)}
           # ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}: SortOrderEnum`)}
         }
 
@@ -36,7 +45,7 @@ module.exports = (schema) => {
           limit: Int
         }
       `;
-    }).concat([
+    })).concat([
       `
         type Connection {
           edges: [Edge]
@@ -63,24 +72,24 @@ module.exports = (schema) => {
 
       `type Schema {
         _noop: String
-        ${schema.getGQLReadModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
-        ${schema.getGQLReadModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getGQLReadModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
+        ${schema.getMarkedModels().filter(model => model.hasGQL('r')).map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getMarkedModels().filter(model => model.hasGQL('r')).map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getMarkedModels().filter(model => model.hasGQL('r')).map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Query {
         Schema: Schema!
         node(id: ID!): Node
-        ${schema.getGQLReadModels().map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
-        ${schema.getGQLReadModels().map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getGQLReadModels().map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
+        ${schema.getMarkedModels().filter(model => model.hasGQL('r')).map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getMarkedModels().filter(model => model.hasGQL('r')).map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
+        ${schema.getMarkedModels().filter(model => model.hasGQL('r')).map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Mutation {
         _noop: String
-        ${schema.getGQLCreateModels().map(model => `create${model.getName()}(input: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}! `)}
-        ${schema.getGQLUpdateModels().map(model => `update${model.getName()}(id: ID! input: ${model.getName()}InputUpdate meta: ${model.getMeta()}): ${model.getName()}! `)}
-        ${schema.getGQLDeleteModels().map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getMarkedModels().filter(model => model.hasGQL('c')).map(model => `create${model.getName()}(input: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getMarkedModels().filter(model => model.hasGQL('u')).map(model => `update${model.getName()}(id: ID! input: ${model.getName()}InputUpdate meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getMarkedModels().filter(model => model.hasGQL('d')).map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}! `)}
       }`,
 
       `type Subscription {
@@ -89,11 +98,11 @@ module.exports = (schema) => {
         ${schema.getGQLSubscribeModels().map(model => `${model.getName()}Changed(query: ${ucFirst(model.getName())}InputQuery): [${model.getName()}Subscription]!`)}
       }`,
     ]),
-    resolvers: schema.getMarkedModels().reduce((prev, model) => {
+    resolvers: schema.getGQLSubscribeModels().reduce((prev, model) => {
       const modelName = model.getName();
 
       return Object.assign(prev, {
-        [modelName]: model.getSelectFields().reduce((def, field) => {
+        [modelName]: model.getGQLSelectFields().reduce((def, field) => {
           const fieldName = field.getName();
           if (fieldName === 'id') return Object.assign(def, { id: (root, args, { autograph }) => (autograph.legacyMode ? root.id : root.$id) });
           return Object.assign(def, { [fieldName]: root => root[`$${fieldName}`] });
@@ -133,13 +142,13 @@ module.exports = (schema) => {
         },
       }),
 
-      Mutation: schema.getGQLSubscribeModels().reduce((prev, model) => {
+      Mutation: schema.getMarkedModels().reduce((prev, model) => {
         const obj = {};
         const modelName = model.getName();
 
-        if (model.isCreatable()) obj[`create${modelName}`] = (root, args, context, info) => resolver.create(context, model, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
-        if (model.isUpdatable()) obj[`update${modelName}`] = (root, args, context, info) => resolver.update(context, model, args.id, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
-        if (model.isDeletable()) obj[`delete${modelName}`] = (root, args, context, info) => resolver.delete(context, model, args.id, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+        if (model.hasGQL('c')) obj[`create${modelName}`] = (root, args, context, info) => resolver.create(context, model, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+        if (model.hasGQL('u')) obj[`update${modelName}`] = (root, args, context, info) => resolver.update(context, model, args.id, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+        if (model.hasGQL('d')) obj[`delete${modelName}`] = (root, args, context, info) => resolver.delete(context, model, args.id, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
 
         return Object.assign(prev, obj);
       }, {}),

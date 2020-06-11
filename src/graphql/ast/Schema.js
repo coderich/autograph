@@ -110,7 +110,7 @@ module.exports = class Schema extends Node {
   }
 
   getGQLSubscribeModels() {
-    return this.getEntityModels().filter(model => model.isGQLSubscribable());
+    return this.getModels().filter(model => model.isGQLSubscribable());
   }
 
   getModelNames() {
