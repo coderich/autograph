@@ -15,12 +15,12 @@ module.exports = (schema) => {
     typeDefs: [
       ...createModels.map(model => `
         input ${model.getName()}InputCreate {
-          ${model.getFields().filter(field => field.hasGQLScope('c')).map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
+          ${model.getFields().filter(field => field.getName() !== 'id' && field.hasGQLScope('c')).map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
         }
       `),
       ...updateModels.map(model => `
         input ${model.getName()}InputUpdate {
-          ${model.getFields().filter(field => field.hasGQLScope('u')).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
+          ${model.getFields().filter(field => field.getName() !== 'id' && field.hasGQLScope('u')).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
         }
       `),
       ...readModels.map(model => `
