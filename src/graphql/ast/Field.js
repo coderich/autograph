@@ -5,9 +5,8 @@ const { mergeDeep } = require('../../service/app.service');
 
 module.exports = class Field extends Node {
   constructor(model, ast) {
-    super(ast);
+    super(ast, 'field');
     this.model = model;
-    this.nodeType = 'field';
     this.schema = model.getSchema();
     this.type = new Type(this.ast);
     this.isArray = this.type.isArray.bind(this.type);

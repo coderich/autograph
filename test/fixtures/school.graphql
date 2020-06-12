@@ -1,0 +1,25 @@
+type Student @model {
+  name: String!
+  books: [Book] @link(to: StudentBook by: student use: book)
+  classes: [Class] @link(to: StudentClass by: student use: class)
+}
+
+type Class @model {
+  name: String!
+  students: [Student] @link(to: StudentClass by: class use: student)
+}
+
+type Book @model {
+  name: String!
+  students: [Student] @link(to: StudentClass by: class use: student)
+}
+
+type StudentBook @model {
+  student: Student!
+  book: Book!
+}
+
+type StudentClass @model {
+  student: Student!
+  class: Class!
+}

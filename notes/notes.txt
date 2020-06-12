@@ -14,7 +14,6 @@ How:
   }
 
 Now:
-  * How to remove/null fields that are not Read?
   * What if DB queried data differs from context/segmentation?
     - Throw an error?
   * Enforce segmentation throughout (findNetwork, network field, ...)

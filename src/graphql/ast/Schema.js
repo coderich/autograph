@@ -2,6 +2,7 @@ const FS = require('fs');
 const Glob = require('glob');
 const Path = require('path');
 const Merge = require('deepmerge');
+const { nvl, uvl } = require('../../service/app.service');
 const { validateSchema, makeExecutableSchema, mergeASTSchema, mergeASTArray } = require('../../service/graphql.service');
 const Node = require('./Node');
 const Model = require('./Model');
@@ -32,17 +33,18 @@ module.exports = class Schema extends Node {
   }
 
   getSchema() {
-    // const definitions = this.ast.definitions.map((definition) => {
-    //   definition.fields = (definition.fields || []).filter((f) => {
-    //     const node = new Node(f);
-    //     return !node.isPrivate();
-    //   });
+    const definitions = this.ast.definitions.map((definition) => {
+      definition.fields = (definition.fields || []).filter((f) => {
+        const node = new Node(f, 'field');
+        const scope = nvl(uvl(node.getDirectiveArg('field', 'gqlScope'), 'crud'), '');
+        return scope.indexOf('r') > -1;
+      });
 
-    //   return definition;
-    // });
+      return definition;
+    });
 
-    // const ast = Object.assign({}, this.ast, { this.ast.definitions });
-    const schema = Object.assign({}, this.schema, { typeDefs: this.ast });
+    const ast = Object.assign({}, this.ast, { definitions });
+    const schema = Object.assign({}, this.schema, { typeDefs: ast });
     validateSchema(schema);
     return schema;
   }

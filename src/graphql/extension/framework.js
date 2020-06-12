@@ -24,7 +24,7 @@ module.exports = (schema) => {
         persist: Boolean # Persist this model (default true)
         driver: AutoGraphDriver # External data driver
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
-        namespace: String
+        namespace: String # Logical grouping of models that can be globbed (useful for authz)
 
         # Override auto-gen
         id: String

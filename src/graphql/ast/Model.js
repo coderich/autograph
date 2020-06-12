@@ -3,8 +3,7 @@ const Field = require('./Field');
 
 module.exports = class Model extends Node {
   constructor(schema, ast) {
-    super(ast);
-    this.nodeType = 'model';
+    super(ast, 'model');
     this.schema = schema;
     this.fields = this.ast.fields.map(f => new Field(this, f));
   }

@@ -10,11 +10,12 @@ const scalarKinds = [Kind.SCALAR_TYPE_DEFINITION, Kind.SCALAR_TYPE_EXTENSION];
 const enumKinds = [Kind.ENUM_TYPE_DEFINITION, Kind.ENUM_TYPE_EXTENSION];
 
 module.exports = class Node {
-  constructor(astLike) {
+  constructor(astLike, nodeType) {
     this.ast = mergeAST(astLike);
     this.arguments = (this.ast.arguments || []).map(el => new Node(el));
     this.directives = (this.ast.directives || []).map(el => new Node(el));
     this.toString = () => this.getName();
+    this.nodeType = nodeType;
   }
 
   // Basic AST Methods
