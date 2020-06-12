@@ -48,6 +48,7 @@ Enhancements:
 
 Todo:
   * Incorporate Logger
+  * Drivers have to be more like Adapters (Let other's implement - REST API etc)
   * MeteorUser _id is a String (not ID). How to handle?
   * Can you make Emitter events part of a transaction? pre vs post can be confusing... especially for data validation etc.
   * Currently there is no way to count regular elements of an array (try to count bids)

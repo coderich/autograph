@@ -57,6 +57,14 @@ module.exports = class Schema extends Node {
     return this.models;
   }
 
+  getModelNames() {
+    return this.getModels().map(model => model.getName());
+  }
+
+  getModelMap() {
+    return this.getModels().reduce((prev, model) => Object.assign(prev, { [model.getName()]: model }), {});
+  }
+
   getInput(name) {
     return this.getInputs().find(input => input.getName() === name);
   }
@@ -87,38 +95,6 @@ module.exports = class Schema extends Node {
 
   getEntityModels() {
     return this.getModels().filter(model => model.isEntity());
-  }
-
-  getResolvableModels() {
-    return this.getModels().filter(model => model.isResolvable());
-  }
-
-  getGQLCreateModels() {
-    return this.getEntityModels().filter(model => model.isGQLCreatable());
-  }
-
-  getGQLReadModels() {
-    return this.getEntityModels().filter(model => model.isGQLReadable());
-  }
-
-  getGQLUpdateModels() {
-    return this.getEntityModels().filter(model => model.isGQLUpdatable());
-  }
-
-  getGQLDeleteModels() {
-    return this.getEntityModels().filter(model => model.isGQLDeletable());
-  }
-
-  getGQLSubscribeModels() {
-    return this.getModels().filter(model => model.isGQLSubscribable());
-  }
-
-  getModelNames() {
-    return this.getModels().map(model => model.getName());
-  }
-
-  getModelMap() {
-    return this.getModels().reduce((prev, model) => Object.assign(prev, { [model.getName()]: model }), {});
   }
 
   getContext() {

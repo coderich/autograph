@@ -91,34 +91,8 @@ module.exports = class Model extends Node {
     return this.getFields().filter(field => field.isReadable());
   }
 
-  getGQLSelectFields() {
-    return this.getFields().filter(field => field.isGQLReadable());
-  }
-
-  getGQLWhereFields() {
-    return this.getFields().filter((field) => {
-      if (field.getName() === 'id') return false;
-      if (!field.hasGQLScope('r')) return false;
-      const modelRef = field.getModelRef();
-      if (modelRef && !modelRef.isEmbedded() && !modelRef.isEntity()) return false;
-      return true;
-    });
-  }
-
-  getGQLSortFields() {
-    return this.getGQLSelectFields().filter(field => field.isResolvable());
-  }
-
   getCountableFields() {
     return this.getSelectFields().filter(field => field.isArray() && field.getDataRef());
-  }
-
-  getGQLCreateFields() {
-    return this.getFields().filter(field => field.isGQLCreatable() && !field.isVirtual() && field.getName() !== 'id');
-  }
-
-  getGQLUpdateFields() {
-    return this.getGQLCreateFields().filter(field => !field.isImmutable());
   }
 
   // Misc

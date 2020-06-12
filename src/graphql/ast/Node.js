@@ -183,19 +183,6 @@ module.exports = class Node {
   }
 
   /**
-   * Can this be fully resolved
-   */
-  isResolvable() {
-    if (this.isBasicType()) return true;
-
-    switch (this.nodeType) {
-      case 'model': return this.getDALScope().length > 0;
-      case 'field': return this.getModelRef().isResolvable();
-      default: return false;
-    }
-  }
-
-  /**
    * Is this embedded in another document
    */
   isEmbedded() {
@@ -288,29 +275,9 @@ module.exports = class Node {
     return Boolean(this.getDALScope().toLowerCase().indexOf('c') > -1);
   }
 
-  isGQLCreatable() {
-    if (!this.isCreatable()) return false;
-
-    switch (this.nodeType) {
-      case 'model': return Boolean(this.getGQLScope().toLowerCase().indexOf('c') > -1);
-      case 'field': return Boolean(this.getGQLScope().toLowerCase().indexOf('c') > -1);
-      default: return false;
-    }
-  }
-
   // Read
   isReadable() {
     return Boolean(this.getDALScope().toLowerCase().indexOf('r') > -1);
-  }
-
-  isGQLReadable() {
-    if (!this.isReadable()) return false;
-
-    switch (this.nodeType) {
-      case 'model': return Boolean(this.getGQLScope().toLowerCase().indexOf('r') > -1);
-      case 'field': return Boolean(this.getGQLScope().toLowerCase().indexOf('r') > -1);
-      default: return false;
-    }
   }
 
   // Update
@@ -318,38 +285,8 @@ module.exports = class Node {
     return Boolean(this.getDALScope().toLowerCase().indexOf('u') > -1);
   }
 
-  isGQLUpdatable() {
-    if (!this.isUpdatable()) return false;
-
-    switch (this.nodeType) {
-      case 'model': return Boolean(this.getGQLScope().toLowerCase().indexOf('u') > -1);
-      case 'field': return Boolean(this.getGQLScope().toLowerCase().indexOf('u') > -1);
-      default: return false;
-    }
-  }
-
   // Delete
   isDeletable() {
     return Boolean(this.getDALScope().toLowerCase().indexOf('d') > -1);
-  }
-
-  isGQLDeletable() {
-    if (!this.isDeletable()) return false;
-
-    switch (this.nodeType) {
-      case 'model': return Boolean(this.getGQLScope().toLowerCase().indexOf('d') > -1);
-      case 'field': return Boolean(this.getGQLScope().toLowerCase().indexOf('d') > -1);
-      default: return false;
-    }
-  }
-
-  // Subscribe
-  isSubscribable() {
-    return Boolean(this.isCreatable() || this.isUpdatable() || this.isDeletable());
-  }
-
-  isGQLSubscribable() {
-    if (!this.isSubscribable()) return false;
-    return Boolean(this.isGQLCreatable() || this.isGQLUpdatable() || this.isGQLDeletable());
   }
 };

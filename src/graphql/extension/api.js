@@ -3,6 +3,16 @@ const { ucFirst, fromGUID } = require('../../service/app.service');
 const { findGQLModels } = require('../../service/schema.service');
 const ServerResolver = require('../../core/ServerResolver');
 
+const getGQLWhereFields = (model) => {
+  return model.getFields().filter((field) => {
+    if (field.getName() === 'id') return false;
+    if (!field.hasGQLScope('r')) return false;
+    const modelRef = field.getModelRef();
+    if (modelRef && !modelRef.isEmbedded() && !modelRef.isEntity()) return false;
+    return true;
+  });
+};
+
 module.exports = (schema) => {
   const resolver = new ServerResolver();
   const createModels = findGQLModels('c', schema.getMarkedModels(), schema.getModels());
@@ -23,10 +33,10 @@ module.exports = (schema) => {
       `),
       ...readModels.map(model => `
         input ${model.getName()}InputWhere {
-          ${model.getGQLWhereFields().map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'String'}`)}
+          ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'String'}`)}
         }
         input ${model.getName()}InputSort {
-          ${model.getGQLWhereFields().map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputSort` : 'SortOrderEnum'}`)}
+          ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputSort` : 'SortOrderEnum'}`)}
         }
         input ${model.getName()}InputQuery { where: ${model.getName()}InputWhere sortBy: ${model.getName()}InputSort limit: Int }
       `),
