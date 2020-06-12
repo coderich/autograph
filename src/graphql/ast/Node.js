@@ -115,7 +115,7 @@ module.exports = class Node {
   }
 
   getVirtualRef() {
-    return this.getDirectiveArg('field', 'materializeBy');
+    return this.getDirectiveArg('link', 'by');
   }
 
   getAuthz() {
@@ -151,7 +151,7 @@ module.exports = class Node {
    * Is the field virtual; does it's value come from another model
    */
   isVirtual() {
-    return Boolean(this.getDirectiveArg('field', 'materializeBy'));
+    return Boolean(this.getDirectiveArg('link', 'by'));
   }
 
   /**

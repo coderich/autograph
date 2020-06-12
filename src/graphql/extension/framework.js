@@ -40,7 +40,6 @@ module.exports = (schema) => {
         default: AutoGraphMixed # Define a default value
 
         noRepeat: Boolean
-        materializeBy: String
 
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
         enforce: [AutoGraphEnforceEnum!]

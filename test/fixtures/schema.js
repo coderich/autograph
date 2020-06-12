@@ -17,7 +17,7 @@ module.exports = {
       @index(name: "uix_person_name", type: unique, on: [name])
     {
       name: String! @field(transform: toTitleCase)
-      authored: [Book] @field(materializeBy: "author")
+      authored: [Book] @link(by: author)
       emailAddress: String! @field(key: "email_address", enforce: email)
       friends: [Person] @field(transform: dedupe, enforce: selfless, onDelete: cascade)
       status: String @field(key: "state")
@@ -35,7 +35,7 @@ module.exports = {
       author: Person! @field(enforce: immutable, onDelete: cascade)
       bestSeller: Boolean
       bids: [Float]
-      chapters: [Chapter] @field(materializeBy: "book")
+      chapters: [Chapter] @link(by: book)
     }
 
     type Chapter
@@ -44,7 +44,7 @@ module.exports = {
     {
       name: String! @field(key: "chapter_name" transform: toTitleCase)
       book: Book! @field(onDelete: restrict)
-      pages: [Page] @field(materializeBy: "chapter")
+      pages: [Page] @link(by: chapter)
     }
 
     type Page
