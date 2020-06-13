@@ -293,6 +293,10 @@ module.exports = (driver = 'mongo', options = {}) => {
           expect((await resolver.match('Apartment').where({ 'building.tenants': richard.id }).many({ find: true })).length).toBe(1);
         });
       }
+
+      test('Segmentation', async () => {
+        expect((await resolver.match('Person').many({ find: true })).length).toBe(2);
+      });
     });
 
 

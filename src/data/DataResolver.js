@@ -2,7 +2,7 @@
  * DataResolver.
  *
  * A simple Proxy to allow dynamic lazy-loading of data attributes. It's primary use is to hydrate
- * data from the database as needed.
+ * data from the database on demand.
  */
 module.exports = class DataResolver {
   constructor(data, resolver = (d, p) => d[p]) {

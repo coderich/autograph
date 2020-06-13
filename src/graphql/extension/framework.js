@@ -19,7 +19,7 @@ module.exports = (schema) => {
         gqlScope: AutoGraphMixed # Dictate how GraphQL API behaves
         dalScope: AutoGraphMixed # Dictate how the DAL behaves
         fieldScope: AutoGraphMixed # Dictate how a FIELD may use me
-        meta: String # Custom input 'meta' field for mutations
+        meta: AutoGraphMixed # Custom input 'meta' field for mutations
         embed: Boolean # Mark this an embedded model (default false)
         persist: Boolean # Persist this model (default true)
         driver: AutoGraphDriver # External data driver

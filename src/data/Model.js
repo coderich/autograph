@@ -115,14 +115,17 @@ module.exports = class extends Model {
   }
 
   resolveDefaultValues(data) {
+    return this.resolveBoundValues(this.getDefaultValues(data));
+  }
+
+  resolveBoundValues(data) {
     const boundFields = this.getBoundValueFields();
-    const defaultedData = this.getDefaultValues(data);
 
     return Promise.all(boundFields.map((boundField) => {
-      return boundField.resolveBoundValue(defaultedData[boundField]);
+      return boundField.resolveBoundValue(data[boundField]);
     })).then((values) => {
-      values.forEach((value, i) => { defaultedData[boundFields[i]] = value; }); // Assign new value
-      return defaultedData;
+      values.forEach((value, i) => { data[boundFields[i]] = value; }); // Assign new value
+      return data;
     });
   }
 

@@ -45,8 +45,9 @@ module.exports = class QueryWorker {
       if (query.isNative()) {
         hydratedResults = await model.native('find', query.getNative(), options).hydrate(resolver, query);
       } else {
-        const $where = model.transform(where);
-        const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
+        const $where = await model.resolveBoundValues(where);
+        const $$where = model.transform($where);
+        const resolvedWhere = await resolveModelWhereClause(resolver, model, $$where);
         hydratedResults = await model.find(resolvedWhere, options).hydrate(resolver, query);
       }
       const filteredData = filterDataByCounts(resolver, model, hydratedResults, countFields);
@@ -63,8 +64,9 @@ module.exports = class QueryWorker {
     return createSystemEvent('Query', { method: 'count', model, resolver, query }, async () => {
       if (query.isNative()) return model.native('count', query.getNative(), options);
 
-      const $where = model.transform(where);
-      const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
+      const $where = await model.resolveBoundValues(where);
+      const $$where = model.transform($where);
+      const resolvedWhere = await resolveModelWhereClause(resolver, model, $$where);
 
       if (countPaths.length) {
         const results = await resolver.match(model).where(resolvedWhere).select(countFields).options(options).many();
@@ -98,6 +100,7 @@ module.exports = class QueryWorker {
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
+    input = await model.resolveBoundValues(input);
     await validateModelData(model, input, doc, 'update');
 
     return createSystemEvent('Mutation', { method: 'update', model, resolver, query, input, doc }, async () => {

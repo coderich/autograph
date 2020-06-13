@@ -14,6 +14,7 @@ How:
   }
 
 Now:
+  * @value has to be applied to where clause
   * What if DB queried data differs from context/segmentation?
     - Throw an error?
   * Enforce segmentation throughout (findNetwork, network field, ...)
@@ -22,6 +23,7 @@ Now:
     - See if (above) is a problem since you have .native and .raw now
 
 Next:
+  * Directive param validation
   * Take a look at all Mongoose options/features (eg. minimize)
   * Neo4j does not know how to generate ids
   * Deserialization and ids (_id) and code throughout
@@ -29,15 +31,12 @@ Next:
   * How do you handle the hydrate() problem? QueryWorker is hydrating, what about concept of returning ResultSet and letting user hydrate() or populate() from resolver?
   * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
-  * Can context be derived from the schema instead of being explicitly set?
 
 Enhancements:
   * Create person with books at the same time
   * createdAt, updatedAt, counts, onDeletes, references, etc should be controllable
-  * Probably need a @link directive to describe some FK relationship (composite keys, flexible structure)
   * ResultSet have have helper methods (save(), remove(), archive(), etc())
   * Add 'filterBy' as an option for post query filtering (this can alleviate the depth-first where clause problem)
-  * Where clause allow explicit NULL to be searchable (ie. where { authored: null } gives those who have not authored anything)
   * Concept of "incomplete" and "what's missing" as part of data retrieval
   * Get a list of references that would be onDelete affected
   * URL, RGB, RGBA, validator?
