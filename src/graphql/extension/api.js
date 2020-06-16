@@ -98,7 +98,8 @@ module.exports = (schema) => {
       return Object.assign(prev, {
         [modelName]: model.getSelectFields().reduce((def, field) => {
           const fieldName = field.getName();
-          return Object.assign(def, { [fieldName]: root => root[`$${fieldName}`] });
+          const $fieldName = field.getModelRef() ? `$${fieldName}` : fieldName; // only $hydrated when it's a modelRef
+          return Object.assign(def, { [fieldName]: root => root[$fieldName] });
         }, {
           id: (root, args, { autograph }) => (autograph.legacyMode ? root.id : root.$id),
           // countSelf: (root, args, context, info) => resolver.count(context, model, args, info),
