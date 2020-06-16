@@ -14,15 +14,20 @@ How:
   }
 
 Now:
-  * @value has to be applied to where clause
+  * Pagination should pass limit & sort to dao if possible
+  * How to prevent get(id) and delete(id) via Segmentation?
   * What if DB queried data differs from context/segmentation?
     - Throw an error?
+    - This should not be possible, I think you need to always have a where clause with the segment value
   * Enforce segmentation throughout (findNetwork, network field, ...)
     - You can put @value directly on Model and that means something
     - But that means you can't use the resolver straight up and say where { 'network.name': 'name' }
     - See if (above) is a problem since you have .native and .raw now
 
 Next:
+  * DAO should be a wrapper that makes Exectuable GraphQL Query calls!
+    - Funnel everything through the resolver which can be overridden by the designer
+  * Need to think about how designer can override resolve method but still use framework (model.resolve is the key here....)
   * Directive param validation
   * Take a look at all Mongoose options/features (eg. minimize)
   * Neo4j does not know how to generate ids
@@ -35,7 +40,7 @@ Next:
 Enhancements:
   * Create person with books at the same time
   * createdAt, updatedAt, counts, onDeletes, references, etc should be controllable
-  * ResultSet have have helper methods (save(), remove(), archive(), etc())
+  * ResultSet can have helper methods (save(), remove(), archive(), etc())
   * Add 'filterBy' as an option for post query filtering (this can alleviate the depth-first where clause problem)
   * Concept of "incomplete" and "what's missing" as part of data retrieval
   * Get a list of references that would be onDelete affected
