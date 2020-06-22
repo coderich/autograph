@@ -5,7 +5,7 @@ module.exports = class Query {
   constructor(resolver, model, query = {}) {
     const { where = {}, sortBy = {}, limit, pagination = {}, options = {} } = query;
 
-    // Sorting
+    // The fields to sortBy should be $hydrated fields
     const sortFields = keyPaths(sortBy).reduce((prev, path) => {
       const $path = path.split('.').map(s => (s.indexOf('count') === 0 || s.indexOf('.count') === 0 ? s : `$${s}`)).join('.');
       return Object.assign(prev, { [$path]: get(sortBy, path) });
@@ -38,24 +38,24 @@ module.exports = class Query {
     return this.query.meta;
   }
 
-  getCountFields() {
-    return this.countFields;
-  }
-
-  getCountPaths() {
-    return this.countPaths;
-  }
-
-  getSortFields() {
-    return this.sortFields;
-  }
-
   getWhere() {
     return this.where;
   }
 
   getSortBy() {
     return this.sortBy;
+  }
+
+  getSortFields() {
+    return this.sortFields;
+  }
+
+  getCountFields() {
+    return this.countFields;
+  }
+
+  getCountPaths() {
+    return this.countPaths;
   }
 
   getPagination() {

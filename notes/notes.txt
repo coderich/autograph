@@ -19,15 +19,16 @@ Now:
   * What if DB queried data differs from context/segmentation?
     - Throw an error?
     - This should not be possible, I think you need to always have a where clause with the segment value
+    - OR MAYBE IT SHOULD BE PART OF AUTHORIZATION... Hijacking where clause seems wrong
   * Enforce segmentation throughout (findNetwork, network field, ...)
     - You can put @value directly on Model and that means something
     - But that means you can't use the resolver straight up and say where { 'network.name': 'name' }
+    - Probably just need to set context
     - See if (above) is a problem since you have .native and .raw now
 
 Next:
   * DAO should be a wrapper that makes Exectuable GraphQL Query calls!
     - Funnel everything through the resolver which can be overridden by the designer
-  * Need to think about how designer can override resolve method but still use framework (model.resolve is the key here....)
   * Directive param validation
   * Take a look at all Mongoose options/features (eg. minimize)
   * Neo4j does not know how to generate ids
