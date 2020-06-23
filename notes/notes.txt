@@ -14,6 +14,7 @@ How:
   }
 
 Now:
+  * Can you add resolver to context.autograph yourself? (not require it to be done externally)
   * Need idea of archive/soft-delete to remove from resultSet
   * Pagination should pass limit & sort to dao if possible
   * How to prevent get(id) and delete(id) via Segmentation?
@@ -69,7 +70,6 @@ Todo:
 Ideas:
   * If the Query holds all the information you can move logic to it (eg. Query.validate())
   * Can you use semver over glob in some areas?
-  * Concept of a named query (re-usable)? resolver.namedQuery(...)
 
 Figure out:
   * createdBy? (Audit trail)

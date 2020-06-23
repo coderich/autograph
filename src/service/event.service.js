@@ -15,9 +15,12 @@ const systemEvent = new EventEmitter().on('system', async (event, next) => {
 //
 exports.createSystemEvent = (name, event = {}, thunk = () => {}) => {
   const type = ucFirst(name);
-  event.context = event.model.getSchema().getContext();
-  event.meta = event.query.getMeta();
-  event.key = `${event.method}${event.model}`;
+
+  if (name !== 'Setup') {
+    event.context = event.model.getSchema().getContext();
+    event.meta = event.query.getMeta();
+    event.key = `${event.method}${event.model}`;
+  }
 
   return systemEvent.emit('system', { type: `pre${type}`, data: event }).then(() => thunk()).then((result) => {
     event.doc = result;

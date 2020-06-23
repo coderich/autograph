@@ -18,6 +18,7 @@ module.exports = class extends Model {
     super(schema, model.getAST());
     this.driver = driver;
     this.fields = super.getFields().map(field => new Field(this, field));
+    this.namedQueries = {};
   }
 
   // CRUD
@@ -71,6 +72,8 @@ module.exports = class extends Model {
     return this.driver.dao.dropModel(this.getKey());
   }
 
+  //
+
   idValue(id) {
     return this.driver.idValue(id);
   }
@@ -92,6 +95,14 @@ module.exports = class extends Model {
 
   setResolver(resolver) { this.resolver = resolver; }
   //
+
+  createNamedQuery(name, fn) {
+    this.namedQueries[name] = fn;
+  }
+
+  getNamedQueries(name) {
+    return this.namedQueries;
+  }
 
   referentialIntegrity(refs) {
     if (refs) this.referentials = refs;

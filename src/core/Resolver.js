@@ -64,6 +64,10 @@ module.exports = class Resolver {
     return new QueryBuilder(this.toModelEntity(model), this);
   }
 
+  named(model) {
+    return this.toModelEntity(model).getNamedQueries();
+  }
+
   raw(model) {
     return this.toModelEntity(model).raw();
   }

@@ -5,6 +5,7 @@ const apiExt = require('../graphql/extension/api');
 const typeExt = require('../graphql/extension/type');
 const frameworkExt = require('../graphql/extension/framework');
 const { identifyOnDeletes } = require('../service/schema.service');
+const { createSystemEvent } = require('../service/event.service');
 
 // Export class
 module.exports = class extends Schema {
@@ -42,6 +43,9 @@ module.exports = class extends Schema {
         driver.createIndexes(key, indexes);
       }
     });
+
+    // Let the user hook into system events
+    createSystemEvent('Setup', this);
   }
 
   createModels() {
