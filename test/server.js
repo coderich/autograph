@@ -11,26 +11,27 @@ const stores = require('./stores');
 
 class Server {
   constructor() {
-    const schema = new Schema(gqlSchema, stores);
-    const executableSchema = schema.makeServerApiSchema();
+    this.schema = new Schema(gqlSchema, stores);
 
     this.server = new ApolloServer({
-      schema: executableSchema,
+      schema: this.schema.makeServerApiSchema(),
       context: () => ({
         get autograph() {
           return {
-            schema: schema.setContext(this),
+            schema: this.schema.setContext(this),
             permissions: ['**'],
             legacyMode: true,
-            resolver: new Resolver(schema),
+            resolver: new Resolver(this.schema),
           };
         },
       }),
     });
   }
 
-  start() {
-    this.server.listen(3000).then(({ url, subscriptionsUrl }) => {
+  async start() {
+    await this.schema.setup();
+
+    return this.server.listen(3000).then(({ url, subscriptionsUrl }) => {
       console.log(`Server running: ${url}`);
       console.log(`Subscriptions running: ${subscriptionsUrl}`);
     });

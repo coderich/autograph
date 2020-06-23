@@ -10,7 +10,7 @@ class Rule {
     const {
       ignoreNull = true,
       itemize = true,
-      toError = (field, value, msg) => Boom.notAcceptable(`Rule (${name}) failed for { ${field}: ${value} }`),
+      toError = (field, value, msg) => Boom.notAcceptable(`Rule (${name}) failed for { ${field.getModel()}.${field}: ${value} }`),
     } = (options || {});
 
     return Object.defineProperty((field, val, cmp = (f, v) => thunk(f, v)) => {

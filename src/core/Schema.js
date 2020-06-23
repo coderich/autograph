@@ -43,9 +43,10 @@ module.exports = class extends Schema {
         driver.createIndexes(key, indexes);
       }
     });
+  }
 
-    // Let the user hook into system events
-    createSystemEvent('Setup', this);
+  setup() {
+    return createSystemEvent('Setup', this);
   }
 
   createModels() {

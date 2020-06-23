@@ -118,9 +118,10 @@ module.exports = class extends Model {
     return fieldNames.reduce((prev, fieldName) => {
       const field = this.getFieldByName(fieldName);
       if (fieldName !== '_id' && !field) return prev; // There can still be nonsense passed in via the DAO
+      const modelRef = field.getModelRef();
       let value = data[fieldName];
       if (value === undefined) value = field.getDefaultValue();
-      if (fieldName !== '_id' && field.isEmbedded()) value = field.getModelRef().getDefaultValues(value);
+      if (fieldName !== '_id' && field.isEmbedded()) value = Array.isArray(value) ? value.map(v => modelRef.getDefaultValues(v)) : modelRef.getDefaultValues(value);
       return Object.assign(prev, { [fieldName]: value });
     }, {});
   }

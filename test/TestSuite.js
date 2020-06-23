@@ -74,6 +74,7 @@ module.exports = (driver = 'mongo', options = {}) => {
       schema.getServerApiSchema();
       schema.makeExecutableSchema();
       resolver = new Resolver(schema);
+      await schema.setup();
 
       //
       await timeout(2000);
