@@ -60,8 +60,28 @@ module.exports = class extends Field {
     return transformers.concat(this.type.getTransformers());
   }
 
+  getResolvers() {
+    const resolvers = [];
+
+    Object.entries(this.getDirectiveArgs('field', {})).forEach(([key, value]) => {
+      if (!Array.isArray(value)) value = [value];
+      if (key === 'resolve') resolvers.push(...value.map(t => Transformer.getInstances()[t]));
+    });
+
+    return resolvers.concat(this.type.getResolvers());
+  }
+
   serialize(value, mapper) {
     return this.transform(value, mapper, true);
+  }
+
+  resolve(value) {
+    const resolvers = [...this.getResolvers()];
+
+    // Perform resolution
+    return resolvers.reduce((prev, transformer) => {
+      return transformer(this, prev);
+    }, value);
   }
 
   transform(value, mapper, serialize) {

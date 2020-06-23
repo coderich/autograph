@@ -44,7 +44,8 @@ module.exports = (schema) => {
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
         enforce: [AutoGraphEnforceEnum!]
         onDelete: AutoGraphOnDeleteEnum
-        transform: [AutoGraphTransformEnum!]
+        resolve: [AutoGraphTransformEnum!] # Resolvers take place on the out
+        transform: [AutoGraphTransformEnum!] # Transforms take place both in and out
       ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
 
       directive @link(
