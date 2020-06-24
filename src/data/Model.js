@@ -141,6 +141,14 @@ module.exports = class extends Model {
     });
   }
 
+  removeBoundKeys(data) {
+    return Object.entries(data).reduce((prev, [key, value]) => {
+      const field = this.getFieldByName(key);
+      if (field && field.hasBoundValue()) return prev;
+      return Object.assign(prev, { [key]: value });
+    }, {});
+  }
+
   serialize(data, mapper) {
     if (data == null) return data;
 

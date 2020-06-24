@@ -100,8 +100,7 @@ module.exports = class QueryWorker {
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
-    input = await model.resolveBoundValues(input);
-    const merged = mergeDeep(doc, input);
+    const merged = mergeDeep(doc, model.removeBoundKeys(input));
 
     return createSystemEvent('Mutation', { method: 'update', model, resolver, query, input, doc, merged }, async () => {
       await validateModelData(model, input, doc, 'update');
