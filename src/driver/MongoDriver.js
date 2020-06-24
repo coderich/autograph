@@ -1,3 +1,4 @@
+const { get } = require('lodash');
 const { MongoClient, ObjectID } = require('mongodb');
 const { promiseRetry, globToRegex, proxyDeep, isScalarDataType, toKeyObj, proxyPromise } = require('../service/app.service');
 
@@ -21,6 +22,7 @@ module.exports = class MongoDriver {
   }
 
   query(collection, method, ...args) {
+    if (get(args, '1.debug')) console.log(method, JSON.stringify(args));
     return this.connection.then(client => client.db().collection(collection)[method](...args));
   }
 

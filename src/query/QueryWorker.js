@@ -101,10 +101,10 @@ module.exports = class QueryWorker {
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
     input = await model.resolveBoundValues(input);
+    const merged = mergeDeep(doc, input);
 
-    return createSystemEvent('Mutation', { method: 'update', model, resolver, query, input, doc }, async () => {
+    return createSystemEvent('Mutation', { method: 'update', model, resolver, query, input, doc, merged }, async () => {
       await validateModelData(model, input, doc, 'update');
-      const merged = mergeDeep(doc, input);
       return model.update(id, input, merged, options).hydrate(resolver, query);
     });
   }
@@ -127,9 +127,10 @@ module.exports = class QueryWorker {
       data = { [key]: get(doc, key, []).concat($to) };
     }
 
-    return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, input: data, doc }, async () => {
+    const merged = mergeDeep(doc, data);
+
+    return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, input: data, doc, merged }, async () => {
       await validateModelData(model, data, doc, 'update');
-      const merged = mergeDeep(doc, data);
       return model.update(id, data, merged, options).hydrate(resolver, query);
     });
   }

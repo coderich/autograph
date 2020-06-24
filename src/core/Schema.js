@@ -28,25 +28,21 @@ module.exports = class extends Schema {
 
     // Create models
     this.createModels();
-
-    // Create model indexes
-    this.models.forEach((model) => {
-      if (model.isEntity()) {
-        const key = model.getKey();
-        const indexes = model.getIndexes();
-        const driver = model.getDriver();
-
-        // Create collections (mongo)
-        if (driver.createCollection) driver.createCollection(key);
-
-        // Create indexes
-        driver.createIndexes(key, indexes);
-      }
-    });
   }
 
   setup() {
-    return createSystemEvent('Setup', this);
+    return createSystemEvent('Setup', this, () => {
+      const entities = this.models.filter(m => m.isEntity());
+
+      // Create model indexes
+      return Promise.all(entities.map(async (model) => {
+        const key = model.getKey();
+        const indexes = model.getIndexes();
+        const driver = model.getDriver();
+        if (driver.createCollection) await driver.createCollection(key);
+        return driver.createIndexes(key, indexes);
+      }));
+    });
   }
 
   createModels() {
