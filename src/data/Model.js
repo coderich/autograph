@@ -203,7 +203,6 @@ module.exports = class extends Model {
     // Check if already resolved
     if (value !== undefined) {
       if (f && f.isEmbedded()) return new DataResolver(value, (d, p) => f.getModelRef().resolve(d, p, resolver, query));
-      if (f) return f.resolve(value);
       return value;
     }
 

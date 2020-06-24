@@ -3,7 +3,7 @@ const Type = require('./Type');
 const Field = require('../graphql/ast/Field');
 const Rule = require('../core/Rule');
 const Transformer = require('../core/Transformer');
-const { isPlainObject, ensureArray } = require('../service/app.service');
+const { uvl, isPlainObject, ensureArray, promiseChain } = require('../service/app.service');
 
 module.exports = class extends Field {
   constructor(model, field) {
@@ -78,10 +78,9 @@ module.exports = class extends Field {
   resolve(value) {
     const resolvers = [...this.getResolvers()];
 
-    // Perform resolution
-    return resolvers.reduce((prev, transformer) => {
-      return transformer(this, prev);
-    }, value);
+    return promiseChain(resolvers.map(resolver => (chain) => {
+      return Promise.resolve(resolver(this, uvl(chain.pop(), value)));
+    })).then(results => uvl(results.pop(), value));
   }
 
   transform(value, mapper, serialize) {

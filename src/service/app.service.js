@@ -135,7 +135,7 @@ exports.queryPaths = (model, obj) => {
 
 exports.promiseChain = (promises) => {
   return promises.reduce((chain, promise) => {
-    return chain.then(chainResults => promise().then(promiseResult => [...chainResults, promiseResult]));
+    return chain.then(chainResults => promise([...chainResults]).then(promiseResult => [...chainResults, promiseResult]));
   }, Promise.resolve([]));
 };
 
