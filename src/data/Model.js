@@ -41,7 +41,7 @@ module.exports = class extends Model {
     // Generate embedded ids
     this.getEmbeddedFields().forEach((field) => {
       const idKey = field.getModelRef().idKey();
-      if (idKey && data[field] && !data[field][idKey]) map(data, obj => (obj[field][idKey] = this.idValue()));
+      if (idKey && data[field] && !data[field][idKey]) map(data[field], f => (f[idKey] = this.idValue()));
     });
     this.normalizeOptions(options);
     return new ResultSet(this, this.driver.dao.create(this.getKey(), this.serialize(data), options));

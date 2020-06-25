@@ -833,7 +833,8 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('embedded arrays', async () => {
         const art = await resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1' }] });
         expect(art.id).toBeDefined();
-        expect(art.sections).toEqual([{ name: 'section1' }]); // toLowerCase
+        expect(art.sections).toMatchObject([{ name: 'section1' }]); // toLowerCase
+        expect(art.sections[0].id).toBeDefined();
       });
     });
   });

@@ -112,7 +112,7 @@ module.exports = {
       sections: [Section]
     }
 
-    type Section {
+    type Section @model(embed: true) {
       name: String! @field(transform: toLowerCase)
     }
 
