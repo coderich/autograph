@@ -27,36 +27,33 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', l
     modelName: mName,
     query: Object.entries(where).reduce((prev, [key, value]) => {
       const field = model.getField(key);
+      const ref = field.getModelRef();
 
-      if (field && !field.isEmbedded()) {
-        const ref = field.getModelRef();
-
-        if (ref) {
-          if (isPlainObject(value)) {
-            exports.resolveModelWhereClause(resolver, ref, value, field.getKey(key), lookups2D, index + 1);
-            return prev;
-          }
-
-          if (Array.isArray(value)) {
-            const scalars = [];
-            const norm = value.map((v) => {
-              if (isPlainObject(v)) return v;
-              if (field.isVirtual() && isIdValue(v)) return { [ref.idKey()]: v };
-              scalars.push(v);
-              return null;
-            }).filter(v => v);
-            norm.forEach(val => exports.resolveModelWhereClause(resolver, ref, val, field.getKey(key), lookups2D, index + 1));
-            if (scalars.length) prev[key] = scalars;
-            return prev;
-          }
-
-          if (field.isVirtual()) {
-            exports.resolveModelWhereClause(resolver, ref, { [ref.idKey()]: value }, field.getKey(key), lookups2D, index + 1);
-            return prev;
-          }
+      if (field.isEmbedded()) {
+        value = Object.entries(value).reduce((p, [k, v]) => Object.assign(p, { [ref.getFieldByName(k).getKey()]: v }), {});
+      } else if (ref) {
+        if (isPlainObject(value)) {
+          exports.resolveModelWhereClause(resolver, ref, value, field.getKey(key), lookups2D, index + 1);
+          return prev;
         }
 
-        return Object.assign(prev, { [field.getKey(key)]: value });
+        if (Array.isArray(value)) {
+          const scalars = [];
+          const norm = value.map((v) => {
+            if (isPlainObject(v)) return v;
+            if (field.isVirtual() && isIdValue(v)) return { [ref.idKey()]: v };
+            scalars.push(v);
+            return null;
+          }).filter(v => v);
+          norm.forEach(val => exports.resolveModelWhereClause(resolver, ref, val, field.getKey(key), lookups2D, index + 1));
+          if (scalars.length) prev[key] = scalars;
+          return prev;
+        }
+
+        if (field.isVirtual()) {
+          exports.resolveModelWhereClause(resolver, ref, { [ref.idKey()]: value }, field.getKey(key), lookups2D, index + 1);
+          return prev;
+        }
       }
 
       return Object.assign(prev, { [field.getKey(key)]: value });

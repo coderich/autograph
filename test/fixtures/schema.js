@@ -89,7 +89,7 @@ module.exports = {
 
     type Building
     {
-      year: Int # @field(key: "year_built")
+      year: Int @field(key: "year_built")
       type: String! @field(enforce: buildingType)
       tenants: [Person] @field(enforce: distinct, onDelete: cascade)
       landlord: Person @field(onDelete: nullify)
