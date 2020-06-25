@@ -38,11 +38,6 @@ module.exports = class extends Model {
   }
 
   create(data, options) {
-    // Generate embedded ids
-    this.getEmbeddedFields().forEach((field) => {
-      const idKey = field.getModelRef().idKey();
-      if (idKey && data[field] && !data[field][idKey]) map(data[field], f => (f[idKey] = this.idValue()));
-    });
     this.normalizeOptions(options);
     return new ResultSet(this, this.driver.dao.create(this.getKey(), this.serialize(data), options));
   }
@@ -150,47 +145,57 @@ module.exports = class extends Model {
   }
 
   serialize(data, mapper) {
-    if (data == null) return data;
+    return map(data, (obj) => {
+      if (obj == null) return obj;
 
-    return map(data, obj => Object.entries(obj).reduce((prev, [key, value]) => {
-      const field = this.getFieldByName(key) || this.getFieldByKey(key);
-      if (!field || !field.isPersistable()) return prev;
-      if (value === undefined) value = obj[field.getKey()];
-      value = field.serialize(value, mapper);
-      if (field.isEmbedded()) value = field.getModelRef().serialize(value, mapper);
-      return Object.assign(prev, { [field.getKey()]: value });
-    }, {})); // Strip away all props not in schema
+      return Object.entries(obj).reduce((prev, [key, value]) => {
+        const field = this.getFieldByName(key) || this.getFieldByKey(key);
+        if (!field || !field.isPersistable()) return prev;
+        if (value === undefined) value = obj[field.getKey()];
+        value = field.serialize(value, mapper);
+        if (field.isEmbedded()) value = field.getModelRef().serialize(value, mapper);
+        return Object.assign(prev, { [field.getKey()]: value });
+      }, {}); // Strip away all props not in schema
+    });
   }
 
   deserialize(data, mapper) {
-    if (data == null) return data;
-
     // You're going to get a mixed bag of DB keys and Field keys here
-    const dataWithValues = map(data, obj => Object.entries(obj).reduce((prev, [key, value]) => {
-      const field = this.getFieldByKey(key) || this.getFieldByName(key);
-      if (!field) return prev; // Strip completely unknown fields
-      if (value == null) value = obj[field.getKey()]; // This is intended to level out what the value should be
-      value = field.transform(value, mapper);
-      if (field.isEmbedded()) value = field.getModelRef().deserialize(value, mapper);
-      return Object.assign(prev, { [field]: value });
-    }, obj)); // May have $hydrated values you want to keep
+    const dataWithValues = map(data, (obj) => {
+      if (obj == null) return obj;
+
+      return Object.entries(obj).reduce((prev, [key, value]) => {
+        const field = this.getFieldByKey(key) || this.getFieldByName(key);
+        if (!field) return prev; // Strip completely unknown fields
+        if (value == null) value = obj[field.getKey()]; // This is intended to level out what the value should be
+        value = field.transform(value, mapper);
+        if (field.isEmbedded()) value = field.getModelRef().deserialize(value, mapper);
+        return Object.assign(prev, { [field]: value });
+      }, obj); // May have $hydrated values you want to keep
+    });
 
     // Finally, remove unwanted database keys
-    map(dataWithValues, obj => Object.keys(obj).forEach((key) => {
-      if (key !== '_id' && !this.getFieldByName(key)) delete obj[key];
-    }));
+    map(dataWithValues, (obj) => {
+      if (obj == null) return obj;
+
+      return Object.keys(obj).forEach((key) => {
+        if (key !== '_id' && !this.getFieldByName(key)) delete obj[key];
+      });
+    });
 
     return dataWithValues;
   }
 
   transform(data, mapper) {
-    if (data == null) return data;
+    return map(data, (obj) => {
+      if (obj == null) return obj;
 
-    return map(data, obj => Object.entries(obj).reduce((prev, [key, value]) => {
-      const field = this.getField(key);
-      if (!field) return prev;
-      return Object.assign(prev, { [field]: field.transform(value, mapper) });
-    }, obj)); // Keep $hydrated props
+      return Object.entries(obj).reduce((prev, [key, value]) => {
+        const field = this.getField(key);
+        if (!field) return prev;
+        return Object.assign(prev, { [field]: field.transform(value, mapper) });
+      }, obj); // Keep $hydrated props
+    });
   }
 
   validate(data, mapper) {
@@ -199,7 +204,10 @@ module.exports = class extends Model {
 
     // Enforce the rules
     return Promise.all(this.getFields().map((field) => {
-      return Promise.all(ensureArray(map(transformed, obj => field.validate(obj[field.getName()], mapper))));
+      return Promise.all(ensureArray(map(transformed, (obj) => {
+        if (obj == null) return Promise.resolve();
+        return field.validate(obj[field.getName()], mapper);
+      })));
     })).then(() => transformed);
   }
 

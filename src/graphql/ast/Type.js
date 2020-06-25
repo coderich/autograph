@@ -16,6 +16,10 @@ module.exports = class Type extends Node {
     return Boolean(getTypeInfo(this.ast).isRequired);
   }
 
+  isArrayElementRequired() {
+    return this.isArray() && Boolean(getTypeInfo(this.ast.type).isRequired);
+  }
+
   isScalar() {
     return scalars.indexOf(this.getName()) > -1;
   }

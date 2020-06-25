@@ -14,6 +14,7 @@ How:
   }
 
 Now:
+  * @model(embed: true) should also add createdAt, updatedAt (and possibly make it candidate for push/pull mutations)
   * Can you add resolver to context.autograph yourself? (not require it to be done externally)
   * Need idea of archive/soft-delete to remove from resultSet
   * Pagination should pass limit & sort to dao if possible

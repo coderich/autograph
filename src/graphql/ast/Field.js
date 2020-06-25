@@ -10,6 +10,8 @@ module.exports = class Field extends Node {
     this.schema = model.getSchema();
     this.type = new Type(this.ast);
     this.isArray = this.type.isArray.bind(this.type);
+    this.isRequired = this.type.isRequired.bind(this.type);
+    this.isArrayElementRequired = this.type.isArrayElementRequired.bind(this.type);
   }
 
   // Field Methods
@@ -87,17 +89,12 @@ module.exports = class Field extends Node {
     return Boolean(this.hasBoundValue() || this.getDefaultValue() != null);
   }
 
-  isRequired() {
-    return Boolean(this.type.isRequired());
-  }
-
   // GQL Schema Methods
   getGQLType(suffix) {
     let type = this.getType();
     const modelType = `${type}${suffix}`;
     if (suffix && !this.isScalar()) type = this.isEmbedded() ? modelType : 'ID';
-    // if (this.options.enum) type = `${this.model.getName()}${ucFirst(this.getName())}Enum`;
-    type = this.isArray() ? `[${type}]` : type;
+    type = this.isArray() ? `[${type}${this.isArrayElementRequired() ? '!' : ''}]` : type;
     if (!suffix && this.isRequired()) type += '!';
     if (suffix === 'InputCreate' && this.isRequired() && !this.isDefaulted()) type += '!';
     return type;

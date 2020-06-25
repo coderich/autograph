@@ -1,6 +1,6 @@
 const { get, remove } = require('lodash');
 const Boom = require('../core/Boom');
-const { mergeDeep, hashObject, stripObjectNulls } = require('../service/app.service');
+const { map, mergeDeep, hashObject, stripObjectNulls } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
 const {
   validateModelData,
@@ -87,6 +87,19 @@ module.exports = class QueryWorker {
     input.createdAt = new Date();
     input.updatedAt = new Date();
     input = await model.resolveDefaultValues(stripObjectNulls(input));
+
+    // Generate embedded default values
+    model.getEmbeddedFields().forEach((field) => {
+      if (!input[field]) return;
+      const idKey = field.getModelRef().idKey();
+
+      map(input[field], (v) => {
+        if (v == null) return;
+        if (idKey && !v[idKey]) v[idKey] = model.idValue();
+        v.createdAt = new Date();
+        v.updatedAt = new Date();
+      });
+    });
 
     return createSystemEvent('Mutation', { method: 'create', model, resolver, query, input }, async () => {
       await validateModelData(model, input, {}, 'create');
