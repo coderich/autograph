@@ -198,9 +198,9 @@ module.exports = class extends Model {
     const transformed = this.transform(data, mapper);
 
     // Enforce the rules
-    return map(transformed, obj => Promise.all(this.getFields().map((field) => {
-      return field.validate(obj[field.getName()], mapper);
-    })).then(() => transformed));
+    return Promise.all(this.getFields().map((field) => {
+      return Promise.all(ensureArray(map(transformed, obj => field.validate(obj[field.getName()], mapper))));
+    })).then(() => transformed);
   }
 
   resolve(doc, prop, resolver, query) {
