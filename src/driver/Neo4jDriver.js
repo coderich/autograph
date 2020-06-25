@@ -93,33 +93,42 @@ class Cypher {
   }
 
   static serialize(data) {
+    const serializeValue = (value) => {
+      if (value instanceof Date) return value.toISOString();
+      if (Array.isArray(value)) return value.map(v => serializeValue(v));
+      if (typeof value === 'object') return JSON.stringify(value);
+      return value;
+    };
+
     return proxyDeep(data, {
       get(target, prop, rec) {
         const value = Reflect.get(target, prop, rec);
         if (typeof value === 'function') return value.bind(target);
-        if (value instanceof Date) return value.toISOString();
-        if (typeof value === 'object' && !Array.isArray(value)) return JSON.stringify(value);
-        return value;
+        return serializeValue(value);
       },
     }).toObject();
   }
 
   static deserialize(data) {
+    const deserializeValue = (value) => {
+      if (Array.isArray(value)) return value.map(v => deserializeValue(v));
+      if (typeof value === 'string') {
+        try {
+          const val = JSON.parse(value);
+          return val;
+        } catch (e) {
+          return value;
+        }
+      }
+
+      return value;
+    };
+
     return proxyDeep(data, {
       get(target, prop, rec) {
         const value = Reflect.get(target, prop, rec);
         if (typeof value === 'function') return value.bind(target);
-
-        if (typeof value === 'string') {
-          try {
-            const val = JSON.parse(value);
-            return val;
-          } catch (e) {
-            return value;
-          }
-        }
-
-        return value;
+        return deserializeValue(value);
       },
     }).toObject();
   }

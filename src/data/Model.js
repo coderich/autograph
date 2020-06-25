@@ -2,7 +2,7 @@ const Field = require('./Field');
 const ResultSet = require('./ResultSet');
 const DataResolver = require('./DataResolver');
 const Model = require('../graphql/ast/Model');
-const { ensureArray } = require('../service/app.service');
+const { map, ensureArray } = require('../service/app.service');
 
 const assignValue = (doc, prop, value) => {
   if (value == null) return value; // Do not hold on to DataResolver
@@ -41,7 +41,7 @@ module.exports = class extends Model {
     // Generate embedded ids
     this.getEmbeddedFields().forEach((field) => {
       const idKey = field.getModelRef().idKey();
-      if (idKey && data[field] && !data[field][idKey]) data[field][idKey] = this.idValue();
+      if (idKey && data[field] && !data[field][idKey]) map(data, obj => (obj[field][idKey] = this.idValue()));
     });
     this.normalizeOptions(options);
     return new ResultSet(this, this.driver.dao.create(this.getKey(), this.serialize(data), options));
@@ -113,7 +113,7 @@ module.exports = class extends Model {
     if (data === null) return null; // Explicitely being told to null out?
 
     const defaultedFields = this.getDefaultedFields();
-    const fieldNames = [...new Set(Object.keys(data).concat(defaultedFields.map(field => `${field}`)))];
+    const fieldNames = [...new Set(Object.keys(ensureArray(data)[0]).concat(defaultedFields.map(field => `${field}`)))];
 
     return fieldNames.reduce((prev, fieldName) => {
       const field = this.getFieldByName(fieldName);
@@ -133,52 +133,52 @@ module.exports = class extends Model {
   resolveBoundValues(data) {
     const boundFields = this.getBoundValueFields();
 
-    return Promise.all(boundFields.map((boundField) => {
-      return boundField.resolveBoundValue(data[boundField]);
+    return map(data, obj => Promise.all(boundFields.map((boundField) => {
+      return boundField.resolveBoundValue(obj[boundField]);
     })).then((values) => {
-      values.forEach((value, i) => { data[boundFields[i]] = value; }); // Assign new value
+      values.forEach((value, i) => { obj[boundFields[i]] = value; }); // Assign new value
       return data;
-    });
+    }));
   }
 
   removeBoundKeys(data) {
-    return Object.entries(data).reduce((prev, [key, value]) => {
+    return map(data, obj => Object.entries(obj).reduce((prev, [key, value]) => {
       const field = this.getFieldByName(key);
       if (field && field.hasBoundValue()) return prev;
       return Object.assign(prev, { [key]: value });
-    }, {});
+    }, {}));
   }
 
   serialize(data, mapper) {
     if (data == null) return data;
 
-    return Object.entries(data).reduce((prev, [key, value]) => {
+    return map(data, obj => Object.entries(obj).reduce((prev, [key, value]) => {
       const field = this.getFieldByName(key) || this.getFieldByKey(key);
       if (!field || !field.isPersistable()) return prev;
-      if (value === undefined) value = data[field.getKey()];
+      if (value === undefined) value = obj[field.getKey()];
       value = field.serialize(value, mapper);
       if (field.isEmbedded()) value = field.getModelRef().serialize(value, mapper);
       return Object.assign(prev, { [field.getKey()]: value });
-    }, {}); // Strip away all props not in schema
+    }, {})); // Strip away all props not in schema
   }
 
   deserialize(data, mapper) {
     if (data == null) return data;
 
     // You're going to get a mixed bag of DB keys and Field keys here
-    const dataWithValues = Object.entries(data).reduce((prev, [key, value]) => {
+    const dataWithValues = map(data, obj => Object.entries(obj).reduce((prev, [key, value]) => {
       const field = this.getFieldByKey(key) || this.getFieldByName(key);
       if (!field) return prev; // Strip completely unknown fields
-      if (value == null) value = data[field.getKey()]; // This is intended to level out what the value should be
+      if (value == null) value = obj[field.getKey()]; // This is intended to level out what the value should be
       value = field.transform(value, mapper);
       if (field.isEmbedded()) value = field.getModelRef().deserialize(value, mapper);
       return Object.assign(prev, { [field]: value });
-    }, data); // May have $hydrated values you want to keep
+    }, obj)); // May have $hydrated values you want to keep
 
     // Finally, remove unwanted database keys
-    Object.keys(dataWithValues).forEach((key) => {
-      if (key !== '_id' && !this.getFieldByName(key)) delete dataWithValues[key];
-    });
+    map(dataWithValues, obj => Object.keys(obj).forEach((key) => {
+      if (key !== '_id' && !this.getFieldByName(key)) delete obj[key];
+    }));
 
     return dataWithValues;
   }
@@ -186,11 +186,11 @@ module.exports = class extends Model {
   transform(data, mapper) {
     if (data == null) return data;
 
-    return Object.entries(data).reduce((prev, [key, value]) => {
+    return map(data, obj => Object.entries(obj).reduce((prev, [key, value]) => {
       const field = this.getField(key);
       if (!field) return prev;
       return Object.assign(prev, { [field]: field.transform(value, mapper) });
-    }, data); // Keep $hydrated props
+    }, obj)); // Keep $hydrated props
   }
 
   validate(data, mapper) {
@@ -198,9 +198,9 @@ module.exports = class extends Model {
     const transformed = this.transform(data, mapper);
 
     // Enforce the rules
-    return Promise.all(this.getFields().map((field) => {
-      return field.validate(transformed[field.getName()], mapper);
-    })).then(() => transformed);
+    return map(transformed, obj => Promise.all(this.getFields().map((field) => {
+      return field.validate(obj[field.getName()], mapper);
+    })).then(() => transformed));
   }
 
   resolve(doc, prop, resolver, query) {

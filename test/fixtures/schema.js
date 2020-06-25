@@ -109,6 +109,11 @@ module.exports = {
       name: String! @field(transform: toTitleCase)
       bids: [Float]
       comments: [String] @field(enforce: artComment)
+      sections: [Section]
+    }
+
+    type Section {
+      name: String! @field(transform: toLowerCase)
     }
 
     type PlainJane {

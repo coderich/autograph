@@ -827,5 +827,14 @@ module.exports = (driver = 'mongo', options = {}) => {
         }
       });
     });
+
+
+    describe('Bug Fixes', () => {
+      test('embedded arrays', async () => {
+        const art = await resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1' }] });
+        expect(art.id).toBeDefined();
+        expect(art.sections).toEqual([{ name: 'section1' }]); // toLowerCase
+      });
+    });
   });
 };
