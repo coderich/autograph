@@ -1,5 +1,6 @@
 const FS = require('fs');
 const Path = require('path');
+const { get } = require('lodash');
 const { ApolloServer } = require('apollo-server');
 const Schema = require('../src/core/Schema');
 const Resolver = require('../src/core/Resolver');
@@ -12,19 +13,31 @@ const stores = require('./stores');
 class Server {
   constructor() {
     this.schema = new Schema(gqlSchema, stores);
+    const { schema } = this;
 
     this.server = new ApolloServer({
-      schema: this.schema.makeServerApiSchema(),
-      context: () => ({
-        get autograph() {
-          return {
-            schema: this.schema.setContext(this),
-            permissions: ['**'],
-            legacyMode: true,
-            resolver: new Resolver(this.schema),
-          };
+      playground: {
+        settings: {
+          'schema.polling.enable': false,
         },
-      }),
+      },
+      schema: schema.makeServerApiSchema(),
+      context: ({ req }) => {
+        const rawHeaders = get(req, 'rawHeaders', []).reduce((prev, key, i, arr) => (i % 2 === 0 ? Object.assign(prev, { [key]: arr[i + 1] }) : prev), {});
+        const headers = Object.assign({}, rawHeaders || {}, get(req, 'query', {}));
+
+        return {
+          ...headers,
+          get autograph() {
+            return {
+              schema: schema.setContext(this),
+              permissions: ['**'],
+              legacyMode: true,
+              resolver: new Resolver(schema),
+            };
+          },
+        };
+      },
     });
   }
 

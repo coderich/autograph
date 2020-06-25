@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 const GraphqlFields = require('graphql-fields');
 const { ucFirst, fromGUID } = require('../../service/app.service');
 const { findGQLModels } = require('../../service/schema.service');
@@ -67,16 +68,31 @@ module.exports = (schema) => {
 
       `type Query {
         node(id: ID!): Node
-        ${schema.getEntityModels().filter(model => model.hasGQLScope('r')).map(model => `get${model.getName()}(id: ID!): ${model.getName()} `)}
+        ${schema.getEntityModels().filter(model => model.hasGQLScope('r')).map(model => `get${model.getName()}(id: ID!): ${model.getName()}`)}
         ${schema.getEntityModels().filter(model => model.hasGQLScope('r')).map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
         ${schema.getEntityModels().filter(model => model.hasGQLScope('r')).map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
       }`,
 
       `type Mutation {
         _noop: String
-        ${schema.getEntityModels().filter(model => model.hasGQLScope('c')).map(model => `create${model.getName()}(input: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}! `)}
-        ${schema.getEntityModels().filter(model => model.hasGQLScope('u')).map(model => `update${model.getName()}(id: ID! input: ${model.getName()}InputUpdate meta: ${model.getMeta()}): ${model.getName()}! `)}
-        ${schema.getEntityModels().filter(model => model.hasGQLScope('d')).map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}! `)}
+        ${schema.getEntityModels().filter(model => model.hasGQLScope('c')).map(model => `create${model.getName()}(input: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}!`)}
+        ${schema.getEntityModels().filter(model => model.hasGQLScope('u')).map(model => `
+          update${model.getName()}(
+            id: ID!
+            input: ${model.getName()}InputUpdate
+            meta: ${model.getMeta()}
+            ${model.getArrayFields().filter(field => field.hasGQLScope('c')).map((field) => {
+              const fieldName = ucFirst(field.getName());
+              const modelRef = field.getModelRef();
+
+              return `
+                push${fieldName}: [${modelRef ? `${modelRef.getName()}InputCreate` : field.getType()}!]
+                pull${fieldName}: [${modelRef ? `${modelRef.getName()}InputWhere` : field.getType()}!]
+              `;
+            })}
+          ): ${model.getName()}!
+        `)}
+        ${schema.getEntityModels().filter(model => model.hasGQLScope('d')).map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}!`)}
       }`,
     ]),
     resolvers: schema.getEntityModels().reduce((prev, model) => {
@@ -98,14 +114,6 @@ module.exports = (schema) => {
         edges: root => root.map(node => ({ cursor: node.$$cursor, node })),
         pageInfo: root => root.$$pageInfo,
       },
-      // Edge: {
-      //   node: async (root, args, { autograph }, info) => {
-      //     const { node } = root;
-      //     const [modelName] = fromGUID(node.$id);
-      //     const model = schema.getModel(modelName);
-      //     return autograph.resolver.match(model).id(node.id).select(GraphqlFields(info, {}, { processArguments: true })).one();
-      //   },
-      // },
       Query: schema.getEntityModels().filter(model => model.hasGQLScope('r')).reduce((prev, model) => {
         const modelName = model.getName();
 
