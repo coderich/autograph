@@ -228,7 +228,7 @@ module.exports = class extends Model {
 
     // // Count resolver
     // const countField = this.getCountField(prop);
-    // if (countField) return assignValue(doc, prop, countField.count(resolver, doc));
+    // if (countField) return assignValue(f, doc, prop, countField.count(resolver, doc));
 
     // Hydration check
     const [, $prop] = prop.split('$');

@@ -33,15 +33,9 @@ module.exports = class {
   getResults(resolver, query) {
     return this.promise.then((results) => {
       return mapPromise(results, (result) => {
-        return Promise.resolve(this.model.deserialize(result)).then(async (doc) => {
+        return Promise.resolve(this.model.deserialize(result)).then((doc) => {
           const { id } = doc;
           const guid = toGUID(this.model.getName(), id);
-
-          // Custom resolvers
-          await Promise.all(Object.entries(doc).map(([key, value]) => {
-            const field = this.model.getFieldByName(key);
-            return field ? field.resolve(value).then(v => (doc[key] = v)) : value;
-          }));
 
           // Create and return a DataResolver
           const dataResolver = new DataResolver(doc, (data, prop) => this.model.resolve(data, prop, resolver, query));
