@@ -1,4 +1,4 @@
-/* eslint-disable indent */
+/* eslint-disable indent, no-nested-ternary */
 const GraphqlFields = require('graphql-fields');
 const { ucFirst, fromGUID } = require('../../service/app.service');
 const { findGQLModels } = require('../../service/schema.service');
@@ -16,9 +16,11 @@ const getGQLWhereFields = (model) => {
 
 module.exports = (schema) => {
   const resolver = new ServerResolver();
-  const createModels = findGQLModels('c', schema.getMarkedModels(), schema.getModels());
-  const updateModels = findGQLModels('u', schema.getMarkedModels(), schema.getModels());
-  const readModels = findGQLModels('r', schema.getMarkedModels(), schema.getModels());
+  const allModels = schema.getModels();
+  const markedModels = schema.getMarkedModels();
+  const createModels = findGQLModels('c', markedModels, allModels);
+  const updateModels = findGQLModels('u', markedModels, allModels);
+  const readModels = findGQLModels('r', markedModels, allModels);
 
   return ({
     typeDefs: [
@@ -26,6 +28,17 @@ module.exports = (schema) => {
         input ${model.getName()}InputCreate {
           ${model.getFields().filter(field => field.hasGQLScope('c')).map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
         }
+        ${model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd')).map((field) => {
+          const fieldName = ucFirst(field.getName());
+          const modelRef = field.getModelRef();
+          return `
+            ${modelRef ? '' : `input ${model.getName()}${fieldName}InputQuery { where: ${field.getType()} sortBy: SortOrderEnum limit: Int }`}
+            input ${model.getName()}${fieldName}InputSlice {
+              query: ${modelRef ? `${modelRef.getName()}InputQuery` : `${model.getName()}${fieldName}InputQuery`}
+              input: ${modelRef ? (field.isEmbedded() ? `${modelRef.getName()}InputUpdate` : 'ID') : field.getType()}
+            }
+          `;
+        })}
       `),
       ...updateModels.map(model => `
         input ${model.getName()}InputUpdate {
@@ -80,16 +93,11 @@ module.exports = (schema) => {
           update${model.getName()}(
             id: ID!
             input: ${model.getName()}InputUpdate
-            meta: ${model.getMeta()}
-            ${model.getArrayFields().filter(field => field.hasGQLScope('c')).map((field) => {
+            ${model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd')).map((field) => {
               const fieldName = ucFirst(field.getName());
-              const modelRef = field.getModelRef();
-
-              return `
-                push${fieldName}: [${modelRef ? `${modelRef.getName()}InputCreate` : field.getType()}!]
-                pull${fieldName}: [${modelRef ? `${modelRef.getName()}InputWhere` : field.getType()}!]
-              `;
+              return `slice${fieldName}: ${model.getName()}${fieldName}InputSlice`;
             })}
+            meta: ${model.getMeta()}
           ): ${model.getName()}!
         `)}
         ${schema.getEntityModels().filter(model => model.hasGQLScope('d')).map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}!`)}

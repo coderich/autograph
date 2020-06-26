@@ -225,8 +225,9 @@ module.exports = class Node {
     }
   }
 
-  hasDALScope(el) {
-    return Boolean(this.getDALScope().toLowerCase().indexOf(el.toLowerCase()) > -1);
+  hasDALScope(...els) {
+    return els.some(el => Boolean(this.getDALScope().toLowerCase().indexOf(el.toLowerCase()) > -1));
+    // return Boolean(this.getDALScope().toLowerCase().indexOf(el.toLowerCase()) > -1);
   }
 
   /**
@@ -254,21 +255,23 @@ module.exports = class Node {
     }
   }
 
-  hasGQLScope(el) {
+  hasGQLScope(...els) {
     if (this.nodeType === 'field') {
       const model = this.getModelRef();
-      if (model && !model.hasFieldScope(el)) return false;
+      if (model && !model.hasFieldScope(...els)) return false;
     }
 
-    return Boolean(this.getGQLScope().toLowerCase().indexOf(el.toLowerCase()) > -1);
+    return els.some(el => Boolean(this.getGQLScope().toLowerCase().indexOf(el.toLowerCase()) > -1));
+    // return Boolean(this.getGQLScope().toLowerCase().indexOf(el.toLowerCase()) > -1);
   }
 
   getFieldScope() {
     return nvl(uvl(this.getDirectiveArg('model', 'fieldScope'), 'crud'), '');
   }
 
-  hasFieldScope(el) {
-    return Boolean(this.getFieldScope().toLowerCase().indexOf(el.toLowerCase()) > -1);
+  hasFieldScope(...els) {
+    return els.some(el => Boolean(this.getFieldScope().toLowerCase().indexOf(el.toLowerCase()) > -1));
+    // return Boolean(this.getFieldScope().toLowerCase().indexOf(el.toLowerCase()) > -1);
   }
 
   // Create
