@@ -12,8 +12,8 @@ class Cypher {
     return this.config;
   }
 
-  get(model, id, options) {
-    return this.query(`MATCH (n:${model}) WHERE n.id = { id } RETURN n`, { id }, options).then(docs => docs[0]);
+  get(model, where, options) {
+    return this.find(model, where, options).then(docs => docs[0]);
   }
 
   find(model, where = {}, options) {

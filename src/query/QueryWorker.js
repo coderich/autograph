@@ -24,12 +24,18 @@ module.exports = class QueryWorker {
     return this.find(query);
   }
 
-  get(query, required) {
+  async get(query, required) {
     const { resolver } = this;
-    const model = query.getModel();
+    const [model, id, options] = [query.getModel(), query.getId(), query.getOptions()];
+
+    // Construct where clause
+    const where = { [model.idKey()]: model.idValue(id) };
+    const $where = await model.resolveBoundValues(where);
+    const $$where = model.transform($where);
+    const resolvedWhere = await resolveModelWhereClause(resolver, model, $$where);
 
     return createSystemEvent('Query', { method: 'get', model, resolver, query }, async () => {
-      const doc = await model.get(query).hydrate(resolver, query);
+      const doc = await model.get(resolvedWhere, options).hydrate(resolver, query);
       if (!doc && required) throw Boom.notFound(`${model} Not Found`);
       if (doc == null) return null;
       return doc;
@@ -45,7 +51,7 @@ module.exports = class QueryWorker {
       if (query.isNative()) {
         hydratedResults = await model.native('find', query.getNative(), options).hydrate(resolver, query);
       } else {
-        const $where = model.removeBoundKeys(where);
+        const $where = await model.resolveBoundValues(where);
         const $$where = model.transform($where);
         const resolvedWhere = await resolveModelWhereClause(resolver, model, $$where);
         hydratedResults = await model.find(resolvedWhere, options).hydrate(resolver, query);
@@ -64,7 +70,7 @@ module.exports = class QueryWorker {
     return createSystemEvent('Query', { method: 'count', model, resolver, query }, async () => {
       if (query.isNative()) return model.native('count', query.getNative(), options);
 
-      const $where = model.removeBoundKeys(where);
+      const $where = await model.resolveBoundValues(where);
       const $$where = model.transform($where);
       const resolvedWhere = await resolveModelWhereClause(resolver, model, $$where);
 

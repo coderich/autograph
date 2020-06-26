@@ -26,34 +26,23 @@ module.exports = class MongoDriver {
     return this.connection.then(client => client.db().collection(collection)[method](...args));
   }
 
-  get(model, id, options) {
-    MongoDriver.normalizeOptions(options);
-    return this.query(model, 'findOne', { _id: id }, options);
+  get(model, where, options) {
+    return this.find(model, where, options).then(results => results[0]);
   }
 
   find(model, where = {}, options) {
     const { version = 0 } = this.config;
     MongoDriver.normalizeOptions(options);
-
-    if (version >= 4) {
-      const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where);
-      return this.query(model, 'aggregate', $where, options).then(results => results.toArray());
-    }
-
-    const $where = MongoDriver.normalizeWhere(where);
+    const $where = this.normalizeWhereAggregation(model, this.schema, where);
+    if (version >= 4) return this.query(model, 'aggregate', $where, options).then(results => results.toArray());
     return this.query(model, 'find', $where, options).then(results => results.toArray());
   }
 
   count(model, where = {}, options) {
     const { version = 0 } = this.config;
     MongoDriver.normalizeOptions(options);
-
-    if (version >= 4) {
-      const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where, true);
-      return this.query(model, 'aggregate', $where, options).then(cursor => cursor.next().then(data => (data ? data.count : 0)));
-    }
-
-    const $where = MongoDriver.normalizeWhere(where);
+    const $where = this.normalizeWhereAggregation(model, this.schema, where, true);
+    if (version >= 4) return this.query(model, 'aggregate', $where, options).then(cursor => cursor.next().then(data => (data ? data.count : 0)));
     return this.query(model, 'countDocuments', $where, options);
   }
 
@@ -130,6 +119,32 @@ module.exports = class MongoDriver {
     }));
   }
 
+  normalizeWhereAggregation(modelName, schema, where, count = false) {
+    const $agg = [];
+    const model = schema.getModel(modelName);
+    const $match = MongoDriver.normalizeWhere(where);
+
+    const { version = 0 } = this.config;
+    if (version < 4) return $match;
+
+    // Determine which fields need to be cast for the query
+    const fields = model.getSelectFields().filter((field) => {
+      const fieldName = field.getName();
+      const val = where[fieldName];
+      const type = field.getDataType();
+      if (!isScalarDataType(type)) return false;
+      const stype = String((type === 'Float' || type === 'Int' ? 'Number' : type)).toLowerCase();
+      if (String(typeof val) === `${stype}`) return false;
+      return true;
+    });
+
+    const $addFields = fields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: { $toString: `$${field.getName()}` } }), {});
+    if (Object.keys($addFields).length) $agg.push({ $addFields });
+    $agg.push({ $match });
+    if (count) $agg.push({ $count: 'count' });
+    return $agg;
+  }
+
   static idKey() {
     return '_id';
   }
@@ -165,28 +180,5 @@ module.exports = class MongoDriver {
         return value;
       },
     }).toObject();
-  }
-
-  static normalizeWhereAggregation(modelName, schema, where, count = false) {
-    const $agg = [];
-    const model = schema.getModel(modelName);
-    const $match = MongoDriver.normalizeWhere(where);
-
-    // Determine which fields need to be cast for the query
-    const fields = model.getSelectFields().filter((field) => {
-      const fieldName = field.getName();
-      const val = where[fieldName];
-      const type = field.getDataType();
-      if (!isScalarDataType(type)) return false;
-      const stype = String((type === 'Float' || type === 'Int' ? 'Number' : type)).toLowerCase();
-      if (String(typeof val) === `${stype}`) return false;
-      return true;
-    });
-
-    const $addFields = fields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: { $toString: `$${field.getName()}` } }), {});
-    if (Object.keys($addFields).length) $agg.push({ $addFields });
-    $agg.push({ $match });
-    if (count) $agg.push({ $count: 'count' });
-    return $agg;
   }
 };
