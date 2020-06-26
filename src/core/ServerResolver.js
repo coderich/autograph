@@ -27,7 +27,7 @@ const normalizeQuery = (args = {}, info) => {
 module.exports = class ServerResolver {
   constructor() {
     // Getter
-    this.get = ({ autograph }, model, guid, required = false, info) => {
+    this.get = ({ autograph }, model, { id: guid }, required = false, info) => {
       const query = { fields: GraphqlFields(info, {}, { processArguments: true }) };
 
       return autograph.resolver.match(model).id(guidToId(autograph, guid)).query(query).one().then((doc) => {
@@ -41,8 +41,8 @@ module.exports = class ServerResolver {
     this.count = ({ autograph }, model, args, info) => autograph.resolver.match(model).where(args.where).count();
 
     // Mutations
-    this.create = ({ autograph }, model, data, meta, query) => autograph.resolver.match(model).select(query.fields).meta(meta).save(unrollGuid(autograph, model, data));
-    this.update = ({ autograph }, model, guid, data, meta, query) => autograph.resolver.match(model).id(guidToId(autograph, guid)).select(query.fields).meta(meta).save(unrollGuid(autograph, model, data));
-    this.delete = ({ autograph }, model, guid, meta, query) => autograph.resolver.match(model).id(guidToId(autograph, guid)).select(query.fields).meta(meta).remove();
+    this.create = ({ autograph }, model, { input, meta }, query) => autograph.resolver.match(model).select(query.fields).meta(meta).save(unrollGuid(autograph, model, input));
+    this.update = ({ autograph }, model, { id: guid, input, meta }, query) => autograph.resolver.match(model).id(guidToId(autograph, guid)).select(query.fields).meta(meta).save(unrollGuid(autograph, model, input));
+    this.delete = ({ autograph }, model, { id: guid, meta }, query) => autograph.resolver.match(model).id(guidToId(autograph, guid)).select(query.fields).meta(meta).remove();
   }
 };

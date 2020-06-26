@@ -126,7 +126,7 @@ module.exports = (schema) => {
         const modelName = model.getName();
 
         return Object.assign(prev, {
-          [`get${modelName}`]: (root, args, context, info) => resolver.get(context, model, args.id, true, info),
+          [`get${modelName}`]: (root, args, context, info) => resolver.get(context, model, args, true, info),
           [`find${modelName}`]: (root, args, context, info) => resolver.query(context, model, args, info),
           [`count${modelName}`]: (root, args, context, info) => resolver.count(context, model, args, info),
         });
@@ -135,7 +135,7 @@ module.exports = (schema) => {
           const { id } = args;
           const [modelName] = fromGUID(id);
           const model = schema.getModel(modelName);
-          return resolver.get(context, model, id, false, info);
+          return resolver.get(context, model, args, false, info);
         },
       }),
 
@@ -143,9 +143,9 @@ module.exports = (schema) => {
         const obj = {};
         const modelName = model.getName();
 
-        if (model.hasGQLScope('c')) obj[`create${modelName}`] = (root, args, context, info) => resolver.create(context, model, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
-        if (model.hasGQLScope('u')) obj[`update${modelName}`] = (root, args, context, info) => resolver.update(context, model, args.id, args.input, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
-        if (model.hasGQLScope('d')) obj[`delete${modelName}`] = (root, args, context, info) => resolver.delete(context, model, args.id, args.meta, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+        if (model.hasGQLScope('c')) obj[`create${modelName}`] = (root, args, context, info) => resolver.create(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+        if (model.hasGQLScope('u')) obj[`update${modelName}`] = (root, args, context, info) => resolver.update(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+        if (model.hasGQLScope('d')) obj[`delete${modelName}`] = (root, args, context, info) => resolver.delete(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
 
         return Object.assign(prev, obj);
       }, {}),
