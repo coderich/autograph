@@ -838,6 +838,14 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(art.sections[0].name).toBeDefined();
         expect(art.sections[0].$name).toBeDefined();
       });
+
+      test('push/pull embedded arrays', async () => {
+        const art = await resolver.match('Art').save({ name: 'Piedmont Beauty' });
+        const push = await resolver.match('Art').id(art.id).push('sections', { name: 'Section1' });
+        expect(push.sections[0].id).toBeDefined();
+        expect(push.sections[0].name).toBeDefined();
+        expect(push.sections[0].$name).toBeDefined();
+      });
     });
   });
 };

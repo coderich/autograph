@@ -1,6 +1,6 @@
 const { get, remove } = require('lodash');
 const Boom = require('../core/Boom');
-const { map, mergeDeep, hashObject, stripObjectNulls } = require('../service/app.service');
+const { map, ensureArray, mergeDeep, hashObject, stripObjectNulls } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
 const {
   validateModelData,
@@ -10,6 +10,38 @@ const {
   filterDataByCounts,
   paginateResults,
 } = require('../service/data.service');
+
+const appendCreateFields = async (model, input, embed = false) => {
+  const idKey = model.idKey();
+
+  // NOT SURE WHY THIS DOES'T WORK
+  // await Promise.all(ensureArray(map(input, async (v) => {
+  //   if (embed && idKey && !v[idKey]) v[idKey] = model.idValue();
+  //   v.createdAt = new Date();
+  //   v.updatedAt = new Date();
+  //   if (!embed) v = await model.resolveDefaultValues(stripObjectNulls(v));
+  // })));
+
+  // BUT THIS DOES...
+  if (embed && idKey && !input[idKey]) input[idKey] = model.idValue();
+  input.createdAt = new Date();
+  input.updatedAt = new Date();
+  if (!embed) input = await model.resolveDefaultValues(stripObjectNulls(input));
+
+  // Generate embedded default values
+  await Promise.all(model.getEmbeddedFields().map((field) => {
+    if (!input[field]) return Promise.resolve();
+    return Promise.all(ensureArray(map(input[field], v => appendCreateFields(field.getModelRef(), v, true))));
+  }));
+
+  return input;
+};
+
+const appendUpdateFields = async (model, input) => {
+  input.updatedAt = new Date();
+  input = model.removeBoundKeys(input);
+  return input;
+};
 
 module.exports = class QueryWorker {
   constructor(resolver) {
@@ -89,23 +121,8 @@ module.exports = class QueryWorker {
     const { resolver } = this;
     const [model, options] = [query.getModel(), query.getOptions()];
 
-    // Set default values for creation
-    input.createdAt = new Date();
-    input.updatedAt = new Date();
-    input = await model.resolveDefaultValues(stripObjectNulls(input));
-
-    // Generate embedded default values
-    model.getEmbeddedFields().forEach((field) => {
-      if (!input[field]) return;
-      const idKey = field.getModelRef().idKey();
-
-      map(input[field], (v) => {
-        if (v == null) return;
-        if (idKey && !v[idKey]) v[idKey] = model.idValue();
-        v.createdAt = new Date();
-        v.updatedAt = new Date();
-      });
-    });
+    // Set default values for create
+    input = await appendCreateFields(model, input);
 
     return createSystemEvent('Mutation', { method: 'create', model, resolver, query, input }, async () => {
       await validateModelData(model, input, {}, 'create');
@@ -115,11 +132,12 @@ module.exports = class QueryWorker {
 
   async update(query, input) {
     input = input || {};
-    input.updatedAt = new Date();
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
-    input = model.removeBoundKeys(input);
+
+    // Set default values for update
+    input = await appendUpdateFields(model, input);
     const merged = mergeDeep(doc, input);
 
     return createSystemEvent('Mutation', { method: 'update', model, resolver, query, input, doc, merged }, async () => {
@@ -135,7 +153,7 @@ module.exports = class QueryWorker {
     if (!field || !field.isArray()) return Promise.reject(Boom.badRequest(`Cannot splice field '${key}'`));
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
     const $from = model.transform({ [key]: from })[key];
-    const $to = model.transform({ [key]: to })[key];
+    let $to = model.transform({ [key]: to })[key];
 
     let data;
 
@@ -143,6 +161,11 @@ module.exports = class QueryWorker {
       data = { [key]: get(doc, key, []) };
       remove(data[key], el => $from.find(v => hashObject(v) === hashObject(el)));
     } else {
+      if (field.isEmbedded()) {
+        const modelRef = field.getModelRef();
+        const results = await Promise.all(ensureArray(map($to, v => appendCreateFields(modelRef, v, true))));
+        $to = Array.isArray($to) ? results : results[0];
+      }
       data = { [key]: get(doc, key, []).concat($to) };
     }
 

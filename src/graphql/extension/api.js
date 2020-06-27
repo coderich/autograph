@@ -35,7 +35,7 @@ module.exports = (schema) => {
             ${modelRef ? '' : `input ${model.getName()}${fieldName}InputQuery { where: ${field.getType()} sortBy: SortOrderEnum limit: Int }`}
             input ${model.getName()}${fieldName}InputSlice {
               query: ${modelRef ? `${modelRef.getName()}InputQuery` : `${model.getName()}${fieldName}InputQuery`}
-              input: ${modelRef ? (field.isEmbedded() ? `${modelRef.getName()}InputUpdate` : 'ID') : field.getType()}
+              input: [${modelRef ? (field.isEmbedded() ? `${modelRef.getName()}InputUpdate` : 'ID') : field.getType()}]
             }
           `;
         })}
