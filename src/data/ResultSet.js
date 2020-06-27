@@ -1,5 +1,20 @@
 const DataResolver = require('./DataResolver');
-const { keyPaths, mapPromise, lcFirst, ensureArray, toGUID } = require('../service/app.service');
+const { map, keyPaths, mapPromise, lcFirst, ensureArray, toGUID } = require('../service/app.service');
+
+const makeDataResolver = (doc, model, resolver, query) => {
+  const dataResolver = new DataResolver(doc, (data, prop) => model.resolve(data, prop, resolver, query));
+
+  Object.entries(doc).forEach(([key, value]) => {
+    const field = model.getFieldByName(key);
+
+    if (field && field.isEmbedded()) {
+      const modelRef = field.getModelRef();
+      if (modelRef) doc[key] = map(value, v => makeDataResolver(v, modelRef, resolver, query));
+    }
+  });
+
+  return dataResolver;
+};
 
 module.exports = class {
   constructor(model, promise) {
@@ -38,7 +53,7 @@ module.exports = class {
           const guid = toGUID(this.model.getName(), id);
 
           // Create and return a DataResolver
-          const dataResolver = new DataResolver(doc, (data, prop) => this.model.resolve(data, prop, resolver, query));
+          const dataResolver = makeDataResolver(doc, this.model, resolver, query);
 
           return Object.defineProperties(dataResolver, {
             id: { value: id, enumerable: true, writable: true },

@@ -835,6 +835,8 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(art.id).toBeDefined();
         expect(art.sections).toMatchObject([{ name: 'section1' }]); // toLowerCase
         expect(art.sections[0].id).toBeDefined();
+        expect(art.sections[0].name).toBeDefined();
+        expect(art.sections[0].$name).toBeDefined();
       });
     });
   });
