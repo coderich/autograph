@@ -14,19 +14,12 @@ How:
   }
 
 Now:
+  * spliceArray API
+  * Support @value on Model itself
+  * Lock down delete by id (context.network)
   * Can you add resolver to context.autograph yourself? (not require it to be done externally)
   * Need idea of archive/soft-delete to remove from resultSet
   * Pagination should pass limit & sort to dao if possible
-  * How to prevent get(id) and delete(id) via Segmentation?
-  * What if DB queried data differs from context/segmentation?
-    - Throw an error?
-    - This should not be possible, I think you need to always have a where clause with the segment value
-    - OR MAYBE IT SHOULD BE PART OF AUTHORIZATION... Hijacking where clause seems wrong
-  * Enforce segmentation throughout (findNetwork, network field, ...)
-    - You can put @value directly on Model and that means something
-    - But that means you can't use the resolver straight up and say where { 'network.name': 'name' }
-    - Probably just need to set context
-    - See if (above) is a problem since you have .native and .raw now
 
 Next:
   * DAO should be a wrapper that makes Exectuable GraphQL Query calls!
@@ -34,7 +27,7 @@ Next:
   * Directive param validation
   * Take a look at all Mongoose options/features (eg. minimize)
   * Neo4j does not know how to generate ids
-  * Deserialization and ids (_id) and code throughout
+  * Deserialization and ids (_id) and code throughout (remove _id in deserlialization if possible)
   * You know EventEmitter wants to emit Query (will be a breaking change so consider when to do it)
   * How do you handle the hydrate() problem? QueryWorker is hydrating, what about concept of returning ResultSet and letting user hydrate() or populate() from resolver?
   * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
@@ -56,6 +49,7 @@ Todo:
   * Incorporate Logger
   * Drivers have to be more like Adapters (Let other's implement - REST API etc)
   * MeteorUser _id is a String (not ID). How to handle?
+    - How about expicit ID definition?
   * Can you make Emitter events part of a transaction? pre vs post can be confusing... especially for data validation etc.
   * Currently there is no way to count regular elements of an array (try to count bids)
   * Allow Field and Model to be extended (directive fields)
