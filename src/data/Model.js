@@ -1,8 +1,9 @@
 const Field = require('./Field');
 const ResultSet = require('./ResultSet');
-const DataResolver = require('./DataResolver');
+// const DataResolver = require('./DataResolver');
 const Model = require('../graphql/ast/Model');
 const { map, ensureArray } = require('../service/app.service');
+const { makeDataResolver } = require('../service/data.service');
 
 const assignValue = (field, doc, prop, value) => {
   if (value == null) return value; // Do not hold on to DataResolver
@@ -220,7 +221,8 @@ module.exports = class extends Model {
 
     // Check if already resolved
     if (value !== undefined) {
-      if (f && f.isEmbedded()) return new DataResolver(value, (d, p) => f.getModelRef().resolve(d, p, resolver, query));
+      // if (f && f.isEmbedded()) return makeDataResolver(value, f.getModelRef(), resolver, query);
+      // if (f && f.isEmbedded()) return new DataResolver(value, (d, p) => f.getModelRef().resolve(d, p, resolver, query));
       return value;
     }
 
@@ -241,7 +243,9 @@ module.exports = class extends Model {
     // Set $value to the original unhydrated value
     const $value = doc[$prop];
     if (field.isScalar()) return assignValue(field, doc, prop, $value); // No hydration needed; apply $value
-    if (field.isEmbedded()) return $value ? assignValue(field, doc, prop, new DataResolver($value, (d, p) => field.getModelRef().resolve(d, p, resolver, query))) : $value;
+    if (field.isEmbedded()) return assignValue(field, doc, prop, $value);
+    // if (field.isEmbedded()) return $value ? assignValue(field, doc, prop, makeDataResolver($value, field.getModelRef(), resolver, query)) : $value;
+    // if (field.isEmbedded()) return $value ? assignValue(field, doc, prop, new DataResolver($value, (d, p) => field.getModelRef().resolve(d, p, resolver, query))) : $value;
 
     // Model resolver
     const fieldModel = field.getModelRef();

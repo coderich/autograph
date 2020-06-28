@@ -157,7 +157,9 @@ module.exports = class QueryWorker {
 
     let data;
 
-    if (from) { // 'from' is correct here because we're testing what was passed into slice() to determine behavior
+    if (from && to) {
+      data = {};
+    } else if (from) { // 'from' is correct here because we're testing what was passed into slice() to determine behavior
       data = { [key]: get(doc, key, []) };
       remove(data[key], el => $from.find((val) => {
         if (typeof val === 'object') {
@@ -165,7 +167,7 @@ module.exports = class QueryWorker {
             return keyPathLeafs(a).every((leaf) => {
               const $a = get(a, leaf, { a: 'a' });
               const $b = get(b, leaf, { b: 'b' });
-              if (Array.isArray($a)) return $a.some(e => $b.some(ee => compare(e, ee)));
+              if (Array.isArray($a)) return $a.some(e => ensureArray($b).some(ee => compare(e, ee)));
               return hashObject($a) === hashObject($b);
             });
           };
@@ -175,7 +177,7 @@ module.exports = class QueryWorker {
 
         return hashObject(val) === hashObject(el);
       }));
-    } else {
+    } else if (to) {
       if (field.isEmbedded()) {
         const modelRef = field.getModelRef();
         const results = await Promise.all(ensureArray(map($to, v => appendCreateFields(modelRef, v, true))));

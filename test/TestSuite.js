@@ -853,6 +853,14 @@ module.exports = (driver = 'mongo', options = {}) => {
         const pull = await resolver.match('Art').id(art.id).pull('sections', { name: 'pushed section' });
         expect(pull.sections.length).toBe(0);
       });
+
+      test('embedded array with modelRef', async () => {
+        await expect(resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: richard.id }] })).rejects.toThrow();
+        const art = await resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: christie.id }] });
+        expect(art).toBeDefined();
+        expect(art.sections[0].person).toBe(christie.id);
+        expect((await art.sections[0].$person).name).toBe('Christie');
+      });
     });
   });
 };

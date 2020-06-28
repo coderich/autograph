@@ -32,10 +32,7 @@ module.exports = (schema) => {
           const fieldName = ucFirst(field.getName());
           const isEmbedded = field.isEmbedded();
           const fields = isEmbedded ? field.getModelRef().getFields().reduce((prev, f) => Object.assign(prev, { [f]: 'AutoGraphMixed' }), {}) : { id: 'AutoGraphMixed' };
-          // const modelRef = field.getModelRef();
-          // ${modelRef ? '' : `input ${model.getName()}${fieldName}InputQuery { where: ${field.getType()} sortBy: SortOrderEnum limit: Int }`}
-          // query: ${modelRef ? `${modelRef.getName()}InputQuery` : `${model.getName()}${fieldName}InputQuery`}
-          // input: [${modelRef ? (field.isEmbedded() ? `${modelRef.getName()}InputUpdate` : 'ID') : field.getType()}]
+
           return `
             input ${model.getName()}${fieldName}InputSliceSearch { ${Object.entries(fields).map(([k, v]) => `${k}: ${v}`)} }
             input ${model.getName()}${fieldName}InputSliceQuery {
@@ -113,7 +110,7 @@ module.exports = (schema) => {
         ${schema.getEntityModels().filter(model => model.hasGQLScope('d')).map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}!`)}
       }`,
     ]),
-    resolvers: schema.getEntityModels().reduce((prev, model) => {
+    resolvers: schema.getMarkedModels().reduce((prev, model) => {
       const modelName = model.getName();
 
       return Object.assign(prev, {
@@ -121,7 +118,11 @@ module.exports = (schema) => {
           const fieldName = field.getName();
           const $fieldName = field.getModelRef() ? `$${fieldName}` : fieldName; // only $hydrated when it's a modelRef
           if (fieldName === 'id') return Object.assign(def, { id: (root, args, { autograph }) => (autograph.legacyMode ? root.id : root.$id) });
-          return Object.assign(def, { [fieldName]: root => root[$fieldName] });
+          return Object.assign(def, {
+            [fieldName]: (root) => {
+              return root[$fieldName];
+            },
+          });
         }, {}),
       });
     }, {

@@ -1,20 +1,5 @@
-const DataResolver = require('./DataResolver');
-const { map, keyPaths, mapPromise, lcFirst, ensureArray, toGUID } = require('../service/app.service');
-
-const makeDataResolver = (doc, model, resolver, query) => {
-  const dataResolver = new DataResolver(doc, (data, prop) => model.resolve(data, prop, resolver, query));
-
-  Object.entries(doc).forEach(([key, value]) => {
-    const field = model.getFieldByName(key);
-
-    if (field && field.isEmbedded()) {
-      const modelRef = field.getModelRef();
-      if (modelRef) doc[key] = map(value, v => makeDataResolver(v, modelRef, resolver, query));
-    }
-  });
-
-  return dataResolver;
-};
+const { keyPaths, mapPromise, lcFirst, ensureArray } = require('../service/app.service');
+const { makeDataResolver } = require('../service/data.service');
 
 module.exports = class {
   constructor(model, promise) {
@@ -49,16 +34,7 @@ module.exports = class {
     return this.promise.then((results) => {
       return mapPromise(results, (result) => {
         return Promise.resolve(this.model.deserialize(result)).then((doc) => {
-          const { id } = doc;
-          const guid = toGUID(this.model.getName(), id);
-
-          // Create and return a DataResolver
-          const dataResolver = makeDataResolver(doc, this.model, resolver, query);
-
-          return Object.defineProperties(dataResolver, {
-            id: { value: id, enumerable: true, writable: true },
-            $id: { value: guid },
-          });
+          return makeDataResolver(doc, this.model, resolver, query);
         });
       });
     });

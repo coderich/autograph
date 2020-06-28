@@ -1,12 +1,33 @@
 const _ = require('lodash');
+const DataResolver = require('../data/DataResolver');
 const RuleService = require('../service/rule.service');
-const { globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
+const { map, globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
 
 exports.validateModelData = (model, data, oldData, op) => {
   const required = (op === 'create' ? (f, v) => v == null : (f, v) => Object.prototype.hasOwnProperty.call(data, f.getName()) && v == null);
   const immutable = (f, v) => RuleService.immutable(v, oldData, op, `${f.getModel()}.${f.getName()}`);
   const selfless = (f, v) => RuleService.selfless(v, oldData, op, `${f.getModel()}.${f.getName()}`);
   return model.validate(data, { required, immutable, selfless });
+};
+
+exports.makeDataResolver = (doc, model, resolver, query) => {
+  const { id } = doc;
+  const guid = toGUID(model.getName(), id);
+  const dataResolver = new DataResolver(doc, (data, prop) => model.resolve(data, prop, resolver, query));
+
+  Object.entries(doc).forEach(([key, value]) => {
+    const field = model.getFieldByName(key);
+
+    if (field && field.isEmbedded()) {
+      const modelRef = field.getModelRef();
+      if (modelRef) doc[key] = map(value, v => exports.makeDataResolver(v, modelRef, resolver, query));
+    }
+  });
+
+  return Object.defineProperties(dataResolver, {
+    id: { value: id, enumerable: true, writable: true },
+    $id: { value: guid },
+  });
 };
 
 exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', lookups2D = [], index = 0) => {
