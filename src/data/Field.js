@@ -90,7 +90,7 @@ module.exports = class extends Field {
 
     // If we're a modelRef field, need to either id(value) or delegate object to model
     if (modelRef) {
-      if ((!serialize || !modelRef.isEntity()) && isPlainObject(ensureArray(value)[0])) return modelRef.transform(value, mapper); // delegate
+      if ((!serialize || !modelRef.isEntity()) && isPlainObject(ensureArray(value)[0])) return modelRef.transform(this.cast(value), mapper); // delegate
       if (serialize) transformers.push(Transformer.serialize()); // Serializer
       transformers.push(Transformer.toId());
     }

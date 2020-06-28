@@ -1,6 +1,6 @@
 const { get, remove } = require('lodash');
 const Boom = require('../core/Boom');
-const { map, ensureArray, mergeDeep, hashObject, stripObjectNulls, proxyDeep, keyPathLeafs } = require('../service/app.service');
+const { map, ensureArray, mergeDeep, hashObject, stripObjectNulls, keyPathLeafs, isPlainObject } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
 const {
   validateModelData,
@@ -155,29 +155,30 @@ module.exports = class QueryWorker {
     const $from = model.transform({ [key]: from })[key];
     let $to = model.transform({ [key]: to })[key];
 
+    const compare = (a, b) => {
+      if (isPlainObject(a)) {
+        return keyPathLeafs(a).every((leaf) => {
+          const $a = get(a, leaf, { a: 'a' });
+          const $b = get(b, leaf, { b: 'b' });
+          if (Array.isArray($a)) return $a.some(aa => ensureArray($b).some(bb => compare(aa, bb)));
+          return hashObject($a) === hashObject($b);
+        });
+      }
+
+      return hashObject(a) === hashObject(b);
+    };
+
     let data;
 
     if (from && to) {
+      // Edit
       data = {};
-    } else if (from) { // 'from' is correct here because we're testing what was passed into slice() to determine behavior
+    } else if (from) {
+      // Pull
       data = { [key]: get(doc, key, []) };
-      remove(data[key], el => $from.find((val) => {
-        if (typeof val === 'object') {
-          const compare = (a, b) => {
-            return keyPathLeafs(a).every((leaf) => {
-              const $a = get(a, leaf, { a: 'a' });
-              const $b = get(b, leaf, { b: 'b' });
-              if (Array.isArray($a)) return $a.some(e => ensureArray($b).some(ee => compare(e, ee)));
-              return hashObject($a) === hashObject($b);
-            });
-          };
-
-          return compare(val, el);
-        }
-
-        return hashObject(val) === hashObject(el);
-      }));
+      remove(data[key], el => $from.find(val => compare(val, el)));
     } else if (to) {
+      // Push
       if (field.isEmbedded()) {
         const modelRef = field.getModelRef();
         const results = await Promise.all(ensureArray(map($to, v => appendCreateFields(modelRef, v, true))));
