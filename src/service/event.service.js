@@ -24,8 +24,7 @@ exports.createSystemEvent = (name, event = {}, thunk = () => {}) => {
 
   return systemEvent.emit('system', { type: `pre${type}`, data: event }).then(() => thunk()).then((result) => {
     event.doc = result;
-    systemEvent.emit('system', { type: `post${type}`, data: event });
-    return result;
+    return systemEvent.emit('system', { type: `post${type}`, data: event }).then(() => result);
   });
 };
 exports.eventEmitter = eventEmitter;
