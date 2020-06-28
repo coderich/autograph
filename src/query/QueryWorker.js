@@ -1,6 +1,6 @@
 const { get, remove } = require('lodash');
 const Boom = require('../core/Boom');
-const { map, ensureArray, mergeDeep, hashObject, stripObjectNulls } = require('../service/app.service');
+const { map, ensureArray, mergeDeep, hashObject, stripObjectNulls, proxyDeep, keyPathLeafs } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
 const {
   validateModelData,
@@ -159,7 +159,22 @@ module.exports = class QueryWorker {
 
     if (from) { // 'from' is correct here because we're testing what was passed into slice() to determine behavior
       data = { [key]: get(doc, key, []) };
-      remove(data[key], el => $from.find(v => hashObject(v) === hashObject(el)));
+      remove(data[key], el => $from.find((val) => {
+        if (typeof val === 'object') {
+          const compare = (a, b) => {
+            return keyPathLeafs(a).every((leaf) => {
+              const $a = get(a, leaf, { a: 'a' });
+              const $b = get(b, leaf, { b: 'b' });
+              if (Array.isArray($a)) return $a.some(e => $b.some(ee => compare(e, ee)));
+              return hashObject($a) === hashObject($b);
+            });
+          };
+
+          return compare(val, el);
+        }
+
+        return hashObject(val) === hashObject(el);
+      }));
     } else {
       if (field.isEmbedded()) {
         const modelRef = field.getModelRef();

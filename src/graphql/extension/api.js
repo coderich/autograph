@@ -30,12 +30,22 @@ module.exports = (schema) => {
         }
         ${model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd')).map((field) => {
           const fieldName = ucFirst(field.getName());
-          const modelRef = field.getModelRef();
+          const isEmbedded = field.isEmbedded();
+          const fields = isEmbedded ? field.getModelRef().getFields().reduce((prev, f) => Object.assign(prev, { [f]: 'AutoGraphMixed' }), {}) : { id: 'AutoGraphMixed' };
+          // const modelRef = field.getModelRef();
+          // ${modelRef ? '' : `input ${model.getName()}${fieldName}InputQuery { where: ${field.getType()} sortBy: SortOrderEnum limit: Int }`}
+          // query: ${modelRef ? `${modelRef.getName()}InputQuery` : `${model.getName()}${fieldName}InputQuery`}
+          // input: [${modelRef ? (field.isEmbedded() ? `${modelRef.getName()}InputUpdate` : 'ID') : field.getType()}]
           return `
-            ${modelRef ? '' : `input ${model.getName()}${fieldName}InputQuery { where: ${field.getType()} sortBy: SortOrderEnum limit: Int }`}
+            input ${model.getName()}${fieldName}InputSliceSearch { ${Object.entries(fields).map(([k, v]) => `${k}: ${v}`)} }
+            input ${model.getName()}${fieldName}InputSliceQuery {
+              where: ${model.getName()}${fieldName}InputSliceSearch
+              sortBy: ${model.getName()}${fieldName}InputSliceSearch
+              limit: Int
+            }
             input ${model.getName()}${fieldName}InputSlice {
-              query: ${modelRef ? `${modelRef.getName()}InputQuery` : `${model.getName()}${fieldName}InputQuery`}
-              input: [${modelRef ? (field.isEmbedded() ? `${modelRef.getName()}InputUpdate` : 'ID') : field.getType()}]
+              query: ${model.getName()}${fieldName}InputSliceQuery
+              input: [${model.getName()}${fieldName}InputSliceSearch]
             }
           `;
         })}
@@ -47,7 +57,7 @@ module.exports = (schema) => {
       `),
       ...readModels.map(model => `
         input ${model.getName()}InputWhere {
-          ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'String'}`)}
+          ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'AutoGraphMixed'}`)}
         }
         input ${model.getName()}InputSort {
           ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputSort` : 'SortOrderEnum'}`)}

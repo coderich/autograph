@@ -17,7 +17,7 @@ exports.isIdValue = value => exports.isScalarValue(value) || value instanceof Ob
 exports.mergeDeep = (...args) => DeepMerge.all(args, { isMergeableObject: obj => (exports.isPlainObject(obj) || Array.isArray(obj)), arrayMerge: (d, s, o) => s });
 exports.uniq = arr => [...new Set(arr.map(a => `${a}`))];
 exports.timeout = ms => new Promise(res => setTimeout(res, ms));
-exports.hashObject = obj => ObjectHash(obj, { respectType: false, respectFunctionNames: false, respectFunctionProperties: false, unorderedArrays: true, ignoreUnknown: true });
+exports.hashObject = obj => ObjectHash(obj, { respectType: false, respectFunctionNames: false, respectFunctionProperties: false, unorderedArrays: true, ignoreUnknown: true, replacer: r => (r instanceof ObjectID ? `${r}` : r) });
 exports.globToRegex = (glob, options = {}) => PicoMatch.makeRe(glob, { maxLength: 100, ...options, expandRange: (a, b) => `(${FillRange(a, b, { toRegex: true })})` });
 exports.globToRegexp = (glob, options = {}) => PicoMatch.toRegex(exports.globToRegex(glob, options));
 exports.toGUID = (model, id) => Buffer.from(`${model},${`${id}`}`).toString('base64');
@@ -116,6 +116,10 @@ exports.keyPaths = (obj = {}, keys = [], path) => {
     if (exports.isPlainObject(value)) return exports.keyPaths(value, prev, keyPath);
     return prev.concat(keyPath);
   }, keys);
+};
+
+exports.keyPathLeafs = (obj, keys, path) => {
+  return exports.keyPaths(obj, keys, path).sort().filter((leaf, i, arr) => arr.findIndex(el => el.indexOf(leaf) === 0) === i);
 };
 
 // exports.keyPaths = (obj, keys = [], path) => {
