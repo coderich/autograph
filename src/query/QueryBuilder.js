@@ -38,7 +38,7 @@ module.exports = class QueryBuilder {
     this.save = (...args) => this.makeTheCall(query, 'save', args.map(arg => unravelObject(arg)));
     this.push = (...args) => this.makeTheCall(query, 'push', args);
     this.pull = (...args) => this.makeTheCall(query, 'pull', args);
-    // this.splice = (...args) => this.makeTheCall(query, 'splice', args);
+    this.splice = (...args) => this.makeTheCall(query, 'splice', args);
     this.remove = (...args) => this.makeTheCall(query, 'remove', args);
     this.delete = (...args) => this.makeTheCall(query, 'delete', args);
 
@@ -91,6 +91,22 @@ module.exports = class QueryBuilder {
           const docs = await resolver.match(model).where(resolvedWhere).many({ find: true });
           const txn = resolver.transaction(parentTxn);
           docs.forEach(doc => txn.match(model).id(doc.id).query(query)[cmd](...args));
+          return txn.run();
+        }
+
+        // Best to require explicit intent
+        return Promise.reject(new Error(`${cmd} requires an id() or where()`));
+      }
+      case 'splice': {
+        // Single op
+        if (id) return resolver.load({ method: 'splice', model, query, args });
+
+        // Multi op (transaction)
+        if (where) {
+          const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
+          const docs = await resolver.match(model).where(resolvedWhere).many({ find: true });
+          const txn = resolver.transaction(parentTxn);
+          docs.forEach(doc => txn.match(model).id(doc.id).query(query).splice(...args));
           return txn.run();
         }
 

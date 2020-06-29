@@ -14,6 +14,7 @@ How:
   }
 
 Now:
+  * What should the response of a create/update/delete mutation be? How about a splice? Should they be different?
   * spliceArray API
   * Support @value on Model itself
   * Lock down delete by id (context.network)

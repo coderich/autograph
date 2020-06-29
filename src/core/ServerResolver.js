@@ -61,11 +61,19 @@ module.exports = class ServerResolver {
 
         return promiseChain(Object.entries(slices).map(([key, value]) => {
           return () => {
+            // Edit
+            if (value.query && value.input !== null) {
+              txn.match(model).id(result.id).splice(key, ...ensureArray(value.query.where), ...ensureArray(value.input));
+              return txn.exec();
+            }
+
+            // Pull
             if (value.query && value.input === null) {
               txn.match(model).id(result.id).pull(key, ...ensureArray(value.query.where));
               return txn.exec();
             }
 
+            // Push
             if (!value.query && Object.prototype.hasOwnProperty.call(value, 'input')) {
               txn.match(model).id(result.id).push(key, ...ensureArray(value.input));
               return txn.exec();
