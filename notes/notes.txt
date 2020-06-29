@@ -14,8 +14,8 @@ How:
   }
 
 Now:
+  * If you try to splice something and it's not found should you throw 404?
   * What should the response of a create/update/delete mutation be? How about a splice? Should they be different?
-  * spliceArray API
   * Support @value on Model itself
   * Lock down delete by id (context.network)
   * Can you add resolver to context.autograph yourself? (not require it to be done externally)

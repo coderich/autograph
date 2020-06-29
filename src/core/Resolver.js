@@ -35,7 +35,7 @@ module.exports = class Resolver {
     const query = new Query(this, this.toModel(model), q);
 
     switch (method) {
-      case 'create': case 'update': case 'delete': case 'push': case 'pull': {
+      case 'create': case 'update': case 'delete': case 'push': case 'pull': case 'splice': {
         return this.worker[method](query, ...args).then((results) => {
           this.loader.clearAll();
           return results;

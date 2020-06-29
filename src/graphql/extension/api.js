@@ -28,30 +28,27 @@ module.exports = (schema) => {
         input ${model.getName()}InputCreate {
           ${model.getFields().filter(field => field.hasGQLScope('c')).map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
         }
-        ${model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd')).map((field) => {
-          const fieldName = ucFirst(field.getName());
-          const isEmbedded = field.isEmbedded();
-          const fields = isEmbedded ? field.getModelRef().getFields().reduce((prev, f) => Object.assign(prev, { [f]: 'AutoGraphMixed' }), {}) : { id: 'AutoGraphMixed' };
+      `),
+      ...updateModels.map((model) => {
+        const spliceFields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd'));
 
-          return `
-            input ${model.getName()}${fieldName}InputSliceSearch { ${Object.entries(fields).map(([k, v]) => `${k}: ${v}`)} }
-            input ${model.getName()}${fieldName}InputSliceQuery {
-              where: ${model.getName()}${fieldName}InputSliceSearch
-              sortBy: ${model.getName()}${fieldName}InputSliceSearch
-              limit: Int
+        return `
+          input ${model.getName()}InputUpdate {
+            ${model.getFields().filter(field => field.hasGQLScope('u')).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
+          }
+          ${!spliceFields.length ? '' : `
+            ${spliceFields.map(f => `
+              input ${model.getName()}${ucFirst(f.getName())}InputSplice {
+                items: ${f.getGQLType('InputCreate', { slice: true })}
+                replace: ${f.getGQLType('InputUpdate', { slice: true })}
+              }
+            `)}
+            input ${model.getName()}InputSplice {
+              ${spliceFields.map(f => `${f.getName()}: ${model.getName()}${ucFirst(f.getName())}InputSplice`)}
             }
-            input ${model.getName()}${fieldName}InputSlice {
-              query: ${model.getName()}${fieldName}InputSliceQuery
-              input: [${model.getName()}${fieldName}InputSliceSearch]
-            }
-          `;
-        })}
-      `),
-      ...updateModels.map(model => `
-        input ${model.getName()}InputUpdate {
-          ${model.getFields().filter(field => field.hasGQLScope('u')).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
-        }
-      `),
+          `}
+        `;
+      }),
       ...readModels.map(model => `
         input ${model.getName()}InputWhere {
           ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'AutoGraphMixed'}`)}
@@ -96,17 +93,18 @@ module.exports = (schema) => {
       `type Mutation {
         _noop: String
         ${schema.getEntityModels().filter(model => model.hasGQLScope('c')).map(model => `create${model.getName()}(input: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}!`)}
-        ${schema.getEntityModels().filter(model => model.hasGQLScope('u')).map(model => `
-          update${model.getName()}(
-            id: ID!
-            input: ${model.getName()}InputUpdate
-            ${model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd')).map((field) => {
-              const fieldName = ucFirst(field.getName());
-              return `slice${fieldName}: ${model.getName()}${fieldName}InputSlice`;
-            })}
-            meta: ${model.getMeta()}
-          ): ${model.getName()}!
-        `)}
+        ${schema.getEntityModels().filter(model => model.hasGQLScope('u')).map((model) => {
+          const spliceFields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd'));
+
+          return `
+            update${model.getName()}(
+              id: ID!
+              input: ${model.getName()}InputUpdate
+              ${!spliceFields.length ? '' : `splice: ${model.getName()}InputSplice`}
+              meta: ${model.getMeta()}
+            ): ${model.getName()}!
+          `;
+        })}
         ${schema.getEntityModels().filter(model => model.hasGQLScope('d')).map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}!`)}
       }`,
     ]),
@@ -118,11 +116,7 @@ module.exports = (schema) => {
           const fieldName = field.getName();
           const $fieldName = field.getModelRef() ? `$${fieldName}` : fieldName; // only $hydrated when it's a modelRef
           if (fieldName === 'id') return Object.assign(def, { id: (root, args, { autograph }) => (autograph.legacyMode ? root.id : root.$id) });
-          return Object.assign(def, {
-            [fieldName]: (root) => {
-              return root[$fieldName];
-            },
-          });
+          return Object.assign(def, { [fieldName]: root => root[$fieldName] });
         }, {}),
       });
     }, {

@@ -173,9 +173,14 @@ module.exports = class QueryWorker {
     if (from && to) {
       // Edit
       data = { [key]: get(doc, key, []) };
+      if ($from.length > 1 && $to.length === 1) $to = Array.from($from).fill($to[0]);
       data[key] = data[key].map((el) => {
-        if ($from.find(val => compare(val, el))) return mergeDeep(el, $to[0]);
-        return el;
+        return $from.reduce((prev, val, i) => {
+          if (compare(val, el)) {
+            return isPlainObject(prev) ? mergeDeep(prev, $to[i]) : $to[i];
+          }
+          return prev;
+        }, el);
       });
     } else if (from) {
       // Pull
