@@ -1,6 +1,6 @@
 const { get, remove } = require('lodash');
 const Boom = require('../core/Boom');
-const { map, ensureArray, mergeDeep, hashObject, stripObjectNulls, keyPathLeafs, isPlainObject } = require('../service/app.service');
+const { map, ensureArray, mergeDeep, mergeDeepAll, hashObject, stripObjectNulls, keyPathLeafs, isPlainObject } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
 const {
   validateModelData,
@@ -26,7 +26,7 @@ const appendCreateFields = async (model, input, embed = false) => {
   if (embed && idKey && !input[idKey]) input[idKey] = model.idValue();
   input.createdAt = new Date();
   input.updatedAt = new Date();
-  if (!embed) input = await model.resolveDefaultValues(stripObjectNulls(input));
+  input = await model.resolveDefaultValues(stripObjectNulls(input));
 
   // Generate embedded default values
   await Promise.all(model.getEmbeddedFields().map((field) => {
@@ -177,7 +177,9 @@ module.exports = class QueryWorker {
       data[key] = data[key].map((el) => {
         return $from.reduce((prev, val, i) => {
           if (compare(val, el)) {
-            return isPlainObject(prev) ? mergeDeep(prev, $to[i]) : $to[i];
+            console.log(isPlainObject(prev), prev);
+            console.log('to', $to[i]);
+            return isPlainObject(prev) ? mergeDeepAll(prev, $to[i]) : $to[i];
           }
           return prev;
         }, el);
@@ -188,12 +190,15 @@ module.exports = class QueryWorker {
       remove(data[key], el => $from.find(val => compare(val, el)));
     } else if (to) {
       // Push
+      const modelRef = field.getModelRef();
+
       if (field.isEmbedded()) {
-        const modelRef = field.getModelRef();
         const results = await Promise.all(ensureArray(map($to, v => appendCreateFields(modelRef, v, true))));
         $to = Array.isArray($to) ? results : results[0];
       }
+
       data = { [key]: get(doc, key, []).concat($to) };
+      if (field.isEmbedded()) await Promise.all(data[key].map(d => validateModelData(modelRef, d, {}, 'create')));
     }
 
     const merged = mergeDeep(doc, data);

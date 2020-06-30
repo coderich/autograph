@@ -96,7 +96,7 @@ module.exports = class Field extends Node {
     if (suffix && !this.isScalar()) type = this.isEmbedded() ? modelType : 'ID';
     type = this.isArray() ? `[${type}${this.isArrayElementRequired() ? '!' : ''}]` : type;
     if (!suffix && this.isRequired()) type += '!';
-    if (!options.slice && suffix === 'InputCreate' && this.isRequired() && !this.isDefaulted()) type += '!';
+    if (!options.splice && suffix === 'InputCreate' && this.isRequired() && !this.isDefaulted()) type += '!';
     return type;
   }
 

@@ -53,13 +53,13 @@ module.exports = class ServerResolver {
 
         const txn = resolver.transaction();
 
-        return promiseChain(Object.entries(splice).map(([key, { items, replace }]) => {
-          items = items ? ensureArray(items) : items;
-          replace = replace ? ensureArray(replace) : replace;
+        return promiseChain(Object.entries(splice).map(([key, { from, with: to }]) => {
+          to = to ? ensureArray(to) : to;
+          from = from ? ensureArray(from) : from;
 
           return () => {
-            if (!items && !replace) return Promise.resolve([result]);
-            txn.match(model).id(result.id).splice(key, replace, items);
+            if (!from && !to) return Promise.resolve([result]);
+            txn.match(model).id(result.id).splice(key, from, to);
             return txn.exec();
           };
         })).then((results) => {

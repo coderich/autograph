@@ -6,12 +6,40 @@ const ServerResolver = require('../../core/ServerResolver');
 
 const getGQLWhereFields = (model) => {
   return model.getFields().filter((field) => {
-    if (field.getName() === 'id') return false;
     if (!field.hasGQLScope('r')) return false;
     const modelRef = field.getModelRef();
     if (modelRef && !modelRef.isEmbedded() && !modelRef.isEntity()) return false;
     return true;
   });
+};
+
+const makeInputSplice = (model, embed = false) => {
+  let gql = '';
+  const fields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd'));
+
+  if (fields.length) {
+    gql += fields.map((field) => {
+      const embedded = field.isEmbedded() ? makeInputSplice(field.getModelRef(), true) : '';
+
+      return `
+        ${embedded}
+        input ${model.getName()}${ucFirst(field.getName())}InputSplice {
+          from: ${field.getGQLType('InputWhere', { splice: true })}
+          with: ${field.getGQLType('InputUpdate', { splice: true })}
+          ${embedded.length ? `splice: ${field.getModelRef().getName()}InputSplice` : ''}
+        }
+      `;
+    }).join('\n\n');
+
+    gql += `
+      input ${model.getName()}InputSplice {
+        ${embed ? `where: ${model.getName()}InputWhere` : ''}
+        ${fields.map(field => `${field.getName()}: ${model.getName()}${ucFirst(field.getName())}InputSplice`)}
+      }
+    `;
+  }
+
+  return gql;
 };
 
 module.exports = (schema) => {
@@ -29,26 +57,12 @@ module.exports = (schema) => {
           ${model.getFields().filter(field => field.hasGQLScope('c')).map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
         }
       `),
-      ...updateModels.map((model) => {
-        const spliceFields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd'));
-
-        return `
-          input ${model.getName()}InputUpdate {
-            ${model.getFields().filter(field => field.hasGQLScope('u')).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
-          }
-          ${!spliceFields.length ? '' : `
-            ${spliceFields.map(f => `
-              input ${model.getName()}${ucFirst(f.getName())}InputSplice {
-                items: ${f.getGQLType('InputCreate', { slice: true })}
-                replace: ${f.getGQLType('InputUpdate', { slice: true })}
-              }
-            `)}
-            input ${model.getName()}InputSplice {
-              ${spliceFields.map(f => `${f.getName()}: ${model.getName()}${ucFirst(f.getName())}InputSplice`)}
-            }
-          `}
-        `;
-      }),
+      ...updateModels.map(model => `
+        input ${model.getName()}InputUpdate {
+          ${model.getFields().filter(field => field.hasGQLScope('u')).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
+        }
+        ${makeInputSplice(model)}
+      `),
       ...readModels.map(model => `
         input ${model.getName()}InputWhere {
           ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'AutoGraphMixed'}`)}

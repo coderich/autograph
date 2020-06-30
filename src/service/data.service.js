@@ -34,6 +34,9 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', l
   const mName = model.getName();
   const fields = model.getFields();
 
+  // Allowing id in where clause
+  if (where.id) where[model.idKey()] = map(where.id, v => model.idValue(v));
+
   //
   lookups2D[index] = lookups2D[index] || {
     parentFieldKey: fieldKey,

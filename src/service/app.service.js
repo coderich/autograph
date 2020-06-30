@@ -6,6 +6,23 @@ const { ObjectID } = require('mongodb');
 const ObjectHash = require('object-hash');
 // const IPO = require('is-plain-object');
 
+const overwriteMerge = (d, s, o) => s;
+const combineMerge = (target, source, options) => {
+  const destination = target.slice();
+
+  source.forEach((item, index) => {
+    if (typeof destination[index] === 'undefined') {
+      destination[index] = options.cloneUnlessOtherwiseSpecified(item, options);
+    } else if (options.isMergeableObject(item)) {
+      destination[index] = DeepMerge(target[index], item, options);
+    } else if (target.indexOf(item) === -1) {
+      destination.push(item);
+    }
+  });
+
+  return destination;
+};
+
 exports.id = '3d896496-02a3-4ee5-8e42-2115eb215f7e';
 exports.ucFirst = string => string.charAt(0).toUpperCase() + string.slice(1);
 exports.lcFirst = string => string.charAt(0).toLowerCase() + string.slice(1);
@@ -14,7 +31,8 @@ exports.isPlainObject = obj => obj != null && typeof obj === 'object' && !Array.
 exports.isScalarValue = value => typeof value !== 'object' && typeof value !== 'function';
 exports.isScalarDataType = value => ['ID', 'String', 'Float', 'Int', 'Boolean', 'DateTime'].indexOf(value) > -1;
 exports.isIdValue = value => exports.isScalarValue(value) || value instanceof ObjectID;
-exports.mergeDeep = (...args) => DeepMerge.all(args, { isMergeableObject: obj => (exports.isPlainObject(obj) || Array.isArray(obj)), arrayMerge: (d, s, o) => s });
+exports.mergeDeep = (...args) => DeepMerge.all(args, { isMergeableObject: obj => (exports.isPlainObject(obj) || Array.isArray(obj)), arrayMerge: overwriteMerge });
+exports.mergeDeepAll = (...args) => DeepMerge.all(args, { isMergeableObject: obj => (exports.isPlainObject(obj) || Array.isArray(obj)), arrayMerge: combineMerge });
 exports.uniq = arr => [...new Set(arr.map(a => `${a}`))];
 exports.timeout = ms => new Promise(res => setTimeout(res, ms));
 exports.hashObject = obj => ObjectHash(obj, { respectType: false, respectFunctionNames: false, respectFunctionProperties: false, unorderedArrays: true, ignoreUnknown: true, replacer: r => (r instanceof ObjectID ? `${r}` : r) });
