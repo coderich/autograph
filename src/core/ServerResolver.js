@@ -63,17 +63,17 @@ module.exports = class ServerResolver {
             }
 
             if (from && to) {
-              txn.match(model).id(result.id).splice(key, from, to);
+              txn.match(model).id(result.id).meta(meta).splice(key, from, to);
               return txn.exec();
             }
 
             if (from && to === null) {
-              txn.match(model).id(result.id).splice(key, from);
+              txn.match(model).id(result.id).meta(meta).splice(key, from);
               return txn.exec();
             }
 
             if (to && !from) {
-              txn.match(model).id(result.id).splice(key, null, to);
+              txn.match(model).id(result.id).meta(meta).splice(key, null, to);
               return txn.exec();
             }
 
