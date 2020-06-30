@@ -1,7 +1,8 @@
 const _ = require('lodash');
+const Boom = require('../core/Boom');
 const DataResolver = require('../data/DataResolver');
 const RuleService = require('../service/rule.service');
-const { map, globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep } = require('../service/app.service');
+const { map, globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep, keyPathLeafs, ensureArray, hashObject, mergeDeepAll } = require('../service/app.service');
 
 exports.validateModelData = (model, data, oldData, op) => {
   const required = (op === 'create' ? (f, v) => v == null : (f, v) => Object.prototype.hasOwnProperty.call(data, f.getName()) && v == null);
@@ -28,6 +29,57 @@ exports.makeDataResolver = (doc, model, resolver, query) => {
     id: { value: id, enumerable: true, writable: true },
     $id: { value: guid },
   });
+};
+
+exports.objectContaining = (a, b) => {
+  if (isPlainObject(a)) {
+    return keyPathLeafs(a).every((leaf) => {
+      const $a = _.get(a, leaf, { a: 'a' });
+      const $b = _.get(b, leaf, { b: 'b' });
+      if (Array.isArray($a)) return $a.some(aa => ensureArray($b).some(bb => exports.objectContaining(aa, bb)));
+      return hashObject($a) === hashObject($b);
+    });
+  }
+
+  return hashObject(a) === hashObject(b);
+};
+
+exports.spliceEmbeddedArray = async (model, doc, key, from, to) => {
+  const field = model.getField(key);
+  if (!field || !field.isArray()) return Promise.reject(Boom.badRequest(`Cannot splice field '${key}'`));
+
+  let data;
+  const $from = model.transform({ [key]: from })[key];
+  let $to = model.transform({ [key]: to })[key];
+
+  if (from && to) {
+    // Edit
+    data = { [key]: _.get(doc, key, []) };
+    if ($from.length > 1 && $to.length === 1) $to = Array.from($from).fill($to[0]);
+    data[key] = data[key].map((el) => {
+      return $from.reduce((prev, val, i) => {
+        if (exports.objectContaining(val, el)) return isPlainObject(prev) ? mergeDeepAll(prev, $to[i]) : $to[i];
+        return prev;
+      }, el);
+    });
+  } else if (from) {
+    // Pull
+    data = { [key]: _.get(doc, key, []) };
+    _.remove(data[key], el => $from.find(val => exports.objectContaining(val, el)));
+  } else if (to) {
+    // Push
+    const modelRef = field.getModelRef();
+
+    if (field.isEmbedded()) {
+      const results = await Promise.all(ensureArray(map($to, v => modelRef.appendCreateFields(v, true))));
+      $to = Array.isArray($to) ? results : results[0];
+    }
+
+    data = { [key]: _.get(doc, key, []).concat($to) };
+    if (field.isEmbedded()) await Promise.all(data[key].map(d => exports.validateModelData(modelRef, d, {}, 'create')));
+  }
+
+  return data;
 };
 
 exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', lookups2D = [], index = 0) => {

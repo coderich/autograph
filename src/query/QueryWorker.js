@@ -1,47 +1,7 @@
-const { get, remove } = require('lodash');
 const Boom = require('../core/Boom');
-const { map, ensureArray, mergeDeep, mergeDeepAll, hashObject, stripObjectNulls, keyPathLeafs, isPlainObject } = require('../service/app.service');
+const { mergeDeep } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
-const {
-  validateModelData,
-  resolveModelWhereClause,
-  resolveReferentialIntegrity,
-  sortData,
-  filterDataByCounts,
-  paginateResults,
-} = require('../service/data.service');
-
-const appendCreateFields = async (model, input, embed = false) => {
-  const idKey = model.idKey();
-
-  // NOT SURE WHY THIS DOES'T WORK
-  // await Promise.all(ensureArray(map(input, async (v) => {
-  //   if (embed && idKey && !v[idKey]) v[idKey] = model.idValue();
-  //   v.createdAt = new Date();
-  //   v.updatedAt = new Date();
-  //   if (!embed) v = await model.resolveDefaultValues(stripObjectNulls(v));
-  // })));
-
-  // BUT THIS DOES...
-  if (embed && idKey && !input[idKey]) input[idKey] = model.idValue();
-  input.createdAt = new Date();
-  input.updatedAt = new Date();
-  input = await model.resolveDefaultValues(stripObjectNulls(input));
-
-  // Generate embedded default values
-  await Promise.all(model.getEmbeddedFields().map((field) => {
-    if (!input[field]) return Promise.resolve();
-    return Promise.all(ensureArray(map(input[field], v => appendCreateFields(field.getModelRef(), v, true))));
-  }));
-
-  return input;
-};
-
-const appendUpdateFields = async (model, input) => {
-  input.updatedAt = new Date();
-  input = model.removeBoundKeys(input);
-  return input;
-};
+const { validateModelData, resolveModelWhereClause, resolveReferentialIntegrity, sortData, filterDataByCounts, paginateResults, spliceEmbeddedArray } = require('../service/data.service');
 
 module.exports = class QueryWorker {
   constructor(resolver) {
@@ -122,7 +82,7 @@ module.exports = class QueryWorker {
     const [model, options] = [query.getModel(), query.getOptions()];
 
     // Set default values for create
-    input = await appendCreateFields(model, input);
+    input = await model.appendCreateFields(input);
 
     return createSystemEvent('Mutation', { method: 'create', model, resolver, query, input }, async () => {
       await validateModelData(model, input, {}, 'create');
@@ -137,7 +97,7 @@ module.exports = class QueryWorker {
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
 
     // Set default values for update
-    input = await appendUpdateFields(model, input);
+    input = await model.appendUpdateFields(input);
     const merged = mergeDeep(doc, input);
 
     return createSystemEvent('Mutation', { method: 'update', model, resolver, query, input, doc, merged }, async () => {
@@ -149,58 +109,8 @@ module.exports = class QueryWorker {
   async splice(query, key, from, to) {
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
-    const field = model.getField(key);
-    if (!field || !field.isArray()) return Promise.reject(Boom.badRequest(`Cannot splice field '${key}'`));
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
-    const $from = model.transform({ [key]: from })[key];
-    let $to = model.transform({ [key]: to })[key];
-
-    const compare = (a, b) => {
-      if (isPlainObject(a)) {
-        return keyPathLeafs(a).every((leaf) => {
-          const $a = get(a, leaf, { a: 'a' });
-          const $b = get(b, leaf, { b: 'b' });
-          if (Array.isArray($a)) return $a.some(aa => ensureArray($b).some(bb => compare(aa, bb)));
-          return hashObject($a) === hashObject($b);
-        });
-      }
-
-      return hashObject(a) === hashObject(b);
-    };
-
-    let data;
-
-    if (from && to) {
-      // Edit
-      data = { [key]: get(doc, key, []) };
-      if ($from.length > 1 && $to.length === 1) $to = Array.from($from).fill($to[0]);
-      data[key] = data[key].map((el) => {
-        return $from.reduce((prev, val, i) => {
-          if (compare(val, el)) {
-            console.log(isPlainObject(prev), prev);
-            console.log('to', $to[i]);
-            return isPlainObject(prev) ? mergeDeepAll(prev, $to[i]) : $to[i];
-          }
-          return prev;
-        }, el);
-      });
-    } else if (from) {
-      // Pull
-      data = { [key]: get(doc, key, []) };
-      remove(data[key], el => $from.find(val => compare(val, el)));
-    } else if (to) {
-      // Push
-      const modelRef = field.getModelRef();
-
-      if (field.isEmbedded()) {
-        const results = await Promise.all(ensureArray(map($to, v => appendCreateFields(modelRef, v, true))));
-        $to = Array.isArray($to) ? results : results[0];
-      }
-
-      data = { [key]: get(doc, key, []).concat($to) };
-      if (field.isEmbedded()) await Promise.all(data[key].map(d => validateModelData(modelRef, d, {}, 'create')));
-    }
-
+    const data = await spliceEmbeddedArray(model, doc, key, from, to);
     const merged = mergeDeep(doc, data);
 
     return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, input: data, doc, merged }, async () => {

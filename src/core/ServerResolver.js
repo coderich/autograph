@@ -53,14 +53,31 @@ module.exports = class ServerResolver {
 
         const txn = resolver.transaction();
 
-        return promiseChain(Object.entries(splice).map(([key, { from, with: to }]) => {
+        return promiseChain(Object.entries(splice).map(([key, { with: from, put: to, splice: subSplice }]) => {
           to = to ? ensureArray(to) : to;
           from = from ? ensureArray(from) : from;
 
           return () => {
-            if (!from && !to) return Promise.resolve([result]);
-            txn.match(model).id(result.id).splice(key, from, to);
-            return txn.exec();
+            if (subSplice) {
+              console.log('we have to subSplice this mofo');
+            }
+
+            if (from && to) {
+              txn.match(model).id(result.id).splice(key, from, to);
+              return txn.exec();
+            }
+
+            if (from && to === null) {
+              txn.match(model).id(result.id).splice(key, from);
+              return txn.exec();
+            }
+
+            if (to && !from) {
+              txn.match(model).id(result.id).splice(key, null, to);
+              return txn.exec();
+            }
+
+            return Promise.resolve([result]);
           };
         })).then((results) => {
           return txn.commit().then(() => {
