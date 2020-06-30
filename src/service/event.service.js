@@ -1,6 +1,6 @@
 const Query = require('../query/Query');
 const EventEmitter = require('../core/EventEmitter');
-const { ucFirst, promiseChain } = require('./app.service');
+const { map, ensureArray, ucFirst } = require('./app.service');
 
 // Event emitters
 const eventEmitter = new EventEmitter();
@@ -35,12 +35,25 @@ exports.internalEmitter = internalEmitter;
 const eventHandler = (event) => {
   const { model, input, method, resolver } = event;
 
-  return promiseChain(model.getEmbeddedFields().map((field) => {
-    return () => new Promise((resolve, reject) => {
+  return Promise.all(model.getEmbeddedFields().map((field) => {
+    return new Promise((resolve, reject) => {
       if (Object.prototype.hasOwnProperty.call(input || {}, field.getName())) {
+        let i = 0;
+        const value = input[field.getName()];
+        const values = ensureArray(value);
         const newModel = field.getModelRef();
-        const newEvent = { key: `${method}${field}`, method, model: newModel, resolver, query: new Query(resolver, newModel), input: input[field.getName()] };
-        exports.createSystemEvent('Mutation', newEvent, () => resolve()).catch(e => reject(e));
+
+        if (values.length) {
+          values.forEach((val) => {
+            const newEvent = { key: `${method}${field}`, method, model: newModel, resolver, query: new Query(resolver, newModel), input: val };
+            exports.createSystemEvent('Mutation', newEvent, () => {
+              if (++i >= values.length) return resolve();
+              return Promise.resolve();
+            }).catch(e => reject(e));
+          });
+        } else {
+          resolve();
+        }
       } else {
         resolve();
       }

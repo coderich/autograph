@@ -110,7 +110,7 @@ module.exports = class QueryWorker {
     const { resolver } = this;
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
-    const data = await spliceEmbeddedArray(model, doc, key, from, to);
+    const data = await spliceEmbeddedArray(query, doc, key, from, to);
     const merged = mergeDeep(doc, data);
 
     return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, input: data, doc, merged }, async () => {

@@ -10,7 +10,6 @@ module.exports = class Field extends Node {
     this.schema = model.getSchema();
     this.type = new Type(this.ast);
     this.isArray = this.type.isArray.bind(this.type);
-    this.isRequired = this.type.isRequired.bind(this.type);
     this.isArrayElementRequired = this.type.isArrayElementRequired.bind(this.type);
   }
 
@@ -87,6 +86,10 @@ module.exports = class Field extends Node {
 
   isDefaulted() {
     return Boolean(this.hasBoundValue() || this.getDefaultValue() != null);
+  }
+
+  isRequired() {
+    return this.type.isRequired() && this.getName() !== 'id';
   }
 
   // GQL Schema Methods

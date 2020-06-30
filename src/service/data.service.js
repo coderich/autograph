@@ -1,8 +1,9 @@
 const _ = require('lodash');
 const Boom = require('../core/Boom');
 const DataResolver = require('../data/DataResolver');
-const RuleService = require('../service/rule.service');
-const { map, globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep, keyPathLeafs, ensureArray, hashObject, mergeDeepAll } = require('../service/app.service');
+const RuleService = require('./rule.service');
+const { createSystemEvent } = require('./event.service');
+const { map, globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep, keyPathLeafs, ensureArray, hashObject, mergeDeepAll } = require('./app.service');
 
 exports.validateModelData = (model, data, oldData, op) => {
   const required = (op === 'create' ? (f, v) => v == null : (f, v) => Object.prototype.hasOwnProperty.call(data, f.getName()) && v == null);
@@ -44,11 +45,13 @@ exports.objectContaining = (a, b) => {
   return hashObject(a) === hashObject(b);
 };
 
-exports.spliceEmbeddedArray = async (model, doc, key, from, to) => {
+exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
+  const model = query.getModel();
   const field = model.getField(key);
   if (!field || !field.isArray()) return Promise.reject(Boom.badRequest(`Cannot splice field '${key}'`));
 
   let data;
+  const resolver = model.getResolver();
   const $from = model.transform({ [key]: from })[key];
   let $to = model.transform({ [key]: to })[key];
 
@@ -68,15 +71,21 @@ exports.spliceEmbeddedArray = async (model, doc, key, from, to) => {
     _.remove(data[key], el => $from.find(val => exports.objectContaining(val, el)));
   } else if (to) {
     // Push
-    const modelRef = field.getModelRef();
-
     if (field.isEmbedded()) {
-      const results = await Promise.all(ensureArray(map($to, v => modelRef.appendCreateFields(v, true))));
-      $to = Array.isArray($to) ? results : results[0];
+      const modelRef = field.getModelRef();
+
+      return Promise.all($to.map((el) => {
+        return modelRef.appendCreateFields(el, true).then((input) => {
+          return createSystemEvent('Mutation', { method: 'create', model: modelRef, resolver, query, input }, async () => {
+            return exports.validateModelData(modelRef, input, {}, 'create').then(() => input);
+          });
+        });
+      })).then((results) => {
+        return { [key]: _.get(doc, key, []).concat(...results) };
+      });
     }
 
     data = { [key]: _.get(doc, key, []).concat($to) };
-    if (field.isEmbedded()) await Promise.all(data[key].map(d => exports.validateModelData(modelRef, d, {}, 'create')));
   }
 
   return data;

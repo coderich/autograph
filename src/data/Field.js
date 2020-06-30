@@ -44,7 +44,7 @@ module.exports = class extends Field {
       if (key === 'enforce') rules.push(...value.map(r => Rule.getInstances()[r]));
     });
 
-    if (this.isRequired() && this.isPersistable() && this.getType() !== 'ID') rules.push(Rule.required()); // Required rule
+    if (this.isRequired() && this.isPersistable()) rules.push(Rule.required());
 
     return rules.concat(this.type.getRules());
   }
