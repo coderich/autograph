@@ -55,7 +55,7 @@ module.exports = class QueryBuilder {
 
     switch (cmd) {
       case 'one': {
-        if (id) {
+        if (id !== undefined) {
           const { required } = _.get(args, '0', {});
           return resolver.load({ method: 'get', model, query, args: [required] });
         }
@@ -83,10 +83,10 @@ module.exports = class QueryBuilder {
         const [key, ...values] = args;
 
         // Single op
-        if (id) return resolver.load({ method: cmd, model, query, args: [key, values] });
+        if (id !== undefined) return resolver.load({ method: cmd, model, query, args: [key, values] });
 
         // Multi op (transaction)
-        if (where) {
+        if (where !== undefined) {
           const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
           const docs = await resolver.match(model).where(resolvedWhere).many({ find: true });
           const txn = resolver.transaction(parentTxn);
@@ -99,10 +99,10 @@ module.exports = class QueryBuilder {
       }
       case 'splice': {
         // Single op
-        if (id) return resolver.load({ method: 'splice', model, query, args });
+        if (id !== undefined) return resolver.load({ method: 'splice', model, query, args });
 
         // Multi op (transaction)
-        if (where) {
+        if (where !== undefined) {
           const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
           const docs = await resolver.match(model).where(resolvedWhere).many({ find: true });
           const txn = resolver.transaction(parentTxn);
@@ -117,10 +117,10 @@ module.exports = class QueryBuilder {
         const [input] = args;
 
         // Single update
-        if (id) return resolver.load({ method: 'update', model, query, args: [input] });
+        if (id !== undefined) return resolver.load({ method: 'update', model, query, args: [input] });
 
         // Multi update (transaction)
-        if (where) {
+        if (where !== undefined) {
           const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
           const docs = await resolver.match(model).where(resolvedWhere).many();
           const txn = resolver.transaction(parentTxn);
@@ -140,10 +140,10 @@ module.exports = class QueryBuilder {
       }
       case 'remove': case 'delete': {
         // Single document remove
-        if (id) return resolver.load({ method: 'delete', model, query, args: [parentTxn] });
+        if (id !== undefined) return resolver.load({ method: 'delete', model, query, args: [parentTxn] });
 
         // Multi remove (transaction)
-        if (where) {
+        if (where !== undefined) {
           const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
           const docs = await resolver.match(model).where(resolvedWhere).many({ find: true });
           const txn = resolver.transaction(parentTxn);
