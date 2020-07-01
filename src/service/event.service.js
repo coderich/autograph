@@ -31,16 +31,20 @@ exports.eventEmitter = eventEmitter;
 exports.internalEmitter = internalEmitter;
 
 
-// Handle embedded fields
+/**
+ * Hook into the pre event only!
+ *
+ * Kick off system events for embedded fields
+ */
 const eventHandler = (event) => {
-  const { model, input, method, resolver, meta, doc } = event;
+  const { model, input, method, resolver, meta, doc = input } = event;
 
   return Promise.all(model.getEmbeddedFields().map((field) => {
     return new Promise((resolve, reject) => {
       if (Object.prototype.hasOwnProperty.call(input || {}, field.getName())) {
         let i = 0;
         const value = input[field.getName()];
-        const values = ensureArray(value);
+        const values = ensureArray(value).filter(el => el != null);
         const newModel = field.getModelRef();
 
         if (values.length) {
@@ -60,5 +64,4 @@ const eventHandler = (event) => {
   }));
 };
 
-internalEmitter.on('preMutation', async (event, next) => eventHandler(event).then(next));
-internalEmitter.on('postMutation', async (event, next) => eventHandler(event).then(next));
+internalEmitter.on('preMutation', async (event, next) => eventHandler(event).then(next)); // Only preMutation!
