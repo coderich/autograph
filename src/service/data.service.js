@@ -75,8 +75,9 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
       const modelRef = field.getModelRef();
 
       return Promise.all($to.map((el) => {
-        return modelRef.appendCreateFields(el, true).then((input) => {
-          return createSystemEvent('Mutation', { method: 'create', model: modelRef, resolver, query, input }, async () => {
+        return modelRef.appendDefaultValues(el).then((input) => {
+          return createSystemEvent('Mutation', { method: 'create', model: modelRef, resolver, query, input, parent: doc }, async () => {
+            input = await modelRef.appendCreateFields(input, true);
             return exports.validateModelData(modelRef, input, {}, 'create').then(() => input);
           });
         });

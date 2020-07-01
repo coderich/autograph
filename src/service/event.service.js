@@ -33,7 +33,7 @@ exports.internalEmitter = internalEmitter;
 
 // Handle embedded fields
 const eventHandler = (event) => {
-  const { model, input, method, resolver, meta } = event;
+  const { model, input, method, resolver, meta, doc } = event;
 
   return Promise.all(model.getEmbeddedFields().map((field) => {
     return new Promise((resolve, reject) => {
@@ -45,7 +45,7 @@ const eventHandler = (event) => {
 
         if (values.length) {
           values.forEach((val) => {
-            const newEvent = { key: `${method}${field}`, method, model: newModel, resolver, query: new Query(resolver, newModel, { meta }), input: val };
+            const newEvent = { parent: doc, key: `${method}${field}`, method, model: newModel, resolver, query: new Query(resolver, newModel, { meta }), input: val };
             exports.createSystemEvent('Mutation', newEvent, () => {
               if (++i >= values.length) resolve();
             }).catch(e => reject(e));

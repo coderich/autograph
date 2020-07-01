@@ -108,24 +108,26 @@ module.exports = class extends Model {
   async appendCreateFields(input, embed = false) {
     const idKey = this.idKey();
 
-    // NOT SURE WHY THIS DOES'T WORK
-    // await Promise.all(ensureArray(map(input, async (v) => {
-    //   if (embed && idKey && !v[idKey]) v[idKey] = model.idValue();
-    //   v.createdAt = new Date();
-    //   v.updatedAt = new Date();
-    //   if (!embed) v = await model.resolveDefaultValues(stripObjectNulls(v));
-    // })));
-
-    // BUT THIS DOES...
     if (embed && idKey && !input[idKey]) input[idKey] = this.idValue();
     input.createdAt = new Date();
     input.updatedAt = new Date();
-    input = await this.resolveDefaultValues(stripObjectNulls(input));
 
     // Generate embedded default values
     await Promise.all(this.getEmbeddedFields().map((field) => {
       if (!input[field]) return Promise.resolve();
       return Promise.all(ensureArray(map(input[field], v => field.getModelRef().appendCreateFields(v, true))));
+    }));
+
+    return input;
+  }
+
+  async appendDefaultValues(input) {
+    input = await this.resolveDefaultValues(stripObjectNulls(input));
+
+    // Generate embedded default values
+    await Promise.all(this.getEmbeddedFields().map((field) => {
+      if (!input[field]) return Promise.resolve();
+      return Promise.all(ensureArray(map(input[field], v => field.getModelRef().appendDefaultValues(v))));
     }));
 
     return input;

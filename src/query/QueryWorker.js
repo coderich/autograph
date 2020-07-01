@@ -82,9 +82,10 @@ module.exports = class QueryWorker {
     const [model, options] = [query.getModel(), query.getOptions()];
 
     // Set default values for create
-    input = await model.appendCreateFields(input);
+    input = await model.appendDefaultValues(input);
 
     return createSystemEvent('Mutation', { method: 'create', model, resolver, query, input }, async () => {
+      input = await model.appendCreateFields(input); // Now create fields (give a change to alter input)
       await validateModelData(model, input, {}, 'create');
       return model.create(input, options).hydrate(resolver, query);
     });
@@ -97,10 +98,10 @@ module.exports = class QueryWorker {
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
 
     // Set default values for update
-    input = await model.appendUpdateFields(input);
     const merged = mergeDeep(doc, input);
 
     return createSystemEvent('Mutation', { method: 'update', model, resolver, query, input, doc, merged }, async () => {
+      input = await model.appendUpdateFields(input);
       await validateModelData(model, input, doc, 'update');
       return model.update(id, input, mergeDeep(doc, input), options).hydrate(resolver, query);
     });
