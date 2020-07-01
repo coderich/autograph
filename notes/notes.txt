@@ -35,6 +35,7 @@ Next:
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
 
 Enhancements:
+  * DataLoaders are not being used propertly - need re-architecture
   * Create person with books at the same time
   * createdAt, updatedAt, counts, onDeletes, references, etc should be controllable
   * ResultSet can have helper methods (save(), remove(), archive(), etc())

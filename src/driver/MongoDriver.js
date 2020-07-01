@@ -51,16 +51,20 @@ module.exports = class MongoDriver {
     return this.query(model, 'insertOne', data, options).then(result => Object.assign(data, { _id: result.insertedId }));
   }
 
-  // update(model, id, data, doc, options) {
-  //   const $update = Object.entries(data).reduce((prev, [key, value]) => Object.assign(prev, { $set: { [key]: value } }), {});
-  //   MongoDriver.normalizeOptions(options);
-  //   return this.query(model, 'updateOne', { _id: id }, $update, options).then(() => doc);
-  // }
+  update(model, id, data, doc, options) {
+    const $update = Object.entries(doc).reduce((prev, [key, value]) => {
+      Object.assign(prev.$set, { [key]: value });
+      return prev;
+    }, { $set: {} });
 
-  replace(model, id, data, doc, options) {
     MongoDriver.normalizeOptions(options);
-    return this.query(model, 'replaceOne', { _id: id }, doc, options).then(() => doc);
+    return this.query(model, 'updateOne', { _id: id }, $update, options).then(() => doc);
   }
+
+  // replace(model, id, data, doc, options) {
+  //   MongoDriver.normalizeOptions(options);
+  //   return this.query(model, 'replaceOne', { _id: id }, doc, options).then(() => doc);
+  // }
 
   delete(model, id, doc, options) {
     MongoDriver.normalizeOptions(options);

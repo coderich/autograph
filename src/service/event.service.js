@@ -1,6 +1,6 @@
 const Query = require('../query/Query');
 const EventEmitter = require('../core/EventEmitter');
-const { map, ensureArray, ucFirst } = require('./app.service');
+const { ensureArray, ucFirst } = require('./app.service');
 
 // Event emitters
 const eventEmitter = new EventEmitter();
