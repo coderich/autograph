@@ -46,6 +46,7 @@ exports.nvl = (...values) => values.reduce((prev, value) => (prev === null ? val
 exports.stripObjectNulls = obj => Object.entries(obj).reduce((prev, [key, value]) => (value == null ? prev : Object.assign(prev, { [key]: value })), {});
 exports.pushIt = (arr, it) => arr[arr.push(it) - 1];
 exports.toKeyObj = obj => exports.keyPaths(obj).reduce((prev, path) => Object.assign(prev, { [path]: _.get(obj, path) }), {});
+exports.hashCacheKey = ({ method, model, query, args }) => exports.hashObject({ method, model: `${model}`, query: query.getCacheKey(), args });
 
 exports.renameObjectKey = (obj, oldKey, newKey) => {
   if (oldKey !== newKey) {

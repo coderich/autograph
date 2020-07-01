@@ -6,7 +6,7 @@ const QueryBuilder = require('../query/QueryBuilder');
 const TxnQueryBuilder = require('../query/TransactionQueryBuilder');
 const QueryWorker = require('../query/QueryWorker');
 const Query = require('../query/Query');
-const { hashObject } = require('../service/app.service');
+const { hashCacheKey, hashObject } = require('../service/app.service');
 const Rule = require('./Rule');
 
 let count = 0;
@@ -196,10 +196,48 @@ module.exports = class Resolver {
   }
 
   createLoader() {
-    return new FBDataLoader(keys => Promise.all(keys.map(({ method, query, args }) => this.worker[method](query, ...args))), {
-      cacheKeyFn: ({ method, model, query }) => {
-        return hashObject({ method, model: `${model}`, query: query.getCacheKey() });
-      },
+    return new FBDataLoader((keys) => {
+      // const methods = [...new Set(keys.map(k => k.method))];
+
+      // if (keys.length > 10 && methods.length === 1 && methods[0] === 'get') {
+      //   let index = -1;
+      //   let prevHash = '';
+      //   const hashKey = ({ model, query, args }) => hashObject({ model: `${model}`, where: query.getWhere(), args });
+
+      //   const batches = keys.reduce((prev, key) => {
+      //     const hash = hashKey(key);
+
+      //     if (hash === prevHash) {
+      //       prev[index].push(key);
+      //     } else {
+      //       prev.push([key]);
+      //       prevHash = hash;
+      //       index++;
+      //     }
+
+      //     return prev;
+      //   }, []);
+
+      //   return Promise.all(batches.map((batch) => {
+      //     const [{ query, model, args }] = batch;
+      //     const ids = batch.map(key => key.query.getId());
+      //     const where = Object.assign(query.getWhere(), { id: ids });
+
+      //     return this.worker.find(new Query(this, model, { where }), ...args).then((results) => {
+      //       return ids.map((id) => {
+      //         return results.find(r => `${r.id}` === `${id}`);
+      //       });
+      //     });
+      //   })).then((results) => {
+      //     return flatten(results);
+      //   });
+      // }
+
+      return Promise.all(keys.map(({ method, query, args }) => {
+        return this.worker[method](query, ...args);
+      }));
+    }, {
+      cacheKeyFn: key => hashCacheKey(key),
     });
   }
 };
