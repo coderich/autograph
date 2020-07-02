@@ -1,32 +1,30 @@
+const { set } = require('lodash');
 const GraphqlFields = require('graphql-fields');
-const { ucFirst } = require('./app.service');
+const { ucFirst, getDeep } = require('./app.service');
 
-exports.makeInputSplice = (model, embed = false) => {
-  let gql = '';
-  const fields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd'));
+const resolveEmbeddedQuery = (method, resolver, model, embeds = []) => {
+  const head = embeds[0];
+  const fieldPath = embeds.map(field => field.getName()).join('.');
 
-  if (fields.length) {
-    gql += fields.map((field) => {
-      const embedded = field.isEmbedded() ? exports.makeInputSplice(field.getModelRef(), true) : '';
+  return (root, args, context, info) => {
+    switch (method) {
+      case 'get': {
+        if (fieldPath.length) {
+          set(args, `query.where.${fieldPath}.id`, args.id);
 
-      return `
-        ${embedded}
-        input ${model.getName()}${ucFirst(field.getName())}InputSplice {
-          with: ${field.getGQLType('InputWhere', { splice: true })}
-          put: ${field.getGQLType('InputUpdate', { splice: true })}
-          ${embedded.length ? `splice: ${field.getModelRef().getName()}InputSplice` : ''}
+          return resolver.query(context, head.getModel(), args, info).then(([result]) => {
+            const data = getDeep(result, fieldPath, []);
+            return data.find(el => `${el.id}` === `${args.id}`);
+          });
         }
-      `;
-    }).join('\n\n');
 
-    gql += `
-      input ${model.getName()}InputSplice {
-        ${fields.map(field => `${field.getName()}: ${model.getName()}${ucFirst(field.getName())}InputSplice`)}
+        return resolver.get(context, model, args, true, info);
       }
-    `;
-  }
-
-  return gql;
+      default: {
+        return null;
+      }
+    }
+  };
 };
 
 const makeEmbeddedAPI = (model, method) => {
@@ -67,7 +65,7 @@ const makeEmbeddedAPI = (model, method) => {
   return gql;
 };
 
-const makeEmbeddedResolver = (model, resolver, type) => {
+const makeEmbeddedResolver = (model, resolver, type, embeds = []) => {
   const obj = {};
 
   const modelName = model.getName();
@@ -80,11 +78,11 @@ const makeEmbeddedResolver = (model, resolver, type) => {
 
     switch (type) {
       case 'query': {
-        Object.assign(obj, exports.makeQueryResolver(name, modelRef, resolver));
+        Object.assign(obj, exports.makeQueryResolver(name, modelRef, resolver, embeds.concat(field)));
         break;
       }
       case 'mutation': {
-        Object.assign(obj, exports.makeMutationResolver(name, modelRef, resolver));
+        Object.assign(obj, exports.makeMutationResolver(name, modelRef, resolver, embeds.concat(field)));
         break;
       }
       default: {
@@ -96,6 +94,33 @@ const makeEmbeddedResolver = (model, resolver, type) => {
   return obj;
 };
 
+exports.makeInputSplice = (model, embed = false) => {
+  let gql = '';
+  const fields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd'));
+
+  if (fields.length) {
+    gql += fields.map((field) => {
+      const embedded = field.isEmbedded() ? exports.makeInputSplice(field.getModelRef(), true) : '';
+
+      return `
+        ${embedded}
+        input ${model.getName()}${ucFirst(field.getName())}InputSplice {
+          with: ${field.getGQLType('InputWhere', { splice: true })}
+          put: ${field.getGQLType('InputUpdate', { splice: true })}
+          ${embedded.length ? `splice: ${field.getModelRef().getName()}InputSplice` : ''}
+        }
+      `;
+    }).join('\n\n');
+
+    gql += `
+      input ${model.getName()}InputSplice {
+        ${fields.map(field => `${field.getName()}: ${model.getName()}${ucFirst(field.getName())}InputSplice`)}
+      }
+    `;
+  }
+
+  return gql;
+};
 
 // APIs
 exports.makeCreateAPI = (name, model) => {
@@ -164,24 +189,25 @@ exports.makeDeleteAPI = (name, model) => {
 };
 
 // Resolvers
-exports.makeQueryResolver = (name, model, resolver) => {
+exports.makeQueryResolver = (name, model, resolver, embeds = []) => {
   const obj = {};
 
   if (model.hasGQLScope('r')) {
-    obj[`get${name}`] = (root, args, context, info) => resolver.get(context, model, args, true, info);
+    obj[`get${name}`] = resolveEmbeddedQuery('get', resolver, model, embeds);
+    // obj[`get${name}`] = (root, args, context, info) => resolver.get(context, model, args, true, info);
     obj[`find${name}`] = (root, args, context, info) => resolver.query(context, model, args, info);
     obj[`count${name}`] = (root, args, context, info) => resolver.count(context, model, args, info);
   }
 
-  return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'query'));
+  return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'query', embeds));
 };
 
-exports.makeMutationResolver = (name, model, resolver) => {
+exports.makeMutationResolver = (name, model, resolver, embeds = []) => {
   const obj = {};
 
   if (model.hasGQLScope('c')) obj[`create${name}`] = (root, args, context, info) => resolver.create(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
   if (model.hasGQLScope('u')) obj[`update${name}`] = (root, args, context, info) => resolver.update(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
   if (model.hasGQLScope('d')) obj[`delete${name}`] = (root, args, context, info) => resolver.delete(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
 
-  return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'mutation'));
+  return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'mutation', embeds));
 };

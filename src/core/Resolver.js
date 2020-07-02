@@ -6,7 +6,7 @@ const QueryBuilder = require('../query/QueryBuilder');
 const TxnQueryBuilder = require('../query/TransactionQueryBuilder');
 const QueryWorker = require('../query/QueryWorker');
 const Query = require('../query/Query');
-const { hashCacheKey, hashObject } = require('../service/app.service');
+const { hashCacheKey } = require('../service/app.service');
 const Rule = require('./Rule');
 
 let count = 0;
@@ -61,15 +61,15 @@ module.exports = class Resolver {
   }
 
   match(model) {
-    return new QueryBuilder(this.toModelMarked(model), this);
+    return new QueryBuilder(this.toModelEntity(model), this);
   }
 
   named(model) {
-    return this.toModelMarked(model).getNamedQueries();
+    return this.toModelEntity(model).getNamedQueries();
   }
 
   raw(model) {
-    return this.toModelMarked(model).raw();
+    return this.toModelEntity(model).raw();
   }
 
   // Public Transaction API
@@ -195,13 +195,13 @@ module.exports = class Resolver {
     return marked;
   }
 
-  // toModelEntity(model) {
-  //   const entity = this.toModel(model);
-  //   if (!entity) throw new Error(`${model} is not defined in schema`);
-  //   if (!entity.isEntity()) throw new Error(`${model} is not an entity`);
-  //   entity.setResolver(this);
-  //   return entity;
-  // }
+  toModelEntity(model) {
+    const entity = this.toModel(model);
+    if (!entity) throw new Error(`${model} is not defined in schema`);
+    if (!entity.isEntity()) throw new Error(`${model} is not an entity`);
+    entity.setResolver(this);
+    return entity;
+  }
 
   createLoader() {
     return new FBDataLoader((keys) => {

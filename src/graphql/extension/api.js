@@ -1,4 +1,3 @@
-/* eslint-disable indent, no-nested-ternary */
 const ServerResolver = require('../../core/ServerResolver');
 const { ucFirst, fromGUID } = require('../../service/app.service');
 const { findGQLModels } = require('../../service/schema.service');

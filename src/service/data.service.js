@@ -129,6 +129,25 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', l
     lookups: [],
   };
 
+  const resolveEmbeddedWhere = (ref, key, value) => {
+    const resolved = ensureArray(map(value, (obj) => {
+      return Object.entries(obj).reduce((p, [k, v]) => {
+        const f = ref.getFieldByName(k);
+
+        if (k === 'id') return Object.assign(p, { [ref.idKey()]: ref.idValue(v) });
+        if (f.isScalar()) return Object.assign(p, { [f.getKey()]: v });
+        if (f.isEmbedded()) return Object.assign(p, { [f.getKey()]: resolveEmbeddedWhere(f.getModelRef(), f.getKey(), v) });
+        return Object.assign(p, { [f.getKey()]: v });
+
+        // console.log(f.getModelRef().getName(), JSON.stringify(obj));
+        // exports.resolveModelWhereClause(resolver, f.getModelRef(), obj, f.getKey(key), lookups2D, index + 1);
+        // return p;
+      }, {});
+    }));
+
+    return resolved.length > 1 ? resolved : resolved[0];
+  };
+
   // Depth first traversal to create 2d array of lookups
   lookups2D[index].lookups.push({
     modelName: mName,
@@ -137,7 +156,8 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', l
       const ref = field.getModelRef();
 
       if (field.isEmbedded()) {
-        value = Object.entries(value).reduce((p, [k, v]) => Object.assign(p, { [ref.getFieldByName(k).getKey()]: v }), {});
+        value = resolveEmbeddedWhere(ref, key, value);
+        // value = Object.entries(value).reduce((p, [k, v]) => Object.assign(p, { [ref.getFieldByName(k).getKey()]: v }), {});
       } else if (ref) {
         if (isPlainObject(value)) {
           exports.resolveModelWhereClause(resolver, ref, value, field.getKey(key), lookups2D, index + 1);
