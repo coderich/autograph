@@ -109,7 +109,7 @@ module.exports = class extends Model {
     const idKey = this.idKey();
 
     if (embed && idKey && !input[idKey]) input[idKey] = this.idValue();
-    input.createdAt = new Date();
+    if (!input.createdAt) input.createdAt = new Date();
     input.updatedAt = new Date();
 
     // Generate embedded default values

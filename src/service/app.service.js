@@ -4,7 +4,6 @@ const FillRange = require('fill-range');
 const DeepMerge = require('deepmerge');
 const { ObjectID } = require('mongodb');
 const ObjectHash = require('object-hash');
-// const IPO = require('is-plain-object');
 
 const overwriteMerge = (d, s, o) => s;
 const combineMerge = (target, source, options) => {
@@ -27,7 +26,6 @@ exports.id = '3d896496-02a3-4ee5-8e42-2115eb215f7e';
 exports.ucFirst = string => string.charAt(0).toUpperCase() + string.slice(1);
 exports.lcFirst = string => string.charAt(0).toLowerCase() + string.slice(1);
 exports.isPlainObject = obj => obj != null && typeof obj === 'object' && !Array.isArray(obj) && !(obj instanceof ObjectID) && !(obj instanceof Date);
-// exports.isPlainObject = obj => IPO(obj) && !Array.isArray(obj);
 exports.isScalarValue = value => typeof value !== 'object' && typeof value !== 'function';
 exports.isScalarDataType = value => ['ID', 'String', 'Float', 'Int', 'Boolean', 'DateTime'].indexOf(value) > -1;
 exports.isIdValue = value => exports.isScalarValue(value) || value instanceof ObjectID;

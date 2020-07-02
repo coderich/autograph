@@ -3,7 +3,7 @@ const Boom = require('../core/Boom');
 const DataResolver = require('../data/DataResolver');
 const RuleService = require('./rule.service');
 const { createSystemEvent } = require('./event.service');
-const { map, globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep, keyPathLeafs, ensureArray, hashObject, mergeDeepAll } = require('./app.service');
+const { map, globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep, keyPathLeafs, ensureArray, hashObject, mergeDeep, mergeDeepAll } = require('./app.service');
 
 exports.validateModelData = (model, data, oldData, op) => {
   const required = (op === 'create' ? (f, v) => v == null : (f, v) => Object.prototype.hasOwnProperty.call(data, f.getName()) && v == null);
@@ -50,30 +50,53 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
   const field = model.getField(key);
   if (!field || !field.isArray()) return Promise.reject(Boom.badRequest(`Cannot splice field '${key}'`));
 
-  let data;
+  const modelRef = field.getModelRef();
   const resolver = model.getResolver();
   const $from = model.transform({ [key]: from })[key];
   let $to = model.transform({ [key]: to })[key];
 
+  // Edit
   if (from && to) {
-    // Edit
-    data = { [key]: _.get(doc, key, []) };
+    const arr = _.get(doc, key, []);
     if ($from.length > 1 && $to.length === 1) $to = Array.from($from).fill($to[0]);
-    data[key] = data[key].map((el) => {
+
+    const edits = arr.map((el) => {
       return $from.reduce((prev, val, i) => {
-        if (exports.objectContaining(val, el)) return isPlainObject(prev) ? mergeDeepAll(prev, $to[i]) : $to[i];
+        if (exports.objectContaining(val, el)) return isPlainObject(prev) ? mergeDeep(prev, $to[i]) : $to[i];
         return prev;
       }, el);
     });
-  } else if (from) {
-    // Pull
-    data = { [key]: _.get(doc, key, []) };
-    _.remove(data[key], el => $from.find(val => exports.objectContaining(val, el)));
-  } else if (to) {
-    // Push
-    if (field.isEmbedded()) {
-      const modelRef = field.getModelRef();
 
+    if (field.isEmbedded()) {
+      return Promise.all(edits.map((edit, i) => {
+        if (hashObject(edit) !== hashObject(arr[i])) {
+          return modelRef.appendDefaultValues(edit).then((input) => {
+            return createSystemEvent('Mutation', { method: 'update', model: modelRef, resolver, query, input, parent: doc }, async () => {
+              input = await modelRef.appendCreateFields(input, true);
+              return exports.validateModelData(modelRef, input, {}, 'update').then(() => input);
+            });
+          });
+        }
+
+        return Promise.resolve(edit);
+      })).then((results) => {
+        return { [key]: mergeDeep(edits, results) };
+      });
+    }
+
+    return { [key]: edits };
+  }
+
+  // Pull
+  if (from) {
+    const data = { [key]: _.get(doc, key, []) };
+    _.remove(data[key], el => $from.find(val => exports.objectContaining(val, el)));
+    return data;
+  }
+
+  // Push
+  if (to) {
+    if (field.isEmbedded()) {
       return Promise.all($to.map((el) => {
         return modelRef.appendDefaultValues(el).then((input) => {
           return createSystemEvent('Mutation', { method: 'create', model: modelRef, resolver, query, input, parent: doc }, async () => {
@@ -86,10 +109,8 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
       });
     }
 
-    data = { [key]: _.get(doc, key, []).concat($to) };
+    return { [key]: _.get(doc, key, []).concat($to) };
   }
-
-  return data;
 };
 
 exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', lookups2D = [], index = 0) => {

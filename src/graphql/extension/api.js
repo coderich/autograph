@@ -16,7 +16,6 @@ const getGQLWhereFields = (model) => {
 const makeInputSplice = (model, embed = false) => {
   let gql = '';
   const fields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd'));
-  // const nonEmbedFields = model.getFields().filter(field => !field.isEmbedded());
 
   if (fields.length) {
     gql += fields.map((field) => {
@@ -34,7 +33,6 @@ const makeInputSplice = (model, embed = false) => {
 
     gql += `
       input ${model.getName()}InputSplice {
-        ${embed ? `where: ${model.getName()}InputWhere` : ''}
         ${fields.map(field => `${field.getName()}: ${model.getName()}${ucFirst(field.getName())}InputSplice`)}
       }
     `;
