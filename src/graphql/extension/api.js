@@ -1,8 +1,8 @@
 /* eslint-disable indent, no-nested-ternary */
-const GraphqlFields = require('graphql-fields');
+const ServerResolver = require('../../core/ServerResolver');
 const { ucFirst, fromGUID } = require('../../service/app.service');
 const { findGQLModels } = require('../../service/schema.service');
-const ServerResolver = require('../../core/ServerResolver');
+const { makeCreateAPI, makeReadAPI, makeUpdateAPI, makeDeleteAPI, makeInputSplice, makeQueryResolver, makeMutationResolver } = require('../../service/decorator.service');
 
 const getGQLWhereFields = (model) => {
   return model.getFields().filter((field) => {
@@ -11,34 +11,6 @@ const getGQLWhereFields = (model) => {
     if (modelRef && !modelRef.isEmbedded() && !modelRef.isEntity()) return false;
     return true;
   });
-};
-
-const makeInputSplice = (model, embed = false) => {
-  let gql = '';
-  const fields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd'));
-
-  if (fields.length) {
-    gql += fields.map((field) => {
-      const embedded = field.isEmbedded() ? makeInputSplice(field.getModelRef(), true) : '';
-
-      return `
-        ${embedded}
-        input ${model.getName()}${ucFirst(field.getName())}InputSplice {
-          with: ${field.getGQLType('InputWhere', { splice: true })}
-          put: ${field.getGQLType('InputUpdate', { splice: true })}
-          ${embedded.length ? `splice: ${field.getModelRef().getName()}InputSplice` : ''}
-        }
-      `;
-    }).join('\n\n');
-
-    gql += `
-      input ${model.getName()}InputSplice {
-        ${fields.map(field => `${field.getName()}: ${model.getName()}${ucFirst(field.getName())}InputSplice`)}
-      }
-    `;
-  }
-
-  return gql;
 };
 
 module.exports = (schema) => {
@@ -56,12 +28,14 @@ module.exports = (schema) => {
           ${model.getFields().filter(field => field.hasGQLScope('c')).map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
         }
       `),
+
       ...updateModels.map(model => `
         input ${model.getName()}InputUpdate {
           ${model.getFields().filter(field => field.hasGQLScope('u')).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
         }
         ${makeInputSplice(model)}
       `),
+
       ...readModels.map(model => `
         input ${model.getName()}InputWhere {
           ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'AutoGraphMixed'}`)}
@@ -98,27 +72,14 @@ module.exports = (schema) => {
 
       `type Query {
         node(id: ID!): Node
-        ${schema.getEntityModels().filter(model => model.hasGQLScope('r')).map(model => `get${model.getName()}(id: ID!): ${model.getName()}`)}
-        ${schema.getEntityModels().filter(model => model.hasGQLScope('r')).map(model => `find${model.getName()}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!`)}
-        ${schema.getEntityModels().filter(model => model.hasGQLScope('r')).map(model => `count${model.getName()}(where: ${ucFirst(model.getName())}InputWhere): Int!`)}
+        ${schema.getEntityModels().map(model => makeReadAPI(model.getName(), model))}
       }`,
 
       `type Mutation {
         _noop: String
-        ${schema.getEntityModels().filter(model => model.hasGQLScope('c')).map(model => `create${model.getName()}(input: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}!`)}
-        ${schema.getEntityModels().filter(model => model.hasGQLScope('u')).map((model) => {
-          const spliceFields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd'));
-
-          return `
-            update${model.getName()}(
-              id: ID!
-              input: ${model.getName()}InputUpdate
-              ${!spliceFields.length ? '' : `splice: ${model.getName()}InputSplice`}
-              meta: ${model.getMeta()}
-            ): ${model.getName()}!
-          `;
-        })}
-        ${schema.getEntityModels().filter(model => model.hasGQLScope('d')).map(model => `delete${model.getName()}(id: ID! meta: ${model.getMeta()}): ${model.getName()}!`)}
+        ${schema.getEntityModels().map(model => makeCreateAPI(model.getName(), model))}
+        ${schema.getEntityModels().map(model => makeUpdateAPI(model.getName(), model))}
+        ${schema.getEntityModels().map(model => makeDeleteAPI(model.getName(), model))}
       }`,
     ]),
     resolvers: schema.getMarkedModels().reduce((prev, model) => {
@@ -136,18 +97,14 @@ module.exports = (schema) => {
       Node: {
         __resolveType: (root, args, context, info) => fromGUID(root.$id)[0],
       },
+
       Connection: {
         edges: root => root.map(node => ({ cursor: node.$$cursor, node })),
         pageInfo: root => root.$$pageInfo,
       },
-      Query: schema.getEntityModels().filter(model => model.hasGQLScope('r')).reduce((prev, model) => {
-        const modelName = model.getName();
 
-        return Object.assign(prev, {
-          [`get${modelName}`]: (root, args, context, info) => resolver.get(context, model, args, true, info),
-          [`find${modelName}`]: (root, args, context, info) => resolver.query(context, model, args, info),
-          [`count${modelName}`]: (root, args, context, info) => resolver.count(context, model, args, info),
-        });
+      Query: schema.getEntityModels().reduce((prev, model) => {
+        return Object.assign(prev, makeQueryResolver(model.getName(), model, resolver));
       }, {
         node: (root, args, context, info) => {
           const { id } = args;
@@ -158,14 +115,7 @@ module.exports = (schema) => {
       }),
 
       Mutation: schema.getEntityModels().reduce((prev, model) => {
-        const obj = {};
-        const modelName = model.getName();
-
-        if (model.hasGQLScope('c')) obj[`create${modelName}`] = (root, args, context, info) => resolver.create(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
-        if (model.hasGQLScope('u')) obj[`update${modelName}`] = (root, args, context, info) => resolver.update(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
-        if (model.hasGQLScope('d')) obj[`delete${modelName}`] = (root, args, context, info) => resolver.delete(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
-
-        return Object.assign(prev, obj);
+        return Object.assign(prev, makeMutationResolver(model.getName(), model, resolver));
       }, {}),
     }),
   });

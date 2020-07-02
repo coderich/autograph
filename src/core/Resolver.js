@@ -61,15 +61,15 @@ module.exports = class Resolver {
   }
 
   match(model) {
-    return new QueryBuilder(this.toModelEntity(model), this);
+    return new QueryBuilder(this.toModelMarked(model), this);
   }
 
   named(model) {
-    return this.toModelEntity(model).getNamedQueries();
+    return this.toModelMarked(model).getNamedQueries();
   }
 
   raw(model) {
-    return this.toModelEntity(model).raw();
+    return this.toModelMarked(model).raw();
   }
 
   // Public Transaction API
@@ -115,7 +115,7 @@ module.exports = class Resolver {
       return {
         get match() {
           return (modelName) => {
-            const model = resolver.toModelEntity(modelName);
+            const model = resolver.toModelMarked(modelName);
             const driver = model.getDriver();
             if (!driverMap.has(driver)) driverMap.set(driver, []);
             const op = new TxnQueryBuilder(model, resolver, this);
@@ -187,13 +187,21 @@ module.exports = class Resolver {
     return model instanceof Model ? model : this.schema.getModel(model);
   }
 
-  toModelEntity(model) {
-    const entity = this.toModel(model);
-    if (!entity) throw new Error(`${model} is not defined in schema`);
-    if (!entity.isEntity()) throw new Error(`${model} is not an entity`);
-    entity.setResolver(this);
-    return entity;
+  toModelMarked(model) {
+    const marked = this.toModel(model);
+    if (!marked) throw new Error(`${model} is not defined in schema`);
+    if (!marked.isMarkedModel()) throw new Error(`${model} is not a marked model`);
+    marked.setResolver(this);
+    return marked;
   }
+
+  // toModelEntity(model) {
+  //   const entity = this.toModel(model);
+  //   if (!entity) throw new Error(`${model} is not defined in schema`);
+  //   if (!entity.isEntity()) throw new Error(`${model} is not an entity`);
+  //   entity.setResolver(this);
+  //   return entity;
+  // }
 
   createLoader() {
     return new FBDataLoader((keys) => {
