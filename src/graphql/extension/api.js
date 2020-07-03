@@ -32,7 +32,7 @@ module.exports = (schema) => {
         input ${model.getName()}InputUpdate {
           ${model.getFields().filter(field => field.hasGQLScope('u')).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
         }
-        ${makeInputSplice(model)}
+        # ${makeInputSplice(model)}
       `),
 
       ...readModels.map(model => `

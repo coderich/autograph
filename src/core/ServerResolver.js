@@ -1,21 +1,7 @@
 const _ = require('lodash');
 const GraphqlFields = require('graphql-fields');
 const Boom = require('./Boom');
-const { fromGUID, map, ensureArray, promiseChain } = require('../service/app.service');
-
-const guidToId = (autograph, guid) => (autograph.legacyMode ? guid : fromGUID(guid)[1]);
-
-const unrollGuid = (autograph, model, data) => {
-  if (autograph.legacyMode) return data;
-  model = autograph.resolver.toModel(model);
-  const fields = model.getDataRefFields().map(field => field.getName());
-
-  return map(data, (doc) => {
-    return Object.entries(doc).reduce((prev, [key, value]) => {
-      return Object.assign(prev, { [key]: (fields.indexOf(key) > -1 ? guidToId(value) : value) });
-    }, {});
-  });
-};
+const { unrollGuid, guidToId, ensureArray, promiseChain } = require('../service/app.service');
 
 const normalizeQuery = (args = {}, info) => {
   const query = { fields: GraphqlFields(info, {}, { processArguments: true }), ...args.query };

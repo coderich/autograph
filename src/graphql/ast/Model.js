@@ -94,11 +94,6 @@ module.exports = class Model extends Node {
     return this.getSelectFields().filter(field => field.isArray() && field.getDataRef());
   }
 
-  getRootModel() {
-    if (!this.isEmbedded()) return this;
-    return this.getModelRef().getRootModel();
-  }
-
   // Misc
   getIndexes() {
     return this.getDirectives('index').map((d) => {

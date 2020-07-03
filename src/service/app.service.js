@@ -38,6 +38,7 @@ exports.globToRegex = (glob, options = {}) => PicoMatch.makeRe(glob, { maxLength
 exports.globToRegexp = (glob, options = {}) => PicoMatch.toRegex(exports.globToRegex(glob, options));
 exports.toGUID = (model, id) => Buffer.from(`${model},${`${id}`}`).toString('base64');
 exports.fromGUID = guid => Buffer.from(`${guid}`, 'base64').toString('ascii').split(',');
+exports.guidToId = (autograph, guid) => (autograph.legacyMode ? guid : exports.fromGUID(guid)[1]);
 exports.ensureArray = a => (Array.isArray(a) ? a : [a].filter(el => el !== undefined));
 exports.uvl = (...values) => values.reduce((prev, value) => (prev === undefined ? value : prev), undefined);
 exports.nvl = (...values) => values.reduce((prev, value) => (prev === null ? value : prev), null);
@@ -141,6 +142,18 @@ exports.unravelObject = (obj) => {
       return _.get(obj, tuple);
     }, undefined)));
   }, {});
+};
+
+exports.unrollGuid = (autograph, model, data) => {
+  if (autograph.legacyMode) return data;
+  model = autograph.resolver.toModel(model);
+  const fields = model.getDataRefFields().map(field => field.getName());
+
+  return exports.map(data, (doc) => {
+    return Object.entries(doc).reduce((prev, [key, value]) => {
+      return Object.assign(prev, { [key]: (fields.indexOf(key) > -1 ? exports.guidToId(value) : value) });
+    }, {});
+  });
 };
 
 exports.keyPaths = (obj = {}, keys = [], path) => {

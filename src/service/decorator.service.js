@@ -1,12 +1,17 @@
 const { get, set } = require('lodash');
 const GraphqlFields = require('graphql-fields');
-const { ucFirst, getDeep, objectContaining } = require('./app.service');
+const Boom = require('../core/Boom');
+const { spliceEmbeddedArray } = require('./data.service');
+const { guidToId, unrollGuid, ucFirst, getDeep, objectContaining } = require('./app.service');
 
 const resolveQuery = (method, resolver, model, embeds = []) => {
-  const head = embeds[0];
+  const [base] = embeds;
+  const curr = embeds[embeds.length - 1];
   const fieldPath = embeds.map(field => field.getName()).join('.');
 
-  return (root, args, context, info) => {
+  return async (root, args, context, info) => {
+    const { autograph } = context;
+
     if (fieldPath.length) {
       switch (method) {
         case 'get': {
@@ -15,7 +20,7 @@ const resolveQuery = (method, resolver, model, embeds = []) => {
           set(where, `${fieldPath}.id`, args.id);
           set(args, 'query.where', where);
 
-          return resolver.query(context, head.getModel(), args, info).then(([result]) => {
+          return resolver.query(context, base.getModel(), args, info).then(([result]) => {
             const arr = getDeep(result, fieldPath, []);
             return arr.find(el => `${el.id}` === `${args.id}`);
           });
@@ -26,8 +31,7 @@ const resolveQuery = (method, resolver, model, embeds = []) => {
           const $where = set({}, `${fieldPath}`, where);
           set(args, 'query.where', $where);
 
-          return resolver.query(context, head.getModel(), args, info).then((results) => {
-            console.log(results.length);
+          return resolver.query(context, base.getModel(), args, info).then((results) => {
             const arr = results.map(result => getDeep(result, fieldPath, [])).flat();
             return arr.filter(el => objectContaining(el, where));
           });
@@ -38,12 +42,67 @@ const resolveQuery = (method, resolver, model, embeds = []) => {
           const $where = set({}, `${fieldPath}`, where);
           set(args, 'query.where', $where);
 
-          return resolver.query(context, head.getModel(), args, info).then((results) => {
+          return resolver.query(context, base.getModel(), args, info).then((results) => {
             const arr = results.map(result => getDeep(result, fieldPath, [])).flat();
             return arr.length;
           });
         }
         case 'create': {
+          const modelName = model.getName();
+          const fieldName = ucFirst(curr.isArray() ? curr.getName().replace(/s$/, '') : curr.getName());
+          const parentModelName = modelName.substr(0, modelName.lastIndexOf(fieldName));
+          const field = model.getFields().find(f => f.getType() === parentModelName);
+          if (!field) throw Boom.badData(`Unable to locate parent field: '${model.getName()} -> ${parentModelName}'`);
+
+          const input = unrollGuid(autograph, model, args.input);
+          const id = get(input, field.getName());
+
+          if (curr.isArray()) {
+            return autograph.resolver.match(parentModelName).id(id).push(curr.getName(), args.input).then((doc) => {
+              return get(doc, fieldPath).pop();
+            });
+          }
+
+          return null;
+        }
+        case 'update': {
+          const modelName = model.getName();
+          const fieldName = ucFirst(curr.isArray() ? curr.getName().replace(/s$/, '') : curr.getName());
+          const parentModelName = modelName.substr(0, modelName.lastIndexOf(fieldName));
+          const field = model.getFields().find(f => f.getType() === parentModelName);
+          if (!field) throw Boom.badData(`Unable to locate parent field: '${model.getName()} -> ${parentModelName}'`);
+
+          const id = guidToId(autograph, args.id);
+          const where = { [`${fieldPath}.id`]: id };
+          const doc = await autograph.resolver.match(parentModelName).where(where).one();
+          if (!doc) throw Boom.notFound(`${parentModelName} Not Found`);
+
+          if (curr.isArray()) {
+            return autograph.resolver.match(parentModelName).id(doc.id).splice(curr.getName(), { id }, args.input).then((result) => {
+              return get(result, fieldPath).find(el => `${el.id}` === `${id}`);
+            });
+          }
+
+          return null;
+        }
+        case 'delete': {
+          const modelName = model.getName();
+          const fieldName = ucFirst(curr.isArray() ? curr.getName().replace(/s$/, '') : curr.getName());
+          const parentModelName = modelName.substr(0, modelName.lastIndexOf(fieldName));
+          const field = model.getFields().find(f => f.getType() === parentModelName);
+          if (!field) throw Boom.badData(`Unable to locate parent field: '${model.getName()} -> ${parentModelName}'`);
+
+          const id = guidToId(autograph, args.id);
+          const where = { [`${fieldPath}.id`]: id };
+          const doc = await autograph.resolver.match(parentModelName).where(where).one();
+          if (!doc) throw Boom.notFound(`${parentModelName} Not Found`);
+
+          if (curr.isArray()) {
+            return autograph.resolver.match(parentModelName).id(doc.id).pull(curr.getName(), { id }).then((result) => {
+              return get(result, fieldPath).find(el => `${el.id}` === `${id}`);
+            });
+          }
+
           return null;
         }
         default: {
@@ -235,6 +294,7 @@ exports.makeQueryResolver = (name, model, resolver, embeds = []) => {
     obj[`count${name}`] = resolveQuery('count', resolver, model, embeds);
   }
 
+  return obj;
   return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'query', embeds));
 };
 
@@ -245,5 +305,6 @@ exports.makeMutationResolver = (name, model, resolver, embeds = []) => {
   if (model.hasGQLScope('u')) obj[`update${name}`] = resolveQuery('update', resolver, model, embeds);
   if (model.hasGQLScope('d')) obj[`delete${name}`] = resolveQuery('delete', resolver, model, embeds);
 
+  return obj;
   return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'mutation', embeds));
 };
