@@ -34,6 +34,7 @@ module.exports = (schema) => {
 
       directive @field(
         key: String # Specify it's key during transit
+        ref: AutoGraphMixed # Specify the modelRef field's name (overrides isEmbedded)
         gqlScope: AutoGraphMixed # Dictate how GraphQL API behaves
         dalScope: AutoGraphMixed # Dictate how the DAL behaves
         persist: Boolean # Persist this field (default true)

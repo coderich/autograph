@@ -191,7 +191,7 @@ module.exports = class Node {
       case 'model': return Boolean(this.getDirectiveArg('model', 'embed')); // Must be marked; otherwise no way to contain the API traversal
       case 'field': {
         const model = this.getModelRef();
-        return Boolean(model && !model.isEntity());
+        return Boolean(!this.isReference() && model && !model.isEntity());
       }
       default: return false;
     }

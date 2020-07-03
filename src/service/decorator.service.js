@@ -123,7 +123,7 @@ const resolveQuery = (method, resolver, model, embeds = []) => {
   };
 };
 
-const makeEmbeddedAPI = (model, method) => {
+const makeEmbeddedAPI = (model, method, parent) => {
   let gql = '';
   const modelName = model.getName();
   const fields = model.getEmbeddedFields().filter(field => field.getModelRef().isMarkedModel());
@@ -136,19 +136,19 @@ const makeEmbeddedAPI = (model, method) => {
 
       switch (method) {
         case 'create': {
-          gql += exports.makeCreateAPI(name, modelRef);
+          gql += exports.makeCreateAPI(name, modelRef, field);
           break;
         }
         case 'read': {
-          gql += exports.makeReadAPI(name, modelRef);
+          gql += exports.makeReadAPI(name, modelRef, field);
           break;
         }
         case 'update': {
-          gql += exports.makeUpdateAPI(name, modelRef);
+          gql += exports.makeUpdateAPI(name, modelRef, field);
           break;
         }
         case 'delete': {
-          gql += exports.makeDeleteAPI(name, modelRef);
+          gql += exports.makeDeleteAPI(name, modelRef, field);
           break;
         }
         default: {
@@ -164,6 +164,7 @@ const makeEmbeddedAPI = (model, method) => {
 const makeEmbeddedResolver = (model, resolver, type, embeds = []) => {
   const obj = {};
 
+  const parent = embeds[embeds.length - 1];
   const modelName = model.getName();
   const fields = model.getEmbeddedFields().filter(field => field.getModelRef().isMarkedModel());
 
@@ -219,7 +220,7 @@ exports.makeInputSplice = (model, embed = false) => {
 };
 
 // APIs
-exports.makeCreateAPI = (name, model) => {
+exports.makeCreateAPI = (name, model, parent) => {
   let gql = '';
 
   if (model.hasGQLScope('c')) {
@@ -228,12 +229,12 @@ exports.makeCreateAPI = (name, model) => {
     `;
   }
 
-  gql += makeEmbeddedAPI(model, 'create');
+  gql += makeEmbeddedAPI(model, 'create', parent);
 
   return gql;
 };
 
-exports.makeReadAPI = (name, model) => {
+exports.makeReadAPI = (name, model, parent) => {
   let gql = '';
 
   if (model.hasGQLScope('r')) {
@@ -244,12 +245,12 @@ exports.makeReadAPI = (name, model) => {
     `;
   }
 
-  gql += makeEmbeddedAPI(model, 'read');
+  gql += makeEmbeddedAPI(model, 'read', parent);
 
   return gql;
 };
 
-exports.makeUpdateAPI = (name, model) => {
+exports.makeUpdateAPI = (name, model, parent) => {
   let gql = '';
 
   if (model.hasGQLScope('u')) {
@@ -265,12 +266,12 @@ exports.makeUpdateAPI = (name, model) => {
     `;
   }
 
-  gql += makeEmbeddedAPI(model, 'update');
+  gql += makeEmbeddedAPI(model, 'update', parent);
 
   return gql;
 };
 
-exports.makeDeleteAPI = (name, model) => {
+exports.makeDeleteAPI = (name, model, parent) => {
   let gql = '';
 
   if (model.hasGQLScope('d')) {
@@ -279,7 +280,7 @@ exports.makeDeleteAPI = (name, model) => {
     `;
   }
 
-  gql += makeEmbeddedAPI(model, 'delete');
+  gql += makeEmbeddedAPI(model, 'delete', parent);
 
   return gql;
 };
@@ -294,7 +295,6 @@ exports.makeQueryResolver = (name, model, resolver, embeds = []) => {
     obj[`count${name}`] = resolveQuery('count', resolver, model, embeds);
   }
 
-  return obj;
   return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'query', embeds));
 };
 
@@ -305,6 +305,5 @@ exports.makeMutationResolver = (name, model, resolver, embeds = []) => {
   if (model.hasGQLScope('u')) obj[`update${name}`] = resolveQuery('update', resolver, model, embeds);
   if (model.hasGQLScope('d')) obj[`delete${name}`] = resolveQuery('delete', resolver, model, embeds);
 
-  return obj;
   return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'mutation', embeds));
 };

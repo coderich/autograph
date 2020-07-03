@@ -69,6 +69,13 @@ module.exports = class Field extends Node {
     return this.schema.getModel(this.getType());
   }
 
+  getFieldRef() {
+    const ref = this.getDirectiveArg('field', 'ref');
+    const modelRef = this.getModelRef();
+    if (!ref || !modelRef) return null;
+    return modelRef.getField(ref);
+  }
+
   getVirtualField() {
     const model = this.getModelRef();
     return model ? model.getField(this.getVirtualRef()) : null;
@@ -90,6 +97,10 @@ module.exports = class Field extends Node {
 
   isRequired() {
     return this.type.isRequired() && this.getName() !== 'id';
+  }
+
+  isReference() {
+    return Boolean(this.getDirectiveArg('field', 'ref'));
   }
 
   // GQL Schema Methods
