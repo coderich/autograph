@@ -101,6 +101,22 @@ exports.castCmp = (type, value) => {
   }
 };
 
+exports.objectContaining = (a, b) => {
+  if (a === b) return true;
+
+  if (exports.isPlainObject(b)) {
+    return exports.keyPathLeafs(b).every((leaf) => {
+      const $a = _.get(a, leaf, { a: 'a' });
+      const $b = _.get(b, leaf, { b: 'b' });
+      if (Array.isArray($b)) return $b.some(bb => exports.ensureArray($a).some(aa => exports.objectContaining(aa, bb)));
+      if (exports.isScalarValue($a) && exports.isScalarValue($b)) return PicoMatch.isMatch(`${$a}`, `${$b}`, { nocase: true });
+      return exports.hashObject($a) === exports.hashObject($b);
+    });
+  }
+
+  return exports.hashObject(a) === exports.hashObject(b);
+};
+
 exports.serialize = (field, value) => {
   if (!exports.isPlainObject(value)) return value;
   const model = field.getModelRef();

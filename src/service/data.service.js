@@ -3,7 +3,7 @@ const Boom = require('../core/Boom');
 const DataResolver = require('../data/DataResolver');
 const RuleService = require('./rule.service');
 const { createSystemEvent } = require('./event.service');
-const { map, globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep, keyPathLeafs, ensureArray, hashObject, mergeDeep, mergeDeepAll } = require('./app.service');
+const { map, globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep, ensureArray, hashObject, mergeDeep, objectContaining } = require('./app.service');
 
 exports.validateModelData = (model, data, oldData, op) => {
   const required = (op === 'create' ? (f, v) => v == null : (f, v) => Object.prototype.hasOwnProperty.call(data, f.getName()) && v == null);
@@ -32,19 +32,6 @@ exports.makeDataResolver = (doc, model, resolver, query) => {
   });
 };
 
-exports.objectContaining = (a, b) => {
-  if (isPlainObject(a)) {
-    return keyPathLeafs(a).every((leaf) => {
-      const $a = _.get(a, leaf, { a: 'a' });
-      const $b = _.get(b, leaf, { b: 'b' });
-      if (Array.isArray($a)) return $a.some(aa => ensureArray($b).some(bb => exports.objectContaining(aa, bb)));
-      return hashObject($a) === hashObject($b);
-    });
-  }
-
-  return hashObject(a) === hashObject(b);
-};
-
 exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
   const model = query.getModel();
   const field = model.getField(key);
@@ -62,7 +49,7 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
 
     const edits = arr.map((el) => {
       return $from.reduce((prev, val, i) => {
-        if (exports.objectContaining(val, el)) return isPlainObject(prev) ? mergeDeep(prev, $to[i]) : $to[i];
+        if (objectContaining(el, val)) return isPlainObject(prev) ? mergeDeep(prev, $to[i]) : $to[i];
         return prev;
       }, el);
     });
@@ -90,7 +77,7 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
   // Pull
   if (from) {
     const data = { [key]: _.get(doc, key, []) };
-    _.remove(data[key], el => $from.find(val => exports.objectContaining(val, el)));
+    _.remove(data[key], el => $from.find(val => objectContaining(el, val)));
     return data;
   }
 

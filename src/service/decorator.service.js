@@ -1,28 +1,65 @@
-const { set } = require('lodash');
+const { get, set } = require('lodash');
 const GraphqlFields = require('graphql-fields');
-const { ucFirst, getDeep } = require('./app.service');
+const { ucFirst, getDeep, objectContaining } = require('./app.service');
 
-const resolveEmbeddedQuery = (method, resolver, model, embeds = []) => {
+const resolveQuery = (method, resolver, model, embeds = []) => {
   const head = embeds[0];
   const fieldPath = embeds.map(field => field.getName()).join('.');
 
   return (root, args, context, info) => {
-    switch (method) {
-      case 'get': {
-        if (fieldPath.length) {
-          set(args, `query.where.${fieldPath}.id`, args.id);
+    if (fieldPath.length) {
+      switch (method) {
+        case 'get': {
+          // Readjust the where clause
+          const where = get(args, 'query.where', {});
+          set(where, `${fieldPath}.id`, args.id);
+          set(args, 'query.where', where);
 
           return resolver.query(context, head.getModel(), args, info).then(([result]) => {
-            const data = getDeep(result, fieldPath, []);
-            return data.find(el => `${el.id}` === `${args.id}`);
+            const arr = getDeep(result, fieldPath, []);
+            return arr.find(el => `${el.id}` === `${args.id}`);
           });
         }
+        case 'find': {
+          // Readjust the where clause
+          const where = get(args, 'query.where', {});
+          const $where = set({}, `${fieldPath}`, where);
+          set(args, 'query.where', $where);
 
-        return resolver.get(context, model, args, true, info);
+          return resolver.query(context, head.getModel(), args, info).then((results) => {
+            console.log(results.length);
+            const arr = results.map(result => getDeep(result, fieldPath, [])).flat();
+            return arr.filter(el => objectContaining(el, where));
+          });
+        }
+        case 'count': {
+          // Readjust the where clause
+          const where = get(args, 'where', {});
+          const $where = set({}, `${fieldPath}`, where);
+          set(args, 'query.where', $where);
+
+          return resolver.query(context, head.getModel(), args, info).then((results) => {
+            const arr = results.map(result => getDeep(result, fieldPath, [])).flat();
+            return arr.length;
+          });
+        }
+        case 'create': {
+          return null;
+        }
+        default: {
+          return null;
+        }
       }
-      default: {
-        return null;
-      }
+    }
+
+    switch (method) {
+      case 'get': return resolver.get(context, model, args, true, info);
+      case 'find': return resolver.query(context, model, args, info);
+      case 'count': return resolver.count(context, model, args, info);
+      case 'create': return resolver.create(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+      case 'update': return resolver.update(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+      case 'delete': return resolver.delete(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+      default: return null;
     }
   };
 };
@@ -193,10 +230,9 @@ exports.makeQueryResolver = (name, model, resolver, embeds = []) => {
   const obj = {};
 
   if (model.hasGQLScope('r')) {
-    obj[`get${name}`] = resolveEmbeddedQuery('get', resolver, model, embeds);
-    // obj[`get${name}`] = (root, args, context, info) => resolver.get(context, model, args, true, info);
-    obj[`find${name}`] = (root, args, context, info) => resolver.query(context, model, args, info);
-    obj[`count${name}`] = (root, args, context, info) => resolver.count(context, model, args, info);
+    obj[`get${name}`] = resolveQuery('get', resolver, model, embeds);
+    obj[`find${name}`] = resolveQuery('find', resolver, model, embeds);
+    obj[`count${name}`] = resolveQuery('count', resolver, model, embeds);
   }
 
   return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'query', embeds));
@@ -205,9 +241,9 @@ exports.makeQueryResolver = (name, model, resolver, embeds = []) => {
 exports.makeMutationResolver = (name, model, resolver, embeds = []) => {
   const obj = {};
 
-  if (model.hasGQLScope('c')) obj[`create${name}`] = (root, args, context, info) => resolver.create(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
-  if (model.hasGQLScope('u')) obj[`update${name}`] = (root, args, context, info) => resolver.update(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
-  if (model.hasGQLScope('d')) obj[`delete${name}`] = (root, args, context, info) => resolver.delete(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+  if (model.hasGQLScope('c')) obj[`create${name}`] = resolveQuery('create', resolver, model, embeds);
+  if (model.hasGQLScope('u')) obj[`update${name}`] = resolveQuery('update', resolver, model, embeds);
+  if (model.hasGQLScope('d')) obj[`delete${name}`] = resolveQuery('delete', resolver, model, embeds);
 
   return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'mutation', embeds));
 };
