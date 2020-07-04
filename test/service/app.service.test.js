@@ -64,6 +64,7 @@ describe('AppService', () => {
     expect(getDeep(doc2, 'workplace.obj1')).toBe(obj1);
     expect(getDeep(doc2, 'workplace.obj1.name')).toBe('name1');
     expect(getDeep(doc2, 'family.name')).toEqual(['name1', 'name2', 'name3']);
+    expect(getDeep(doc2, 'family.friends')).toEqual(['a', 'b', 'c', 'd', 'e', 'f', 'a', 'e', 'b']);
   });
 
   test('hashObject', () => {

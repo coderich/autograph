@@ -4,7 +4,7 @@ const Boom = require('../core/Boom');
 const Query = require('../query/Query');
 const { createSystemEvent } = require('./event.service');
 const { validateModelData } = require('./data.service');
-const { guidToId, unrollGuid, ucFirst, getDeep, objectContaining } = require('./app.service');
+const { guidToId, unrollGuid, ucFirst, getDeep, ensureArray, objectContaining } = require('./app.service');
 
 const findParentField = (name, embed, model) => {
   const schema = model.getSchema();
@@ -33,7 +33,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           set(args, 'query.where', where);
 
           return resolver.query(context, base.getModel(), args, info).then(([result]) => {
-            const arr = getDeep(result, fieldPath, []);
+            const arr = ensureArray(getDeep(result, fieldPath, []));
             return arr.find(el => `${el.id}` === `${args.id}`);
           });
         }
@@ -44,7 +44,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           set(args, 'query.where', $where);
 
           return resolver.query(context, base.getModel(), args, info).then((results) => {
-            const arr = results.map(result => getDeep(result, fieldPath, [])).flat();
+            const arr = results.map(result => ensureArray(getDeep(result, fieldPath, []))).flat();
             return arr.filter(el => objectContaining(el, where));
           });
         }
@@ -55,7 +55,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           set(args, 'query.where', $where);
 
           return resolver.query(context, base.getModel(), args, info).then((results) => {
-            const arr = results.map(result => getDeep(result, fieldPath, [])).flat();
+            const arr = results.map(result => ensureArray(getDeep(result, fieldPath, []))).flat();
             return arr.length;
           });
         }

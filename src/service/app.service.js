@@ -54,22 +54,15 @@ exports.renameObjectKey = (obj, oldKey, newKey) => {
   }
 };
 
-// exports.getDeep = (obj, path, defaultValue) => {
-//   const [prop, ...rest] = path.split('.');
-//   const value = exports.map(obj, o => _.get(o, prop));
-//   return exports.map(value, val => (rest.length ? exports.getDeep(val, rest.join('.'), defaultValue) : (val === undefined ? defaultValue : val)));
-//   // if (Array.isArray(value) && value.length) return value.map(v => (rest.length ? exports.getDeep(v, rest.join('.'), defaultValue) : v));
-//   // if (rest.length) return results.concat(exports.getDeep(value, rest.join('.'), defaultValue));
-//   // return results.concat(value === undefined ? defaultValue : value);
-// };
-
 exports.getDeep = (obj, path, defaultValue) => {
-  const results = [];
+  const normalize = data => (Array.isArray(data) ? _.flatten(data) : data);
   const [prop, ...rest] = path.split('.');
-  const value = exports.map(obj, o => _.get(o, prop));
-  if (Array.isArray(value) && value.length) return results.concat(_.flatten(value.map(v => (rest.length ? exports.getDeep(v, rest.join('.'), defaultValue) : v))));
-  if (rest.length) return results.concat(exports.getDeep(value, rest.join('.'), defaultValue));
-  return results.concat(value === undefined ? defaultValue : value);
+
+  return exports.map(obj, (o) => {
+    const value = o[prop];
+    if (rest.length) return normalize(exports.map(value, v => exports.getDeep(v, rest.join('.'), defaultValue)));
+    return value === undefined ? defaultValue : value;
+  });
 };
 
 exports.map = (mixed, fn) => {

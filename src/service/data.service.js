@@ -274,7 +274,7 @@ exports.sortData = (data, sortBy) => {
 
     prev.iteratees.push((doc) => {
       const defaultValue = path.indexOf('count') > -1 ? 0 : null;
-      const vals = getDeep(doc, path, defaultValue).sort();
+      const vals = ensureArray(getDeep(doc, path, defaultValue)).sort();
       const tuple = [vals[0], vals[vals.length - 1]];
       return order === 'asc' ? tuple[0] : tuple[1];
     });
@@ -297,7 +297,7 @@ exports.sortData = (data, sortBy) => {
 exports.filterDataByCounts = (resolver, model, data, countPaths) => {
   const pathValue = (doc, path) => {
     const realPath = path.split('.').map(s => (s.indexOf('count') === 0 ? s : `$${s}`)).join('.');
-    const realVals = getDeep(doc, realPath);
+    const realVals = ensureArray(getDeep(doc, realPath));
     return realVals;
   };
 
