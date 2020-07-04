@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const { keyPaths, unravelObject, isPlainObject, isScalarValue, mergeDeep, proxyDeep, uniq, hashObject } = require('../../src/service/app.service');
+const { keyPaths, unravelObject, isPlainObject, isScalarValue, mergeDeep, proxyDeep, getDeep, uniq, hashObject } = require('../../src/service/app.service');
 
 const obj1 = { name: 'name1', friends: ['a', 'b', 'c'] };
 const obj2 = { name: 'name2', friends: ['d', 'e', 'f'] };
@@ -58,6 +58,12 @@ describe('AppService', () => {
     expect(obj1).toEqual({ name: 'name1', friends: ['a', 'b', 'c'] });
     expect(obj2).toEqual({ name: 'name2', friends: ['d', 'e', 'f'] });
     expect(obj3).toEqual({ name: 'name3', friends: ['a', 'e', 'b'] });
+  });
+
+  test('getDeep', () => {
+    expect(getDeep(doc2, 'workplace.obj1')).toBe(obj1);
+    expect(getDeep(doc2, 'workplace.obj1.name')).toBe('name1');
+    expect(getDeep(doc2, 'family.name')).toEqual(['name1', 'name2', 'name3']);
   });
 
   test('hashObject', () => {

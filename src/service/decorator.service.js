@@ -1,10 +1,22 @@
 const { get, set } = require('lodash');
 const GraphqlFields = require('graphql-fields');
 const Boom = require('../core/Boom');
-const { spliceEmbeddedArray } = require('./data.service');
+const Query = require('../query/Query');
+const { createSystemEvent } = require('./event.service');
+const { validateModelData } = require('./data.service');
 const { guidToId, unrollGuid, ucFirst, getDeep, objectContaining } = require('./app.service');
 
-const resolveQuery = (method, resolver, model, embeds = []) => {
+const findParentField = (name, embed, model) => {
+  const schema = model.getSchema();
+  const fieldName = ucFirst(embed.isArray() ? embed.getName().replace(/s$/, '') : embed.getName());
+  const parentModelName = name.substr(0, name.lastIndexOf(fieldName));
+  const parentModel = schema.getModel(parentModelName);
+  const field = model.getFields().find(f => f.getType() === parentModelName) || parentModel.getFields().find(f => f.getType() === model.getName());
+  if (!field) throw Boom.badData(`Unable to locate parent field: '${model.getName()} -> ${parentModelName}'`);
+  return field;
+};
+
+const resolveQuery = (method, name, resolver, model, embeds = []) => {
   const [base] = embeds;
   const curr = embeds[embeds.length - 1];
   const fieldPath = embeds.map(field => field.getName()).join('.');
@@ -48,22 +60,75 @@ const resolveQuery = (method, resolver, model, embeds = []) => {
           });
         }
         case 'create': {
-          const modelName = model.getName();
-          const fieldName = ucFirst(curr.isArray() ? curr.getName().replace(/s$/, '') : curr.getName());
-          const parentModelName = modelName.substr(0, modelName.lastIndexOf(fieldName));
-          const field = model.getFields().find(f => f.getType() === parentModelName);
-          if (!field) throw Boom.badData(`Unable to locate parent field: '${model.getName()} -> ${parentModelName}'`);
-
+          const field = findParentField(name, curr, model);
+          const path = fieldPath.split('.').slice(0, -1).concat('id').join('.');
           const input = unrollGuid(autograph, model, args.input);
-          const id = get(input, field.getName());
+          const id = guidToId(autograph, get(input, field.getName()));
 
-          if (curr.isArray()) {
-            return autograph.resolver.match(parentModelName).id(id).push(curr.getName(), args.input).then((doc) => {
-              return get(doc, fieldPath).pop();
+          // Get overall document
+          const where = { [path]: id };
+          const query = new Query(resolver, model, { where });
+          const doc = await autograph.resolver.match(base.getModel()).where(where).one();
+          if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
+
+          // Get container within document
+          let parent = doc;
+
+          const container = embeds.reduce((prev, embed, i) => {
+            // If further nested; must find the correct container
+            if (i > 0) {
+              const subField = findParentField(name, embed, model);
+              prev = prev.find(el => `${el.id}` === `${args.input[subField]}`);
+            }
+
+            parent = prev;
+            return getDeep(prev, embed.getName());
+          }, doc);
+
+          return model.appendDefaultValues(input).then(($input) => {
+            return createSystemEvent('Mutation', { method: 'create', model, resolver, query, input: $input, parent }, async () => {
+              $input = await model.appendCreateFields($input, true);
+              container.push($input);
+              const $update = { [base.getName()]: get(doc, base.getName()) };
+              console.log(JSON.stringify($update));
+              return autograph.resolver.match(base.getModel()).id(id).save($update).then(() => $input);
+              // await validateModelData(model, $input, container, 'create');
+              // await validateModelData(base.getModel(), $update, doc, 'update');
+              // container.push($input);
+              // console.log('update', base.getModel().getName(), base.getName(), id);
+              // return base.getModel().update(id, { [base.getName()]: container }, doc, {}).hydrate(resolver, query).then(() => $input);
             });
-          }
+          });
 
-          return null;
+          // console.log(JSON.stringify(container));
+
+          // return promiseChain(embeds.reverse().map((embed, i) => (chain) => {
+          //   const data = chain.slice(-1) || doc;
+          //   const query = new Query(resolver, embed.getModel());
+
+          //   console.log(JSON.stringify(data));
+
+          //   return spliceEmbeddedArray(query, data, embed.getName(), null, args.input).then((result) => {
+          //     return getDeep(result, fieldPath).pop();
+          //   });
+          // })).then((results) => {
+          //   return results.pop();
+          // });
+
+          // const query = new Query(resolver, base.getModel(), { where });
+          // return spliceEmbeddedArray(query, doc, fieldPath, null, args.input).then((result) => {
+          //   return getDeep(result, fieldPath).pop();
+          // });
+
+          // // console.log(JSON.stringify(data));
+
+          // if (curr.isArray()) {
+          //   return autograph.resolver.match(base.getModel()).id(doc.id).push(fieldPath, args.input).then((result) => {
+          //     return get(result, fieldPath).pop();
+          //   });
+          // }
+
+          // return null;
         }
         case 'update': {
           const modelName = model.getName();
@@ -74,11 +139,11 @@ const resolveQuery = (method, resolver, model, embeds = []) => {
 
           const id = guidToId(autograph, args.id);
           const where = { [`${fieldPath}.id`]: id };
-          const doc = await autograph.resolver.match(parentModelName).where(where).one();
+          const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${parentModelName} Not Found`);
 
           if (curr.isArray()) {
-            return autograph.resolver.match(parentModelName).id(doc.id).splice(curr.getName(), { id }, args.input).then((result) => {
+            return autograph.resolver.match(base.getModel()).id(doc.id).splice(curr.getName(), { id }, args.input).then((result) => {
               return get(result, fieldPath).find(el => `${el.id}` === `${id}`);
             });
           }
@@ -94,11 +159,11 @@ const resolveQuery = (method, resolver, model, embeds = []) => {
 
           const id = guidToId(autograph, args.id);
           const where = { [`${fieldPath}.id`]: id };
-          const doc = await autograph.resolver.match(parentModelName).where(where).one();
-          if (!doc) throw Boom.notFound(`${parentModelName} Not Found`);
+          const doc = await autograph.resolver.match(base.getModel()).where(where).one();
+          if (!doc) throw Boom.notFound(`${base.getModel()} Not Found`);
 
           if (curr.isArray()) {
-            return autograph.resolver.match(parentModelName).id(doc.id).pull(curr.getName(), { id }).then((result) => {
+            return autograph.resolver.match(base.getModel()).id(doc.id).pull(curr.getName(), { id }).then((result) => {
               return get(result, fieldPath).find(el => `${el.id}` === `${id}`);
             });
           }
@@ -290,9 +355,9 @@ exports.makeQueryResolver = (name, model, resolver, embeds = []) => {
   const obj = {};
 
   if (model.hasGQLScope('r')) {
-    obj[`get${name}`] = resolveQuery('get', resolver, model, embeds);
-    obj[`find${name}`] = resolveQuery('find', resolver, model, embeds);
-    obj[`count${name}`] = resolveQuery('count', resolver, model, embeds);
+    obj[`get${name}`] = resolveQuery('get', name, resolver, model, embeds);
+    obj[`find${name}`] = resolveQuery('find', name, resolver, model, embeds);
+    obj[`count${name}`] = resolveQuery('count', name, resolver, model, embeds);
   }
 
   return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'query', embeds));
@@ -301,9 +366,9 @@ exports.makeQueryResolver = (name, model, resolver, embeds = []) => {
 exports.makeMutationResolver = (name, model, resolver, embeds = []) => {
   const obj = {};
 
-  if (model.hasGQLScope('c')) obj[`create${name}`] = resolveQuery('create', resolver, model, embeds);
-  if (model.hasGQLScope('u')) obj[`update${name}`] = resolveQuery('update', resolver, model, embeds);
-  if (model.hasGQLScope('d')) obj[`delete${name}`] = resolveQuery('delete', resolver, model, embeds);
+  if (model.hasGQLScope('c')) obj[`create${name}`] = resolveQuery('create', name, resolver, model, embeds);
+  if (model.hasGQLScope('u')) obj[`update${name}`] = resolveQuery('update', name, resolver, model, embeds);
+  if (model.hasGQLScope('d')) obj[`delete${name}`] = resolveQuery('delete', name, resolver, model, embeds);
 
   return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'mutation', embeds));
 };
