@@ -86,49 +86,15 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           }, doc);
 
           return model.appendDefaultValues(input).then(($input) => {
-            return createSystemEvent('Mutation', { method: 'create', model, resolver, query, input: $input, parent }, async () => {
+            return createSystemEvent('Mutation', { method: 'create', model, resolver: autograph.resolver, query, input: $input, parent, root: doc }, async () => {
               $input = await model.appendCreateFields($input, true);
-              container.push($input);
-              const $update = { [base.getName()]: get(doc, base.getName()) };
-              console.log(JSON.stringify($update));
-              return autograph.resolver.match(base.getModel()).id(id).save($update).then(() => $input);
               // await validateModelData(model, $input, container, 'create');
+              const $update = { [base.getName()]: get(doc, base.getName()) };
               // await validateModelData(base.getModel(), $update, doc, 'update');
-              // container.push($input);
-              // console.log('update', base.getModel().getName(), base.getName(), id);
-              // return base.getModel().update(id, { [base.getName()]: container }, doc, {}).hydrate(resolver, query).then(() => $input);
+              container.push($input);
+              return base.getModel().update(doc.id, $update, doc, {}).hydrate(autograph.resolver, query).then(() => $input);
             });
           });
-
-          // console.log(JSON.stringify(container));
-
-          // return promiseChain(embeds.reverse().map((embed, i) => (chain) => {
-          //   const data = chain.slice(-1) || doc;
-          //   const query = new Query(resolver, embed.getModel());
-
-          //   console.log(JSON.stringify(data));
-
-          //   return spliceEmbeddedArray(query, data, embed.getName(), null, args.input).then((result) => {
-          //     return getDeep(result, fieldPath).pop();
-          //   });
-          // })).then((results) => {
-          //   return results.pop();
-          // });
-
-          // const query = new Query(resolver, base.getModel(), { where });
-          // return spliceEmbeddedArray(query, doc, fieldPath, null, args.input).then((result) => {
-          //   return getDeep(result, fieldPath).pop();
-          // });
-
-          // // console.log(JSON.stringify(data));
-
-          // if (curr.isArray()) {
-          //   return autograph.resolver.match(base.getModel()).id(doc.id).push(fieldPath, args.input).then((result) => {
-          //     return get(result, fieldPath).pop();
-          //   });
-          // }
-
-          // return null;
         }
         case 'update': {
           const modelName = model.getName();
@@ -201,19 +167,19 @@ const makeEmbeddedAPI = (model, method, parent) => {
 
       switch (method) {
         case 'create': {
-          gql += exports.makeCreateAPI(name, modelRef, field);
+          if (field.hasFieldScope('c')) gql += exports.makeCreateAPI(name, modelRef, field);
           break;
         }
         case 'read': {
-          gql += exports.makeReadAPI(name, modelRef, field);
+          if (field.hasFieldScope('r')) gql += exports.makeReadAPI(name, modelRef, field);
           break;
         }
         case 'update': {
-          gql += exports.makeUpdateAPI(name, modelRef, field);
+          if (field.hasFieldScope('u')) gql += exports.makeUpdateAPI(name, modelRef, field);
           break;
         }
         case 'delete': {
-          gql += exports.makeDeleteAPI(name, modelRef, field);
+          if (field.hasFieldScope('d')) gql += exports.makeDeleteAPI(name, modelRef, field);
           break;
         }
         default: {
@@ -229,7 +195,6 @@ const makeEmbeddedAPI = (model, method, parent) => {
 const makeEmbeddedResolver = (model, resolver, type, embeds = []) => {
   const obj = {};
 
-  const parent = embeds[embeds.length - 1];
   const modelName = model.getName();
   const fields = model.getEmbeddedFields().filter(field => field.getModelRef().isMarkedModel());
 
@@ -353,8 +318,9 @@ exports.makeDeleteAPI = (name, model, parent) => {
 // Resolvers
 exports.makeQueryResolver = (name, model, resolver, embeds = []) => {
   const obj = {};
+  const [field] = embeds.slice(-1);
 
-  if (model.hasGQLScope('r')) {
+  if ((!field || field.hasFieldScope('r')) && model.hasGQLScope('r')) {
     obj[`get${name}`] = resolveQuery('get', name, resolver, model, embeds);
     obj[`find${name}`] = resolveQuery('find', name, resolver, model, embeds);
     obj[`count${name}`] = resolveQuery('count', name, resolver, model, embeds);
@@ -365,10 +331,11 @@ exports.makeQueryResolver = (name, model, resolver, embeds = []) => {
 
 exports.makeMutationResolver = (name, model, resolver, embeds = []) => {
   const obj = {};
+  const [field] = embeds.slice(-1);
 
-  if (model.hasGQLScope('c')) obj[`create${name}`] = resolveQuery('create', name, resolver, model, embeds);
-  if (model.hasGQLScope('u')) obj[`update${name}`] = resolveQuery('update', name, resolver, model, embeds);
-  if (model.hasGQLScope('d')) obj[`delete${name}`] = resolveQuery('delete', name, resolver, model, embeds);
+  if ((!field || field.hasFieldScope('c')) && model.hasGQLScope('c')) obj[`create${name}`] = resolveQuery('create', name, resolver, model, embeds);
+  if ((!field || field.hasFieldScope('u')) && model.hasGQLScope('u')) obj[`update${name}`] = resolveQuery('update', name, resolver, model, embeds);
+  if ((!field || field.hasFieldScope('d')) && model.hasGQLScope('d')) obj[`delete${name}`] = resolveQuery('delete', name, resolver, model, embeds);
 
   return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'mutation', embeds));
 };

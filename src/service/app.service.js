@@ -55,8 +55,8 @@ exports.renameObjectKey = (obj, oldKey, newKey) => {
 };
 
 exports.getDeep = (obj, path, defaultValue) => {
-  const normalize = data => (Array.isArray(data) ? _.flatten(data) : data);
   const [prop, ...rest] = path.split('.');
+  const normalize = data => (Array.isArray(data) ? _.flatten(data) : data);
 
   return exports.map(obj, (o) => {
     const value = o[prop];

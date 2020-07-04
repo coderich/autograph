@@ -227,7 +227,6 @@ module.exports = class Node {
 
   hasDALScope(...els) {
     return els.some(el => Boolean(this.getDALScope().toLowerCase().indexOf(el.toLowerCase()) > -1));
-    // return Boolean(this.getDALScope().toLowerCase().indexOf(el.toLowerCase()) > -1);
   }
 
   /**
@@ -262,16 +261,18 @@ module.exports = class Node {
     }
 
     return els.some(el => Boolean(this.getGQLScope().toLowerCase().indexOf(el.toLowerCase()) > -1));
-    // return Boolean(this.getGQLScope().toLowerCase().indexOf(el.toLowerCase()) > -1);
   }
 
   getFieldScope() {
-    return nvl(uvl(this.getDirectiveArg('model', 'fieldScope'), 'crud'), '');
+    switch (this.nodeType) {
+      case 'model': return nvl(uvl(this.getDirectiveArg('model', 'fieldScope'), 'crud'), '');
+      case 'field': return nvl(uvl(this.getDirectiveArg('field', 'fieldScope'), 'crud'), '');
+      default: return '';
+    }
   }
 
   hasFieldScope(...els) {
     return els.some(el => Boolean(this.getFieldScope().toLowerCase().indexOf(el.toLowerCase()) > -1));
-    // return Boolean(this.getFieldScope().toLowerCase().indexOf(el.toLowerCase()) > -1);
   }
 
   // Create

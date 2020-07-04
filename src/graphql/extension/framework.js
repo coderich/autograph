@@ -37,6 +37,7 @@ module.exports = (schema) => {
         ref: AutoGraphMixed # Specify the modelRef field's name (overrides isEmbedded)
         gqlScope: AutoGraphMixed # Dictate how GraphQL API behaves
         dalScope: AutoGraphMixed # Dictate how the DAL behaves
+        fieldScope: AutoGraphMixed # Dictate how a FIELD may use me
         persist: Boolean # Persist this field (default true)
         default: AutoGraphMixed # Define a default value
 
