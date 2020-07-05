@@ -87,11 +87,12 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           const field = findParentField(name, curr, model);
           const path = fieldPath.split('.').slice(0, -1).concat('id').join('.');
           const input = unrollGuid(autograph, model, args.input);
+          const meta = args.meta || {};
           const id = guidToId(autograph, get(input, field.getName()));
 
           // Get overall document
           const where = { [path]: id };
-          const query = new Query(resolver, model, { where });
+          const query = new Query(resolver, model, { where, meta });
           const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
 
@@ -103,7 +104,10 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
               $input = await model.appendCreateFields($input, true);
               container.push($input);
               const $update = { [base.getName()]: get(doc, base.getName()) };
-              return base.getModel().update(doc.id, $update, doc, {}).hydrate(autograph.resolver, query).then(() => $input);
+              return base.getModel().update(doc.id, $update, doc, {}).hydrate(autograph.resolver, query).then(($doc) => {
+                return $input;
+                // return getDeep($doc, fieldPath).find(el => `${el.id}` === `${$input._id}`);
+              });
             });
           });
         }
@@ -111,7 +115,8 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           // Get overall document
           const id = guidToId(autograph, args.id);
           const where = { [`${fieldPath}.id`]: id };
-          const query = new Query(resolver, model, { where });
+          const meta = args.meta || {};
+          const query = new Query(resolver, model, { where, meta });
           const input = unrollGuid(autograph, model, args.input || {});
           const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
@@ -130,7 +135,8 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
         case 'delete': {
           const id = guidToId(autograph, args.id);
           const where = { [`${fieldPath}.id`]: id };
-          const query = new Query(resolver, model, { where });
+          const meta = args.meta || {};
+          const query = new Query(resolver, model, { where, meta });
           const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel()} Not Found`);
 
@@ -143,14 +149,6 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
             doc[base.getName()] = tail; // Deficiency in how update works; must pass entire doc
             return base.getModel().update(doc.id, $update, doc, {}).hydrate(autograph.resolver, query).then(() => container);
           });
-
-          // if (curr.isArray()) {
-          //   return autograph.resolver.match(base.getModel()).id(doc.id).pull(curr.getName(), { id }).then((result) => {
-          //     return get(result, fieldPath).find(el => `${el.id}` === `${id}`);
-          //   });
-          // }
-
-          // return null;
         }
         default: {
           return null;

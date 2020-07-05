@@ -1,4 +1,5 @@
-const { map, serialize, castCmp } = require('../service/app.service');
+const { uniqWith } = require('lodash');
+const { map, serialize, castCmp, hashObject } = require('../service/app.service');
 
 const instances = {};
 
@@ -51,7 +52,8 @@ Transformer.factory('toLocaleSentenceCase', (...args) => (f, v) => v.charAt(0).t
 Transformer.factory('toId', () => (f, v) => f.getModel().idValue(v));
 Transformer.factory('toArray', () => (f, v) => (Array.isArray(v) ? v : [v]), { itemize: false }, { enumerable: true });
 Transformer.factory('toDate', () => (f, v) => new Date(v), null, { enumerable: true, writable: true });
-Transformer.factory('dedupe', () => (f, a) => [...new Set(a.map(v => `${v}`))].map(v => a.find(b => `${b}` === v)), { ignoreNull: false }, { enumerable: true });
+Transformer.factory('dedupe', () => (f, a) => uniqWith(a, (b, c) => hashObject(b) === hashObject(c)), { ignoreNull: false }, { enumerable: true });
+Transformer.factory('dedupeBy', key => (f, a) => uniqWith(a, (b, c) => hashObject(b[key]) === hashObject(c[key])), { ignoreNull: false }, { enumerable: true });
 Transformer.factory('timestamp', () => (f, v) => Date.now(), null, { enumerable: true });
 Transformer.factory('cast', type => (f, v) => castCmp(type, v));
 Transformer.factory('serialize', () => (f, v) => serialize(f, v));
