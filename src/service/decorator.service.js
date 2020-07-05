@@ -1,9 +1,8 @@
-const { get, set } = require('lodash');
+const { get, set, remove } = require('lodash');
 const GraphqlFields = require('graphql-fields');
 const Boom = require('../core/Boom');
 const Query = require('../query/Query');
 const { createSystemEvent } = require('./event.service');
-const { validateModelData } = require('./data.service');
 const { guidToId, unrollGuid, ucFirst, getDeep, ensureArray, objectContaining } = require('./app.service');
 
 const findParentField = (name, embed, model) => {
@@ -14,6 +13,31 @@ const findParentField = (name, embed, model) => {
   const field = model.getFields().find(f => f.getType() === parentModelName) || parentModel.getFields().find(f => f.getType() === model.getName());
   if (!field) throw Boom.badData(`Unable to locate parent field: '${model.getName()} -> ${parentModelName}'`);
   return field;
+};
+
+const findParentAndContainerCreate = (name, doc, input, model, embeds) => {
+  let parent = doc;
+
+  const container = embeds.reduce((prev, embed, i) => {
+    // If further nested; must find the correct container
+    if (i > 0) {
+      const subField = findParentField(name, embed, model);
+      prev = prev.find(el => `${el.id}` === `${input[subField]}`);
+    }
+
+    parent = prev;
+    return getDeep(prev, embed.getName());
+  }, doc);
+
+  return { parent, container };
+};
+
+const findParentAndContainerUpdate = (fieldPath, doc, id, embeds) => {
+  const data = embeds.map((embed, i, arr) => getDeep(doc, arr.slice(0, i + 1).join('.')));
+  const [tail, prev = tail, head = prev] = [data[0], data[data.length - 2], data[data.length - 1]];
+  const container = head.find(el => `${id}` === `${el.id}`);
+  const parent = tail === prev ? doc : prev.find(p => p[fieldPath.split('.').pop()].find(el => `${id}` === `${el.id}`));
+  return { tail, parent, container };
 };
 
 const resolveQuery = (method, name, resolver, model, embeds = []) => {
@@ -56,7 +80,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
 
           return resolver.query(context, base.getModel(), args, info).then((results) => {
             const arr = results.map(result => ensureArray(getDeep(result, fieldPath, []))).flat();
-            return arr.length;
+            return arr.filter(el => objectContaining(el, where)).length;
           });
         }
         case 'create': {
@@ -71,70 +95,62 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
 
-          // Get container within document
-          let parent = doc;
-
-          const container = embeds.reduce((prev, embed, i) => {
-            // If further nested; must find the correct container
-            if (i > 0) {
-              const subField = findParentField(name, embed, model);
-              prev = prev.find(el => `${el.id}` === `${args.input[subField]}`);
-            }
-
-            parent = prev;
-            return getDeep(prev, embed.getName());
-          }, doc);
+          // Get parent and container within document
+          const { parent, container } = findParentAndContainerCreate(name, doc, input, model, embeds);
 
           return model.appendDefaultValues(input).then(($input) => {
             return createSystemEvent('Mutation', { method: 'create', model, resolver: autograph.resolver, query, input: $input, parent, root: doc }, async () => {
               $input = await model.appendCreateFields($input, true);
-              // await validateModelData(model, $input, container, 'create');
-              const $update = { [base.getName()]: get(doc, base.getName()) };
-              // await validateModelData(base.getModel(), $update, doc, 'update');
               container.push($input);
+              const $update = { [base.getName()]: get(doc, base.getName()) };
               return base.getModel().update(doc.id, $update, doc, {}).hydrate(autograph.resolver, query).then(() => $input);
             });
           });
         }
         case 'update': {
-          const modelName = model.getName();
-          const fieldName = ucFirst(curr.isArray() ? curr.getName().replace(/s$/, '') : curr.getName());
-          const parentModelName = modelName.substr(0, modelName.lastIndexOf(fieldName));
-          const field = model.getFields().find(f => f.getType() === parentModelName);
-          if (!field) throw Boom.badData(`Unable to locate parent field: '${model.getName()} -> ${parentModelName}'`);
-
+          // Get overall document
           const id = guidToId(autograph, args.id);
           const where = { [`${fieldPath}.id`]: id };
+          const query = new Query(resolver, model, { where });
+          const input = unrollGuid(autograph, model, args.input || {});
           const doc = await autograph.resolver.match(base.getModel()).where(where).one();
-          if (!doc) throw Boom.notFound(`${parentModelName} Not Found`);
+          if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
 
-          if (curr.isArray()) {
-            return autograph.resolver.match(base.getModel()).id(doc.id).splice(curr.getName(), { id }, args.input).then((result) => {
-              return get(result, fieldPath).find(el => `${el.id}` === `${id}`);
-            });
-          }
+          // Get parent and container within document
+          const { tail, parent, container } = findParentAndContainerUpdate(fieldPath, doc, id, embeds);
 
-          return null;
+          return createSystemEvent('Mutation', { method: 'update', model, resolver: autograph.resolver, query, input, parent, root: doc }, async () => {
+            const $input = await model.appendUpdateFields(input);
+            Object.assign(container, $input);
+            const $update = { [base.getName()]: tail };
+            doc[base.getName()] = tail; // Deficiency in how update works; must pass entire doc
+            return base.getModel().update(doc.id, $update, doc, {}).hydrate(autograph.resolver, query).then(() => container);
+          });
         }
         case 'delete': {
-          const modelName = model.getName();
-          const fieldName = ucFirst(curr.isArray() ? curr.getName().replace(/s$/, '') : curr.getName());
-          const parentModelName = modelName.substr(0, modelName.lastIndexOf(fieldName));
-          const field = model.getFields().find(f => f.getType() === parentModelName);
-          if (!field) throw Boom.badData(`Unable to locate parent field: '${model.getName()} -> ${parentModelName}'`);
-
           const id = guidToId(autograph, args.id);
           const where = { [`${fieldPath}.id`]: id };
+          const query = new Query(resolver, model, { where });
           const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel()} Not Found`);
 
-          if (curr.isArray()) {
-            return autograph.resolver.match(base.getModel()).id(doc.id).pull(curr.getName(), { id }).then((result) => {
-              return get(result, fieldPath).find(el => `${el.id}` === `${id}`);
-            });
-          }
+          // Get parent and container within document
+          const { tail, parent, container } = findParentAndContainerUpdate(fieldPath, doc, id, embeds);
 
-          return null;
+          return createSystemEvent('Mutation', { method: 'delete', model, resolver: autograph.resolver, query, parent, root: doc }, async () => {
+            remove(parent[fieldPath.split('.').pop()], el => `${el.id}` === id);
+            const $update = { [base.getName()]: tail };
+            doc[base.getName()] = tail; // Deficiency in how update works; must pass entire doc
+            return base.getModel().update(doc.id, $update, doc, {}).hydrate(autograph.resolver, query).then(() => container);
+          });
+
+          // if (curr.isArray()) {
+          //   return autograph.resolver.match(base.getModel()).id(doc.id).pull(curr.getName(), { id }).then((result) => {
+          //     return get(result, fieldPath).find(el => `${el.id}` === `${id}`);
+          //   });
+          // }
+
+          // return null;
         }
         default: {
           return null;
