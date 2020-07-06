@@ -113,7 +113,7 @@ module.exports = class extends Model {
     input.updatedAt = new Date();
 
     // Generate embedded default values
-    await Promise.all(this.getEmbeddedFields().map((field) => {
+    await Promise.all(this.getEmbeddedFields().filter(field => field.hasGQLScope('c')).map((field) => {
       if (!input[field]) return Promise.resolve();
       return Promise.all(ensureArray(map(input[field], v => field.getModelRef().appendCreateFields(v, true))));
     }));
@@ -125,7 +125,7 @@ module.exports = class extends Model {
     input = await this.resolveDefaultValues(stripObjectNulls(input));
 
     // Generate embedded default values
-    await Promise.all(this.getEmbeddedFields().map((field) => {
+    await Promise.all(this.getEmbeddedFields().filter(field => field.hasGQLScope('c')).map((field) => {
       if (!input[field]) return Promise.resolve();
       return Promise.all(ensureArray(map(input[field], v => field.getModelRef().appendDefaultValues(v))));
     }));

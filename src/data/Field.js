@@ -100,7 +100,6 @@ module.exports = class extends Field {
   }
 
   applyTransformers(transformers, value, mapper) {
-    // Perform transformation
     return transformers.reduce((prev, transformer) => {
       const cmp = mapper[transformer.method];
       return transformer(this, prev, cmp);
