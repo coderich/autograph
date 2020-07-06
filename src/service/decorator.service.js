@@ -36,7 +36,7 @@ const findParentAndContainerUpdate = (fieldPath, doc, id, embeds) => {
   const data = embeds.map((embed, i, arr) => getDeep(doc, arr.slice(0, i + 1).join('.')));
   const [tail, prev = tail, head = prev] = [data[0], data[data.length - 2], data[data.length - 1]];
   const container = head.find(el => `${id}` === `${el.id}`);
-  const parent = tail === prev ? doc : prev.find(p => p[fieldPath.split('.').pop()].find(el => `${id}` === `${el.id}`));
+  const parent = head === prev ? doc : prev.find(p => p[fieldPath.split('.').pop()].find(el => `${id}` === `${el.id}`));
   return { tail, parent, container };
 };
 
@@ -84,7 +84,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           });
         }
         case 'create': {
-          console.time('create');
+          // console.time('create');
           const field = findParentField(name, curr, model);
           const path = fieldPath.split('.').slice(0, -1).concat('id').join('.');
           const input = unrollGuid(autograph, model, args.input);
@@ -92,30 +92,30 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           const id = guidToId(autograph, get(input, field.getName()));
 
           // Get overall document
-          console.time('createLookupDoc');
+          // console.time('createLookupDoc');
           const where = { [path]: id };
           const query = new Query(resolver, model, { where, meta });
           const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
-          console.timeEnd('createLookupDoc');
+          // console.timeEnd('createLookupDoc');
 
           // Get parent and container within document
           const { parent, container } = findParentAndContainerCreate(name, doc, input, model, embeds);
 
-          console.time('createAppendValues');
+          // console.time('createAppendValues');
           return model.appendDefaultValues(input).then(($input) => {
-            console.timeEnd('createAppendValues');
-            console.time('createSystemEvent');
+            // console.timeEnd('createAppendValues');
+            // console.time('createSystemEvent');
             return createSystemEvent('Mutation', { method: 'create', model, resolver: autograph.resolver, query, input: $input, parent, root: doc }, async () => {
-              console.timeEnd('createSystemEvent');
+              // console.timeEnd('createSystemEvent');
               let $$input = ensureArray($input.$input || $input);
               $$input = await Promise.all($$input.map(el => model.appendCreateFields(el, true)));
               container.push(...$$input);
               const $update = { [base.getName()]: get(doc, base.getName()) };
-              console.time('createUpdate');
+              // console.time('createUpdate');
               return base.getModel().update(doc.id, $update, doc, {}).hydrate(autograph.resolver, query).then(($doc) => {
-                console.timeEnd('createUpdate');
-                console.timeEnd('create');
+                // console.timeEnd('createUpdate');
+                // console.timeEnd('create');
                 return getDeep(doc, fieldPath).pop();
               });
             });
@@ -154,7 +154,8 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           const { tail, parent, container } = findParentAndContainerUpdate(fieldPath, doc, id, embeds);
 
           return createSystemEvent('Mutation', { method: 'delete', model, resolver: autograph.resolver, query, parent, root: doc }, async () => {
-            remove(parent[fieldPath.split('.').pop()], el => `${el.id}` === id);
+            const key = fieldPath.split('.').pop();
+            remove(parent[key], el => `${el.id}` === `${id}`);
             const $update = { [base.getName()]: tail };
             doc[base.getName()] = tail; // Deficiency in how update works; must pass entire doc
             return base.getModel().update(doc.id, $update, doc, {}).hydrate(autograph.resolver, query).then(() => container);

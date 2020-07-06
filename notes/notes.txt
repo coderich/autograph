@@ -14,15 +14,16 @@ How:
   }
 
 Now:
-  * If you try to splice something and it's not found should you throw 404?
-  * What should the response of a create/update/delete mutation be? How about a splice? Should they be different?
+  * Pagination should pass limit & sort to dao if possible
+  * Updates can be very slow with large data - need to use $update and not $doc
+    - Also idea of push | pull on the driver would be ideal
   * Support @value on Model itself
   * Lock down delete by id (context.network)
   * Can you add resolver to context.autograph yourself? (not require it to be done externally)
   * Need idea of archive/soft-delete to remove from resultSet
-  * Pagination should pass limit & sort to dao if possible
 
 Next:
+  * DataLoaders are not being used propertly - need re-architecture
   * DAO should be a wrapper that makes Exectuable GraphQL Query calls!
     - Funnel everything through the resolver which can be overridden by the designer
   * Directive param validation
@@ -36,7 +37,6 @@ Next:
 
 Enhancements:
   * Lodash Transformers
-  * DataLoaders are not being used propertly - need re-architecture
   * Create person with books at the same time
   * createdAt, updatedAt, counts, onDeletes, references, etc should be controllable
   * ResultSet can have helper methods (save(), remove(), archive(), etc())
