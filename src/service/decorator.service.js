@@ -182,7 +182,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
 const makeEmbeddedAPI = (model, method, parent) => {
   let gql = '';
   const modelName = model.getName();
-  const fields = model.getEmbeddedFields().filter(field => field.getModelRef().isMarkedModel());
+  const fields = model.getEmbeddedFields().filter(field => field !== parent && field.getModelRef().isMarkedModel());
 
   if (fields.length) {
     fields.forEach((field) => {
@@ -221,7 +221,7 @@ const makeEmbeddedResolver = (model, resolver, type, embeds = []) => {
   const obj = {};
 
   const modelName = model.getName();
-  const fields = model.getEmbeddedFields().filter(field => field.getModelRef().isMarkedModel());
+  const fields = model.getEmbeddedFields().filter(field => embeds.indexOf(field) === -1 && field.getModelRef().isMarkedModel());
 
   fields.forEach((field) => {
     const modelRef = field.getModelRef();
