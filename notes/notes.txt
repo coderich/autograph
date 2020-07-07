@@ -18,7 +18,6 @@ Now:
   * Updates can be very slow with large data - need to use $update and not $doc
     - Also idea of push | pull on the driver would be ideal
   * Support @value on Model itself
-  * Lock down delete by id (context.network)
   * Can you add resolver to context.autograph yourself? (not require it to be done externally)
   * Need idea of archive/soft-delete to remove from resultSet
 
