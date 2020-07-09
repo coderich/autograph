@@ -113,17 +113,4 @@ module.exports = class Field extends Node {
     if (!options.splice && suffix === 'InputCreate' && this.isRequired() && !this.isDefaulted()) type += '!';
     return type;
   }
-
-  getGQLDefinition() {
-    const fieldName = this.getName();
-    const type = this.getGQLType();
-    const ref = this.getDataRef();
-
-    if (ref) {
-      if (this.isArray()) return `${fieldName}(first: Int after: String last: Int before: String query: ${ref}InputQuery): Connection`;
-      return `${fieldName}(query: ${ref}InputQuery): ${type}`;
-    }
-
-    return `${fieldName}: ${type}`;
-  }
 };

@@ -4,7 +4,7 @@ const Boom = require('./Boom');
 const { unrollGuid, guidToId, ensureArray, promiseChain } = require('../service/app.service');
 
 const normalizeQuery = (args = {}, info) => {
-  const query = { fields: GraphqlFields(info, {}, { processArguments: true }), ...args.query };
+  const query = { fields: GraphqlFields(info, {}, { processArguments: true }), ...args };
   const { fields = {} } = query;
   const { first, last, before, after } = args;
   return Object.assign(query, { pagination: { first, last, before, after }, fields: _.get(fields, 'edges.node') });
@@ -45,7 +45,7 @@ module.exports = class ServerResolver {
 
           return () => {
             if (subSplice) {
-              console.log('we have to subSplice this mofo');
+              console.log('we have to subSplice this');
             }
 
             if (from && to) {

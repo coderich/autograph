@@ -52,9 +52,9 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
       switch (method) {
         case 'get': {
           // Readjust the where clause
-          const where = get(args, 'query.where', {});
+          const where = get(args, 'where', {});
           set(where, `${fieldPath}.id`, args.id);
-          set(args, 'query.where', where);
+          set(args, 'where', where);
 
           return resolver.query(context, base.getModel(), args, info).then(([result]) => {
             const arr = ensureArray(getDeep(result, fieldPath, []));
@@ -63,9 +63,9 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
         }
         case 'find': {
           // Readjust the where clause
-          const where = get(args, 'query.where', {});
+          const where = get(args, 'where', {});
           const $where = set({}, `${fieldPath}`, where);
-          set(args, 'query.where', $where);
+          set(args, 'where', $where);
 
           return resolver.query(context, base.getModel(), args, info).then((results) => {
             const arr = results.map(result => ensureArray(getDeep(result, fieldPath, []))).flat();
@@ -76,7 +76,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           // Readjust the where clause
           const where = get(args, 'where', {});
           const $where = set({}, `${fieldPath}`, where);
-          set(args, 'query.where', $where);
+          set(args, 'where', $where);
 
           return resolver.query(context, base.getModel(), args, info).then((results) => {
             const arr = results.map(result => ensureArray(getDeep(result, fieldPath, []))).flat();
@@ -295,8 +295,16 @@ exports.makeReadAPI = (name, model, parent) => {
   if (model.hasGQLScope('r')) {
     gql += `
       get${name}(id: ID!): ${model.getName()}
-      find${name}(first: Int after: String last: Int before: String query: ${ucFirst(model.getName())}InputQuery): Connection!
-      count${name}(where: ${ucFirst(model.getName())}InputWhere): Int!
+      find${name}(
+        where: ${model.getName()}InputWhere
+        sortBy: ${model.getName()}InputSort
+        limit: Int
+        first: Int
+        after: String
+        last: Int
+        before: String
+      ): Connection!
+      count${name}(where: ${model.getName()}InputWhere): Int!
     `;
   }
 

@@ -42,7 +42,6 @@ module.exports = (schema) => {
         input ${model.getName()}InputSort {
           ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputSort` : 'SortOrderEnum'}`)}
         }
-        input ${model.getName()}InputQuery { where: ${model.getName()}InputWhere sortBy: ${model.getName()}InputSort limit: Int }
       `),
     ].concat([
       `
