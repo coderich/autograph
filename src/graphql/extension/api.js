@@ -86,9 +86,13 @@ module.exports = (schema) => {
       return Object.assign(prev, {
         [modelName]: model.getFields().filter(field => field.hasGQLScope('r')).reduce((def, field) => {
           const fieldName = field.getName();
-          const $fieldName = field.getModelRef() ? `$${fieldName}` : fieldName; // only $hydrated when it's a modelRef
           if (fieldName === 'id') return Object.assign(def, { id: (root, args, { autograph }) => (autograph.legacyMode ? root.id : root.$id) });
-          return Object.assign(def, { [fieldName]: root => root[$fieldName] });
+          return Object.assign(def, {
+            [fieldName]: (root) => {
+              const $fieldName = root[`$${fieldName}`] ? `$${fieldName}` : fieldName; // only $hydrated when it's a modelRef
+              return root[$fieldName];
+            },
+          });
         }, {}),
       });
     }, {
