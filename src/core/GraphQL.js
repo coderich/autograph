@@ -4,7 +4,7 @@ const Resolver = require('./Resolver');
 
 module.exports = class GraphQL {
   constructor(schema) {
-    this.schema = schema.makeServerApiSchema();
+    this.schema = schema.makeExecutableSchema();
     this.contextValue = schema.getContext();
   }
 

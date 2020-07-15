@@ -50,8 +50,8 @@ module.exports = class extends Schema {
     this.models.forEach(model => model.referentialIntegrity(identifyOnDeletes(this.models, model)));
   }
 
-  getSchema() {
-    this.extend(frameworkExt(this));
+  getSchema(silent) {
+    if (!silent) this.extend(frameworkExt(this));
     return super.getSchema();
   }
 
