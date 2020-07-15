@@ -9,16 +9,16 @@ const graphql = new GraphQL(schema);
 const resolver = new Resolver(schema);
 
 describe('GraphQL', () => {
-  test('run', async () => {
+  test('exec', async () => {
     expect(schema).toBeDefined();
     expect(graphql).toBeDefined();
     expect(resolver).toBeDefined();
 
-    const result = await graphql.run(`
+    const result = await graphql.exec(`
       mutation {
         createPerson(input: {
-          name: "Richard"
-          emailAddress: "rich@gmail.com"
+          name: "GraphQL"
+          emailAddress: "graphql@gmail.com"
         }) {
           id
           name
@@ -30,6 +30,6 @@ describe('GraphQL', () => {
     expect(result.data).toBeDefined();
     expect(result.errors).not.toBeDefined();
     expect(result.createPerson.id).toBeDefined();
-    expect(result.createPerson.name).toBe('Richard');
+    expect(result.createPerson.name).toBe('GraphQL');
   });
 });

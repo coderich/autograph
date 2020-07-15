@@ -8,7 +8,7 @@ module.exports = class GraphQL {
     this.contextValue = schema.getContext();
   }
 
-  run(source, variableValues) {
+  exec(source, variableValues) {
     const { schema, contextValue } = this;
     const autograph = { resolver: new Resolver(schema) };
 

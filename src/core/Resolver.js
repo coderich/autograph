@@ -25,6 +25,10 @@ module.exports = class Resolver {
     });
   }
 
+  getSchema() {
+    return this.schema;
+  }
+
   getContext() {
     return this.schema.getContext();
   }

@@ -11,6 +11,7 @@ Now:
   * Need idea of archive/soft-delete to remove from resultSet
 
 Next:
+  * GraphQL test does not go through in-memory-mongo
   * Support @value on Model itself
   * Directive param validation
   * Take a look at all Mongoose options/features (eg. minimize)

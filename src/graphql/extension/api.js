@@ -97,7 +97,7 @@ module.exports = (schema) => {
       });
     }, {
       Node: {
-        __resolveType: (root, args, context, info) => fromGUID(root.$id)[0],
+        __resolveType: (root, args, context, info) => root.__typename || fromGUID(root.$id)[0],
       },
 
       Connection: {

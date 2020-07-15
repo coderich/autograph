@@ -61,6 +61,10 @@ module.exports = class Field extends Node {
   }
 
   // Model Methods
+  getSchema() {
+    return this.model.getSchema();
+  }
+
   getModel() {
     return this.model;
   }
