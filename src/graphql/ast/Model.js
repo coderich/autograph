@@ -94,6 +94,10 @@ module.exports = class Model extends Node {
     return this.getSelectFields().filter(field => field.isArray() && field.getDataRef());
   }
 
+  getPersistableFields() {
+    return this.getFields().filter(field => field.isPersistable());
+  }
+
   // Misc
   getIndexes() {
     return this.getDirectives('index').map((d) => {

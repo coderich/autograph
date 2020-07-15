@@ -79,7 +79,7 @@ module.exports = class extends Model {
   }
 
   normalizeOptions(options) {
-    options.fields = this.getSelectFields().map(f => f.getKey());
+    options.fields = this.getPersistableFields().map(f => f.getKey());
   }
 
   getDriver() {

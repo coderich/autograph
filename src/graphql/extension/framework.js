@@ -44,10 +44,13 @@ module.exports = (schema) => {
         noRepeat: Boolean
 
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
-        enforce: [AutoGraphEnforceEnum!]
         onDelete: AutoGraphOnDeleteEnum
-        resolve: [AutoGraphTransformEnum!] # Resolvers take place on the out
-        transform: [AutoGraphTransformEnum!] # Transforms take place both in and out
+
+        enforce: [AutoGraphEnforceEnum!] #
+        resolve: [AutoGraphTransformEnum!] # Transforms when resolving
+        transform: [AutoGraphTransformEnum!] # Transforms when serialize + deserialize
+        serialize: [AutoGraphTransformEnum!] # Transforms when serialize
+        deserialize: [AutoGraphTransformEnum!] # Transforms when deserialize
       ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
 
       directive @link(
