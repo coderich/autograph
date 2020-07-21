@@ -100,14 +100,15 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
   }
 };
 
-exports.resolveModelWhereClause = (resolver, model, where = {}) => {
+exports.resolveModelWhereClause = (resolver, model, where = {}, options = {}) => {
   const $where = exports.resolveModelWhereClause2(resolver, model, where);
 
+  if (options.debug) console.log(where, $where);
   Object.entries(where).forEach(([key, value]) => {
     if (Object.prototype.hasOwnProperty.call($where, key)) {
-      if (JSON.stringify(value) === '"[object Object]"') console.log(key, where, $where);
+      // if (JSON.stringify(value) === '"[object Object]"') console.log(key, where, $where);
       if (hashObject($where[key]) !== hashObject(value)) {
-        console.log('mismatch', key, $where[key], value);
+        // console.log('mismatch', key, $where[key], value);
         $where[key] = 'there-is-a-mismatch-here';
       }
     }

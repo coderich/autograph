@@ -43,7 +43,7 @@ module.exports = class QueryWorker {
         hydratedResults = await model.native('find', query.getNative(), options).hydrate(resolver, query);
       } else {
         const $where = await model.resolveBoundValues(where);
-        const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
+        const resolvedWhere = await resolveModelWhereClause(resolver, model, $where, options);
         hydratedResults = await model.find(resolvedWhere, options).hydrate(resolver, query);
       }
       const filteredData = filterDataByCounts(resolver, model, hydratedResults, countFields);
