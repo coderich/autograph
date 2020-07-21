@@ -25,17 +25,17 @@ module.exports = class extends Model {
   // CRUD
   get(where, options) {
     this.normalizeOptions(options);
-    return new ResultSet(this, this.driver.dao.get(this.getKey(), where, options));
+    return new ResultSet(this, this.driver.dao.get(this.getKey(), this.serialize(where), options));
   }
 
   find(where = {}, options) {
     this.normalizeOptions(options);
-    return new ResultSet(this, this.driver.dao.find(this.getKey(), where, options));
+    return new ResultSet(this, this.driver.dao.find(this.getKey(), this.serialize(where), options));
   }
 
   count(where = {}, options) {
     this.normalizeOptions(options);
-    return this.driver.dao.count(this.getKey(), where, options);
+    return this.driver.dao.count(this.getKey(), this.serialize(where), options);
   }
 
   create(data, options) {
@@ -273,7 +273,7 @@ module.exports = class extends Model {
 
     if (field.isArray()) {
       if (field.isVirtual()) {
-        const where = { [field.getVirtualField().getKey()]: doc.id };
+        const where = { [field.getVirtualField()]: doc.id };
         return assignValue(field, doc, prop, resolver.match(fieldModel).query({ where }).many({ find: true }));
       }
 
@@ -282,7 +282,7 @@ module.exports = class extends Model {
     }
 
     if (field.isVirtual()) {
-      const where = { [field.getVirtualField().getKey()]: doc.id };
+      const where = { [field.getVirtualField()]: doc.id };
       return assignValue(field, doc, prop, resolver.match(fieldModel).query({ where }).one({ find: true }));
     }
 

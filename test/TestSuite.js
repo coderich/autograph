@@ -227,7 +227,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect((await resolver.match('Person').where({ name: '*' }).many({ find: true })).sort(sorter)).toMatchObject([{ id: christie.id, name: 'Christie' }, { id: richard.id, name: 'Richard' }].sort(sorter));
         expect(await resolver.match('Person').where({ authored: mobyDick.id }).many({ find: true })).toMatchObject([{ id: richard.id, name: 'Richard' }]);
         expect(await resolver.match('Person').where({ id: richard.id }).many({ find: true })).toMatchObject([{ id: richard.id, name: 'Richard' }]);
-        // expect(await resolver.match('Person').where({ id: richard.id, authored: healthBook.id }).many({ find: true })).toMatchObject([]);
+        // expect(await resolver.match('Person').where({ id: richard.id, authored: healthBook.id }).options({ debug: true }).many({ find: true })).toMatchObject([]);
       });
 
       test('Book', async () => {

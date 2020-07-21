@@ -21,10 +21,9 @@ module.exports = class QueryWorker {
     const [model, id, options] = [query.getModel(), query.getId(), query.getOptions()];
 
     // Construct where clause
-    const where = { [model.idKey()]: model.idValue(id) };
+    const where = { id: model.idValue(id) };
     const $where = await model.resolveBoundValues(where);
-    const $$where = model.transform($where);
-    const resolvedWhere = await resolveModelWhereClause(resolver, model, $$where);
+    const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
 
     return createSystemEvent('Query', { method: 'get', model, resolver, query }, async () => {
       const doc = await model.get(resolvedWhere, options).hydrate(resolver, query);
@@ -44,8 +43,7 @@ module.exports = class QueryWorker {
         hydratedResults = await model.native('find', query.getNative(), options).hydrate(resolver, query);
       } else {
         const $where = await model.resolveBoundValues(where);
-        const $$where = model.transform($where);
-        const resolvedWhere = await resolveModelWhereClause(resolver, model, $$where);
+        const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
         hydratedResults = await model.find(resolvedWhere, options).hydrate(resolver, query);
       }
       const filteredData = filterDataByCounts(resolver, model, hydratedResults, countFields);
@@ -63,8 +61,7 @@ module.exports = class QueryWorker {
       if (query.isNative()) return model.native('count', query.getNative(), options);
 
       const $where = await model.resolveBoundValues(where);
-      const $$where = model.transform($where);
-      const resolvedWhere = await resolveModelWhereClause(resolver, model, $$where);
+      const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
 
       if (countPaths.length) {
         const results = await resolver.match(model).where(resolvedWhere).select(countFields).options(options).many();

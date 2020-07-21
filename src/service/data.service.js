@@ -100,12 +100,28 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
   }
 };
 
-exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', lookups2D = [], index = 0) => {
+exports.resolveModelWhereClause = (resolver, model, where = {}) => {
+  const $where = exports.resolveModelWhereClause2(resolver, model, where);
+
+  Object.entries(where).forEach(([key, value]) => {
+    if (Object.prototype.hasOwnProperty.call($where, key)) {
+      if (JSON.stringify(value) === '"[object Object]"') console.log(key, where, $where);
+      if (hashObject($where[key]) !== hashObject(value)) {
+        console.log('mismatch', key, $where[key], value);
+        $where[key] = 'there-is-a-mismatch-here';
+      }
+    }
+  });
+
+  return $where;
+};
+
+exports.resolveModelWhereClause2 = (resolver, model, where = {}, fieldKey = '', lookups2D = [], index = 0) => {
   const mName = model.getName();
   const fields = model.getFields();
 
   // Allowing id in where clause
-  if (where.id) where[model.idKey()] = map(where.id, v => model.idValue(v));
+  if (where.id) where.id = map(where.id, v => model.idValue(v));
 
   //
   lookups2D[index] = lookups2D[index] || {
@@ -121,14 +137,10 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', l
       return Object.entries(obj).reduce((p, [k, v]) => {
         const f = ref.getFieldByName(k);
 
-        if (k === 'id') return Object.assign(p, { [ref.idKey()]: ref.idValue(v) });
-        if (f.isScalar()) return Object.assign(p, { [f.getKey()]: v });
-        if (f.isEmbedded()) return Object.assign(p, { [f.getKey()]: resolveEmbeddedWhere(f.getModelRef(), f.getKey(), v) });
-        return Object.assign(p, { [f.getKey()]: v });
-
-        // console.log(f.getModelRef().getName(), JSON.stringify(obj));
-        // exports.resolveModelWhereClause(resolver, f.getModelRef(), obj, f.getKey(key), lookups2D, index + 1);
-        // return p;
+        if (k === 'id') return Object.assign(p, { [ref]: ref.idValue(v) });
+        if (f.isScalar()) return Object.assign(p, { [k]: v });
+        if (f.isEmbedded()) return Object.assign(p, { [k]: resolveEmbeddedWhere(f.getModelRef(), k, v) });
+        return Object.assign(p, { [k]: v });
       }, {});
     }));
 
@@ -144,10 +156,9 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', l
 
       if (field.isEmbedded()) {
         value = resolveEmbeddedWhere(ref, key, value);
-        // value = Object.entries(value).reduce((p, [k, v]) => Object.assign(p, { [ref.getFieldByName(k).getKey()]: v }), {});
       } else if (ref) {
         if (isPlainObject(value)) {
-          exports.resolveModelWhereClause(resolver, ref, value, field.getKey(key), lookups2D, index + 1);
+          exports.resolveModelWhereClause2(resolver, ref, value, key, lookups2D, index + 1);
           return prev;
         }
 
@@ -155,22 +166,22 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', l
           const scalars = [];
           const norm = value.map((v) => {
             if (isPlainObject(v)) return v;
-            if (field.isVirtual() && isIdValue(v)) return { [ref.idKey()]: v };
+            if (field.isVirtual() && isIdValue(v)) return { id: v };
             scalars.push(v);
             return null;
           }).filter(v => v);
-          norm.forEach(val => exports.resolveModelWhereClause(resolver, ref, val, field.getKey(key), lookups2D, index + 1));
+          norm.forEach(val => exports.resolveModelWhereClause2(resolver, ref, val, field, lookups2D, index + 1));
           if (scalars.length) prev[key] = scalars;
           return prev;
         }
 
         if (field.isVirtual()) {
-          exports.resolveModelWhereClause(resolver, ref, { [ref.idKey()]: value }, field.getKey(key), lookups2D, index + 1);
+          exports.resolveModelWhereClause2(resolver, ref, { id: value }, field, lookups2D, index + 1);
           return prev;
         }
       }
 
-      return Object.assign(prev, { [field.getKey(key)]: value });
+      return Object.assign(prev, { [key]: value });
     }, {}),
   });
 
@@ -196,11 +207,11 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', l
                 if (ref === modelName) {
                   if (field.isVirtual()) {
                     const cField = currentFields.find(f => f.getName() === field.getVirtualRef());
-                    const cKey = cField.getKey(field.getVirtualRef());
+                    // const cKey = cField.getKey(field.getVirtualRef());
 
                     Object.assign(lookup.query, {
-                      [parentModel.idKey()]: results.map((result) => {
-                        const cValue = result[cKey];
+                      id: results.map((result) => {
+                        const cValue = result[cField];
                         return parentModel.idValue(cValue);
                       }),
                     });
