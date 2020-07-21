@@ -100,24 +100,20 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
   }
 };
 
-exports.resolveModelWhereClause = (resolver, model, where = {}, options = {}) => {
-  const $where = exports.resolveModelWhereClause2(resolver, model, where);
+// exports.resolveModelWhereClause = async (resolver, model, where = {}, options = {}) => {
+//   const $where = await exports.resolveModelWhereClause2(resolver, model, where);
 
-  if (options.debug) console.log(where, $where);
-  Object.entries(where).forEach(([key, value]) => {
-    if (Object.prototype.hasOwnProperty.call($where, key)) {
-      // if (JSON.stringify(value) === '"[object Object]"') console.log(key, where, $where);
-      if (hashObject($where[key]) !== hashObject(value)) {
-        // console.log('mismatch', key, $where[key], value);
-        $where[key] = 'there-is-a-mismatch-here';
-      }
-    }
-  });
+//   Object.entries(where).forEach(([key, value]) => {
+//     if (Object.prototype.hasOwnProperty.call($where, key)) {
+//       const $value = $where[key];
+//       if (!ensureArray($value).some($v => hashObject($v) === hashObject(value))) $where[key] = 'there-is-a-mismatch-here';
+//     }
+//   });
 
-  return $where;
-};
+//   return $where;
+// };
 
-exports.resolveModelWhereClause2 = (resolver, model, where = {}, fieldKey = '', lookups2D = [], index = 0) => {
+exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', lookups2D = [], index = 0) => {
   const mName = model.getName();
   const fields = model.getFields();
 
@@ -159,7 +155,7 @@ exports.resolveModelWhereClause2 = (resolver, model, where = {}, fieldKey = '', 
         value = resolveEmbeddedWhere(ref, key, value);
       } else if (ref) {
         if (isPlainObject(value)) {
-          exports.resolveModelWhereClause2(resolver, ref, value, key, lookups2D, index + 1);
+          exports.resolveModelWhereClause(resolver, ref, value, key, lookups2D, index + 1);
           return prev;
         }
 
@@ -171,13 +167,13 @@ exports.resolveModelWhereClause2 = (resolver, model, where = {}, fieldKey = '', 
             scalars.push(v);
             return null;
           }).filter(v => v);
-          norm.forEach(val => exports.resolveModelWhereClause2(resolver, ref, val, field, lookups2D, index + 1));
+          norm.forEach(val => exports.resolveModelWhereClause(resolver, ref, val, field, lookups2D, index + 1));
           if (scalars.length) prev[key] = scalars;
           return prev;
         }
 
         if (field.isVirtual()) {
-          exports.resolveModelWhereClause2(resolver, ref, { id: value }, field, lookups2D, index + 1);
+          exports.resolveModelWhereClause(resolver, ref, { id: value }, field, lookups2D, index + 1);
           return prev;
         }
       }
