@@ -1,6 +1,7 @@
 const Field = require('./Field');
 const ResultSet = require('./ResultSet');
 const Model = require('../graphql/ast/Model');
+const RuleService = require('../service/rule.service');
 const { map, ensureArray, stripObjectNulls } = require('../service/app.service');
 
 const assignValue = (field, doc, prop, value) => {
@@ -243,6 +244,13 @@ module.exports = class extends Model {
         return field.validate(obj[field.getName()], mapper);
       })));
     })).then(() => transformed);
+  }
+
+  validateData(data, oldData, op) {
+    const required = (op === 'create' ? (f, v) => v == null : (f, v) => Object.prototype.hasOwnProperty.call(data, f.getName()) && v == null);
+    const immutable = (f, v) => RuleService.immutable(v, oldData, op, `${f.getModel()}.${f.getName()}`);
+    const selfless = (f, v) => RuleService.selfless(v, oldData, op, `${f.getModel()}.${f.getName()}`);
+    return this.validate(data, { required, immutable, selfless });
   }
 
   resolve(doc, prop, resolver, query) {

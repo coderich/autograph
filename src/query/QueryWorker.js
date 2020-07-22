@@ -1,7 +1,7 @@
 const Boom = require('../core/Boom');
 const { mergeDeep } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
-const { validateModelData, resolveModelWhereClause, resolveReferentialIntegrity, sortData, filterDataByCounts, paginateResults, spliceEmbeddedArray } = require('../service/data.service');
+const { resolveModelWhereClause, resolveReferentialIntegrity, sortData, filterDataByCounts, paginateResults, spliceEmbeddedArray } = require('../service/data.service');
 
 module.exports = class QueryWorker {
   constructor(resolver) {
@@ -83,7 +83,7 @@ module.exports = class QueryWorker {
 
     return createSystemEvent('Mutation', { method: 'create', model, resolver, query, input }, async () => {
       input = await model.appendCreateFields(input); // Now create fields (give a change to alter input)
-      await validateModelData(model, input, {}, 'create');
+      await model.validateData(input, {}, 'create');
       return model.create(input, options).hydrate(resolver, query);
     });
   }
@@ -99,7 +99,7 @@ module.exports = class QueryWorker {
 
     return createSystemEvent('Mutation', { method: 'update', model, resolver, query, input, doc, merged }, async () => {
       input = await model.appendUpdateFields(input);
-      await validateModelData(model, input, doc, 'update');
+      await model.validateData(input, doc, 'update');
       return model.update(id, input, mergeDeep(doc, input), options).hydrate(resolver, query);
     });
   }
@@ -112,7 +112,7 @@ module.exports = class QueryWorker {
     const merged = mergeDeep(doc, data);
 
     return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, input: data, doc, merged }, async () => {
-      await validateModelData(model, data, doc, 'update');
+      await model.validateData(data, doc, 'update');
       return model.update(id, data, mergeDeep(doc, data), options).hydrate(resolver, query);
     });
   }

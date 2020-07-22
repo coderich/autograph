@@ -5,13 +5,6 @@ const RuleService = require('./rule.service');
 const { createSystemEvent } = require('./event.service');
 const { map, globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep, ensureArray, hashObject, mergeDeep, objectContaining } = require('./app.service');
 
-exports.validateModelData = (model, data, oldData, op) => {
-  const required = (op === 'create' ? (f, v) => v == null : (f, v) => Object.prototype.hasOwnProperty.call(data, f.getName()) && v == null);
-  const immutable = (f, v) => RuleService.immutable(v, oldData, op, `${f.getModel()}.${f.getName()}`);
-  const selfless = (f, v) => RuleService.selfless(v, oldData, op, `${f.getModel()}.${f.getName()}`);
-  return model.validate(data, { required, immutable, selfless });
-};
-
 exports.makeDataResolver = (doc, model, resolver, query) => {
   const { id } = doc;
   const guid = toGUID(model.getName(), id);
@@ -60,7 +53,7 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
           return modelRef.appendDefaultValues(edit).then((input) => {
             return createSystemEvent('Mutation', { method: 'update', model: modelRef, resolver, query, input, parent: doc }, async () => {
               input = await modelRef.appendCreateFields(input, true);
-              return exports.validateModelData(modelRef, input, {}, 'update').then(() => input);
+              return modelRef.validateData(input, {}, 'update').then(() => input);
             });
           });
         }
@@ -88,7 +81,7 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
         return modelRef.appendDefaultValues(el).then((input) => {
           return createSystemEvent('Mutation', { method: 'create', model: modelRef, resolver, query, input, parent: doc }, async () => {
             input = await modelRef.appendCreateFields(input, true);
-            return exports.validateModelData(modelRef, input, {}, 'create').then(() => input);
+            return modelRef.validateData(input, {}, 'create').then(() => input);
           });
         });
       })).then((results) => {
