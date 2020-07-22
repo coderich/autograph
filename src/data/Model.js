@@ -8,7 +8,7 @@ const assignValue = (field, doc, prop, value) => {
 
   return Promise.resolve(value).then(($value) => {
     return field.resolve($value).then(($$value) => {
-      Object.defineProperty(doc, prop, { value: $$value });
+      Object.defineProperty(doc, prop, { value: $$value, writable: true });
       return $$value;
     });
   });
