@@ -188,7 +188,7 @@ module.exports = class extends Model {
         if (!field || !field.isPersistable()) return prev;
         if (value === undefined) value = obj[field.getKey()];
         value = field.serialize(value, mapper);
-        if (field.isEmbedded()) value = field.getModelRef().serialize(value, mapper);
+        if (!field.getSerialize() && field.isEmbedded()) value = field.getModelRef().serialize(value, mapper);
         return Object.assign(prev, { [field.getKey()]: value });
       }, {}); // Strip away all props not in schema
     });
@@ -203,8 +203,8 @@ module.exports = class extends Model {
         const field = this.getFieldByKey(key) || this.getFieldByName(key);
         if (!field) return prev; // Strip completely unknown fields
         if (value == null) value = obj[field.getKey()]; // This is intended to level out what the value should be
-        value = field.transform(value, mapper);
-        if (field.isEmbedded()) value = field.getModelRef().deserialize(value, mapper);
+        value = field.deserialize(value, mapper);
+        if (!field.getDeserialize() && field.isEmbedded()) value = field.getModelRef().deserialize(value, mapper);
         return Object.assign(prev, { [field]: value });
       }, obj); // May have $hydrated values you want to keep
     });

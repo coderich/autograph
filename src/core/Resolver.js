@@ -69,7 +69,7 @@ module.exports = class Resolver {
   }
 
   named(model) {
-    return this.toModelEntity(model).getNamedQueries();
+    return this.toModel(model).getNamedQueries();
   }
 
   raw(model) {

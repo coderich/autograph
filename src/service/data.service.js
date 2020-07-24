@@ -1,7 +1,6 @@
 const _ = require('lodash');
 const Boom = require('../core/Boom');
 const DataResolver = require('../data/DataResolver');
-const RuleService = require('./rule.service');
 const { createSystemEvent } = require('./event.service');
 const { map, globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep, ensureArray, hashObject, mergeDeep, objectContaining } = require('./app.service');
 

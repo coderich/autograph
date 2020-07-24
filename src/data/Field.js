@@ -60,6 +60,28 @@ module.exports = class extends Field {
     return transformers.concat(this.type.getTransformers());
   }
 
+  getSerializers() {
+    const transformers = [];
+
+    Object.entries(this.getDirectiveArgs('field', {})).forEach(([key, value]) => {
+      if (!Array.isArray(value)) value = [value];
+      if (key === 'serialize') transformers.push(...value.map(t => Transformer.getInstances()[t]));
+    });
+
+    return transformers.concat(this.type.getSerializers());
+  }
+
+  getDeserializers() {
+    const transformers = [];
+
+    Object.entries(this.getDirectiveArgs('field', {})).forEach(([key, value]) => {
+      if (!Array.isArray(value)) value = [value];
+      if (key === 'deserialize') transformers.push(...value.map(t => Transformer.getInstances()[t]));
+    });
+
+    return transformers.concat(this.type.getSerializers());
+  }
+
   getResolvers() {
     const resolvers = [];
 
@@ -75,6 +97,10 @@ module.exports = class extends Field {
     return this.transform(value, mapper, true);
   }
 
+  deserialize(value, mapper) {
+    return this.transform(value, mapper, false, true);
+  }
+
   resolve(value) {
     const resolvers = [...this.getResolvers()];
 
@@ -83,10 +109,12 @@ module.exports = class extends Field {
     })).then(results => uvl(results.pop(), value));
   }
 
-  transform(value, mapper, serialize) {
+  transform(value, mapper, serialize, deserialize) {
     mapper = mapper || {};
     const modelRef = this.getModelRef();
     const transformers = [...this.getTransformers()];
+    if (serialize) transformers.push(...this.getSerializers());
+    if (deserialize) transformers.push(...this.getDeserializers());
 
     // If we're a modelRef field, need to either id(value) or delegate object to model
     if (modelRef) {
