@@ -4,6 +4,10 @@ Release 0.3:
     - Funnel everything through the resolver which can be overridden by the developer
   ! Where clause bug (id vs other params)
 
+Bug:
+  * Where clause 'nested.id' does not work
+  * Where clause with .one({ required: true }) does not work
+
 Now:
   * Pagination should pass limit & sort to dao if possible
     - Also idea of push | pull on the driver would be ideal

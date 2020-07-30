@@ -89,7 +89,7 @@ module.exports = (schema) => {
           if (fieldName === 'id') return Object.assign(def, { id: (root, args, { autograph }) => (autograph.legacyMode ? root.id : root.$id) });
           return Object.assign(def, {
             [fieldName]: (root) => {
-              const $fieldName = root[`$${fieldName}`] ? `$${fieldName}` : fieldName; // only $hydrated when it's a modelRef
+              const $fieldName = root[`$${fieldName}`] && typeof root[`$${fieldName}`] !== 'function' ? `$${fieldName}` : fieldName; // only $hydrated when set and not a function (Mongoose has $magic functions!)
               return root[$fieldName];
             },
           });
