@@ -30,10 +30,10 @@ class Server {
           ...headers,
           get autograph() {
             return {
-              schema: schema.setContext(this),
+              schema,
               permissions: ['**'],
               legacyMode: true,
-              resolver: new Resolver(schema),
+              resolver: new Resolver(schema, this),
             };
           },
         };

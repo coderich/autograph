@@ -17,7 +17,7 @@ exports.createSystemEvent = (name, event = {}, thunk = () => {}) => {
   const type = ucFirst(name);
 
   if (name !== 'Setup') {
-    event.context = event.model.getSchema().getContext();
+    event.context = event.resolver.getContext();
     event.meta = event.query.getMeta();
     event.key = `${event.method}${event.model}`;
   }

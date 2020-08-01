@@ -70,10 +70,10 @@ module.exports = (driver = 'mongo', options = {}) => {
       }
 
       // Create core classes
-      const schema = new Schema(gql, stores).setContext({ network: { id: 'networkId' } });
+      const schema = new Schema(gql, stores);
       schema.getServerApiSchema();
       schema.makeExecutableSchema();
-      resolver = new Resolver(schema);
+      resolver = new Resolver(schema, { network: { id: 'networkId' } });
       await schema.setup();
 
       //

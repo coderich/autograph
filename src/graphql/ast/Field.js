@@ -39,11 +39,15 @@ module.exports = class Field extends Node {
     return this.getDirectiveArg('field', 'default');
   }
 
+  getContext() {
+    return this.model.getResolver().getContext();
+  }
+
   resolveBoundValue(initialValue) {
     if (!this.hasBoundValue()) return Promise.resolve(initialValue);
 
     let promise;
-    const context = this.schema.getContext();
+    const context = this.getContext();
     const { scope, path, merge } = this.getDirectiveArgs('value');
 
     switch (scope) {

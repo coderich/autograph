@@ -20,7 +20,6 @@ module.exports = class Schema extends Node {
     //
     super(schema.typeDefs);
     this.schema = schema;
-    this.serverContext = {};
     this.initialize();
   }
 
@@ -100,12 +99,7 @@ module.exports = class Schema extends Node {
   }
 
   getContext() {
-    return { ...this.schema.context, ...this.serverContext };
-  }
-
-  setContext(context = {}) {
-    this.serverContext = context;
-    return this;
+    return this.schema.context;
   }
 
   loadDir(dir) {
