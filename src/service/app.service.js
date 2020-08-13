@@ -161,13 +161,20 @@ exports.unrollGuid = (autograph, model, data) => {
 exports.keyPaths = (obj = {}, keys = [], path) => {
   return Object.entries(obj).reduce((prev, [key, value]) => {
     const keyPath = path ? `${path}.${key}` : key;
+
     if (exports.isPlainObject(value)) return exports.keyPaths(value, prev, keyPath);
+
+    // if (Array.isArray(value)) {
+    //   const arr = value.filter(v => exports.isPlainObject(v));
+    //   if (arr.length) return _.flatten(arr.map(val => exports.keyPaths(val, prev, keyPath)));
+    // }
+
     return prev.concat(keyPath);
   }, keys);
 };
 
 exports.keyPathLeafs = (obj, keys, path) => {
-  return exports.keyPaths(obj, keys, path).sort().filter((leaf, i, arr) => arr.findIndex(el => el.indexOf(leaf) === 0) === i);
+  return exports.keyPaths(obj, keys, path).sort().reverse().filter((leaf, i, arr) => arr.findIndex(el => el.indexOf(leaf) === 0) === i);
 };
 
 // exports.keyPaths = (obj, keys = [], path) => {

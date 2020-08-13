@@ -84,7 +84,6 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           });
         }
         case 'create': {
-          // console.time('create');
           const field = findParentField(name, curr, model);
           const path = fieldPath.split('.').slice(0, -1).concat('id').join('.');
           const input = unrollGuid(autograph, model, args.input);
@@ -92,30 +91,21 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           const id = guidToId(autograph, get(input, field.getName()));
 
           // Get overall document
-          // console.time('createLookupDoc');
           const where = { [path]: id };
           const query = new Query(resolver, model, { where, meta });
-          const doc = await autograph.resolver.match(base.getModel()).where(where).one();
+          const doc = await autograph.resolver.match(base.getModel()).options({ debug: true }).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
-          // console.timeEnd('createLookupDoc');
 
           // Get parent and container within document
           const { parent, container } = findParentAndContainerCreate(name, doc, input, model, embeds);
 
-          // console.time('createAppendValues');
           return model.appendDefaultValues(input).then(($input) => {
-            // console.timeEnd('createAppendValues');
-            // console.time('createSystemEvent');
             return createSystemEvent('Mutation', { method: 'create', model, resolver: autograph.resolver, query, input: $input, parent, root: doc }, async () => {
-              // console.timeEnd('createSystemEvent');
               let $$input = ensureArray($input.$input || $input);
               $$input = await Promise.all($$input.map(el => model.appendCreateFields(el, true)));
               container.push(...$$input);
               const $update = { [base.getName()]: get(doc, base.getName()) };
-              // console.time('createUpdate');
               return base.getModel().update(doc.id, $update, doc, {}).hydrate(autograph.resolver, query).then(($doc) => {
-                // console.timeEnd('createUpdate');
-                // console.timeEnd('create');
                 return getDeep(doc, fieldPath).pop();
               });
             });

@@ -109,6 +109,21 @@ module.exports = class extends Field {
     })).then(results => uvl(results.pop(), value));
   }
 
+  normalize(value, mapper) {
+    mapper = mapper || {};
+    const modelRef = this.getModelRef();
+    const transformers = [...this.getTransformers()];
+
+    // If we're a modelRef field, need to either id(value) or delegate object to model
+    if (modelRef) {
+      if (!modelRef.isEntity() && isPlainObject(ensureArray(value)[0])) return modelRef.normalize(this.applyTransformers(transformers, value, mapper, !this.isEmbedded()), mapper); // delegate
+      transformers.push(Transformer.toId());
+    }
+
+    // Perform transformation
+    return this.applyTransformers(transformers, value, mapper, !this.isEmbedded());
+  }
+
   transform(value, mapper, serialize, deserialize) {
     mapper = mapper || {};
     const modelRef = this.getModelRef();
@@ -127,11 +142,11 @@ module.exports = class extends Field {
     return this.applyTransformers(transformers, value, mapper);
   }
 
-  applyTransformers(transformers, value, mapper) {
+  applyTransformers(transformers, value, mapper, cast = true) {
     return transformers.reduce((prev, transformer) => {
       const cmp = mapper[transformer.method];
       return transformer(this, prev, cmp);
-    }, this.cast(value));
+    }, cast ? this.cast(value) : value);
   }
 
   validate(value, mapper) {

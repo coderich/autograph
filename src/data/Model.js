@@ -26,17 +26,17 @@ module.exports = class extends Model {
   // CRUD
   get(where, options) {
     this.normalizeOptions(options);
-    return new ResultSet(this, this.driver.dao.get(this.getKey(), this.serialize(where), options));
+    return new ResultSet(this, this.driver.dao.get(this.getKey(), this.normalize(where), options));
   }
 
   find(where = {}, options) {
     this.normalizeOptions(options);
-    return new ResultSet(this, this.driver.dao.find(this.getKey(), this.serialize(where), options));
+    return new ResultSet(this, this.driver.dao.find(this.getKey(), this.normalize(where), options));
   }
 
   count(where = {}, options) {
     this.normalizeOptions(options);
-    return this.driver.dao.count(this.getKey(), this.serialize(where), options);
+    return this.driver.dao.count(this.getKey(), this.normalize(where), options);
   }
 
   create(data, options) {
@@ -177,6 +177,21 @@ module.exports = class extends Model {
       if (field && field.hasBoundValue()) return prev;
       return Object.assign(prev, { [key]: value });
     }, {}));
+  }
+
+  normalize(data, mapper) {
+    return map(data, (obj) => {
+      if (obj == null) return obj;
+
+      return Object.entries(obj).reduce((prev, [key, value]) => {
+        const field = this.getFieldByName(key) || this.getFieldByKey(key);
+        if (!field || !field.isPersistable()) return prev;
+        if (value === undefined) value = obj[field.getKey()];
+        value = field.normalize(value, mapper);
+        if (field.isEmbedded()) value = field.getModelRef().normalize(value, mapper);
+        return Object.assign(prev, { [field.getKey()]: value });
+      }, {}); // Strip away all props not in schema
+    });
   }
 
   serialize(data, mapper) {

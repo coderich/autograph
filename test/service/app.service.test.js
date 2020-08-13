@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const { keyPaths, unravelObject, isPlainObject, isScalarValue, mergeDeep, proxyDeep, getDeep, uniq, hashObject } = require('../../src/service/app.service');
+const { keyPaths, keyPathLeafs, unravelObject, isPlainObject, isScalarValue, mergeDeep, proxyDeep, getDeep, uniq, hashObject } = require('../../src/service/app.service');
 
 const obj1 = { name: 'name1', friends: ['a', 'b', 'c'] };
 const obj2 = { name: 'name2', friends: ['d', 'e', 'f'] };
@@ -83,6 +83,13 @@ describe('AppService', () => {
     expect(keyPaths({ a: { c: 'c' }, b: 'b' })).toEqual(['a.c', 'b']);
     expect(keyPaths({ a: { 'c.d': 'e', c: 'c' }, b: 'b' })).toEqual(['a.c.d', 'a.c', 'b']);
     expect(keyPaths({ 'authored.chapters': { name: 'citizen', 'pages.verbage': '*intro*' } })).toEqual(['authored.chapters.name', 'authored.chapters.pages.verbage']);
+  });
+
+  test('keyPathLeafs', () => {
+    expect(keyPathLeafs({ a: 'a' })).toEqual(['a']);
+    expect(keyPathLeafs({ a: { c: 'c' }, b: 'b' })).toEqual(['b', 'a.c']);
+    expect(keyPathLeafs({ a: { 'c.d': 'e', c: 'c' }, b: 'b' })).toEqual(['b', 'a.c.d']);
+    expect(keyPathLeafs({ 'authored.chapters': { name: 'citizen', 'pages.verbage': '*intro*' } })).toEqual(['authored.chapters.pages.verbage', 'authored.chapters.name']);
   });
 
   test('unravelObject', () => {

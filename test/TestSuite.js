@@ -25,6 +25,7 @@ let bookstore1;
 let bookstore2;
 let library;
 let apartment;
+let artsy;
 
 const sorter = (a, b) => {
   const idA = `${a.id}`;
@@ -175,11 +176,19 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(apartment.building.type).toEqual('home');
         expect(apartment.building.tenants).toEqual([richard.id, christie.id]);
       });
+
+      test('Art', async () => {
+        artsy = await resolver.match('Art').save({ name: 'My Find Art', sections: [{ name: 'Section1' }] });
+        expect(artsy.id).toBeDefined();
+        expect(artsy.sections).toMatchObject([{ name: 'section1' }]);
+        expect(artsy.sections[0].id).toBeDefined();
+      });
     });
 
 
     describe('Get', () => {
       test('Person', async () => {
+        expect(await resolver.match('Person').one()).toBeDefined();
         expect(await resolver.match('Person').id(richard.id).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
         expect(await resolver.match('Person').id(christie.id).one()).toMatchObject({ id: christie.id, name: christie.name, friends: [richard.id], network: 'networkId' });
       });
@@ -187,6 +196,7 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('Book', async () => {
         expect(await resolver.match('Book').id(mobyDick.id).one()).toMatchObject({ id: mobyDick.id, name: 'Moby Dick', author: richard.id });
         expect(await resolver.match('Book').id(healthBook.id).one()).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', author: christie.id });
+        expect(await resolver.match('Book').where({ 'author.id': christie.id }).one()).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', author: christie.id });
       });
 
       test('Chapter', async () => {
@@ -236,6 +246,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Book').where({ price: 9.99 }).many({ find: true })).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick', author: richard.id }]);
         expect(await resolver.match('Book').where({ price: '9.99' }).many({ find: true })).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick', author: richard.id }]);
         expect(await resolver.match('Book').where({ author: christie.id }).many({ find: true })).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness', author: christie.id }]);
+        expect(await resolver.match('Book').where({ 'author.id': christie.id }).many({ find: true })).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness', author: christie.id }]);
         expect(await resolver.match('Book').where({ bestSeller: true }).many({ find: true })).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick', author: richard.id }]);
         expect(await resolver.match('Book').where({ bestSeller: 'TRu?' }).many({ find: true })).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick', author: richard.id }]);
         expect(await resolver.match('Book').where({ bestSeller: 'tru' }).many({ find: true })).toMatchObject([]);
@@ -289,10 +300,21 @@ module.exports = (driver = 'mongo', options = {}) => {
 
       // TODO Embedded tests for non-document databases
       if (driver === 'mongo') {
+        test('BookStore', async () => {
+          expect((await resolver.match('BookStore').where({ 'building.id': bookBuilding }).many()).sort(sorter)).toMatchObject([
+            { id: bookstore1.id, name: 'Best Books Ever', building: expect.objectContaining(bookBuilding) },
+            { id: bookstore2.id, name: 'New Books', building: expect.objectContaining(bookBuilding) },
+          ].sort(sorter));
+        });
+
         test('Apartment', async () => {
           expect((await resolver.match('Apartment').where({ 'building.tenants': 'nobody' }).many({ find: true })).length).toBe(0);
           expect((await resolver.match('Apartment').where({ 'building.year': 1980 }).many({ find: true })).length).toBe(1);
           expect((await resolver.match('Apartment').where({ 'building.tenants': richard.id }).many({ find: true })).length).toBe(1);
+        });
+
+        test('Art', async () => {
+          expect(await resolver.match('Art').where({ 'sections.id': artsy.sections[0].id }).one()).toMatchObject(artsy);
         });
       }
 
@@ -526,6 +548,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Art').id(art.id).one()).not.toBeNull();
         expect(await resolver.match('Art').id(art.id).remove()).toMatchObject({ id: art.id, name: 'Bye Bye' });
         expect(await resolver.match('Art').id(art.id).one()).toBeNull();
+        await resolver.match('Art').id(artsy.id).remove(); // Need to delete it to not mess up later tests
       });
     });
 
