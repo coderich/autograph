@@ -1,4 +1,4 @@
-const { get, set, remove } = require('lodash');
+const { get, set, remove, merge } = require('lodash');
 const GraphqlFields = require('graphql-fields');
 const Boom = require('../core/Boom');
 const Query = require('../query/Query');
@@ -126,7 +126,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
 
           return createSystemEvent('Mutation', { method: 'update', model, resolver: autograph.resolver, query, input, parent, root: doc }, async () => {
             const $input = await model.appendUpdateFields(input);
-            Object.assign(container, $input);
+            merge(container, $input); // Must mutate object here
             const $update = { [base.getName()]: tail };
             doc[base.getName()] = tail; // Deficiency in how update works; must pass entire doc
             return base.getModel().update(doc.id, $update, doc, {}).hydrate(autograph.resolver, query).then(() => container);
@@ -313,7 +313,7 @@ exports.makeUpdateAPI = (name, model, parent) => {
       update${name}(
         id: ID!
         input: ${model.getName()}InputUpdate
-        ${!spliceFields.length ? '' : `splice: ${model.getName()}InputSplice`}
+        # ${!spliceFields.length ? '' : `splice: ${model.getName()}InputSplice`}
         meta: ${model.getMeta()}
       ): ${model.getName()}!
     `;

@@ -47,7 +47,7 @@
   },
   "devDependencies": {
     "@coderich/ratchet": "^1.5.3",
-    "apollo-server": "^2.12.0",
+    "apollo-server": "^2.16.1",
     "graphql-import": "^1.0.2",
     "mongodb": "^3.5.1",
     "mongodb-memory-server": "^6.2.2",
