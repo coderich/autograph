@@ -116,7 +116,7 @@ module.exports = class extends Field {
 
     // If we're a modelRef field, need to either id(value) or delegate object to model
     if (modelRef) {
-      if (!modelRef.isEntity() && isPlainObject(ensureArray(value)[0])) return modelRef.normalize(this.applyTransformers(transformers, value, mapper, !this.isEmbedded()), mapper); // delegate
+      if (!modelRef.isEntity() && isPlainObject(ensureArray(value)[0])) return modelRef.normalize(value, mapper); // delegate
       transformers.push(Transformer.toId());
     }
 

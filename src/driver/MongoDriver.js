@@ -22,7 +22,6 @@ module.exports = class MongoDriver {
   }
 
   query(collection, method, ...args) {
-    // console.log(method, JSON.stringify(args));
     if (get(args, '1.debug')) console.log(method, JSON.stringify(args));
     return this.connection.then(client => client.db().collection(collection)[method](...args));
   }

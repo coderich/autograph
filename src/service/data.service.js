@@ -126,9 +126,7 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', l
       return Object.entries(obj).reduce((p, [k, v]) => {
         const f = ref.getFieldByName(k);
 
-        // if (k === 'id') return Object.assign(p, { [ref]: ref.idValue(v) });
         if (k === 'id') return Object.assign(p, { [k]: ref.idValue(v) });
-        // if (k === 'id') { p.id = ref.idValue(v); return p; }
         if (f.isScalar()) return Object.assign(p, { [k]: v });
         if (f.isEmbedded()) return Object.assign(p, { [k]: resolveEmbeddedWhere(f.getModelRef(), k, v) });
         return Object.assign(p, { [k]: v });
