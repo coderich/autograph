@@ -26,6 +26,8 @@ module.exports = class Schema extends Node {
   initialize() {
     const definitions = this.ast.definitions.map(d => new Node(d));
     this.models = definitions.filter(d => d.isModel()).map(d => new Model(this, d.getAST()));
+    this.modelsByName = this.models.reduce((prev, model) => Object.assign(prev, { [model.getName()]: model }), {});
+    this.modelsByKey = this.models.reduce((prev, model) => Object.assign(prev, { [model.getKey()]: model }), {});
     this.inputs = definitions.filter(d => d.isInput()).map(d => new Model(this, d.getAST()));
     this.scalars = definitions.filter(d => d.isScalar());
     this.enums = definitions.filter(d => d.isEnum());
@@ -49,9 +51,7 @@ module.exports = class Schema extends Node {
   }
 
   getModel(name) {
-    let model = this.getModels().find(m => m.getName() === name);
-    if (!model) model = this.getModels().find(m => m.getKey() === name);
-    return model;
+    return this.modelsByName[name] || this.modelsByKey[name];
   }
 
   getModels() {

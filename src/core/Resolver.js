@@ -6,7 +6,7 @@ const QueryBuilder = require('../query/QueryBuilder');
 const TxnQueryBuilder = require('../query/TransactionQueryBuilder');
 const QueryWorker = require('../query/QueryWorker');
 const Query = require('../query/Query');
-const { hashCacheKey } = require('../service/app.service');
+const { hashCacheKey, hashObject } = require('../service/app.service');
 const Rule = require('./Rule');
 
 let count = 0;
@@ -213,36 +213,31 @@ module.exports = class Resolver {
       // const methods = [...new Set(keys.map(k => k.method))];
 
       // if (keys.length > 10 && methods.length === 1 && methods[0] === 'get') {
-      //   let index = -1;
-      //   let prevHash = '';
       //   const hashKey = ({ model, query, args }) => hashObject({ model: `${model}`, where: query.getWhere(), args });
 
       //   const batches = keys.reduce((prev, key) => {
       //     const hash = hashKey(key);
-
-      //     if (hash === prevHash) {
-      //       prev[index].push(key);
-      //     } else {
-      //       prev.push([key]);
-      //       prevHash = hash;
-      //       index++;
-      //     }
-
+      //     prev[hash] = prev[hash] || [];
+      //     prev[hash].push(key);
       //     return prev;
-      //   }, []);
+      //   }, {});
 
-      //   return Promise.all(batches.map((batch) => {
-      //     const [{ query, model, args }] = batch;
+      //   return Promise.all(Object.values(batches).map((batch, i) => {
+      //     const [{ query, model, args }] = batch; // First is ok, they should all be the same
       //     const ids = batch.map(key => key.query.getId());
       //     const where = Object.assign(query.getWhere(), { id: ids });
 
       //     return this.worker.find(new Query(this, model, { where }), ...args).then((results) => {
       //       return ids.map((id) => {
-      //         return results.find(r => `${r.id}` === `${id}`);
+      //         return { key: batch.find(b => `${b.query.getId()}` === `${id}`), value: results.find(r => `${r.id}` === `${id}`) };
       //       });
       //     });
       //   })).then((results) => {
-      //     return flatten(results);
+      //     const data = flatten(results);
+
+      //     return keys.map((key) => {
+      //       return data.find(d => d.key === key).value;
+      //     });
       //   });
       // }
 

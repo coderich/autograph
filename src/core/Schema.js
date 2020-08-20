@@ -48,6 +48,8 @@ module.exports = class extends Schema {
   createModels() {
     this.models = super.getModels().map(model => new Model(this, model, this.drivers[model.getDriverName()]));
     this.models.forEach(model => model.referentialIntegrity(identifyOnDeletes(this.models, model)));
+    this.modelsByName = this.models.reduce((prev, model) => Object.assign(prev, { [model.getName()]: model }), {});
+    this.modelsByKey = this.models.reduce((prev, model) => Object.assign(prev, { [model.getKey()]: model }), {});
   }
 
   getSchema(silent) {

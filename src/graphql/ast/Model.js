@@ -6,6 +6,8 @@ module.exports = class Model extends Node {
     super(ast, 'model');
     this.schema = schema;
     this.fields = this.ast.fields.map(f => new Field(this, f));
+    this.fieldsByName = {};
+    this.fieldsByKey = {};
   }
 
   getSchema() {
@@ -31,11 +33,25 @@ module.exports = class Model extends Node {
   }
 
   getFieldByName(name) {
-    return this.getFields().find(f => f.getName() === name);
+    let field = this.fieldsByName[name];
+
+    if (!field) {
+      field = this.getFields().find(f => f.getName() === name);
+      this.fieldsByName[name] = field;
+    }
+
+    return field;
   }
 
   getFieldByKey(key) {
-    return this.getFields().find(f => f.getKey() === key);
+    let field = this.fieldsByKey[key];
+
+    if (!field) {
+      field = this.getFields().find(f => f.getKey() === key);
+      this.fieldsByKey[key] = field;
+    }
+
+    return field;
   }
 
   getFieldNames() {
