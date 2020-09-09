@@ -17,7 +17,7 @@ const typeDefs = `
 
   type Person @model {
     name: String! @field(transform: [toTitleCase, toUpperCase], default: "idk")
-    authored: [Book]
+    authored: [Book!]
     emailAddress: String!
     status: Mixed
   }

@@ -26,13 +26,13 @@ exports.areMergeableASTs = (a, b) => {
   return Boolean(sameKind && sameName);
 };
 
-exports.getTypeInfo = (ast, info = {}) => {
+exports.getTypeInfo = (ast, info = {}, traverse = true) => {
   const { type } = ast;
   if (!type) return info;
   if (type.name) info.name = type.name.value;
   if (type.kind === Kind.LIST_TYPE) info.isArray = true;
   if (type.kind === Kind.NON_NULL_TYPE) info.isRequired = true;
-  return exports.getTypeInfo(type, info);
+  return traverse ? exports.getTypeInfo(type, info) : info;
 };
 
 exports.mergeAST = (astLike) => {

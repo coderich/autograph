@@ -12,8 +12,8 @@ module.exports = class Type extends Node {
     return Boolean(getTypeInfo(this.ast).isArray);
   }
 
-  isRequired() {
-    return Boolean(getTypeInfo(this.ast).isRequired);
+  isRequired(debug) {
+    return Boolean(getTypeInfo(this.ast, {}, false).isRequired);
   }
 
   isArrayElementRequired() {

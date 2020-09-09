@@ -2,11 +2,11 @@ Release 0.3:
   * DataLoaders are not being used propertly - need re-architecture
   * DAO should be a wrapper that makes Exectuable GraphQL Query calls!
     - Funnel everything through the resolver which can be overridden by the developer
-  ! Where clause bug (id vs other params)
 
 Bug:
-  * Where clause 'nested.id' does not work
   * Where clause with .one({ required: true }) does not work
+  * Nested embedded object in array cannot delete without doing an explicit $pull operation (race condition)
+    - Drivers need concept of push and pull
 
 Now:
   * Pagination should pass limit & sort to dao if possible
