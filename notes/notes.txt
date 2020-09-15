@@ -8,9 +8,13 @@ Bug:
   * Nested embedded object in array cannot delete without doing an explicit $pull operation (race condition)
     - Drivers need concept of push and pull
 
-Now:
+Performance:
   * Pagination should pass limit & sort to dao if possible
-    - Also idea of push | pull on the driver would be ideal
+    - Can all queries default sort by _id? Is this the Mongo default thing to do?
+  * Post-Query hydration needs to be faster
+
+Now:
+  * Idea of push | pull on the driver would be ideal
   * Can you add resolver to context.autograph yourself? (not require it to be done externally)
   * Need idea of archive/soft-delete to remove from resultSet
 
