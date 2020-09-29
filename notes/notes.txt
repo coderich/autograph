@@ -19,6 +19,7 @@ Now:
   * Need idea of archive/soft-delete to remove from resultSet
 
 Next:
+  * Can you make the db queries plug-n-play; is that more useful than just defining your own resolver?
   * GraphQL test does not go through in-memory-mongo
   * Support @value on Model itself
   * Directive param validation

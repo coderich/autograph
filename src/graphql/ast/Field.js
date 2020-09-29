@@ -104,7 +104,7 @@ module.exports = class Field extends Node {
   }
 
   isRequired() {
-    return this.type.isRequired() && this.getName() !== 'id';
+    return this.type.isRequired() && this.getType() !== 'ID';
   }
 
   isReference() {
