@@ -189,7 +189,9 @@ module.exports = class Resolver {
 
   // Helpers
   toModel(model) {
-    return model instanceof Model ? model : this.schema.getModel(model);
+    const $model = model instanceof Model ? model : this.schema.getModel(model);
+    $model.setResolver(this);
+    return $model;
   }
 
   toModelMarked(model) {

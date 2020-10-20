@@ -47,6 +47,14 @@ exports.pushIt = (arr, it) => arr[arr.push(it) - 1];
 exports.toKeyObj = obj => exports.keyPaths(obj).reduce((prev, path) => Object.assign(prev, { [path]: _.get(obj, path) }), {});
 exports.hashCacheKey = ({ method, model, query, args }) => exports.hashObject({ method, model: `${model}`, query: query.getCacheKey(), args });
 
+exports.removeUndefinedDeep = (obj) => {
+  return exports.unravelObject(exports.keyPaths(obj).reduce((prev, path) => {
+    const value = _.get(obj, path);
+    if (value === undefined) return prev;
+    return Object.assign(prev, { [path]: value });
+  }, {}));
+};
+
 exports.renameObjectKey = (obj, oldKey, newKey) => {
   if (oldKey !== newKey) {
     Object.defineProperty(obj, newKey, Object.getOwnPropertyDescriptor(obj, oldKey));

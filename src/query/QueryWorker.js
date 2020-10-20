@@ -1,5 +1,5 @@
 const Boom = require('../core/Boom');
-const { mergeDeep } = require('../service/app.service');
+const { mergeDeep, removeUndefinedDeep } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
 const { resolveModelWhereClause, resolveReferentialIntegrity, sortData, filterDataByCounts, paginateResults, spliceEmbeddedArray } = require('../service/data.service');
 
@@ -95,12 +95,12 @@ module.exports = class QueryWorker {
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
 
     // Set default values for update
-    const merged = mergeDeep(doc, input);
+    const merged = mergeDeep(doc, removeUndefinedDeep(input));
 
     return createSystemEvent('Mutation', { method: 'update', model, resolver, query, input, doc, merged }, async () => {
       input = await model.appendUpdateFields(input);
       await model.validateData(input, doc, 'update');
-      return model.update(id, input, mergeDeep(doc, input), options).hydrate(resolver, query);
+      return model.update(id, input, mergeDeep(doc, removeUndefinedDeep(input)), options).hydrate(resolver, query);
     });
   }
 
@@ -109,11 +109,11 @@ module.exports = class QueryWorker {
     const [id, model, options] = [query.getId(), query.getModel(), query.getOptions()];
     const doc = await resolver.match(model).id(id).options(options).one({ required: true });
     const data = await spliceEmbeddedArray(query, doc, key, from, to);
-    const merged = mergeDeep(doc, data);
+    const merged = mergeDeep(doc, removeUndefinedDeep(data));
 
     return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, input: data, doc, merged }, async () => {
       await model.validateData(data, doc, 'update');
-      return model.update(id, data, mergeDeep(doc, data), options).hydrate(resolver, query);
+      return model.update(id, data, mergeDeep(doc, removeUndefinedDeep(data)), options).hydrate(resolver, query);
     });
   }
 

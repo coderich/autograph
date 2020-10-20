@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const { keyPaths, keyPathLeafs, unravelObject, isPlainObject, isScalarValue, mergeDeep, proxyDeep, getDeep, uniq, hashObject } = require('../../src/service/app.service');
+const { keyPaths, keyPathLeafs, unravelObject, isPlainObject, isScalarValue, mergeDeep, proxyDeep, getDeep, uniq, hashObject, removeUndefinedDeep } = require('../../src/service/app.service');
 
 const obj1 = { name: 'name1', friends: ['a', 'b', 'c'] };
 const obj2 = { name: 'name2', friends: ['d', 'e', 'f'] };
@@ -116,5 +116,12 @@ describe('AppService', () => {
     expect(proxy.workplace.obj1).toEqual({ name: 1, friends: [1, 1, 1] });
     expect(proxy.family[0]).toEqual({ name: 1, friends: [1, 1, 1] });
     expect(trapFn).toHaveBeenCalledTimes(31);
+  });
+
+  test('removeUndefinedDeep', () => {
+    expect({ a: undefined }).toEqual({});
+    expect(removeUndefinedDeep({ a: 1 })).toEqual({ a: 1 });
+    expect(removeUndefinedDeep({ a: undefined })).toEqual({});
+    expect(removeUndefinedDeep({ a: { b: 'b', c: false, d: undefined } })).toEqual({ a: { b: 'b', c: false } });
   });
 });

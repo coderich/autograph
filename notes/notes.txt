@@ -1,3 +1,7 @@
+***
+The flow is all wrong for SystemEvents; if someone overrides say the "create" mutation then the event is missing information (such as meta) to be appended to the Query
+***
+
 Release 0.3:
   * DataLoaders are not being used propertly - need re-architecture
   * DAO should be a wrapper that makes Exectuable GraphQL Query calls!
@@ -7,8 +11,10 @@ Bug:
   * Where clause with .one({ required: true }) does not work
   * Nested embedded object in array cannot delete without doing an explicit $pull operation (race condition)
     - Drivers need concept of push and pull
+  * deserialize should set default values if undefined
 
 Performance:
+  * Select as alias/key can be done at the driver level (not require transformation during hydration)
   * Pagination should pass limit & sort to dao if possible
     - Can all queries default sort by _id? Is this the Mongo default thing to do?
   * Post-Query hydration needs to be faster
