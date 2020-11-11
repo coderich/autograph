@@ -1,3 +1,4 @@
+const { get } = require('lodash');
 const Axios = require('axios');
 const Neo4j = require('neo4j-driver');
 const { promiseChain, globToRegex, proxyDeep, isScalarValue } = require('../service/app.service');
@@ -10,6 +11,10 @@ class Cypher {
 
   getConfig() {
     return this.config;
+  }
+
+  getDirectives() {
+    return get(this.config, 'directives', {});
   }
 
   get(model, where, options) {

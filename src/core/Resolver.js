@@ -131,7 +131,7 @@ module.exports = class Resolver {
         get exec() {
           return () => {
             return Promise.all(Array.from(driverMap.entries()).map(([driver, ops]) => {
-              if (driver.getConfig().transactions === false) {
+              if (driver.getDirectives().transactions === false) {
                 return Promise.all(ops.map(op => op.exec())).then((results) => {
                   results.$commit = () => resolver.clearAll();
                   results.$rollback = () => resolver.clearAll();

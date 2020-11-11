@@ -1,5 +1,6 @@
 // const Neo4j = require('neodb');
 // const Redis = require('redis-mock');
+const { set } = require('lodash');
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { timeout } = require('../src/service/app.service');
 const Schema = require('../src/core/Schema');
@@ -59,7 +60,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         }
         default: {
           if (options.transactions === false) {
-            stores.default.transactions = false;
+            set(stores.default, 'directives.transactions', false);
           } else {
             const mongoServer = new MongoMemoryReplSet({ replSet: { storageEngine: 'wiredTiger' } });
             await mongoServer.waitUntilRunning();

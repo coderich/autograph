@@ -13,12 +13,17 @@ module.exports = class MongoDriver {
     return this.config;
   }
 
+  getDirectives() {
+    return get(this.config, 'directives', {});
+  }
+
   connect() {
-    return MongoClient.connect(this.config.uri, {
-      useNewUrlParser: true,
-      // useUnifiedTopology: true,
-      tlsInsecure: true,
-    });
+    return MongoClient.connect(this.config.uri, this.config.options);
+    // return MongoClient.connect(this.config.uri, {
+    //   useNewUrlParser: true,
+    //   // useUnifiedTopology: true,
+    //   tlsInsecure: true,
+    // });
   }
 
   query(collection, method, ...args) {
@@ -31,7 +36,7 @@ module.exports = class MongoDriver {
   }
 
   find(model, where = {}, options) {
-    const { version = 0 } = this.config;
+    const { version = 0 } = this.getDirectives();
     MongoDriver.normalizeOptions(options);
     const $where = this.normalizeWhereAggregation(model, this.schema, where);
     if (version >= 4) return this.query(model, 'aggregate', $where, options).then(results => results.toArray());
@@ -39,7 +44,7 @@ module.exports = class MongoDriver {
   }
 
   count(model, where = {}, options) {
-    const { version = 0 } = this.config;
+    const { version = 0 } = this.getDirectives();
     MongoDriver.normalizeOptions(options);
     const $where = this.normalizeWhereAggregation(model, this.schema, where, true);
     if (version >= 4) return this.query(model, 'aggregate', $where, options).then(cursor => cursor.next().then(data => (data ? data.count : 0)));
@@ -128,7 +133,7 @@ module.exports = class MongoDriver {
     const model = schema.getModel(modelName);
     const $match = MongoDriver.normalizeWhere(where);
 
-    const { version = 0 } = this.config;
+    const { version = 0 } = this.getDirectives();
     if (version < 4) return $match;
 
     // Determine which fields need to be cast for the query

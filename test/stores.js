@@ -6,6 +6,7 @@ module.exports = {
   default: {
     type: 'mongo',
     uri: 'mongodb://localhost/autograph',
-    version: 4,
+    options: { useNewUrlParser: true, tlsInsecure: true },
+    directives: { version: 4 },
   },
 };
