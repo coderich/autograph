@@ -1,3 +1,3 @@
 const TestSuite = require('../TestSuite');
 
-TestSuite('mongo', { transactions: false });
+TestSuite('default', { transactions: false });

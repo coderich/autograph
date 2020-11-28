@@ -1,5 +1,4 @@
 const Model = require('../data/Model');
-const Drivers = require('../driver');
 const Schema = require('../graphql/ast/Schema');
 const apiExt = require('../graphql/extension/api');
 const typeExt = require('../graphql/extension/type');
@@ -14,8 +13,7 @@ module.exports = class extends Schema {
 
     // Create drivers
     this.drivers = Object.entries(stores).reduce((prev, [key, value]) => {
-      const { type } = value;
-      const Driver = Drivers.require(type);
+      const { Driver } = value;
 
       return Object.assign(prev, {
         [key]: {

@@ -2,10 +2,8 @@
 The flow is all wrong for SystemEvents; if someone overrides say the "create" mutation then the event is missing information (such as meta) to be appended to the Query
 ***
 
-Release 0.4:
+Release 0.5:
   * DataLoaders are not being used propertly - need re-architecture
-  * DAO should be a wrapper that makes Exectuable GraphQL Query calls!
-    - Funnel everything through the resolver which can be overridden by the developer
 
 Bug:
   * Where clause with .one({ required: true }) does not work

@@ -8,6 +8,7 @@ const Resolver = require('../src/core/Resolver');
 const gql = require('./fixtures/schema');
 const stores = require('./stores');
 
+
 let resolver;
 let richard;
 let christie;
@@ -36,38 +37,22 @@ const sorter = (a, b) => {
   return 0;
 };
 
-module.exports = (driver = 'mongo', options = {}) => {
+module.exports = (driver = 'default', options = {}) => {
   describe(`${driver} (${JSON.stringify(options)})`, () => {
     beforeAll(async () => {
       jest.setTimeout(60000);
 
-      // Start in-memory db
-      switch (driver) {
-        case 'redis': {
-          // const redisClient = Redis.createClient();
-          stores.default.type = 'redis';
-          break;
-        }
-        case 'neo4jDriver': {
-          stores.default.type = 'neo4jDriver';
-          stores.default.uri = 'bolt://localhost';
-          break;
-        }
-        case 'neo4jRest': {
-          stores.default.type = 'neo4jRest';
-          stores.default.uri = 'http://localhost:7474';
-          break;
-        }
-        default: {
-          if (options.transactions === false) {
-            set(stores.default, 'directives.transactions', false);
-          } else {
-            const mongoServer = new MongoMemoryReplSet({ replSet: { storageEngine: 'wiredTiger' } });
-            await mongoServer.waitUntilRunning();
-            stores.default.uri = await mongoServer.getUri();
-          }
-          // stores.default.uri = await mongoServer.getConnectionString();
-          break;
+      // Switch the default driver for testing
+      stores.default = stores[driver];
+
+      // If default/mongo; start in memory server unless we have to test transactions false
+      if (driver === 'default') {
+        if (options.transactions === false) {
+          set(stores.default, 'directives.transactions', false);
+        } else {
+          const mongoServer = new MongoMemoryReplSet({ replSet: { storageEngine: 'wiredTiger' } });
+          await mongoServer.waitUntilRunning();
+          stores.default.uri = await mongoServer.getUri();
         }
       }
 
