@@ -19,11 +19,6 @@ module.exports = class MongoDriver {
 
   connect() {
     return MongoClient.connect(this.config.uri, this.config.options);
-    // return MongoClient.connect(this.config.uri, {
-    //   useNewUrlParser: true,
-    //   // useUnifiedTopology: true,
-    //   tlsInsecure: true,
-    // });
   }
 
   query(collection, method, ...args) {

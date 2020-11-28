@@ -2,7 +2,7 @@
 The flow is all wrong for SystemEvents; if someone overrides say the "create" mutation then the event is missing information (such as meta) to be appended to the Query
 ***
 
-Release 0.3:
+Release 0.4:
   * DataLoaders are not being used propertly - need re-architecture
   * DAO should be a wrapper that makes Exectuable GraphQL Query calls!
     - Funnel everything through the resolver which can be overridden by the developer
@@ -26,7 +26,6 @@ Now:
 
 Next:
   * Can you make the db queries plug-n-play; is that more useful than just defining your own resolver?
-  * GraphQL test does not go through in-memory-mongo
   * Support @value on Model itself
   * Directive param validation
   * Take a look at all Mongoose options/features (eg. minimize)
@@ -38,7 +37,6 @@ Next:
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
 
 Enhancements:
-  * Serialize/Deserialize Transformers
   * ID Value Strategy (MongoID, String, etc)
   * Lodash Transformers
   * Create person with books at the same time

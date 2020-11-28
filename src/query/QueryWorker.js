@@ -20,12 +20,10 @@ module.exports = class QueryWorker {
     const { resolver } = this;
     const [model, id, options] = [query.getModel(), query.getId(), query.getOptions()];
 
-    // Construct where clause
-    const where = { id: model.idValue(id) };
-    const $where = await model.resolveBoundValues(where);
-    const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
-
     return createSystemEvent('Query', { method: 'get', model, resolver, query }, async () => {
+      const where = { id: model.idValue(id) };
+      const $where = await model.resolveBoundValues(where);
+      const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
       const doc = await model.get(resolvedWhere, options).hydrate(resolver, query);
       if (!doc && required) throw Boom.notFound(`${model} Not Found`);
       if (doc == null) return null;
@@ -82,7 +80,7 @@ module.exports = class QueryWorker {
     input = await model.appendDefaultValues(input);
 
     return createSystemEvent('Mutation', { method: 'create', model, resolver, query, input }, async () => {
-      input = await model.appendCreateFields(input); // Now create fields (give a change to alter input)
+      input = await model.appendCreateFields(input); // Now create fields (give a chance to alter input)
       await model.validateData(input, {}, 'create');
       return model.create(input, options).hydrate(resolver, query);
     });

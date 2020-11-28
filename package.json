@@ -21,6 +21,7 @@
   "scripts": {
     "start": "APP_ROOT_PATH=$(pwd) node ./test/server",
     "test": "APP_ROOT_PATH=$(pwd) ratchet test",
+    "test:debug": "APP_ROOT_PATH=$(pwd) node --inspect-brk ./node_modules/jest/bin/jest.js --watch --runInBand",
     "lint": "APP_ROOT_PATH=$(pwd) ratchet lint",
     "ratchet": "ratchet"
   },

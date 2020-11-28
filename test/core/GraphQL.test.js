@@ -2,6 +2,7 @@ const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const GraphQL = require('../../src/core/GraphQL');
 const Schema = require('../../src/core/Schema');
 const Resolver = require('../../src/core/Resolver');
+const { eventEmitter } = require('../../src/service/event.service');
 const gqlSchema = require('../fixtures/schema');
 const stores = require('../stores');
 
@@ -36,6 +37,12 @@ describe('GraphQL', () => {
         }) {
           id
           name
+          emailAddress
+          telephone
+          authored {
+            name
+            price
+          }
         }
       }
     `);
@@ -44,6 +51,41 @@ describe('GraphQL', () => {
     expect(result.data).toBeDefined();
     expect(result.errors).not.toBeDefined();
     expect(result.data.createPerson.id).toBeDefined();
-    expect(result.data.createPerson.name).toBe('Graphql');
+    expect(result.data.createPerson.name).toBe('Graphql'); // Titlecase
+  });
+
+  test('exec with systemEvent override', async () => {
+    expect(schema).toBeDefined();
+    expect(graphql).toBeDefined();
+    expect(resolver).toBeDefined();
+
+    // Listen for event (change result)
+    eventEmitter.onKeys('preMutation', ['createPersony', 'createPerson'], (event, next) => {
+      next({ id: 1, name: 'NewName', emailAddress: 'emailAddress' });
+    });
+
+    const result = await graphql.exec(`
+      mutation {
+        createPerson(input: {
+          name: "GraphQL"
+          emailAddress: "graphql@gmail.com"
+        }) {
+          id
+          name
+          emailAddress
+          telephone
+          authored {
+            name
+            price
+          }
+        }
+      }
+    `);
+
+    expect(result).toBeDefined();
+    expect(result.data).toBeDefined();
+    expect(result.errors).not.toBeDefined();
+    expect(result.data.createPerson.id).toBeDefined();
+    expect(result.data.createPerson.name).toBe('Newname'); // Title case
   });
 });

@@ -93,6 +93,10 @@ module.exports = class extends Model {
   setResolver(resolver) { this.resolver = resolver; }
   //
 
+  createResultSet(results) {
+    return new ResultSet(this, results);
+  }
+
   createNamedQuery(name, fn) {
     this.namedQueries[name] = fn;
   }

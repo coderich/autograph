@@ -12,6 +12,10 @@ module.exports = class {
     // });
   }
 
+  /**
+   * This looks to be responsible for sorting the results.
+   * Since the sort can be on anything, there may be a need to "resolve" the path first
+   */
   async hydrate(resolver, query) {
     return this.getResults(resolver, query).then(async (results) => {
       const paths = [...new Set([...keyPaths(query.getSortFields())])]; // Only need sortFields for hydrating (get rid of this)
@@ -30,15 +34,17 @@ module.exports = class {
     });
   }
 
+  /**
+   * Will await results, deserialize, and return a DataResolver per document.
+   * DataResolver has the smarts to resolve $attributes (make additional db calls)
+   */
   getResults(resolver, query) {
     return this.promise.then((results) => {
-      // console.time('hydrate');
       return mapPromise(results, (result) => {
         return Promise.resolve(this.model.deserialize(result)).then((doc) => {
           return makeDataResolver(doc, this.model, resolver, query);
         });
       }).then((data) => {
-        // console.timeEnd('hydrate');
         return data;
       });
     });

@@ -8,12 +8,12 @@ const internalEmitter = new EventEmitter();
 const systemEvent = new EventEmitter().on('system', async (event, next) => {
   const { type, data } = event;
   await internalEmitter.emit(type, data);
-  await eventEmitter.emit(type, data);
-  next();
+  next((await eventEmitter.emit(type, data)).reduce((prev, curr) => (curr === undefined ? prev : curr), undefined));
 });
 
 //
 exports.createSystemEvent = (name, event = {}, thunk = () => {}) => {
+  const { resolver, model, query } = event;
   const type = ucFirst(name);
 
   if (name !== 'Setup') {
@@ -22,7 +22,11 @@ exports.createSystemEvent = (name, event = {}, thunk = () => {}) => {
     event.key = `${event.method}${event.model}`;
   }
 
-  return systemEvent.emit('system', { type: `pre${type}`, data: event }).then(() => thunk()).then((result) => {
+  return systemEvent.emit('system', { type: `pre${type}`, data: event }).then((results) => {
+    const result = results.reduce((prev, curr) => (curr === undefined ? prev : curr), undefined);
+    if (result !== undefined) return model.createResultSet(Promise.resolve(result)).hydrate(resolver, query); // Allow override of thunk via next(result) call
+    return thunk();
+  }).then((result) => {
     event.doc = result;
     return systemEvent.emit('system', { type: `post${type}`, data: event }).then(() => result);
   });
