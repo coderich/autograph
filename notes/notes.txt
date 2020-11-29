@@ -1,15 +1,20 @@
-***
-The flow is all wrong for SystemEvents; if someone overrides say the "create" mutation then the event is missing information (such as meta) to be appended to the Query
-***
-
 Release 0.5:
-  * DataLoaders are not being used propertly - need re-architecture
+  * Incorporate Logger
+  * Bug: id field does not exist on the schema until schema.getServerApiSchema() is called; move these default schema types to creation of schema instance; leave the rest of the API in the schema.getServerApiSchema() call.
+  * You know EventEmitter wants to emit Query (will be a breaking change so consider when to do it)
+  * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right; what about context?, Query?)
+  * deserialize should set default values if undefined
+  * Can you add resolver to context.autograph yourself? (not require it to be done externally)
+  * Can you make Emitter events part of a transaction? pre vs post can be confusing... especially for data validation etc.
+  ---------
+  1) Must pass in "Driver" class inside stores.js
+  2) Should NOT create schema.js overriding resolvers (use @annotations etc instead)
 
 Bug:
   * Where clause with .one({ required: true }) does not work
   * Nested embedded object in array cannot delete without doing an explicit $pull operation (race condition)
     - Drivers need concept of push and pull
-  * deserialize should set default values if undefined
+  * DataLoaders are not being used propertly - need re-architecture
 
 Performance:
   * Select as alias/key can be done at the driver level (not require transformation during hydration)
@@ -19,19 +24,15 @@ Performance:
 
 Now:
   * Idea of push | pull on the driver would be ideal
-  * Can you add resolver to context.autograph yourself? (not require it to be done externally)
   * Need idea of archive/soft-delete to remove from resultSet
 
 Next:
-  * Can you make the db queries plug-n-play; is that more useful than just defining your own resolver?
   * Support @value on Model itself
-  * Directive param validation
+  * Framework directive param validation
   * Take a look at all Mongoose options/features (eg. minimize)
   * Neo4j does not know how to generate ids
   * Deserialization and ids (_id) and code throughout (remove _id in deserlialization if possible)
-  * You know EventEmitter wants to emit Query (will be a breaking change so consider when to do it)
   * How do you handle the hydrate() problem? QueryWorker is hydrating, what about concept of returning ResultSet and letting user hydrate() or populate() from resolver?
-  * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right)
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
 
 Enhancements:
@@ -49,11 +50,8 @@ Enhancements:
     - Answer: crud: "cu"
 
 Todo:
-  * Incorporate Logger
-  * Drivers have to be more like Adapters (Let other's implement - REST API etc)
   * MeteorUser _id is a String (not ID). How to handle?
     - How about expicit ID definition?
-  * Can you make Emitter events part of a transaction? pre vs post can be confusing... especially for data validation etc.
   * Currently there is no way to count regular elements of an array (try to count bids)
   * Allow Field and Model to be extended (directive fields)
   * Are you able to flatten fields? (ie. firstName, lastName but save to profile.firstName, profile.lastName in DB)

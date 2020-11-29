@@ -34,11 +34,11 @@ class Cypher {
   }
 
   create(model, data, options) {
-    return this.query(`CREATE (n:${model} { ${Object.keys(data).map(k => `${k}:{${k}}`)} }) SET n.id = id(n) RETURN n`, data, options).then(docs => docs[0]);
+    return this.query(`CREATE (n:${model} { ${Cypher.spreadData(data, ':')} }) SET n.id = id(n) RETURN n`, data, options).then(docs => docs[0]);
   }
 
   update(model, id, data, doc, options) {
-    return this.query(`MATCH (n:${model}) WHERE n.id = { id } SET ${Object.keys(doc).map(k => `n.${k}={${k}}`)} RETURN n`, { id, ...doc }, options).then(docs => docs[0]);
+    return this.query(`MATCH (n:${model}) WHERE n.id = { id } SET ${Cypher.spreadData(data, '=', 'n')} RETURN n`, { id, ...doc }, options).then(docs => docs[0]);
   }
 
   delete(model, id, doc, options) {
@@ -68,6 +68,14 @@ class Cypher {
     return Number(value);
   }
 
+  static spreadData(data, seperator, node) {
+    return Object.entries(data).map(([k, v]) => {
+      let val = `{${k}}`;
+      if (Number.isInteger(v)) val = `toInteger(${val})`;
+      return `${node ? `${node}.` : ''}${k}${seperator}${val}`;
+    });
+  }
+
   static normalizeWhereClause(where) {
     const $params = {};
 
@@ -86,6 +94,10 @@ class Cypher {
           return `toString(n.${prop}) =~ {${prop}}`;
         }
 
+        // if (Number.isInteger(value)) {
+        //   $params[prop] = value;
+        //   return `toInteger(n.${prop}) = {${prop}}`;
+        // }
         $params[prop] = value;
         return `n.${prop} = {${prop}}`;
       },

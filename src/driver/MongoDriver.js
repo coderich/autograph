@@ -133,16 +133,17 @@ module.exports = class MongoDriver {
 
     // Determine which fields need to be cast for the query
     const fields = model.getSelectFields().filter((field) => {
-      const fieldName = field.getName();
+      const fieldName = field.getKey();
       const val = where[fieldName];
       const type = field.getDataType();
+      if (val === undefined) return false;
       if (!isScalarDataType(type)) return false;
       const stype = String((type === 'Float' || type === 'Int' ? 'Number' : type)).toLowerCase();
       if (String(typeof val) === `${stype}`) return false;
       return true;
     });
 
-    const $addFields = fields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: { $toString: `$${field.getName()}` } }), {});
+    const $addFields = fields.reduce((prev, field) => Object.assign(prev, { [field.getKey()]: { $toString: `$${field.getKey()}` } }), {});
     if (Object.keys($addFields).length) $agg.push({ $addFields });
     $agg.push({ $match });
     if (count) $agg.push({ $count: 'count' });

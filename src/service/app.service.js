@@ -27,7 +27,8 @@ exports.ucFirst = string => string.charAt(0).toUpperCase() + string.slice(1);
 exports.lcFirst = string => string.charAt(0).toLowerCase() + string.slice(1);
 exports.isPlainObject = obj => obj != null && typeof obj === 'object' && !Array.isArray(obj) && !(obj instanceof ObjectID) && !(obj instanceof Date);
 exports.isScalarValue = value => typeof value !== 'object' && typeof value !== 'function';
-exports.isScalarDataType = value => ['ID', 'String', 'Float', 'Int', 'Boolean', 'DateTime'].indexOf(value) > -1;
+exports.isScalarDataType = value => ['String', 'Float', 'Int', 'Boolean', 'DateTime'].indexOf(value) > -1;
+exports.isNumber = value => typeof value === 'number' && Number.isFinite(value);
 exports.isIdValue = value => exports.isScalarValue(value) || value instanceof ObjectID;
 exports.mergeDeep = (...args) => DeepMerge.all(args, { isMergeableObject: obj => (exports.isPlainObject(obj) || Array.isArray(obj)), arrayMerge: overwriteMerge });
 exports.mergeDeepAll = (...args) => DeepMerge.all(args, { isMergeableObject: obj => (exports.isPlainObject(obj) || Array.isArray(obj)), arrayMerge: combineMerge });
@@ -43,6 +44,7 @@ exports.ensureArray = a => (Array.isArray(a) ? a : [a].filter(el => el !== undef
 exports.uvl = (...values) => values.reduce((prev, value) => (prev === undefined ? value : prev), undefined);
 exports.nvl = (...values) => values.reduce((prev, value) => (prev === null ? value : prev), null);
 exports.stripObjectNulls = obj => Object.entries(obj).reduce((prev, [key, value]) => (value == null ? prev : Object.assign(prev, { [key]: value })), {});
+exports.stripObjectUndefineds = obj => Object.entries(obj).reduce((prev, [key, value]) => (value === undefined ? prev : Object.assign(prev, { [key]: value })), {});
 exports.pushIt = (arr, it) => arr[arr.push(it) - 1];
 exports.toKeyObj = obj => exports.keyPaths(obj).reduce((prev, path) => Object.assign(prev, { [path]: _.get(obj, path) }), {});
 exports.hashCacheKey = ({ method, model, query, args }) => exports.hashObject({ method, model: `${model}`, query: query.getCacheKey(), args });
@@ -97,8 +99,8 @@ exports.castCmp = (type, value) => {
       return value;
     }
     case 'Int': {
-      const num = parseInt(value, 10);
-      if (!Number.isNaN(num)) return num;
+      const num = Number(value);
+      if (!Number.isNaN(num)) return parseInt(value, 10);
       return value;
     }
     case 'Boolean': {

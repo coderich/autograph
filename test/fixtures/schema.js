@@ -16,6 +16,7 @@ module.exports = {
       @model(meta: "PersonInputMeta")
       @index(name: "uix_person_name", type: unique, on: [name])
     {
+      age: Int @field(key: "my_age")
       name: String! @field(transform: toTitleCase)
       authored: [Book] @link(by: author)
       emailAddress: String! @field(key: "email_address", enforce: email)

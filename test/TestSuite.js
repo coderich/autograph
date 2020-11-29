@@ -72,7 +72,7 @@ module.exports = (driver = 'default', options = {}) => {
 
     describe('Create', () => {
       test('Person', async () => {
-        richard = await resolver.match('Person').save({ name: 'Richard', status: 'alive', state: 'NJ', emailAddress: 'rich@coderich.com', network: 'network' });
+        richard = await resolver.match('Person').save({ age: 40, name: 'Richard', status: 'alive', state: 'NJ', emailAddress: 'rich@coderich.com', network: 'network' });
         expect(richard.id).toBeDefined();
         expect(richard.name).toBe('Richard');
         expect(richard.telephone).toBe('###-###-####'); // Default value
@@ -177,6 +177,10 @@ module.exports = (driver = 'default', options = {}) => {
         expect(await resolver.match('Person').one()).toBeDefined();
         expect(await resolver.match('Person').id(richard.id).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
         expect(await resolver.match('Person').id(christie.id).one()).toMatchObject({ id: christie.id, name: christie.name, friends: [richard.id], network: 'networkId' });
+        expect(await resolver.match('Person').where({ age: 40 }).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
+        expect(await resolver.match('Person').where({ age: '40' }).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
+        expect(await resolver.match('Person').where({ age: '4?' }).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
+        expect(await resolver.match('Person').where({ age: '??' }).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
       });
 
       test('Book', async () => {

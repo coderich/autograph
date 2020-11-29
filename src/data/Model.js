@@ -2,7 +2,7 @@ const Field = require('./Field');
 const ResultSet = require('./ResultSet');
 const Model = require('../graphql/ast/Model');
 const RuleService = require('../service/rule.service');
-const { map, ensureArray, stripObjectNulls } = require('../service/app.service');
+const { map, ensureArray, stripObjectUndefineds } = require('../service/app.service');
 
 const assignValue = (field, doc, prop, value) => {
   if (value == null) return value; // Do not hold on to DataResolver
@@ -127,7 +127,7 @@ module.exports = class extends Model {
   }
 
   async appendDefaultValues(input) {
-    input = await this.resolveDefaultValues(stripObjectNulls(input));
+    input = await this.resolveDefaultValues(stripObjectUndefineds(input));
 
     // Generate embedded default values
     await Promise.all(this.getEmbeddedFields().filter(field => field.hasGQLScope('c')).map((field) => {

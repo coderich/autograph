@@ -48,6 +48,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
   return async (root, args, context, info) => {
     const { autograph } = context;
 
+    // Embedded document handler
     if (fieldPath.length) {
       switch (method) {
         case 'get': {
@@ -93,7 +94,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           // Get overall document
           const where = { [path]: id };
           const query = new Query(resolver, model, { where, meta });
-          const doc = await autograph.resolver.match(base.getModel()).options({ debug: true }).where(where).one();
+          const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
 
           // Get parent and container within document
