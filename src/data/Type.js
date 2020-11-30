@@ -56,6 +56,20 @@ module.exports = class extends Type {
     return transformers;
   }
 
+  getDeserializers() {
+    const transformers = [];
+    const scalarType = this.field.getScalarRef();
+
+    if (scalarType) {
+      Object.entries(scalarType.getDirectiveArgs('field', {})).forEach(([key, value]) => {
+        if (!Array.isArray(value)) value = [value];
+        if (key === 'deserialize') transformers.push(...value.map(t => Transformer.getInstances()[t]));
+      });
+    }
+
+    return transformers;
+  }
+
   getResolvers() {
     const resolvers = [];
     const scalarType = this.field.getScalarRef();

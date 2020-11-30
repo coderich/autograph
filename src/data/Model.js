@@ -5,8 +5,6 @@ const RuleService = require('../service/rule.service');
 const { map, ensureArray, stripObjectUndefineds } = require('../service/app.service');
 
 const assignValue = (field, doc, prop, value) => {
-  if (value == null) return value; // Do not hold on to DataResolver
-
   return Promise.resolve(value).then(($value) => {
     return field.resolve($value).then(($$value) => {
       Object.defineProperty(doc, prop, { value: $$value, writable: true });
@@ -228,7 +226,7 @@ module.exports = class extends Model {
       }, obj); // May have $hydrated values you want to keep
     });
 
-    // Finally, remove unwanted database keys
+    // Remove unwanted database keys
     map(dataWithValues, (obj) => {
       if (obj == null) return obj;
 

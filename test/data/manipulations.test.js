@@ -30,10 +30,12 @@ describe('DataManipulations', () => {
     expect(rawPerson.telephone).toBeUndefined();
   });
 
-  // test('getPerson', async () => {
-  //   const person = await resolver.match('Person').where({ id: rawPerson._id }).options({ debug: true }).one(); // eslint-disable-line no-underscore-dangle
-  //   expect(person).toBeDefined();
-  //   expect(person.name).toEqual('Name');
-  //   // expect(person.telephone).toEqual('###-###-####');
-  // });
+  test('getPerson', async () => {
+    const person = await resolver.match('Person').id(rawPerson._id).one(); // eslint-disable-line no-underscore-dangle
+    expect(person).toBeDefined();
+    expect(person.name).toEqual('Name');
+    expect(person.$manipulate).toBeDefined();
+    expect(await person.$manipulate).toBe(5);
+    // expect(person.telephone).toEqual('###-###-####');
+  });
 });

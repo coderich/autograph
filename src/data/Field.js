@@ -79,7 +79,7 @@ module.exports = class extends Field {
       if (key === 'deserialize') transformers.push(...value.map(t => Transformer.getInstances()[t]));
     });
 
-    return transformers.concat(this.type.getSerializers());
+    return transformers.concat(this.type.getDeserializers());
   }
 
   getResolvers() {
@@ -106,7 +106,9 @@ module.exports = class extends Field {
 
     return promiseChain(resolvers.map(resolver => (chain) => {
       return Promise.resolve(resolver(this, uvl(chain.pop(), value)));
-    })).then(results => uvl(results.pop(), value));
+    })).then((results) => {
+      return uvl(results.pop(), value);
+    });
   }
 
   normalize(value, mapper) {

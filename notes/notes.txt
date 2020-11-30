@@ -6,7 +6,7 @@ Release 0.5:
   * deserialize should set default values if undefined
   * Can you add resolver to context.autograph yourself? (not require it to be done externally)
   * Can you make Emitter events part of a transaction? pre vs post can be confusing... especially for data validation etc.
-  ---------
+  -------------
   1) Must pass in "Driver" class inside stores.js
   2) Should NOT create schema.js overriding resolvers (use @annotations etc instead)
 
