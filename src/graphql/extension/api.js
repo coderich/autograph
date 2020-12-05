@@ -62,10 +62,6 @@ module.exports = (schema) => {
           hasNextPage: Boolean!
           totalCount: Int!
         }
-
-        interface Node {
-          id: ID!
-        }
       `,
 
       `type Query {

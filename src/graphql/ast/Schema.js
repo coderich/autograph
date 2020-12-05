@@ -128,6 +128,6 @@ module.exports = class Schema extends Node {
   }
 
   makeExecutableSchema() {
-    return makeExecutableSchema(this.getSchema(true));
+    return makeExecutableSchema(this.getSchema());
   }
 };

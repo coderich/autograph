@@ -26,6 +26,7 @@ module.exports = class extends Schema {
 
     // Create models
     this.createModels();
+    this.extend(frameworkExt(this), typeExt(this));
   }
 
   setup() {
@@ -50,11 +51,6 @@ module.exports = class extends Schema {
     this.modelsByKey = this.models.reduce((prev, model) => Object.assign(prev, { [model.getKey()]: model }), {});
   }
 
-  getSchema(silent) {
-    if (!silent) this.extend(frameworkExt(this));
-    return super.getSchema();
-  }
-
   loadDir(dir) {
     super.loadDir(dir);
     this.createModels();
@@ -68,13 +64,11 @@ module.exports = class extends Schema {
   }
 
   getServerApiSchema() {
-    this.extend(frameworkExt(this), typeExt(this));
     this.extend(apiExt(this));
     return super.getSchema();
   }
 
   makeServerApiSchema() {
-    this.extend(frameworkExt(this), typeExt(this));
     this.extend(apiExt(this));
     return super.makeExecutableSchema();
   }

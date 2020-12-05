@@ -1,6 +1,5 @@
 Release 0.5:
   * Incorporate Logger
-  * Bug: id field does not exist on the schema until schema.getServerApiSchema() is called; move these default schema types to creation of schema instance; leave the rest of the API in the schema.getServerApiSchema() call.
   * You know EventEmitter wants to emit Query (will be a breaking change so consider when to do it)
   * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right; what about context?, Query?)
   * deserialize should set default values if undefined
@@ -46,8 +45,6 @@ Enhancements:
   * Get a list of references that would be onDelete affected
   * URL, RGB, RGBA, validator?
   * Composite Rule Definitions?
-  * Password and PasswordMatch validation; enforce strength; password can be created/updated but not selected, what's the scope?
-    - Answer: crud: "cu"
 
 Todo:
   * MeteorUser _id is a String (not ID). How to handle?
