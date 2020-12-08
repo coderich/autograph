@@ -4,7 +4,7 @@ const { nvl, uvl } = require('../../service/app.service');
 const { mergeAST } = require('../../service/graphql.service');
 
 const operations = ['Query', 'Mutation', 'Subscription'];
-const modelKinds = [Kind.OBJECT_TYPE_DEFINITION, Kind.OBJECT_TYPE_EXTENSION];
+const modelKinds = [Kind.OBJECT_TYPE_DEFINITION, Kind.OBJECT_TYPE_EXTENSION, Kind.INTERFACE_TYPE_DEFINITION, Kind.INTERFACE_TYPE_EXTENSION];
 const inputKinds = [Kind.INPUT_OBJECT_TYPE_DEFINITION, Kind.INPUT_OBJECT_TYPE_EXTENSION];
 const scalarKinds = [Kind.SCALAR_TYPE_DEFINITION, Kind.SCALAR_TYPE_EXTENSION];
 const enumKinds = [Kind.ENUM_TYPE_DEFINITION, Kind.ENUM_TYPE_EXTENSION];
@@ -124,7 +124,7 @@ module.exports = class Node {
   }
 
   getMeta() {
-    return this.getDirectiveArg('model', 'meta', 'AutoGraphMixed');
+    return this.getDirectiveArg('model', 'meta');
   }
 
   getSerialize() {

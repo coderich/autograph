@@ -26,7 +26,6 @@ module.exports = class extends Schema {
 
     // Create models
     this.createModels();
-    this.extend(frameworkExt(this), typeExt(this));
   }
 
   setup() {
@@ -63,12 +62,18 @@ module.exports = class extends Schema {
     return this;
   }
 
+  /**
+   * Called a runtime to get the full server api schema. Done this way because the
+   * end-user needs a chance to call Transformer.factory() etc (thus cannot be moved to constructor)
+   */
   getServerApiSchema() {
+    this.extend(frameworkExt(this), typeExt(this));
     this.extend(apiExt(this));
     return super.getSchema();
   }
 
   makeServerApiSchema() {
+    this.extend(frameworkExt(this), typeExt(this));
     this.extend(apiExt(this));
     return super.makeExecutableSchema();
   }

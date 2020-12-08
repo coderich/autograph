@@ -11,15 +11,19 @@ module.exports = (schema) => {
       const createdAt = model.getDirectiveArg('model', 'createdAt', 'createdAt');
       const updatedAt = model.getDirectiveArg('model', 'updatedAt', 'updatedAt');
 
-      return `
-        extend type ${modelName} ${id ? 'implements Node' : ''} {
-          ${id ? `id: ID! @field(key: "${id}", gqlScope: r)` : ''}
-          ${createdAt ? `createdAt: AutoGraphDateTime @field(key: "${createdAt}", gqlScope: r)` : ''}
-          ${updatedAt ? `updatedAt: AutoGraphDateTime @field(key: "${updatedAt}", gqlScope: r)` : ''}
-          # ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int @field(persist: false, gqlScope: r)`)}
-          # countSelf(where: ${modelName}InputWhere): Int @field(persist: false, gqlScope: r)
-        }
-      `;
+      if (model.getKind() === 'ObjectTypeDefinition') {
+        return `
+          extend type ${modelName} ${id ? 'implements Node' : ''} {
+            ${id ? `id: ID! @field(key: "${id}", gqlScope: r)` : ''}
+            ${createdAt ? `createdAt: AutoGraphDateTime @field(key: "${createdAt}", gqlScope: r)` : ''}
+            ${updatedAt ? `updatedAt: AutoGraphDateTime @field(key: "${updatedAt}", gqlScope: r)` : ''}
+            # ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int @field(persist: false, gqlScope: r)`)}
+            # countSelf(where: ${modelName}InputWhere): Int @field(persist: false, gqlScope: r)
+          }
+        `;
+      }
+
+      return '';
     }).concat(`
       interface Node { id: ID! }
       enum SortOrderEnum { ASC DESC }

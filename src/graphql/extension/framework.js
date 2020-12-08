@@ -30,7 +30,7 @@ module.exports = (schema) => {
         id: String
         createdAt: String
         updatedAt: String
-      ) on OBJECT
+      ) on OBJECT | INTERFACE
 
       directive @field(
         key: String # Specify it's key during transit

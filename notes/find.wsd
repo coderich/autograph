@@ -1,0 +1,24 @@
+title AutoGraph (find)
+
+Request->ServerResolver: GraphQL Query
+ServerResolver->Resolver: match()
+Resolver->ServerResolver: QueryBuilder
+ServerResolver->QueryBuilder: find()
+QueryBuilder->Resolver: load()
+note over Resolver: if (loaded) ...
+Resolver->Request: return data
+note over Resolver: else ...
+Resolver->QueryWorker: find()
+note over QueryWorker: createSystemEvent()
+QueryWorker->Model: resolveBoundValues()
+QueryWorker->QueryWorker: resolveModelWhereClause()
+QueryWorker->Model: find()
+Model->Model: normalizeOptions()
+Model->Driver: find()
+Driver->Model: results
+Model->QueryWorker: ResultSet(results)
+QueryWorker->QueryWorker: ResultSet.hydrate()
+QueryWorker->QueryWorker: filterDataByCounts()
+QueryWorker->QueryWorker: sortData()
+QueryWorker->QueryWorker: paginateResults()
+QueryWorker->Request: return data

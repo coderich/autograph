@@ -270,9 +270,8 @@ exports.makeCreateAPI = (name, model, parent) => {
   let gql = '';
 
   if (model.hasGQLScope('c')) {
-    gql += `
-      create${name}(input: ${model.getName()}InputCreate! meta: ${model.getMeta()}): ${model.getName()}!
-    `;
+    const meta = model.getMeta() ? `meta: ${model.getMeta()}` : '';
+    gql += `create${name}(input: ${model.getName()}InputCreate! ${meta}): ${model.getName()}!`;
   }
 
   gql += makeEmbeddedAPI(model, 'create', parent);
@@ -309,13 +308,14 @@ exports.makeUpdateAPI = (name, model, parent) => {
 
   if (model.hasGQLScope('u')) {
     const spliceFields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd'));
+    const meta = model.getMeta() ? `meta: ${model.getMeta()}` : '';
 
     gql += `
       update${name}(
         id: ID!
         input: ${model.getName()}InputUpdate
         # ${!spliceFields.length ? '' : `splice: ${model.getName()}InputSplice`}
-        meta: ${model.getMeta()}
+        ${meta}
       ): ${model.getName()}!
     `;
   }
@@ -329,9 +329,8 @@ exports.makeDeleteAPI = (name, model, parent) => {
   let gql = '';
 
   if (model.hasGQLScope('d')) {
-    gql += `
-      delete${name}(id: ID! meta: ${model.getMeta()}): ${model.getName()}!
-    `;
+    const meta = model.getMeta() ? `meta: ${model.getMeta()}` : '';
+    gql += `delete${name}(id: ID! ${meta}): ${model.getName()}!`;
   }
 
   gql += makeEmbeddedAPI(model, 'delete', parent);

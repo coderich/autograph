@@ -1,10 +1,9 @@
 Release 0.5:
+  * Updates without a full GraphQL model will blow away attributes in the database
   * Incorporate Logger
   * You know EventEmitter wants to emit Query (will be a breaking change so consider when to do it)
   * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right; what about context?, Query?)
   * deserialize should set default values if undefined
-  * Can you add resolver to context.autograph yourself? (not require it to be done externally)
-  * Can you make Emitter events part of a transaction? pre vs post can be confusing... especially for data validation etc.
   -------------
   1) Must pass in "Driver" class inside stores.js
   2) Should NOT create schema.js overriding resolvers (use @annotations etc instead)
@@ -21,21 +20,17 @@ Performance:
     - Can all queries default sort by _id? Is this the Mongo default thing to do?
   * Post-Query hydration needs to be faster
 
-Now:
-  * Idea of push | pull on the driver would be ideal
-  * Need idea of archive/soft-delete to remove from resultSet
-
 Next:
   * Support @value on Model itself
   * Framework directive param validation
   * Take a look at all Mongoose options/features (eg. minimize)
   * Neo4j does not know how to generate ids
+    - ID Value Strategy (MongoID, String, etc)
   * Deserialization and ids (_id) and code throughout (remove _id in deserlialization if possible)
   * How do you handle the hydrate() problem? QueryWorker is hydrating, what about concept of returning ResultSet and letting user hydrate() or populate() from resolver?
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
 
 Enhancements:
-  * ID Value Strategy (MongoID, String, etc)
   * Lodash Transformers
   * Create person with books at the same time
   * createdAt, updatedAt, counts, onDeletes, references, etc should be controllable

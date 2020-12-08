@@ -15,6 +15,7 @@ describe('DataManipulations', () => {
     await mongoServer.waitUntilRunning();
     stores.default.uri = await mongoServer.getUri();
     schema = new Schema(gqlSchema, stores);
+    schema.getServerApiSchema();
     const context = {};
     resolver = new Resolver(schema, context);
     context.autograph = { resolver };
