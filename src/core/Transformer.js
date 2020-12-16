@@ -20,10 +20,11 @@ class Transformer {
     }, 'type', { value: 'transformer' });
   }
 
-  static factory(name, thunk, options = {}, descriptor = {}) {
+  static factory(name, thunk, options = {}) {
     return Object.defineProperty(Transformer, name, {
       value: (...args) => Object.defineProperty(new Transformer(thunk(...args), options), 'method', { value: name }),
-      ...descriptor,
+      writable: options.writable,
+      enumerable: options.enumerable,
     })[name];
   }
 
@@ -44,20 +45,20 @@ class Transformer {
 
 // Factory methods
 const enumerables = ['toLowerCase', 'toUpperCase', 'trim', 'trimEnd', 'trimStart', 'toString'];
-jsStringMethods.forEach(name => Transformer.factory(name, (...args) => (f, v) => String(v)[name](...args), null, { enumerable: enumerables.indexOf(name) > -1 }));
-Transformer.factory('toTitleCase', () => (f, v) => v.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()), null, { enumerable: true });
+jsStringMethods.forEach(name => Transformer.factory(name, (...args) => (f, v) => String(v)[name](...args), { enumerable: enumerables.indexOf(name) > -1 }));
+Transformer.factory('toTitleCase', () => (f, v) => v.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()), { enumerable: true });
 Transformer.factory('toLocaleTitleCase', (...args) => (f, v) => v.replace(/\w\S*/g, w => w.charAt(0).toLocaleUpperCase(...args) + w.slice(1).toLocaleLowerCase()));
-Transformer.factory('toSentenceCase', () => (f, v) => v.charAt(0).toUpperCase() + v.slice(1), null, { enumerable: true });
+Transformer.factory('toSentenceCase', () => (f, v) => v.charAt(0).toUpperCase() + v.slice(1), { enumerable: true });
 Transformer.factory('toLocaleSentenceCase', (...args) => (f, v) => v.charAt(0).toLocaleUpperCase(...args) + v.slice(1));
 Transformer.factory('toId', () => (f, v) => f.getModel().idValue(v));
-Transformer.factory('toArray', () => (f, v) => (Array.isArray(v) ? v : [v]), { itemize: false }, { enumerable: true });
-Transformer.factory('toDate', () => (f, v) => new Date(v), null, { enumerable: true, writable: true });
-Transformer.factory('dedupe', () => (f, a) => uniqWith(a, (b, c) => hashObject(b) === hashObject(c)), { ignoreNull: false }, { enumerable: true });
-Transformer.factory('dedupeBy', key => (f, a) => uniqWith(a, (b, c) => hashObject(b[key]) === hashObject(c[key])), { ignoreNull: false }, { enumerable: true });
-Transformer.factory('timestamp', () => (f, v) => Date.now(), null, { enumerable: true });
-Transformer.factory('first', () => (f, v) => (Array.isArray(v) ? v[0] : v), null, { enumerable: true });
-Transformer.factory('get', path => (f, v) => get(v, path), null, { enumerable: true });
-Transformer.factory('set', path => (f, v) => set({}, path, v), null, { enumerable: true });
+Transformer.factory('toArray', () => (f, v) => (Array.isArray(v) ? v : [v]), { itemize: false, enumerable: true });
+Transformer.factory('toDate', () => (f, v) => new Date(v), { enumerable: true, writable: true });
+Transformer.factory('dedupe', () => (f, a) => uniqWith(a, (b, c) => hashObject(b) === hashObject(c)), { ignoreNull: false, enumerable: true });
+Transformer.factory('dedupeBy', key => (f, a) => uniqWith(a, (b, c) => hashObject(b[key]) === hashObject(c[key])), { ignoreNull: false, enumerable: true });
+Transformer.factory('timestamp', () => (f, v) => Date.now(), { enumerable: true });
+Transformer.factory('first', () => (f, v) => (Array.isArray(v) ? v[0] : v), { enumerable: true });
+Transformer.factory('get', path => (f, v) => get(v, path), { enumerable: true });
+Transformer.factory('set', path => (f, v) => set({}, path, v), { enumerable: true });
 Transformer.factory('cast', type => (f, v) => castCmp(type, v));
 Transformer.factory('serialize', () => (f, v) => serialize(f, v));
 

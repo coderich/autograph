@@ -8,7 +8,7 @@ Rule.extend('artComment', Rule.allow('yay', 'great', 'boo'));
 Rule.extend('colors', Rule.allow('blue', 'red', 'green', 'purple'));
 Rule.extend('buildingType', Rule.allow('home', 'office', 'business'));
 
-Transformer.factory('slowRoll', () => (f, v) => timeout(300).then(() => 5), { ignoreNull: false }, { enumerable: true });
+Transformer.factory('slowRoll', () => (f, v) => timeout(300).then(() => 5), { ignoreNull: false, enumerable: true });
 
 module.exports = {
   typeDefs: `
