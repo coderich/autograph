@@ -1,18 +1,18 @@
-const { MongoDriver, Neo4jRestDriver, Neo4jDriver } = require('../src/driver');
+const Driver = require('../src/driver');
 
 module.exports = {
   default: {
-    Driver: MongoDriver,
+    Driver: new Driver('Mongo'),
     uri: 'mongodb://localhost/autograph',
     options: { useNewUrlParser: true, tlsInsecure: true, useUnifiedTopology: true },
     directives: { version: 4 },
   },
   neo4jDriver: {
-    Driver: Neo4jDriver,
+    Driver: new Driver('Neo4jDriver'),
     uri: 'bolt://localhost',
   },
   neo4jRest: {
-    Driver: Neo4jRestDriver,
+    Driver: new Driver('Neo4jRestDriver'),
     uri: 'http://localhost:7474',
   },
 };
