@@ -54,4 +54,40 @@ module.exports = class extends EventEmitter {
       }
     });
   }
+
+  /**
+   * Syntactic sugar to listen on models
+   */
+  onModels(on, models, fn) {
+    const numArgs = fn.length;
+
+    return super.on(on, (event, next) => {
+      const { model } = event;
+
+      if (ensureArray(models).indexOf(`${model}`) > -1) {
+        fn(event, next);
+        if (numArgs < 2) next();
+      } else {
+        next();
+      }
+    });
+  }
+
+  /**
+   * Syntactic sugar to listen once models
+   */
+  onceModels(once, models, fn) {
+    const numArgs = fn.length;
+
+    return super.once(once, (event, next) => {
+      const { model } = event;
+
+      if (ensureArray(models).indexOf(`${model}`) > -1) {
+        fn(event, next);
+        if (numArgs < 2) next();
+      } else {
+        next();
+      }
+    });
+  }
 };

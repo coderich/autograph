@@ -7,9 +7,11 @@ Release 0.5:
   -------------
   1) Must pass in "Driver" class inside stores.js
   2) Should NOT create schema.js overriding resolvers (use @annotations etc instead)
+  3) Transformer|Rule factory combined options + descriptors
 
 Bug:
   * Where clause with .one({ required: true }) does not work
+  * This fails: resolver.match().id().many(); // Returns ALL documents!!!!
   * Nested embedded object in array cannot delete without doing an explicit $pull operation (race condition)
     - Drivers need concept of push and pull
   * DataLoaders are not being used propertly - need re-architecture
@@ -19,9 +21,10 @@ Performance:
   * Pagination should pass limit & sort to dao if possible
     - Can all queries default sort by _id? Is this the Mongo default thing to do?
   * Post-Query hydration needs to be faster
+  * Verify that Transformer + Rules are only being called when needed
 
 Next:
-  * Support @value on Model itself
+  * Support @value on Model itself?
   * Framework directive param validation
   * Take a look at all Mongoose options/features (eg. minimize)
   * Neo4j does not know how to generate ids

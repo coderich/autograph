@@ -23,6 +23,8 @@ module.exports = class Resolver {
         if (doc) return false;
         return true;
       });
+    }, {
+      writable: true,
     });
   }
 
