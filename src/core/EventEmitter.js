@@ -25,11 +25,11 @@ module.exports = class extends EventEmitter {
   onKeys(on, keys, fn) {
     const numArgs = fn.length;
 
-    return super.on(on, (event, next) => {
+    return super.on(on, async (event, next) => {
       const { key } = event;
 
       if (ensureArray(keys).indexOf(key) > -1) {
-        fn(event, next);
+        await fn(event, next);
         if (numArgs < 2) next();
       } else {
         next();
@@ -43,11 +43,11 @@ module.exports = class extends EventEmitter {
   onceKeys(once, keys, fn) {
     const numArgs = fn.length;
 
-    return super.once(once, (event, next) => {
+    return super.once(once, async (event, next) => {
       const { key } = event;
 
       if (ensureArray(keys).indexOf(key) > -1) {
-        fn(event, next);
+        await fn(event, next);
         if (numArgs < 2) next();
       } else {
         next();
@@ -61,11 +61,11 @@ module.exports = class extends EventEmitter {
   onModels(on, models, fn) {
     const numArgs = fn.length;
 
-    return super.on(on, (event, next) => {
+    return super.on(on, async (event, next) => {
       const { model } = event;
 
       if (ensureArray(models).indexOf(`${model}`) > -1) {
-        fn(event, next);
+        await fn(event, next);
         if (numArgs < 2) next();
       } else {
         next();
@@ -79,11 +79,11 @@ module.exports = class extends EventEmitter {
   onceModels(once, models, fn) {
     const numArgs = fn.length;
 
-    return super.once(once, (event, next) => {
+    return super.once(once, async (event, next) => {
       const { model } = event;
 
       if (ensureArray(models).indexOf(`${model}`) > -1) {
-        fn(event, next);
+        await fn(event, next);
         if (numArgs < 2) next();
       } else {
         next();
