@@ -36,7 +36,7 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
 
   // Edit
   if (from && to) {
-    const arr = _.get(doc, key, []);
+    const arr = _.get(doc, key) || [];
     if ($from.length > 1 && $to.length === 1) $to = Array.from($from).fill($to[0]);
 
     const edits = arr.map((el) => {
@@ -68,7 +68,7 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
 
   // Pull
   if (from) {
-    const data = { [key]: _.get(doc, key, []) };
+    const data = { [key]: _.get(doc, key) || [] };
     _.remove(data[key], el => $from.find(val => objectContaining(el, val)));
     return data;
   }
@@ -84,11 +84,11 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
           });
         });
       })).then((results) => {
-        return { [key]: _.get(doc, key, []).concat(...results) };
+        return { [key]: (_.get(doc, key) || []).concat(...results) };
       });
     }
 
-    return { [key]: _.get(doc, key, []).concat($to) };
+    return { [key]: (_.get(doc, key) || []).concat($to) };
   }
 };
 

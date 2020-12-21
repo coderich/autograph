@@ -515,6 +515,7 @@ module.exports = (driver = 'default', options = {}) => {
         expect(await resolver.match('Book').id(mobyDick.id).save({ name: 'mopey dick' })).toMatchObject({ id: mobyDick.id, name: 'Mopey Dick' });
         expect(await resolver.match('Book').id(mobyDick.id).save({ name: 'moby dick' })).toMatchObject({ id: mobyDick.id, name: 'Moby Dick' });
         expect(await resolver.match('Book').id(mobyDick.id).save({ bids: [] })).toMatchObject({ id: mobyDick.id, name: 'Moby Dick', bids: [] });
+        expect(await resolver.match('Book').id(mobyDick.id).save({ bids: null })).toMatchObject({ id: mobyDick.id, name: 'Moby Dick', bids: null });
       });
 
       test('Apartment', async () => {
