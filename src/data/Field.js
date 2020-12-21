@@ -32,6 +32,7 @@ module.exports = class extends Field {
   }
 
   cast(value) {
+    if (value == null) return value;
     const casted = Transformer.cast(this.getType())(this, value);
     return this.isArray() ? ensureArray(casted) : casted;
   }
@@ -119,7 +120,7 @@ module.exports = class extends Field {
     // If we're a modelRef field, need to either id(value) or delegate object to model
     if (modelRef) {
       if (!modelRef.isEntity() && isPlainObject(ensureArray(value)[0])) return modelRef.normalize(value, mapper); // delegate
-      transformers.push(Transformer.toId());
+      if (!this.isEmbedded()) transformers.push(Transformer.toId());
     }
 
     // Perform transformation
@@ -137,7 +138,7 @@ module.exports = class extends Field {
     if (modelRef) {
       if ((!serialize || !modelRef.isEntity()) && isPlainObject(ensureArray(value)[0])) return modelRef.transform(this.applyTransformers(transformers, value, mapper), mapper); // delegate
       if (serialize) transformers.push(Transformer.serialize()); // Serializer
-      transformers.push(Transformer.toId());
+      if (!this.isEmbedded()) transformers.push(Transformer.toId());
     }
 
     // Perform transformation
@@ -158,7 +159,7 @@ module.exports = class extends Field {
 
     if (modelRef) {
       if (isPlainObject(ensureArray(value)[0])) return modelRef.validate(value, mapper); // Model delegation
-      rules.push(Rule.ensureId());
+      if (!this.isEmbedded()) rules.push(Rule.ensureId());
     }
 
     return Promise.all(rules.map((rule) => {

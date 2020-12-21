@@ -6,8 +6,6 @@
  */
 module.exports = class DataResolver {
   constructor(data, resolver = (d, p) => d[p]) {
-    if (data == null) return data;
-
     return new Proxy(data, {
       get(target, prop, rec) {
         const value = Reflect.get(target, prop, rec);
