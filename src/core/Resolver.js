@@ -17,6 +17,7 @@ module.exports = class Resolver {
     this.context = context;
     this.worker = new QueryWorker(this);
     this.loader = this.createLoader();
+    this.schema.setContext(context);
 
     Rule.factory('ensureId', () => (field, v) => {
       return this.match(field.getType()).id(v).one().then((doc) => {

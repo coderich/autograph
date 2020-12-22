@@ -40,7 +40,7 @@ module.exports = class Field extends Node {
   }
 
   getContext() {
-    return this.model.getResolver().getContext();
+    return this.schema.getContext();
   }
 
   resolveBoundValue(initialValue) {

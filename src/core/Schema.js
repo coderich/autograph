@@ -62,6 +62,14 @@ module.exports = class extends Schema {
     return this;
   }
 
+  setContext(context) {
+    this.context = context;
+  }
+
+  getContext() {
+    return this.context;
+  }
+
   /**
    * Called a runtime to get the full server api schema. Done this way because the
    * end-user needs a chance to call Transformer.factory() etc (thus cannot be moved to constructor)
