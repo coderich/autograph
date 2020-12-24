@@ -875,8 +875,15 @@ module.exports = (driver = 'default', options = {}) => {
         await expect(resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: richard.id }] })).rejects.toThrow();
         const art = await resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: christie.id }] });
         expect(art).toBeDefined();
+        expect(art.sections[0].id).toBeDefined();
         expect(art.sections[0].person).toBe(christie.id);
         expect((await art.sections[0].$person).name).toBe('Christie');
+
+        // Now do an update and make sure id does not get clobbered
+        const updated = await resolver.match('Art').id(art.id).save({ sections: [{ name: 'Section1', person: christie.id }] });
+        expect(updated.sections[0].id).toBeDefined();
+        expect(updated.sections[0].person).toBe(christie.id);
+        expect((await updated.sections[0].$person).name).toBe('Christie');
       });
 
       test('update should not clobber unknown attributes', async () => {

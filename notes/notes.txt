@@ -8,7 +8,6 @@ Release 0.5:
   3) Transformer|Rule factory combined options + descriptors
 
 Bug:
-  * Where clause with .one({ required: true }) does not work
   * Nested embedded object in array cannot delete without doing an explicit $pull operation (race condition)
     - Drivers need concept of push and pull
   * DataLoaders are not being used propertly - need re-architecture
