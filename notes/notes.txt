@@ -1,7 +1,6 @@
 Release 0.5:
   * Incorporate Logger
   * You know EventEmitter wants to emit Query (will be a breaking change so consider when to do it)
-  * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right; what about context?, Query?)
   * deserialize should set default values if undefined
   -------------
   1) Must pass in "Driver" class inside stores.js
@@ -10,7 +9,6 @@ Release 0.5:
 
 Bug:
   * Where clause with .one({ required: true }) does not work
-  * This fails: resolver.match().id().many(); // Returns ALL documents!!!!
   * Nested embedded object in array cannot delete without doing an explicit $pull operation (race condition)
     - Drivers need concept of push and pull
   * DataLoaders are not being used propertly - need re-architecture
