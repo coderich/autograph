@@ -665,6 +665,7 @@ module.exports = (driver = 'default', options = {}) => {
       });
     });
 
+
     if (options.transactions !== false) {
       describe('Transactions (manual)', () => {
         test('single txn (commit)', async () => {
@@ -875,6 +876,21 @@ module.exports = (driver = 'default', options = {}) => {
         expect(art).toBeDefined();
         expect(art.sections[0].person).toBe(christie.id);
         expect((await art.sections[0].$person).name).toBe('Christie');
+      });
+
+      test('update should not clobber unknown attributes', async () => {
+        switch (driver) {
+          case 'mongo': {
+            await resolver.raw('Person').findOneAndUpdate({ _id: christie.id }, { $set: { unknownAttr: 1 } });
+            const person = await resolver.match('Person').id(christie.id).save({ age: 20 });
+            expect(person.age).toBe(20);
+            const dbPerson = await resolver.raw('Person').findOne({ _id: christie.id });
+            expect(dbPerson).toBeDefined();
+            expect(dbPerson.unknownAttr).toBe(1);
+            break;
+          }
+          default: break;
+        }
       });
     });
   });

@@ -1,5 +1,4 @@
 Release 0.5:
-  * Updates without a full GraphQL model will blow away attributes in the database
   * Incorporate Logger
   * You know EventEmitter wants to emit Query (will be a breaking change so consider when to do it)
   * Verify that Rules are passed parameters one would need to do custom logic (resolver sounds about right; what about context?, Query?)
