@@ -55,18 +55,14 @@ module.exports = class QueryBuilder {
 
     switch (cmd) {
       case 'one': {
-        if (id !== undefined) {
-          const { required } = _.get(args, '0', {});
-          return resolver.load({ method: 'get', model, query, args: [required] });
-        }
-        return resolver.load({ method: 'find', model, query, args: [] }).then(results => results[0]);
+        const { required } = _.get(args, '0', {});
+        if (id !== undefined) return resolver.load({ method: 'get', model, query, args: [required] });
+        return resolver.load({ method: 'find', model, query, args: [required] }).then(([result]) => result);
       }
       case 'many': {
-        if (id !== undefined) {
-          const { required } = _.get(args, '0', {});
-          return resolver.load({ method: 'get', model, query, args: [required] }).then(result => [result]);
-        }
-        return resolver.load({ method: 'find', model, query, args: [] });
+        const { required } = _.get(args, '0', {});
+        if (id !== undefined) return resolver.load({ method: 'get', model, query, args: [required] }).then(result => [result]);
+        return resolver.load({ method: 'find', model, query, args: [required] });
       }
       case 'first': case 'last': {
         const [num] = args;
