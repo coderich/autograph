@@ -59,19 +59,19 @@ module.exports = class QueryBuilder {
           const { required } = _.get(args, '0', {});
           return resolver.load({ method: 'get', model, query, args: [required] });
         }
-        const { find } = _.get(args, '0', {});
-        const method = find ? 'find' : 'query';
-        return resolver.load({ method, model, query, args: [] }).then(results => results[0]);
+        return resolver.load({ method: 'find', model, query, args: [] }).then(results => results[0]);
       }
       case 'many': {
-        const { find } = _.get(args, '0', {});
-        const method = find ? 'find' : 'query';
-        return resolver.load({ method, model, query, args: [] });
+        if (id !== undefined) {
+          const { required } = _.get(args, '0', {});
+          return resolver.load({ method: 'get', model, query, args: [required] }).then(result => [result]);
+        }
+        return resolver.load({ method: 'find', model, query, args: [] });
       }
       case 'first': case 'last': {
         const [num] = args;
         const pagination = { before, after, [cmd]: num };
-        return resolver.load({ method: 'query', model, query: Object.assign(query, { pagination }), args: [] });
+        return resolver.load({ method: 'find', model, query: Object.assign(query, { pagination }), args: [] });
       }
       case 'min': case 'max': case 'avg': {
         return 0;
