@@ -1,4 +1,4 @@
-const { empty } = require('lodash');
+const { isEmpty } = require('lodash');
 const { mergeDeep, removeUndefinedDeep } = require('../service/app.service');
 const { createSystemEvent } = require('../service/event.service');
 const { resolveModelWhereClause, resolveReferentialIntegrity, sortData, filterDataByCounts, paginateResults, spliceEmbeddedArray } = require('../service/data.service');
@@ -45,7 +45,7 @@ module.exports = class QueryWorker {
         const resolvedWhere = await resolveModelWhereClause(resolver, model, $where, options);
         hydratedResults = await model.find(resolvedWhere, options).hydrate(resolver, query);
       }
-      if (required && (!hydratedResults || empty(hydratedResults))) throw Boom.notFound(`${model} Not Found`);
+      if (required && (!hydratedResults || isEmpty(hydratedResults))) throw Boom.notFound(`${model} Not Found`);
       const filteredData = filterDataByCounts(resolver, model, hydratedResults, countFields);
       const sortedResults = sortData(filteredData, sortFields);
       const limitedResults = sortedResults.slice(0, limit > 0 ? limit : undefined);

@@ -903,6 +903,7 @@ module.exports = (driver = 'default', options = {}) => {
 
       test('where clause with one(required) should throw', async () => {
         await expect(resolver.match('Person').where({ age: 400 }).one({ required: true })).rejects.toThrow();
+        await expect(resolver.match('Person').where({ age: 400 }).many({ required: true })).rejects.toThrow();
       });
     });
   });
