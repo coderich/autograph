@@ -293,7 +293,7 @@ exports.makeReadAPI = (name, model, parent) => {
         after: String
         last: Int
         before: String
-      ): Connection!
+      ): ${model.getName()}Connection!
       count${name}(where: ${model.getName()}InputWhere): Int!
     `;
   }

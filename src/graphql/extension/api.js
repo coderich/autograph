@@ -42,14 +42,17 @@ module.exports = (schema) => {
         input ${model.getName()}InputSort {
           ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputSort` : 'SortOrderEnum'}`)}
         }
+        type ${model.getName()}Connection {
+          edges: [${model.getName()}Edge]
+          pageInfo: PageInfo!
+        }
+        type ${model.getName()}Edge {
+          node: ${model.getName()}
+          cursor: String!
+        }
       `),
     ].concat([
       `
-        type Connection {
-          edges: [Edge]
-          pageInfo: PageInfo!
-        }
-
         type Edge {
           node: Node
           cursor: String!
@@ -96,10 +99,10 @@ module.exports = (schema) => {
         __resolveType: (root, args, context, info) => root.__typename || fromGUID(root.$id)[0],
       },
 
-      Connection: {
-        edges: root => root.map(node => ({ cursor: node.$$cursor, node })),
-        pageInfo: root => root.$$pageInfo,
-      },
+      // Connection: {
+      //   edges: root => root.map(node => ({ cursor: node.$$cursor, node })),
+      //   pageInfo: root => root.$$pageInfo,
+      // },
 
       Query: schema.getEntityModels().reduce((prev, model) => {
         return Object.assign(prev, makeQueryResolver(model.getName(), model, resolver));

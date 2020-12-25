@@ -10,6 +10,16 @@ let schema;
 let resolver;
 let graphql;
 let personId;
+let friends;
+
+const attrs = `
+  id
+  name
+  emailAddress
+  telephone
+  authored { name price }
+  friends { id name emailAddress }
+`;
 
 describe('GraphQL', () => {
   beforeAll(async () => {
@@ -23,62 +33,52 @@ describe('GraphQL', () => {
     resolver = new Resolver(schema, context);
     context.autograph = { resolver };
     graphql = new GraphQL(schema, resolver);
+    friends = await Promise.all([
+      resolver.match('Person').save({ name: 'friend1', emailAddress: 'friend1@gmail.com' }),
+      resolver.match('Person').save({ name: 'friend2', emailAddress: 'friend2@gmail.com' }),
+      resolver.match('Person').save({ name: 'friend3', emailAddress: 'friend3@gmail.com' }),
+    ]);
   });
 
   test('exec (create)', async () => {
-    expect(schema).toBeDefined();
-    expect(graphql).toBeDefined();
-    expect(resolver).toBeDefined();
+    const friendIds = friends.map(f => `"${f.id}"`).join(',');
 
     const result = await graphql.exec(`
       mutation {
         createPerson(input: {
           name: "GraphQL"
           emailAddress: "graphql@gmail.com"
+          friends: [${friendIds}]
           telephone: null
-        }) {
-          id
-          name
-          emailAddress
-          telephone
-          authored {
-            name
-            price
-          }
-        }
+        }) { ${attrs} }
       }
     `);
 
     expect(result).toBeDefined();
     expect(result.data).toBeDefined();
     expect(result.errors).not.toBeDefined();
-    expect(result.data.createPerson.id).toBeDefined();
-    expect(result.data.createPerson.name).toBe('Graphql'); // Titlecase
-    expect(result.data.createPerson.telephone).toBe(null); // Explicit null (no default applied)
+    expect(result.data.createPerson).toMatchObject({
+      id: expect.anything(),
+      name: 'Graphql',
+      telephone: null,
+      authored: [],
+      friends: [
+        { id: expect.anything(), name: 'Friend1' },
+        { id: expect.anything(), name: 'Friend2' },
+        { id: expect.anything(), name: 'Friend3' },
+      ],
+    });
 
     // Save off personId
     personId = result.data.createPerson.id;
   });
 
   test('exec (update)', async () => {
-    expect(schema).toBeDefined();
-    expect(graphql).toBeDefined();
-    expect(resolver).toBeDefined();
-
     const result = await graphql.exec(`
       mutation {
         updatePerson(id: "${personId}", input: {
           name: "NewName"
-        }) {
-          id
-          name
-          emailAddress
-          telephone
-          authored {
-            name
-            price
-          }
-        }
+        }) { ${attrs} }
       }
     `);
 
@@ -87,6 +87,29 @@ describe('GraphQL', () => {
     expect(result.errors).not.toBeDefined();
     expect(result.data.updatePerson.name).toBe('Newname'); // Titlecase
     expect(result.data.updatePerson.telephone).toBe(null);
+  });
+
+  test('exec (find)', async () => {
+    const result = await graphql.exec(`
+      query {
+        findPerson { ${attrs} }
+      }
+    `);
+
+    expect(result).toBeDefined();
+    expect(result.data).toBeDefined();
+    expect(result.errors).not.toBeDefined();
+    expect(result.data.createPerson).toMatchObject({
+      id: expect.anything(),
+      name: 'Newname',
+      telephone: null,
+      authored: [],
+      friends: [
+        { id: expect.anything(), name: 'Friend1' },
+        { id: expect.anything(), name: 'Friend2' },
+        { id: expect.anything(), name: 'Friend3' },
+      ],
+    });
   });
 
   // test('exec with systemEvent override', async () => {

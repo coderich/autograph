@@ -1,16 +1,20 @@
-Release 0.5:
-  * Incorporate Logger
-  * You know EventEmitter wants to emit Query (will be a breaking change so consider when to do it)
+Release 0.6:
+  * Each type should have it's own Connection (eg. PersonConnection)
+  * Each type should have it's own Edge (eg. PersonEdge)
+  * The Edge should have it's 'node' property return the data (eg. Person)
+  * Add ability to query (where, first, last, etc) nested array types
+    - Should return ConnectionType
+  ? Possibly rename input type to end with Input (eg. CreatePersonInput)
   * deserialize should set default values if undefined
   -------------
-  1) Must pass in "Driver" class inside stores.js
-  2) Should NOT create schema.js overriding resolvers (use @annotations etc instead)
-  3) Transformer|Rule factory combined options + descriptors
+  1) No longer will require/support using ...on when returning lists
+  2) Array fields (with modelRef) will now return ConnectionType
 
-Bug:
+Bugs:
   * Nested embedded object in array cannot delete without doing an explicit $pull operation (race condition)
     - Drivers need concept of push and pull
   * DataLoaders are not being used propertly - need re-architecture
+  * MongoDB cannot-create-namespace-in-multi-document-transaction (collection must first be defined)
 
 Performance:
   * Select as alias/key can be done at the driver level (not require transformation during hydration)
@@ -20,6 +24,8 @@ Performance:
   * Verify that Transformer + Rules are only being called when needed
 
 Next:
+  * Incorporate Logger
+  * You know EventEmitter wants to emit Query (will be a breaking change so consider when to do it)
   * Support @value on Model itself?
   * Framework directive param validation
   * Take a look at all Mongoose options/features (eg. minimize)
