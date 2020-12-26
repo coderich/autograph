@@ -1,13 +1,10 @@
 Release 0.6:
-  * Each type should have it's own Connection (eg. PersonConnection)
-  * Each type should have it's own Edge (eg. PersonEdge)
-  * The Edge should have it's 'node' property return the data (eg. Person)
   * Add ability to query (where, first, last, etc) nested array types
     - Should return ConnectionType
   ? Possibly rename input type to end with Input (eg. CreatePersonInput)
   * deserialize should set default values if undefined
   -------------
-  1) No longer will require/support using "... on" when returning lists
+  1) No longer will require/support using "... on" when returning lists (but will still work)
   2) Array fields (with modelRef) will now return ConnectionType
 
 Bugs:

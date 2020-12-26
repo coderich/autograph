@@ -74,7 +74,7 @@ module.exports = (schema) => {
         ${schema.getEntityModels().map(model => makeDeleteAPI(model.getName(), model))}
       }`,
     ]),
-    resolvers: schema.getMarkedModels().reduce((prev, model) => {
+    resolvers: readModels.reduce((prev, model) => {
       const modelName = model.getName();
 
       return Object.assign(prev, {
