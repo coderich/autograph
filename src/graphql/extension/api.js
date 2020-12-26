@@ -42,25 +42,26 @@ module.exports = (schema) => {
         input ${model.getName()}InputSort {
           ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputSort` : 'SortOrderEnum'}`)}
         }
+        type ${model.getName()}Payload {
+          ${model.getFields().filter(field => field.hasGQLScope('r')).map(field => `${field.getName()}: ${field.getPayloadType()}`)}
+        }
         type ${model.getName()}Connection {
           edges: [${model.getName()}Edge]
           pageInfo: PageInfo!
         }
         type ${model.getName()}Edge {
-          node: ${model.getName()}
+          node: ${model.getName()}Payload
           cursor: String!
         }
       `),
     ].concat([
-      `
-        type PageInfo {
-          startCursor: String!
-          endCursor: String!
-          hasPreviousPage: Boolean!
-          hasNextPage: Boolean!
-          totalCount: Int!
-        }
-      `,
+      `type PageInfo {
+        startCursor: String!
+        endCursor: String!
+        hasPreviousPage: Boolean!
+        hasNextPage: Boolean!
+        totalCount: Int!
+      }`,
 
       `type Query {
         node(id: ID!): Node
@@ -77,18 +78,21 @@ module.exports = (schema) => {
     resolvers: readModels.reduce((prev, model) => {
       const modelName = model.getName();
 
+      // Default field resolvers
+      const fieldResolvers = model.getFields().filter(field => field.hasGQLScope('r')).reduce((def, field) => {
+        const fieldName = field.getName();
+        if (fieldName === 'id') return Object.assign(def, { id: (root, args, { autograph }) => (autograph.legacyMode ? root.id : root.$id) });
+        return Object.assign(def, {
+          [fieldName]: (root) => {
+            const $fieldName = root[`$${fieldName}`] && typeof root[`$${fieldName}`] !== 'function' ? `$${fieldName}` : fieldName; // only $hydrated when set and not a function (Mongoose has $magic functions!)
+            return root[$fieldName];
+          },
+        });
+      }, {});
+
       return Object.assign(prev, {
-        [modelName]: model.getFields().filter(field => field.hasGQLScope('r')).reduce((def, field) => {
-          const fieldName = field.getName();
-          if (fieldName === 'id') return Object.assign(def, { id: (root, args, { autograph }) => (autograph.legacyMode ? root.id : root.$id) });
-          return Object.assign(def, {
-            [fieldName]: (root) => {
-              const $fieldName = root[`$${fieldName}`] && typeof root[`$${fieldName}`] !== 'function' ? `$${fieldName}` : fieldName; // only $hydrated when set and not a function (Mongoose has $magic functions!)
-              return root[$fieldName];
-            },
-          });
-        }, {}),
-      }, {
+        [modelName]: fieldResolvers,
+        [`${modelName}Payload`]: fieldResolvers,
         [`${modelName}Connection`]: {
           edges: root => root.map(node => ({ cursor: node.$$cursor, node })),
           pageInfo: root => root.$$pageInfo,

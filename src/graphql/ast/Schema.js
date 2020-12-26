@@ -33,6 +33,10 @@ module.exports = class Schema extends Node {
     this.enums = definitions.filter(d => d.isEnum());
   }
 
+  /**
+   * This is the final call used to pass in a schema to makeExecutableSchema.
+   * Here I'm making last-minute modifications to the schema that is exposed to the API.
+   */
   getSchema() {
     const definitions = this.ast.definitions.map((definition) => {
       definition.fields = (definition.fields || []).filter((f) => {

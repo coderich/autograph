@@ -111,6 +111,11 @@ module.exports = class Field extends Node {
     return Boolean(this.getDirectiveArg('field', 'ref'));
   }
 
+  isConnection() {
+    const modelRef = this.getModelRef();
+    return Boolean(modelRef && modelRef.isMarkedModel() && this.isArray() && !this.isEmbedded());
+  }
+
   // GQL Schema Methods
   getGQLType(suffix, options = {}) {
     let type = this.getType();
@@ -119,6 +124,20 @@ module.exports = class Field extends Node {
     type = this.isArray() ? `[${type}${this.isArrayElementRequired() ? '!' : ''}]` : type;
     if (!suffix && this.isRequired()) type += '!';
     if (!options.splice && suffix === 'InputCreate' && this.isRequired() && !this.isDefaulted()) type += '!';
+    return type;
+  }
+
+  getPayloadType() {
+    let type = this.getType();
+    const modelRef = this.getModelRef();
+
+    if (modelRef && modelRef.isMarkedModel()) {
+      if (this.isArray() && !this.isEmbedded()) return `${type}Connection!`;
+      type += 'Payload';
+    }
+
+    type = this.isArray() ? `[${type}${this.isArrayElementRequired() ? '!' : ''}]` : type;
+    if (this.isRequired()) type += '!';
     return type;
   }
 };
