@@ -53,11 +53,6 @@ module.exports = (schema) => {
       `),
     ].concat([
       `
-        type Edge {
-          node: Node
-          cursor: String!
-        }
-
         type PageInfo {
           startCursor: String!
           endCursor: String!
@@ -93,16 +88,16 @@ module.exports = (schema) => {
             },
           });
         }, {}),
+      }, {
+        [`${modelName}Connection`]: {
+          edges: root => root.map(node => ({ cursor: node.$$cursor, node })),
+          pageInfo: root => root.$$pageInfo,
+        },
       });
     }, {
       Node: {
         __resolveType: (root, args, context, info) => root.__typename || fromGUID(root.$id)[0],
       },
-
-      // Connection: {
-      //   edges: root => root.map(node => ({ cursor: node.$$cursor, node })),
-      //   pageInfo: root => root.$$pageInfo,
-      // },
 
       Query: schema.getEntityModels().reduce((prev, model) => {
         return Object.assign(prev, makeQueryResolver(model.getName(), model, resolver));

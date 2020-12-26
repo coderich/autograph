@@ -7,7 +7,7 @@ Release 0.6:
   ? Possibly rename input type to end with Input (eg. CreatePersonInput)
   * deserialize should set default values if undefined
   -------------
-  1) No longer will require/support using ...on when returning lists
+  1) No longer will require/support using "... on" when returning lists
   2) Array fields (with modelRef) will now return ConnectionType
 
 Bugs:

@@ -55,8 +55,8 @@ describe('GraphQL', () => {
     `);
 
     expect(result).toBeDefined();
-    expect(result.data).toBeDefined();
     expect(result.errors).not.toBeDefined();
+    expect(result.data).toBeDefined();
     expect(result.data.createPerson).toMatchObject({
       id: expect.anything(),
       name: 'Graphql',
@@ -83,8 +83,8 @@ describe('GraphQL', () => {
     `);
 
     expect(result).toBeDefined();
-    expect(result.data).toBeDefined();
     expect(result.errors).not.toBeDefined();
+    expect(result.data).toBeDefined();
     expect(result.data.updatePerson.name).toBe('Newname'); // Titlecase
     expect(result.data.updatePerson.telephone).toBe(null);
   });
@@ -92,23 +92,48 @@ describe('GraphQL', () => {
   test('exec (find)', async () => {
     const result = await graphql.exec(`
       query {
-        findPerson { ${attrs} }
+        findPerson {
+          edges {
+            node { ${attrs} }
+          }
+        }
       }
     `);
 
     expect(result).toBeDefined();
-    expect(result.data).toBeDefined();
     expect(result.errors).not.toBeDefined();
-    expect(result.data.createPerson).toMatchObject({
+    expect(result.data).toBeDefined();
+    expect(result.data.findPerson.edges[0].node).toMatchObject({
+      id: expect.anything(),
+      name: 'Friend1',
+      telephone: '###-###-####',
+      authored: [],
+      friends: [],
+    });
+    expect(result.data.findPerson.edges[1].node).toMatchObject({
+      id: expect.anything(),
+      name: 'Friend2',
+      telephone: '###-###-####',
+      authored: [],
+      friends: [],
+    });
+    expect(result.data.findPerson.edges[2].node).toMatchObject({
+      id: expect.anything(),
+      name: 'Friend3',
+      telephone: '###-###-####',
+      authored: [],
+      friends: [],
+    });
+    expect(result.data.findPerson.edges[3].node).toMatchObject({
       id: expect.anything(),
       name: 'Newname',
       telephone: null,
       authored: [],
-      friends: [
-        { id: expect.anything(), name: 'Friend1' },
-        { id: expect.anything(), name: 'Friend2' },
-        { id: expect.anything(), name: 'Friend3' },
-      ],
+      friends: expect.objectContaining([
+        { id: expect.anything(), name: 'Friend1', emailAddress: 'friend1@gmail.com' },
+        { id: expect.anything(), name: 'Friend2', emailAddress: 'friend2@gmail.com' },
+        { id: expect.anything(), name: 'Friend3', emailAddress: 'friend3@gmail.com' },
+      ]),
     });
   });
 
