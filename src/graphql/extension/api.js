@@ -19,6 +19,7 @@ module.exports = (schema) => {
   const createModels = findGQLModels('c', markedModels, allModels);
   const updateModels = findGQLModels('u', markedModels, allModels);
   const readModels = findGQLModels('r', markedModels, allModels);
+  const { resolvers } = schema.schema;
 
   return ({
     typeDefs: [
@@ -42,7 +43,10 @@ module.exports = (schema) => {
         input ${model.getName()}InputSort {
           ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputSort` : 'SortOrderEnum'}`)}
         }
-        type ${model.getName()}Payload {
+      `),
+
+      ...readModels.map(model => `
+        extend type ${model.getName()} {
           ${model.getFields().filter(field => field.hasGQLScope('r')).map(field => `${field.getName()}: ${field.getPayloadType()}`)}
         }
         type ${model.getName()}Connection {
@@ -50,7 +54,7 @@ module.exports = (schema) => {
           pageInfo: PageInfo!
         }
         type ${model.getName()}Edge {
-          node: ${model.getName()}Payload
+          node: ${model.getName()}
           cursor: String!
         }
       `),
@@ -92,7 +96,7 @@ module.exports = (schema) => {
 
       return Object.assign(prev, {
         [modelName]: fieldResolvers,
-        [`${modelName}Payload`]: fieldResolvers,
+        // [`${modelName}Payload`]: fieldResolvers,
         [`${modelName}Connection`]: {
           edges: root => root.map(node => ({ cursor: node.$$cursor, node })),
           pageInfo: root => root.$$pageInfo,

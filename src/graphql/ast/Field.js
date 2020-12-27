@@ -129,13 +129,8 @@ module.exports = class Field extends Node {
 
   getPayloadType() {
     let type = this.getType();
-    const modelRef = this.getModelRef();
-
-    if (modelRef && modelRef.isMarkedModel()) {
-      if (this.isArray() && !this.isEmbedded()) return `${type}Connection!`;
-      type += 'Payload';
-    }
-
+    if (this.getName() === 'id') return 'ID!';
+    if (this.isConnection()) return `${type}Connection!`;
     type = this.isArray() ? `[${type}${this.isArrayElementRequired() ? '!' : ''}]` : type;
     if (this.isRequired()) type += '!';
     return type;

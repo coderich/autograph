@@ -271,7 +271,7 @@ exports.makeCreateAPI = (name, model, parent) => {
 
   if (model.hasGQLScope('c')) {
     const meta = model.getMeta() ? `meta: ${model.getMeta()}` : '';
-    gql += `create${name}(input: ${model.getName()}InputCreate! ${meta}): ${model.getName()}Payload!`;
+    gql += `create${name}(input: ${model.getName()}InputCreate! ${meta}): ${model.getName()}!`;
   }
 
   gql += makeEmbeddedAPI(model, 'create', parent);
@@ -284,7 +284,7 @@ exports.makeReadAPI = (name, model, parent) => {
 
   if (model.hasGQLScope('r')) {
     gql += `
-      get${name}(id: ID!): ${model.getName()}Payload
+      get${name}(id: ID!): ${model.getName()}
       find${name}(
         where: ${model.getName()}InputWhere
         sortBy: ${model.getName()}InputSort
@@ -316,7 +316,7 @@ exports.makeUpdateAPI = (name, model, parent) => {
         input: ${model.getName()}InputUpdate
         # ${!spliceFields.length ? '' : `splice: ${model.getName()}InputSplice`}
         ${meta}
-      ): ${model.getName()}Payload!
+      ): ${model.getName()}!
     `;
   }
 
@@ -330,7 +330,7 @@ exports.makeDeleteAPI = (name, model, parent) => {
 
   if (model.hasGQLScope('d')) {
     const meta = model.getMeta() ? `meta: ${model.getMeta()}` : '';
-    gql += `delete${name}(id: ID! ${meta}): ${model.getName()}Payload!`;
+    gql += `delete${name}(id: ID! ${meta}): ${model.getName()}!`;
   }
 
   gql += makeEmbeddedAPI(model, 'delete', parent);

@@ -7,7 +7,7 @@ const { uvl, isPlainObject, ensureArray, promiseChain } = require('../service/ap
 
 module.exports = class extends Field {
   constructor(model, field) {
-    super(model, field.getAST());
+    super(model, JSON.parse(JSON.stringify((field.getAST()))));
     this.type = new Type(field);
     this.model = model;
   }

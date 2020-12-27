@@ -15,7 +15,7 @@ const assignValue = (field, doc, prop, value) => {
 
 module.exports = class extends Model {
   constructor(schema, model, driver) {
-    super(schema, model.getAST());
+    super(schema, JSON.parse(JSON.stringify((model.getAST()))));
     this.driver = driver;
     this.fields = super.getFields().map(field => new Field(this, field));
     this.namedQueries = {};

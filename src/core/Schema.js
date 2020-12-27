@@ -76,13 +76,13 @@ module.exports = class extends Schema {
    */
   getServerApiSchema() {
     this.extend(frameworkExt(this), typeExt(this));
-    this.extend(apiExt(this));
+    this.sextend(apiExt(this));
     return super.getSchema();
   }
 
   makeServerApiSchema() {
     this.extend(frameworkExt(this), typeExt(this));
-    this.extend(apiExt(this));
+    this.sextend(apiExt(this));
     return super.makeExecutableSchema();
   }
 };

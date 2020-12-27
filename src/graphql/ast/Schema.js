@@ -123,10 +123,15 @@ module.exports = class Schema extends Node {
     return this.extend(schema);
   }
 
-  extend(...schemas) {
+  sextend(...schemas) {
     const definitions = schemas.filter(schema => schema.typeDefs).map(schema => mergeASTSchema(schema.typeDefs).definitions);
     this.ast.definitions = mergeASTArray(this.ast.definitions.concat(...definitions));
     this.schema.resolvers = Merge(schemas.reduce((prev, schema) => Merge(prev, schema.resolvers || {}), {}), this.schema.resolvers);
+    return this;
+  }
+
+  extend(...schemas) {
+    this.sextend(...schemas);
     this.initialize();
     return this;
   }
