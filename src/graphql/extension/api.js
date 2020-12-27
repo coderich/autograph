@@ -1,3 +1,4 @@
+const { get } = require('lodash');
 const ServerResolver = require('../../core/ServerResolver');
 const { ucFirst, fromGUID } = require('../../service/app.service');
 const { findGQLModels } = require('../../service/schema.service');
@@ -19,7 +20,6 @@ module.exports = (schema) => {
   const createModels = findGQLModels('c', markedModels, allModels);
   const updateModels = findGQLModels('u', markedModels, allModels);
   const readModels = findGQLModels('r', markedModels, allModels);
-  const { resolvers } = schema.schema;
 
   return ({
     typeDefs: [
@@ -96,10 +96,9 @@ module.exports = (schema) => {
 
       return Object.assign(prev, {
         [modelName]: fieldResolvers,
-        // [`${modelName}Payload`]: fieldResolvers,
         [`${modelName}Connection`]: {
-          edges: root => root.map(node => ({ cursor: node.$$cursor, node })),
-          pageInfo: root => root.$$pageInfo,
+          edges: root => root.map(node => ({ cursor: get(node, '$$cursor'), node })),
+          pageInfo: root => get(root, '$$pageInfo'),
         },
       });
     }, {

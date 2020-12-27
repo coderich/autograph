@@ -129,10 +129,10 @@ module.exports = class Field extends Node {
 
   getPayloadType() {
     let type = this.getType();
+    const req = this.isRequired() ? '!' : '';
     if (this.getName() === 'id') return 'ID!';
-    if (this.isConnection()) return `${type}Connection!`;
+    if (this.isConnection()) return `${type}Connection${req}`;
     type = this.isArray() ? `[${type}${this.isArrayElementRequired() ? '!' : ''}]` : type;
-    if (this.isRequired()) type += '!';
-    return type;
+    return `${type}${req}`;
   }
 };
