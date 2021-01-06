@@ -2,7 +2,7 @@ const EventEmitter = require('../../src/core/EventEmitter');
 const { timeout } = require('../../src/service/app.service');
 
 describe('EventEmitter', () => {
-  test('Sequential Order', async (done) => {
+  test('Async all calls made', async (done) => {
     const em = new EventEmitter();
 
     const cb1 = jest.fn(async (data, next) => {
