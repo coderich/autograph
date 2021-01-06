@@ -116,9 +116,15 @@ module.exports = class Field extends Node {
     return Boolean(modelRef && modelRef.isMarkedModel() && this.isArray() && !this.isEmbedded());
   }
 
+  isSpliceable() {
+    const modelRef = this.getModelRef();
+    return Boolean(modelRef && modelRef.isMarkedModel() && this.isArray() && this.isEmbedded() && !this.isVirtual());
+  }
+
   // GQL Schema Methods
   getGQLType(suffix, options = {}) {
     let type = this.getType();
+    // if (suffix === 'InputUpdate' && this.isSpliceable()) suffix = 'InputSplice';
     const modelType = `${type}${suffix}`;
     if (suffix && !this.isScalar()) type = this.isEmbedded() ? modelType : 'ID';
     type = this.isArray() ? `[${type}${this.isArrayElementRequired() ? '!' : ''}]` : type;

@@ -18,20 +18,22 @@ module.exports = (schema) => {
   const allModels = schema.getModels();
   const markedModels = schema.getMarkedModels();
   const createModels = findGQLModels('c', markedModels, allModels);
-  const updateModels = findGQLModels('u', markedModels, allModels);
   const readModels = findGQLModels('r', markedModels, allModels);
+  const updateModels = findGQLModels('u', markedModels, allModels);
+  const deleteModels = findGQLModels('d', markedModels, allModels);
+  const spliceModels = [...new Set([...createModels, ...updateModels, ...deleteModels])];
 
   return ({
     typeDefs: [
       ...createModels.map(model => `
         input ${model.getName()}InputCreate {
-          ${model.getFields().filter(field => field.hasGQLScope('c')).map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
+          ${model.getFields().filter(field => field.hasGQLScope('c') && !field.isVirtual()).map(field => `${field.getName()}: ${field.getGQLType('InputCreate')}`)}
         }
       `),
 
       ...updateModels.map(model => `
         input ${model.getName()}InputUpdate {
-          ${model.getFields().filter(field => field.hasGQLScope('u')).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
+          ${model.getFields().filter(field => field.hasGQLScope('u') && !field.isVirtual()).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
         }
         # ${makeInputSplice(model)}
       `),
@@ -57,6 +59,13 @@ module.exports = (schema) => {
           node: ${model.getName()}
           cursor: String!
         }
+      `),
+
+      ...spliceModels.map(model => `
+        #input ${model.getName()}InputSplice {
+        #  with: ${model}InputWhere
+        #  put: ${model}InputUpdate
+        #}
       `),
     ].concat([
       `type PageInfo {

@@ -206,7 +206,7 @@ module.exports = class Node {
   }
 
   /**
-   * Is this embedded in another document
+   * Is this API embedded in another document
    */
   isEmbeddedApi() {
     return this.isEmbedded() && Boolean(this.getDirectiveArg('field', 'embedApi'));

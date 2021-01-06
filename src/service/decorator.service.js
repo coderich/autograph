@@ -239,7 +239,7 @@ const makeEmbeddedResolver = (model, resolver, type, embeds = []) => {
 
 exports.makeInputSplice = (model, embed = false) => {
   let gql = '';
-  const fields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd'));
+  const fields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd') && field.isSpliceable());
 
   if (fields.length) {
     gql += fields.map((field) => {
@@ -307,7 +307,7 @@ exports.makeUpdateAPI = (name, model, parent) => {
   let gql = '';
 
   if (model.hasGQLScope('u')) {
-    const spliceFields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd'));
+    const spliceFields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd') && field.isSpliceable());
     const meta = model.getMeta() ? `meta: ${model.getMeta()}` : '';
 
     gql += `

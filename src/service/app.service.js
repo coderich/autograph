@@ -22,9 +22,10 @@ const combineMerge = (target, source, options) => {
 };
 
 const smartMerge = (target, source, options) => {
-  const [el] = target;
-  if (!el || exports.isScalarValue(el)) return source;
-  return combineMerge(target, source, options);
+  return source;
+  // const [el] = target;
+  // if (!el || exports.isScalarValue(el)) return source;
+  // return combineMerge(target, source, options);
 };
 
 exports.id = '3d896496-02a3-4ee5-8e42-2115eb215f7e';

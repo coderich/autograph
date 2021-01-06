@@ -120,6 +120,7 @@ module.exports = {
 
     type Section @model(embed: true) {
       name: String! @field(transform: toLowerCase)
+      description: String
       person: Person
     }
 
