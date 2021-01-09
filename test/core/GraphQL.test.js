@@ -1,13 +1,7 @@
-const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { guidToId } = require('../../src/service/app.service');
-const GraphQL = require('../../src/core/GraphQL');
-const Schema = require('../../src/core/Schema');
-const Resolver = require('../../src/core/Resolver');
-// const { eventEmitter } = require('../../src/service/event.service');
-const gqlSchema = require('../fixtures/schema');
-const stores = require('../stores');
+const setup = require('../setup');
 
-let schema;
+// let schema;
 let resolver;
 let graphql;
 let personId;
@@ -32,16 +26,10 @@ const attrs = `
 
 describe('GraphQL', () => {
   beforeAll(async () => {
-    jest.setTimeout(60000);
-    const mongoServer = new MongoMemoryReplSet({ replSet: { storageEngine: 'wiredTiger' } });
-    await mongoServer.waitUntilRunning();
-    stores.default.uri = await mongoServer.getUri();
-    schema = new Schema(gqlSchema, stores);
-    schema.getServerApiSchema();
-    const context = {};
-    resolver = new Resolver(schema, context);
-    context.autograph = { resolver };
-    graphql = new GraphQL(schema, resolver);
+    // Setup
+    ({ graphql, resolver } = await setup());
+
+    // Fixtures
     friends = await Promise.all([
       resolver.match('Person').save({ name: 'friend1', emailAddress: 'friend1@gmail.com' }),
       resolver.match('Person').save({ name: 'friend2', emailAddress: 'friend2@gmail.com' }),
