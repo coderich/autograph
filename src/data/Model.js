@@ -299,7 +299,7 @@ module.exports = class extends Model {
     if (field.isArray()) {
       if (field.isVirtual()) {
         const where = { [field.getVirtualField()]: doc.id };
-        return assignValue(field, doc, prop, resolver.match(fieldModel).query({ where }).many({ find: true }));
+        return assignValue(field, doc, prop, resolver.match(fieldModel).query({ where }).many());
       }
 
       // Not a "required" query + strip out nulls
@@ -308,7 +308,7 @@ module.exports = class extends Model {
 
     if (field.isVirtual()) {
       const where = { [field.getVirtualField()]: doc.id };
-      return assignValue(field, doc, prop, resolver.match(fieldModel).query({ where }).one({ find: true }));
+      return assignValue(field, doc, prop, resolver.match(fieldModel).query({ where }).one());
     }
 
     return assignValue(field, doc, prop, resolver.match(fieldModel).id($value).one({ required: field.isRequired() }));

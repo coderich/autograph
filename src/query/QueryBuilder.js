@@ -84,7 +84,7 @@ module.exports = class QueryBuilder {
         // Multi op (transaction)
         if (where !== undefined) {
           const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
-          const docs = await resolver.match(model).where(resolvedWhere).many({ find: true });
+          const docs = await resolver.match(model).where(resolvedWhere).many();
           const txn = resolver.transaction(parentTxn);
           docs.forEach(doc => txn.match(model).id(doc.id).query(query)[cmd](...args));
           return txn.run();
@@ -100,7 +100,7 @@ module.exports = class QueryBuilder {
         // Multi op (transaction)
         if (where !== undefined) {
           const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
-          const docs = await resolver.match(model).where(resolvedWhere).many({ find: true });
+          const docs = await resolver.match(model).where(resolvedWhere).many();
           const txn = resolver.transaction(parentTxn);
           docs.forEach(doc => txn.match(model).id(doc.id).query(query).splice(...args));
           return txn.run();
@@ -141,7 +141,7 @@ module.exports = class QueryBuilder {
         // Multi remove (transaction)
         if (where !== undefined) {
           const resolvedWhere = await resolveModelWhereClause(resolver, model, where);
-          const docs = await resolver.match(model).where(resolvedWhere).many({ find: true });
+          const docs = await resolver.match(model).where(resolvedWhere).many();
           const txn = resolver.transaction(parentTxn);
           docs.forEach(doc => txn.match(model).id(doc.id).remove());
           return txn.run();
