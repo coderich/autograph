@@ -41,17 +41,6 @@ describe('Performance', () => {
       spyFind.mockClear();
     });
 
-    // test('Nested where clause (not found)', async () => {
-    //   const spyGet = jest.spyOn(MongoDriver.prototype, 'get');
-    //   const spyFind = jest.spyOn(MongoDriver.prototype, 'find');
-    //   const people = await resolver.match('Person').where({ friends: { name: 'name1' } }).many();
-    //   expect(people.length).toBe(0);
-    //   expect(spyGet).toHaveBeenCalledTimes(0);
-    //   expect(spyFind).toHaveBeenCalledTimes(1);
-    //   spyGet.mockClear();
-    //   spyFind.mockClear();
-    // });
-
     // test('Nested where clause (found)', async () => {
     //   const spyGet = jest.spyOn(MongoDriver.prototype, 'get');
     //   const spyFind = jest.spyOn(MongoDriver.prototype, 'find');
@@ -59,6 +48,17 @@ describe('Performance', () => {
     //   expect(people.length).toBe(1);
     //   expect(spyGet).toHaveBeenCalledTimes(0);
     //   expect(spyFind).toHaveBeenCalledTimes(2);
+    //   spyGet.mockClear();
+    //   spyFind.mockClear();
+    // });
+
+    // test('Nested where clause (not found)', async () => {
+    //   const spyGet = jest.spyOn(MongoDriver.prototype, 'get');
+    //   const spyFind = jest.spyOn(MongoDriver.prototype, 'find');
+    //   const people = await resolver.match('Person').where({ friends: { name: 'name1' } }).many();
+    //   expect(people.length).toBe(0);
+    //   expect(spyGet).toHaveBeenCalledTimes(0);
+    //   expect(spyFind).toHaveBeenCalledTimes(1);
     //   spyGet.mockClear();
     //   spyFind.mockClear();
     // });

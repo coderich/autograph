@@ -31,10 +31,11 @@ const smartMerge = (target, source, options) => {
 exports.id = '3d896496-02a3-4ee5-8e42-2115eb215f7e';
 exports.ucFirst = string => string.charAt(0).toUpperCase() + string.slice(1);
 exports.lcFirst = string => string.charAt(0).toLowerCase() + string.slice(1);
-exports.isPlainObject = obj => obj != null && typeof obj === 'object' && !Array.isArray(obj) && !(obj instanceof ObjectID) && !(obj instanceof Date);
+exports.isNumber = value => typeof value === 'number' && Number.isFinite(value);
+exports.isBasicObject = obj => obj != null && typeof obj === 'object' && !(obj instanceof ObjectID) && !(obj instanceof Date) && typeof (obj.then) !== 'function';
+exports.isPlainObject = obj => exports.isBasicObject(obj) && !Array.isArray(obj);
 exports.isScalarValue = value => typeof value !== 'object' && typeof value !== 'function';
 exports.isScalarDataType = value => ['String', 'Float', 'Int', 'Boolean', 'DateTime'].indexOf(value) > -1;
-exports.isNumber = value => typeof value === 'number' && Number.isFinite(value);
 exports.isIdValue = value => exports.isScalarValue(value) || value instanceof ObjectID;
 exports.mergeDeep = (...args) => DeepMerge.all(args, { isMergeableObject: obj => (exports.isPlainObject(obj) || Array.isArray(obj)), arrayMerge: smartMerge });
 exports.uniq = arr => [...new Set(arr.map(a => `${a}`))];
@@ -176,7 +177,6 @@ exports.unrollGuid = (autograph, model, data) => {
 exports.keyPaths = (obj = {}, keys = [], path) => {
   return Object.entries(obj).reduce((prev, [key, value]) => {
     const keyPath = path ? `${path}.${key}` : key;
-
     if (exports.isPlainObject(value)) return exports.keyPaths(value, prev, keyPath);
 
     // if (Array.isArray(value)) {
