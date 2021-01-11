@@ -24,7 +24,7 @@ module.exports = class QueryWorker {
     return createSystemEvent('Query', { method: 'get', model, resolver, query }, async () => {
       const where = { id: model.idValue(id) };
       const $where = await model.resolveBoundValues(where);
-      const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
+      const resolvedWhere = await resolveModelWhereClause(resolver, model, $where, options);
       const doc = await model.get(resolvedWhere, options).hydrate(resolver, query);
       if (!doc && required) throw Boom.notFound(`${model} Not Found`);
       if (doc == null) return null;
@@ -61,7 +61,7 @@ module.exports = class QueryWorker {
       if (query.isNative()) return model.native('count', query.getNative(), options);
 
       const $where = await model.resolveBoundValues(where);
-      const resolvedWhere = await resolveModelWhereClause(resolver, model, $where);
+      const resolvedWhere = await resolveModelWhereClause(resolver, model, $where, options);
 
       if (countPaths.length) {
         const results = await resolver.match(model).where(resolvedWhere).select(countFields).options(options).many();
