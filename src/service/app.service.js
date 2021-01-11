@@ -149,7 +149,7 @@ exports.serialize = (field, value) => {
  * eg. { 'user.name': 'richard' } => { user: { name: 'richard' } }
  */
 exports.unravelObject = (obj) => {
-  if (obj == null) return obj;
+  if (!exports.isPlainObject(obj)) return obj;
 
   return exports.keyPaths(obj).reduce((prev, path) => {
     const splitPath = path.split('.');

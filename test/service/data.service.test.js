@@ -29,8 +29,16 @@ describe('DataService', () => {
     });
 
     test('FK where clauses', async () => {
-      expect(await resolveModelWhereClause(resolver, schema.getModel('Person'), { authored: book.id })).toEqual({ id: [person.id] });
-      expect(await resolveModelWhereClause(resolver, schema.getModel('Person'), { authored: { name: 'book' } })).toEqual({ id: [person.id] });
+      expect(await resolveModelWhereClause(resolver, schema.getModel('Person'), { authored: book.id })).toEqual({ id: person.id });
+      expect(await resolveModelWhereClause(resolver, schema.getModel('Person'), { authored: [book.id] })).toEqual({ id: person.id });
+      expect(await resolveModelWhereClause(resolver, schema.getModel('Person'), { authored: [person.id, book.id] })).toEqual({ id: person.id });
+      expect(await resolveModelWhereClause(resolver, schema.getModel('Person'), { authored: { name: 'book' } })).toEqual({ id: person.id });
+      expect(await resolveModelWhereClause(resolver, schema.getModel('Person'), { authored: [person.id, { name: 'book' }] })).toEqual({ id: person.id });
+      expect(await resolveModelWhereClause(resolver, schema.getModel('Book'), { author: person.id })).toEqual({ author: person.id });
+      expect(await resolveModelWhereClause(resolver, schema.getModel('Book'), { author: { name: 'name1' } })).toEqual({ author: person.id });
+      expect(await resolveModelWhereClause(resolver, schema.getModel('Book'), { author: { name: ['no-nane', 'name1'] } })).toEqual({ author: person.id });
+      expect(await resolveModelWhereClause(resolver, schema.getModel('Book'), { author: [{ name: 'name' }, { name: 'name1' }] })).toEqual({ author: person.id });
+      expect(await resolveModelWhereClause(resolver, schema.getModel('Book'), { author: { authored: { name: '*' } } })).toEqual({ author: person.id });
     });
   });
 });
