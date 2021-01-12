@@ -39,7 +39,7 @@ const sorter = (a, b) => {
   return 0;
 };
 
-module.exports = (driver = 'default', options = {}) => {
+module.exports = (driver = 'mongo', options = {}) => {
   describe(`${driver} (${JSON.stringify(options)})`, () => {
     beforeAll(async () => {
       jest.setTimeout(60000);
@@ -48,7 +48,7 @@ module.exports = (driver = 'default', options = {}) => {
       stores.default = stores[driver];
 
       // If default/mongo; start in memory server unless we have to test transactions false
-      if (driver === 'default') {
+      if (driver === 'mongo') {
         if (options.transactions === false) {
           set(stores.default, 'directives.transactions', false);
         } else {
@@ -315,6 +315,7 @@ module.exports = (driver = 'default', options = {}) => {
         });
 
         test('Art', async () => {
+          expect(await resolver.match('Art').where({ sections: { id: artsy.sections[0].id } }).one()).toMatchObject(artsy);
           expect(await resolver.match('Art').where({ 'sections.id': artsy.sections[0].id }).one()).toMatchObject(artsy);
         });
       }
@@ -407,7 +408,7 @@ module.exports = (driver = 'default', options = {}) => {
         await expect(resolver.match('Chapter').save({ name: 'chapter3' })).rejects.toThrow();
 
         // Composite key
-        switch (stores.default.type) {
+        switch (driver) {
           case 'mongo': {
             await expect(resolver.match('Chapter').save({ name: 'chapter1', book: healthBook.id })).rejects.toThrow();
             await expect(resolver.match('Chapter').save({ name: 'chapter3', book: christie.id })).rejects.toThrow();
@@ -422,7 +423,7 @@ module.exports = (driver = 'default', options = {}) => {
         await expect(resolver.match('Page').save({ number: 3 })).rejects.toThrow();
 
         // Composite key
-        switch (stores.default.type) {
+        switch (driver) {
           case 'mongo': {
             await expect(resolver.match('Page').save({ number: 1, chapter: chapter1 })).rejects.toThrow();
             await expect(resolver.match('Page').save({ number: 1, chapter: chapter1.id })).rejects.toThrow();

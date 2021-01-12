@@ -7,6 +7,13 @@ module.exports = {
     options: { useNewUrlParser: true, tlsInsecure: true, useUnifiedTopology: true },
     directives: { version: 4 },
   },
+  // Duplicating default for testing
+  mongo: {
+    Driver: new Driver('Mongo'),
+    uri: 'mongodb://localhost/autograph',
+    options: { useNewUrlParser: true, tlsInsecure: true, useUnifiedTopology: true },
+    directives: { version: 4 },
+  },
   neo4jDriver: {
     Driver: new Driver('Neo4jDriver'),
     uri: 'bolt://localhost',

@@ -104,7 +104,7 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, options) => {
       return Object.assign(prev, { id: ids });
     }
 
-    if (modelRef) {
+    if (modelRef && !field.isEmbedded()) {
       const ids = Promise.all(ensureArray(value).map(v => (isPlainObject(v) ? resolver.match(modelRef).where(v).options(options).many().then(docs => docs.map(doc => doc.id)) : Promise.resolve(v)))).then(results => _.uniq(_.flattenDeep(results)));
       return Object.assign(prev, { [key]: ids });
     }
