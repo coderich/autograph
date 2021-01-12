@@ -93,8 +93,6 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
 };
 
 exports.resolveModelWhereClause = (resolver, model, where = {}, options) => {
-  if (Array.isArray(where)) return where;
-
   // Construct
   const $where = Object.entries(where).reduce((prev, [key, value]) => {
     const field = model.getField(key);
@@ -102,8 +100,7 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, options) => {
 
     if (field.isVirtual()) {
       const virtualRef = field.getVirtualRef();
-      value = map(value, v => (isPlainObject(v) ? v : { id: v }));
-      const ids = resolver.match(modelRef).where(value).options(options).many().then(docs => docs.map(doc => doc[virtualRef])).then(results => _.uniq(_.flattenDeep(results)));
+      const ids = Promise.all(ensureArray(value).map(v => resolver.match(modelRef).where(isPlainObject(v) ? v : { id: v }).options(options).many().then(docs => docs.map(doc => doc[virtualRef])))).then(results => _.uniq(_.flattenDeep(results)));
       return Object.assign(prev, { id: ids });
     }
 

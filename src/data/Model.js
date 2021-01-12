@@ -165,12 +165,16 @@ module.exports = class extends Model {
   resolveBoundValues(data) {
     const boundFields = this.getBoundValueFields();
 
-    return map(data, obj => Promise.all(boundFields.map((boundField) => {
-      return boundField.resolveBoundValue(obj[boundField]);
-    })).then((values) => {
-      values.forEach((value, i) => { obj[boundFields[i]] = value; }); // Assign new value
+    return Promise.all(ensureArray(data).map((obj) => {
+      return Promise.all(boundFields.map((boundField) => {
+        return boundField.resolveBoundValue(obj[boundField]);
+      })).then((values) => {
+        values.forEach((value, i) => { obj[boundFields[i]] = value; }); // Assign new value
+        return values;
+      });
+    })).then(() => {
       return data;
-    }));
+    });
   }
 
   removeBoundKeys(data) {
