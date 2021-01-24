@@ -6,6 +6,7 @@ const { nvl, uvl } = require('../../service/app.service');
 const { validateSchema, makeExecutableSchema, mergeASTSchema, mergeASTArray } = require('../../service/graphql.service');
 const Node = require('./Node');
 const Model = require('./Model');
+const Memoizer = require('../../data/Memoizer');
 
 const loadFile = file => FS.readFileSync(Path.resolve(file), 'utf8');
 const reqFile = file => require(Path.resolve(file)); // eslint-disable-line global-require,import/no-dynamic-require
@@ -21,6 +22,7 @@ module.exports = class Schema extends Node {
     super(schema.typeDefs);
     this.schema = schema;
     this.initialize();
+    return new Memoizer(this, Object.getOwnPropertyNames(Schema.prototype).filter(m => ['getModel', 'getModels', 'getInputs', 'getScalars', 'getEnums'].indexOf(m) === -1));
   }
 
   initialize() {

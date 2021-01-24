@@ -3,6 +3,8 @@ Release 0.6:
     - Should return ConnectionType
   ? Possibly rename input type to end with Input (eg. CreatePersonInput)
   * deserialize should set default values if undefined
+  * helper methods:
+    - field.getPathFromModel(model) => 'a.b.c.d';
   -------------
   1) No longer will require/support using "... on" when returning lists (but will still work)
   2) Array fields (with modelRef) will now return ConnectionType
