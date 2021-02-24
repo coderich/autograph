@@ -189,6 +189,11 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Person').where({ age: '40' }).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
         expect(await resolver.match('Person').where({ age: '4?' }).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
         expect(await resolver.match('Person').where({ age: '??' }).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
+
+        // Context switch
+        const cxt = resolver.getContext();
+        cxt.network = 'new-network';
+        expect(await resolver.match('Person').where({ age: '??' }).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'new-network' });
       });
 
       test('Book', async () => {
