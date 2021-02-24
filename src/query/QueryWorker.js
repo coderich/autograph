@@ -22,10 +22,10 @@ module.exports = class QueryWorker {
     const [model, id, options] = [query.getModel(), query.getId(), query.getOptions()];
 
     return createSystemEvent('Query', { method: 'get', model, resolver, query }, async () => {
-      const where = { id: model.idValue(id) };
-      const $where = await model.resolveBoundValues(where);
-      const resolvedWhere = await resolveModelWhereClause(resolver, model, $where, options);
-      const doc = await model.get(resolvedWhere, options).hydrate(resolver, query);
+      query.where = { id: model.idValue(id) };
+      query.where = await model.resolveBoundValues(query.where);
+      query.where = await resolveModelWhereClause(resolver, model, query.where, options);
+      const doc = await model.get(query.where, options).hydrate(resolver, query);
       if (!doc && required) throw Boom.notFound(`${model} Not Found`);
       if (doc == null) return null;
       return doc;
@@ -34,16 +34,16 @@ module.exports = class QueryWorker {
 
   find(query, required) {
     const { resolver } = this;
-    const [model, where, limit, countFields, sortFields, options] = [query.getModel(), query.getWhere(), query.getLimit(), query.getCountFields(), query.getSortFields(), query.getOptions()];
+    const [model, limit, countFields, sortFields, options] = [query.getModel(), query.getLimit(), query.getCountFields(), query.getSortFields(), query.getOptions()];
 
     let hydratedResults;
     return createSystemEvent('Query', { method: 'find', model, resolver, query }, async () => {
       if (query.isNative()) {
         hydratedResults = await model.native('find', query.getNative(), options).hydrate(resolver, query);
       } else {
-        const $where = await model.resolveBoundValues(where);
-        const resolvedWhere = await resolveModelWhereClause(resolver, model, $where, options);
-        hydratedResults = await model.find(resolvedWhere, options).hydrate(resolver, query);
+        query.where = await model.resolveBoundValues(query.where);
+        query.where = await resolveModelWhereClause(resolver, model, query.where, options);
+        hydratedResults = await model.find(query.where, options).hydrate(resolver, query);
       }
       if (required && (!hydratedResults || isEmpty(hydratedResults))) throw Boom.notFound(`${model} Not Found`);
       const filteredData = filterDataByCounts(resolver, model, hydratedResults, countFields);
@@ -55,21 +55,21 @@ module.exports = class QueryWorker {
 
   count(query) {
     const { resolver } = this;
-    const [model, where, countFields, countPaths, options] = [query.getModel(), query.getWhere(), query.getCountFields(), query.getCountPaths(), query.getOptions()];
+    const [model, countFields, countPaths, options] = [query.getModel(), query.getCountFields(), query.getCountPaths(), query.getOptions()];
 
     return createSystemEvent('Query', { method: 'count', model, resolver, query }, async () => {
       if (query.isNative()) return model.native('count', query.getNative(), options);
 
-      const $where = await model.resolveBoundValues(where);
-      const resolvedWhere = await resolveModelWhereClause(resolver, model, $where, options);
+      query.where = await model.resolveBoundValues(query.where);
+      query.where = await resolveModelWhereClause(resolver, model, query.where, options);
 
       if (countPaths.length) {
-        const results = await resolver.match(model).where(resolvedWhere).select(countFields).options(options).many();
+        const results = await resolver.match(model).where(query.where).select(countFields).options(options).many();
         const filteredData = filterDataByCounts(resolver, model, results, countFields);
         return filteredData.length;
       }
 
-      return model.count(resolvedWhere, options);
+      return model.count(query.where, options);
     });
   }
 

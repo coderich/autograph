@@ -2,7 +2,7 @@ const _ = require('lodash');
 const Boom = require('../core/Boom');
 const DataResolver = require('../data/DataResolver');
 const { createSystemEvent } = require('./event.service');
-const { map, globToRegexp, isPlainObject, promiseChain, isIdValue, keyPaths, toGUID, getDeep, ensureArray, hashObject, mergeDeep, objectContaining } = require('./app.service');
+const { map, globToRegexp, isPlainObject, keyPaths, toGUID, getDeep, ensureArray, hashObject, mergeDeep, objectContaining } = require('./app.service');
 
 exports.makeDataResolver = (doc, model, resolver, query) => {
   const { id } = doc;
@@ -123,128 +123,6 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, options) => {
     }, {});
   });
 };
-
-// exports.resolveModelWhereClause = (resolver, model, where = {}, fieldKey = '', lookups2D = [], index = 0) => {
-//   const mName = model.getName();
-//   const fields = model.getFields();
-
-//   // Allowing id in where clause
-//   if (where.id) where.id = map(where.id, v => model.idValue(v));
-
-//   //
-//   lookups2D[index] = lookups2D[index] || {
-//     parentFieldKey: fieldKey,
-//     parentModel: model,
-//     parentFields: fields,
-//     parentDataRefs: new Set(model.getDataRefFields().map(f => f.getDataRef())),
-//     lookups: [],
-//   };
-
-//   const resolveEmbeddedWhere = (ref, key, value) => {
-//     const resolved = ensureArray(map(value, (obj) => {
-//       return Object.entries(obj).reduce((p, [k, v]) => {
-//         const f = ref.getFieldByName(k);
-
-//         if (k === 'id') return Object.assign(p, { [k]: ref.idValue(v) });
-//         if (f.isScalar()) return Object.assign(p, { [k]: v });
-//         if (f.isEmbedded()) return Object.assign(p, { [k]: resolveEmbeddedWhere(f.getModelRef(), k, v) });
-//         return Object.assign(p, { [k]: v });
-//       }, {});
-//     }));
-
-//     return resolved.length > 1 ? resolved : resolved[0];
-//   };
-
-//   // Depth first traversal to create 2d array of lookups
-//   lookups2D[index].lookups.push({
-//     modelName: mName,
-//     query: Object.entries(where).reduce((prev, [key, value]) => {
-//       const field = model.getField(key);
-//       const ref = field.getModelRef();
-
-//       if (field.isEmbedded()) {
-//         value = resolveEmbeddedWhere(ref, key, value);
-//       } else if (ref) {
-//         if (isPlainObject(value)) {
-//           exports.resolveModelWhereClause(resolver, ref, value, key, lookups2D, index + 1);
-//           return prev;
-//         }
-
-//         if (Array.isArray(value)) {
-//           const scalars = [];
-//           const norm = value.map((v) => {
-//             if (isPlainObject(v)) return v;
-//             if (field.isVirtual() && isIdValue(v)) return { id: v };
-//             scalars.push(v);
-//             return null;
-//           }).filter(v => v);
-//           norm.forEach(val => exports.resolveModelWhereClause(resolver, ref, val, field, lookups2D, index + 1));
-//           if (scalars.length) prev[key] = scalars;
-//           return prev;
-//         }
-
-//         if (field.isVirtual()) {
-//           exports.resolveModelWhereClause(resolver, ref, { id: value }, field, lookups2D, index + 1);
-//           return prev;
-//         }
-//       }
-
-//       return Object.assign(prev, { [key]: value });
-//     }, {}),
-//   });
-
-//   if (index === 0) {
-//     if (lookups2D.length === 1) {
-//       const [{ query }] = lookups2D[0].lookups;
-//       return query;
-//     }
-
-//     return promiseChain(lookups2D.reverse().map(({ lookups }, index2D) => {
-//       return () => Promise.all(lookups.map(async ({ modelName, query }) => {
-//         const parentLookup = lookups2D[index2D + 1] || { parentDataRefs: new Set() };
-//         const { parentModel, parentFields, parentDataRefs } = parentLookup;
-//         const { parentModel: currentModel, parentFields: currentFields, parentFieldKey: currentFieldKey } = lookups2D[index2D];
-
-//         return resolver.match(modelName).where(query).many().then((results) => {
-//           if (parentDataRefs.has(modelName)) {
-//             parentLookup.lookups.forEach((lookup) => {
-//               // Anything with type `modelName` should be added to query
-//               parentFields.forEach((field) => {
-//                 const ref = field.getDataRef();
-
-//                 if (ref === modelName) {
-//                   if (field.isVirtual()) {
-//                     const cField = currentFields.find(f => f.getName() === field.getVirtualRef());
-//                     // const cKey = cField.getKey(field.getVirtualRef());
-
-//                     Object.assign(lookup.query, {
-//                       id: results.map((result) => {
-//                         const cValue = result[cField];
-//                         return parentModel.idValue(cValue);
-//                       }),
-//                     });
-//                   } else {
-//                     Object.assign(lookup.query, {
-//                       [currentFieldKey]: results.map(result => currentModel.idValue(result.id)),
-//                     });
-//                   }
-//                 }
-//               });
-//             });
-//           }
-
-//           return results;
-//         });
-//       }));
-//     })).then(() => {
-//       const [{ query }] = lookups2D[lookups2D.length - 1].lookups;
-//       return query;
-//     });
-//   }
-
-//   // Must be a nested call; nothing to do
-//   return undefined;
-// };
 
 exports.resolveReferentialIntegrity = (resolver, model, query, parentTxn) => {
   const id = query.getId();
