@@ -7,7 +7,7 @@ Release 0.6:
     - field.getPathFromModel(model) => 'a.b.c.d';
   -------------
   1) No longer will require/support using "... on" when returning lists (but will still work)
-  2) Array fields (with modelRef) will now return ConnectionType
+  2) Array fields (with modelRef) will now return ConnectionType (conditionally with @field(connection:true))
 
 Bugs:
   * Nested embedded object in array cannot delete without doing an explicit $pull operation (race condition)
