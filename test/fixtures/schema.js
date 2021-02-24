@@ -22,9 +22,9 @@ module.exports = {
     {
       age: Int @field(key: "my_age")
       name: String! @field(transform: toTitleCase)
-      authored: [Book] @link(by: author)
+      authored: [Book] @link(by: author) @field(connection: true)
       emailAddress: String! @field(key: "email_address", enforce: email)
-      friends: [Person] @field(transform: dedupe, enforce: selfless, onDelete: cascade)
+      friends: [Person] @field(transform: dedupe, enforce: selfless, onDelete: cascade, connection: true)
       status: String @field(key: "state")
       # state: String @field(key: "address_state")
       telephone: String @field(default: "###-###-####")

@@ -114,6 +114,11 @@ module.exports = class Field extends Node {
   }
 
   isConnection() {
+    // Deliberately need to specify this is a connection
+    const connection = Boolean(this.getDirectiveArg('field', 'connection'));
+    if (!connection) return false;
+
+    // Also needs to be proper
     const modelRef = this.getModelRef();
     return Boolean(modelRef && modelRef.isMarkedModel() && this.isArray() && !this.isEmbedded());
   }
