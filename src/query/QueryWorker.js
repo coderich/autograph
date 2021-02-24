@@ -42,7 +42,6 @@ module.exports = class QueryWorker {
         hydratedResults = await model.native('find', query.getNative(), options).hydrate(resolver, query);
       } else {
         query.where = await model.resolveBoundValues(query.where);
-        if (options.debug) console.log(query.where);
         query.where = await resolveModelWhereClause(resolver, model, query.where, options);
         hydratedResults = await model.find(query.where, options).hydrate(resolver, query);
       }

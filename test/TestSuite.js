@@ -193,7 +193,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         // Context switch
         const ctx = resolver.getContext();
         ctx.network.id = 'networkIdd';
-        await expect(resolver.match('Person').where({ name: richard.name }).options({ debug: true }).one({ required: true })).rejects.toThrow();
+        await expect(resolver.match('Person').where({ name: richard.name }).one({ required: true })).rejects.toThrow();
         ctx.network.id = 'networkId';
       });
 

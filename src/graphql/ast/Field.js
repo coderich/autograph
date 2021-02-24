@@ -12,7 +12,7 @@ module.exports = class Field extends Node {
     this.type = new Type(this.ast);
     this.isArray = this.type.isArray.bind(this.type);
     this.isArrayElementRequired = this.type.isArrayElementRequired.bind(this.type);
-    return new Memoizer(this, Object.getOwnPropertyNames(Field.prototype));
+    return new Memoizer(this, Object.getOwnPropertyNames(Field.prototype).filter(m => ['resolveBoundValue'].indexOf(m) === -1));
   }
 
   // Field Methods
