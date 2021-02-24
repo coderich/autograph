@@ -182,6 +182,12 @@ module.exports = (driver = 'default', options = {}) => {
         expect(await resolver.match('Person').where({ age: '40' }).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
         expect(await resolver.match('Person').where({ age: '4?' }).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
         expect(await resolver.match('Person').where({ age: '??' }).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
+
+        // Context switch
+        const ctx = resolver.getContext();
+        ctx.network.id = 'networkIdd';
+        await expect(resolver.match('Person').where({ name: richard.name }).one({ required: true })).rejects.toThrow();
+        ctx.network.id = 'networkId';
       });
 
       test('Book', async () => {
