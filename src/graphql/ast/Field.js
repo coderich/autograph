@@ -2,7 +2,7 @@ const { get } = require('lodash');
 const Node = require('./Node');
 const Type = require('./Type');
 const { mergeDeep } = require('../../service/app.service');
-const Memoizer = require('../../data/Memoizer');
+// const Memoizer = require('../../data/Memoizer');
 
 module.exports = class Field extends Node {
   constructor(model, ast) {
@@ -12,7 +12,7 @@ module.exports = class Field extends Node {
     this.type = new Type(this.ast);
     this.isArray = this.type.isArray.bind(this.type);
     this.isArrayElementRequired = this.type.isArrayElementRequired.bind(this.type);
-    return new Memoizer(this, Object.getOwnPropertyNames(Field.prototype).filter(m => ['getContext', 'resolveBoundValue'].indexOf(m) === -1));
+    // return new Memoizer(this, Object.getOwnPropertyNames(Field.prototype).filter(m => ['getContext', 'resolveBoundValue'].indexOf(m) === -1));
   }
 
   // Field Methods

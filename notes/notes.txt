@@ -1,4 +1,7 @@
 Release 0.6:
+  ** WRITE A TEST THAT SHOWS resolveModelWhereClause (if (where.id) where.id = map(where.id, v => model.idValue(v));)
+    - its needed...
+
   * Add ability to query (where, first, last, etc) nested array types
     - Should return ConnectionType
   ? Possibly rename input type to end with Input (eg. CreatePersonInput)

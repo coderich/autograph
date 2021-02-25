@@ -2,7 +2,7 @@ const { get } = require('lodash');
 const { Kind } = require('graphql');
 const { nvl, uvl } = require('../../service/app.service');
 const { mergeAST } = require('../../service/graphql.service');
-const Memoizer = require('../../data/Memoizer');
+// const Memoizer = require('../../data/Memoizer');
 
 const operations = ['Query', 'Mutation', 'Subscription'];
 const modelKinds = [Kind.OBJECT_TYPE_DEFINITION, Kind.OBJECT_TYPE_EXTENSION, Kind.INTERFACE_TYPE_DEFINITION, Kind.INTERFACE_TYPE_EXTENSION];
@@ -17,7 +17,7 @@ module.exports = class Node {
     this.directives = (this.ast.directives || []).map(el => new Node(el));
     this.toString = () => this.getName();
     this.nodeType = nodeType;
-    return new Memoizer(this, Object.getOwnPropertyNames(Node.prototype).filter(m => ['getContext'].indexOf(m) === -1));
+    // return new Memoizer(this, Object.getOwnPropertyNames(Node.prototype).filter(m => ['getContext'].indexOf(m) === -1));
   }
 
   // Basic AST Methods
