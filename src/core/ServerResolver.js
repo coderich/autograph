@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const GraphqlFields = require('graphql-fields');
 const Boom = require('./Boom');
-const { map, unrollGuid, guidToId, ensureArray, promiseChain } = require('../service/app.service');
+const { unrollGuid, guidToId, ensureArray, promiseChain } = require('../service/app.service');
 
 const normalizeQuery = (args = {}, info) => {
   const query = { fields: GraphqlFields(info, {}, { processArguments: true }), ...args };

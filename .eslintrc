@@ -23,6 +23,7 @@
       "required": {
         "some": [ "nesting", "id"  ]
       }
-    }]
+    }],
+    "import/no-unresolved": ['error', { ignore: ['^graphql$'] }]
   }
 }

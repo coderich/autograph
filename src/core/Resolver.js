@@ -6,7 +6,7 @@ const QueryBuilder = require('../query/QueryBuilder');
 const TxnQueryBuilder = require('../query/TransactionQueryBuilder');
 const QueryWorker = require('../query/QueryWorker');
 const Query = require('../query/Query');
-const { hashCacheKey, hashObject } = require('../service/app.service');
+const { hashCacheKey } = require('../service/app.service');
 const Rule = require('./Rule');
 
 let count = 0;
