@@ -31,19 +31,15 @@ module.exports = class MongoDriver {
   }
 
   find(model, where = {}, options) {
-    const { version = 0 } = this.getDirectives();
     MongoDriver.normalizeOptions(options);
-    const $where = this.normalizeWhereAggregation(model, this.schema, where);
-    if (version >= 4) return this.query(model, 'aggregate', $where, options).then(results => results.toArray());
-    return this.query(model, 'find', $where, options).then(results => results.toArray());
+    const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where);
+    return this.query(model, 'aggregate', $where, options).then(results => results.toArray());
   }
 
   count(model, where = {}, options) {
-    const { version = 0 } = this.getDirectives();
     MongoDriver.normalizeOptions(options);
-    const $where = this.normalizeWhereAggregation(model, this.schema, where, true);
-    if (version >= 4) return this.query(model, 'aggregate', $where, options).then(cursor => cursor.next().then(data => (data ? data.count : 0)));
-    return this.query(model, 'countDocuments', $where, options);
+    const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where, true);
+    return this.query(model, 'aggregate', $where, options).then(cursor => cursor.next().then(data => (data ? data.count : 0)));
   }
 
   create(model, data, options) {
@@ -123,13 +119,10 @@ module.exports = class MongoDriver {
     }));
   }
 
-  normalizeWhereAggregation(modelName, schema, where, count = false) {
+  static normalizeWhereAggregation(modelName, schema, where, count = false) {
     const $agg = [];
     const model = schema.getModel(modelName);
     const $match = MongoDriver.normalizeWhere(where);
-
-    const { version = 0 } = this.getDirectives();
-    if (version < 4) return $match;
 
     // Determine which fields need to be cast for the query
     const fields = model.getSelectFields().filter((field) => {
