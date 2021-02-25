@@ -93,6 +93,8 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
 };
 
 exports.resolveModelWhereClause = (resolver, model, where = {}, options) => {
+  if (where.id) where.id = map(where.id, v => model.idValue(v));
+
   // Construct
   const $where = Object.entries(where).reduce((prev, [key, value]) => {
     const field = model.getField(key);

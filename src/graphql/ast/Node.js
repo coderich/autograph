@@ -17,7 +17,7 @@ module.exports = class Node {
     this.directives = (this.ast.directives || []).map(el => new Node(el));
     this.toString = () => this.getName();
     this.nodeType = nodeType;
-    return new Memoizer(this, Object.getOwnPropertyNames(Node.prototype));
+    return new Memoizer(this, Object.getOwnPropertyNames(Node.prototype).filter(m => ['getContext'].indexOf(m) === -1));
   }
 
   // Basic AST Methods

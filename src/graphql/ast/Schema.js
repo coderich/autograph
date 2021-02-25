@@ -22,7 +22,7 @@ module.exports = class Schema extends Node {
     super(schema.typeDefs);
     this.schema = schema;
     this.initialize();
-    return new Memoizer(this, Object.getOwnPropertyNames(Schema.prototype).filter(m => ['getModel', 'getModels', 'getInputs', 'getScalars', 'getEnums'].indexOf(m) === -1));
+    return new Memoizer(this, Object.getOwnPropertyNames(Schema.prototype).filter(m => ['getModel', 'getModels', 'getInputs', 'getScalars', 'getEnums', 'getContext'].indexOf(m) === -1));
   }
 
   initialize() {
