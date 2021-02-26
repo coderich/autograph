@@ -33,13 +33,13 @@ module.exports = class MongoDriver {
   find(model, where = {}, options) {
     MongoDriver.normalizeOptions(options);
     const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where);
-    return this.query(model, 'aggregate', $where, options).then(results => results.toArray());
+    return this.query(model, 'aggregate', $where, options).then(cursor => cursor.next().then(data => data.docs));
   }
 
   count(model, where = {}, options) {
     MongoDriver.normalizeOptions(options);
-    const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where, true);
-    return this.query(model, 'aggregate', $where, options).then(cursor => cursor.next().then(data => (data ? data.count : 0)));
+    const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where);
+    return this.query(model, 'aggregate', $where, options).then(cursor => cursor.next().then(data => get(data.count[0], 'count', 0)));
   }
 
   create(model, data, options) {
@@ -119,10 +119,15 @@ module.exports = class MongoDriver {
     }));
   }
 
-  static normalizeWhereAggregation(modelName, schema, where, count = false) {
-    const $agg = [];
+  static normalizeWhereAggregation(modelName, schema, where) {
     const model = schema.getModel(modelName);
     const $match = MongoDriver.normalizeWhere(where);
+
+    const $facet = {
+      docs: [{ $match }],
+      count: [{ $match }, { $count: 'count' }],
+      totalCount: [{ $count: 'totalCount' }],
+    };
 
     // Determine which fields need to be cast for the query
     const fields = model.getSelectFields().filter((field) => {
@@ -137,10 +142,13 @@ module.exports = class MongoDriver {
     });
 
     const $addFields = fields.reduce((prev, field) => Object.assign(prev, { [field.getKey()]: { $toString: `$${field.getKey()}` } }), {});
-    if (Object.keys($addFields).length) $agg.push({ $addFields });
-    $agg.push({ $match });
-    if (count) $agg.push({ $count: 'count' });
-    return $agg;
+
+    if (Object.keys($addFields).length) {
+      $facet.docs.unshift({ $addFields });
+      $facet.count.unshift({ $addFields });
+    }
+
+    return [{ $facet }];
   }
 
   static idKey() {
