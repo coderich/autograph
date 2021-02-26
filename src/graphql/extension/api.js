@@ -52,8 +52,8 @@ module.exports = (schema) => {
           ${model.getFields().filter(field => field.hasGQLScope('r')).map(field => `${field.getName()}: ${field.getPayloadType()}`)}
         }
         type ${model.getName()}Connection {
-          edges: [${model.getName()}Edge]
           pageInfo: PageInfo!
+          edges: [${model.getName()}Edge]
         }
         type ${model.getName()}Edge {
           node: ${model.getName()}

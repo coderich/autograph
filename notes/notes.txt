@@ -91,3 +91,29 @@ Refs:
   * https://gist.github.com/rxaviers/7360908
   * https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet
   * https://stackoverflow.com/questions/44639309/javascript-difference-between-reflect-get-and-objfoo
+  * https://nodesource.com/blog/understanding-streams-in-nodejs/
+
+
+db.getCollection('network_place').aggregate([
+  {
+    $facet: {
+      docs: [
+        {
+          $addFields: {
+            dataId: { $toString: '$dataId' },
+          }
+        },
+        {
+          $match: { dataType: "site" },
+        },
+      ],
+      count: [
+        { $match: { dataType: "site" } },
+        { $count: 'count' }
+      ],
+      totalCount: [
+        { $count: 'totalCount' }
+      ]
+    }
+  }
+]);
