@@ -32,7 +32,7 @@ module.exports = class MongoDriver {
 
   find(model, where = {}, options) {
     MongoDriver.normalizeOptions(options);
-    const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where);
+    const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where, true);
     return this.query(model, 'aggregate', $where, options).then(cursor => cursor.next().then(data => data.docs));
   }
 
@@ -119,15 +119,16 @@ module.exports = class MongoDriver {
     }));
   }
 
-  static normalizeWhereAggregation(modelName, schema, where) {
+  static normalizeWhereAggregation(modelName, schema, where, withDocs = false) {
     const model = schema.getModel(modelName);
     const $match = MongoDriver.normalizeWhere(where);
 
     const $facet = {
-      docs: [{ $match }],
       count: [{ $match }, { $count: 'count' }],
       totalCount: [{ $count: 'totalCount' }],
     };
+
+    if (withDocs) $facet.docs = [{ $match }];
 
     // Determine which fields need to be cast for the query
     const fields = model.getSelectFields().filter((field) => {
@@ -144,7 +145,7 @@ module.exports = class MongoDriver {
     const $addFields = fields.reduce((prev, field) => Object.assign(prev, { [field.getKey()]: { $toString: `$${field.getKey()}` } }), {});
 
     if (Object.keys($addFields).length) {
-      $facet.docs.unshift({ $addFields });
+      if (withDocs) $facet.docs.unshift({ $addFields });
       $facet.count.unshift({ $addFields });
     }
 
