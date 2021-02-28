@@ -17,7 +17,6 @@ module.exports = class Query {
     countPaths.forEach(p => unset(where, p));
 
     //
-    this.resolver = resolver;
     this.query = query;
     this.model = model;
     this.countFields = countFields;

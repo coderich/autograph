@@ -117,3 +117,22 @@ db.getCollection('network_place').aggregate([
     }
   }
 ]);
+
+QueryCommand {
+  operations: [
+    {
+      model,
+      facets: [
+        {
+          method: 'get|set|rem|add|find|update|remove|count|sum|avg|min|max',
+          ${method}: {
+            query: { fields, where, sort, limit, skip, first, after, last, before },
+            input: {...},
+            doc: {...},
+            pipeline: [...],
+          },
+        }
+      ],
+    },
+  ],
+}
