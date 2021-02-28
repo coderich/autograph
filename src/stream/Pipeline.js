@@ -1,16 +1,22 @@
 /* eslint-disable no-underscore-dangle */
 
 const Stream = require('stream');
-const Transformer = require('./Transformer');
+const TransformFunction = require('./TransformFunction');
 
 module.exports = class Pipeline extends Stream.Readable {
   constructor(stream, ...transforms) {
-    // Ensure it's a Readable stream
-    if (!(stream instanceof Stream.Readable)) throw new Error(`Expected Readable Stream, found ${stream}`);
-
+    // We deal with objects
     super({ objectMode: true });
-    this._stream = stream;
+
+    // Normalize stream
+    this._isPromise = Boolean(stream instanceof Promise);
+    this._stream = this.isPromise ? stream : stream;
+    if (!(this._stream instanceof Stream.Readable)) throw new Error(`Expected Readable Stream, found ${stream}`);
+
+    // Create pipeline to do all sorts of work/transformations to the data
     this._pipeline = [stream, ...Pipeline.normalizeTransforms(...transforms), new Stream.PassThrough({ objectMode: true })];
+
+    // This promise is used if the user tries to treat this object like a promise
     this._promise = new Promise((resolve, reject) => {
       this._resolve = resolve;
       this._reject = reject;
@@ -47,28 +53,28 @@ module.exports = class Pipeline extends Stream.Readable {
   }
 
   then(cb) {
-    this.drain();
+    this.hydrate();
     return this._promise.then(cb);
   }
 
   catch(cb) {
-    this.drain();
+    this.hydrate();
     return this._promise.catch(cb);
   }
 
   finally(cb) {
-    this.drain();
+    this.hydrate();
     return this._promise.finally(cb);
   }
 
-  drain() {
+  hydrate() {
     if (this.readableFlowing === null) {
       const buffer = [];
 
       Stream.pipeline(...this._pipeline).on('data', (data) => {
         buffer.push(data);
       }).on('end', () => {
-        this._resolve(buffer);
+        this._resolve(this._isPromise ? buffer[0] : buffer);
       }).on('error', (e) => {
         this._reject(e);
       });
@@ -79,7 +85,7 @@ module.exports = class Pipeline extends Stream.Readable {
     return transforms.map((t) => {
       if (t instanceof Stream.Transform) return t;
       if (!(t instanceof Function)) throw new Error(`Expected Function, found ${t}`);
-      return new Transformer(t);
+      return new TransformFunction(t);
     });
   }
 };

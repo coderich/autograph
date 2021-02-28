@@ -1,7 +1,6 @@
 const { get } = require('lodash');
 const { MongoClient, ObjectID } = require('mongodb');
 const { promiseRetry, globToRegex, proxyDeep, isScalarDataType, toKeyObj, proxyPromise } = require('../service/app.service');
-const Pipeline = require('../stream/Pipeline');
 
 module.exports = class MongoDriver {
   constructor(config, schema) {
@@ -34,7 +33,7 @@ module.exports = class MongoDriver {
   find(model, where = {}, options) {
     MongoDriver.normalizeOptions(options);
     const $where = MongoDriver.normalizeWhereAggregation(model, this.schema, where);
-    return this.query(model, 'aggregate', $where, options).then(cursor => new Pipeline(cursor.stream()));
+    return this.query(model, 'aggregate', $where, options).then(cursor => cursor.toArray());
   }
 
   count(model, where = {}, options) {
