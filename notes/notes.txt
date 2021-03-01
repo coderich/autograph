@@ -118,13 +118,13 @@ db.getCollection('network_place').aggregate([
   }
 ]);
 
-QueryCommand {
+QueryPlan {
   operations: [
     {
       model,
       facets: [
         {
-          method: 'get|set|rem|add|find|update|remove|count|sum|avg|min|max',
+          method: 'insertOne|insertMany|updateOne|updateMany|deleteOne|deleteMany|findOne|findMany',
           ${method}: {
             query: { fields, where, sort, limit, skip, first, after, last, before },
             input: {...},

@@ -1,100 +1,113 @@
-const { get, unset } = require('lodash');
-const { keyPaths } = require('../service/app.service');
-
 module.exports = class Query {
-  constructor(resolver, model, query = {}) {
-    const { where = {}, sortBy = {}, limit, pagination = {}, options = {} } = query;
-
-    // The fields to sortBy should be $hydrated fields
-    const sortFields = keyPaths(sortBy).reduce((prev, path) => {
-      const $path = path.split('.').map(s => (s.indexOf('count') === 0 || s.indexOf('.count') === 0 ? s : `$${s}`)).join('.');
-      return Object.assign(prev, { [$path]: get(sortBy, path) });
-    }, {});
-
-    // Counting
-    const countPaths = keyPaths(where).filter(p => p.indexOf('count') === 0 || p.indexOf('.count') > 0);
-    const countFields = countPaths.reduce((prev, path) => Object.assign(prev, { [path]: get(where, path) }), {});
-    countPaths.forEach(p => unset(where, p));
-
-    //
-    this.query = query;
-    this.model = model;
-    this.countFields = countFields;
-    this.countPaths = countPaths;
-    this.sortFields = sortFields;
-    this.where = where;
-    this.sortBy = sortBy;
-    this.pagination = pagination;
-    this.limit = limit;
-    this.options = options;
+  constructor(props) {
+    this.props = props || {};
   }
 
-  getId() {
-    return this.query.id;
+  id(id) {
+    if (id == null) return this.props.id;
+    if (this.where() || this.native() || this.sortBy() || this.limit() || this.skip() || this.before() || this.after() || this.first() || this.last()) throw new Error('Cannot mix id() with where(), native(), sortBy(), limit(), skip(), before(), after(), first(), or last()');
+    this.props = id;
+    return this;
   }
 
-  getMeta() {
-    return this.query.meta;
+  where(where) {
+    if (where == null) return this.props.where;
+    if (this.id() || this.native()) throw new Error('Cannot mix where() with id() or native()');
+    this.props.where = where;
+    return this;
   }
 
-  getWhere() {
-    return this.where;
+  native(native) {
+    if (native == null) return this.props.native;
+    if (this.id() || this.where()) throw new Error('Cannot mix native() with id() or where()');
+    this.props.native = native;
+    return this;
   }
 
-  getSortBy() {
-    return this.sortBy;
+  select(select) {
+    if (select == null) return this.props.select;
+    this.props.select = select;
+    return this;
   }
 
-  getSortFields() {
-    return this.sortFields;
+  sortBy(sortBy) {
+    if (sortBy == null) return this.props.sortBy;
+    if (this.id()) throw new Error('Cannot mix sortBy() with id()');
+    this.props.sortBy = sortBy;
+    return this;
   }
 
-  getCountFields() {
-    return this.countFields;
+  limit(limit) {
+    if (limit == null) return this.props.limit;
+    if (this.id()) throw new Error('Cannot mix limit() with id()');
+    this.props.limit = limit;
+    return this;
   }
 
-  getCountPaths() {
-    return this.countPaths;
+  skip(skip) {
+    if (skip == null) return this.props.skip;
+    if (this.id()) throw new Error('Cannot mix skip() with id()');
+    this.props.skip = skip;
+    return this;
   }
 
-  getPagination() {
-    return this.pagination;
+  before(before) {
+    if (before == null) return this.props.before;
+    if (this.id()) throw new Error('Cannot mix before() with id()');
+    this.props.before = before;
+    return this;
   }
 
-  getLimit() {
-    return this.limit;
+  after(after) {
+    if (after == null) return this.props.after;
+    if (this.id()) throw new Error('Cannot mix after() with id()');
+    this.props.after = after;
+    return this;
   }
 
-  getOptions() {
-    return this.options;
+  first(first) {
+    if (first == null) return this.props.first;
+    if (this.id() || this.last()) throw new Error('Cannot mix first() with id() or last()');
+    this.props.first = first;
+    return this;
   }
 
-  getModel() {
-    return this.model;
+  last(last) {
+    if (last == null) return this.props.last;
+    if (this.id() || this.first()) throw new Error('Cannot mix last() with id() or first()');
+    this.props.last = last;
+    return this;
   }
 
-  getQuery() {
-    return this.query;
+  method(method) {
+    if (method == null) return this.props.method;
+    this.props.method = method;
+    return this;
   }
 
-  getNative() {
-    return this.query.native;
+  model(model) {
+    if (model == null) return this.props.model;
+    this.props.model = model;
+    return this;
   }
 
-  isNative() {
-    return Boolean(this.query.native);
+  data(data) {
+    if (data == null) return this.props.data;
+    this.props.data = data;
+    return this;
   }
 
-  getCacheKey() {
-    return {
-      // ...this.query,
-      id: this.query.id,
-      where: this.query.where,
-      limit: this.query.limit,
-      native: this.query.native,
-      sortBy: this.query.sortBy,
-      countFields: this.countFields,
-      pagination: this.query.pagination,
-    };
+  doc(doc) {
+    if (doc == null) return this.props.doc;
+    this.props.doc = doc;
+    return this;
+  }
+
+  clone() {
+    return new Query(this.props);
+  }
+
+  plan() {
+    return this.props;
   }
 };

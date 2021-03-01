@@ -3,9 +3,11 @@ const FBDataLoader = require('dataloader');
 const TreeMap = require('../data/TreeMap');
 const Model = require('../data/Model');
 const QueryBuilder = require('../query/QueryBuilder');
-const TxnQueryBuilder = require('../query/TransactionQueryBuilder');
-const QueryWorker = require('../query/QueryWorker');
-const Query = require('../query/Query');
+const BatchQueryBuilder = require('../query/BatchQueryBuilder');
+
+// const TxnQueryBuilder = require('../query/TransactionQueryBuilder');
+// const QueryWorker = require('../query/QueryWorker');
+// const Query = require('../query/Query');
 const { hashCacheKey } = require('../service/app.service');
 const Rule = require('./Rule');
 
@@ -69,7 +71,15 @@ module.exports = class Resolver {
   }
 
   match(model) {
-    return new QueryBuilder(this.toModelEntity(model), this);
+    return new QueryBuilder(this, this.toModelEntity(model));
+  }
+
+  target(model) {
+    return new QueryBuilder(this, this.toModelEntity(model), true);
+  }
+
+  batch() {
+    return new BatchQueryBuilder(this);
   }
 
   named(model) {
