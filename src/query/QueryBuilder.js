@@ -3,9 +3,9 @@ const QueryResolver = require('./QueryResolver');
 
 module.exports = class QueryBuilder {
   constructor(resolver, model, targeted = false) {
+    this.targeted = targeted;
     this.query = new Query({ model });
     this.queryResolver = new QueryResolver(resolver, this.query);
-    this.targeted = targeted;
 
     // Composable
     this.id = (...args) => { this.query.id(...args); return this; };
@@ -69,7 +69,7 @@ module.exports = class QueryBuilder {
       }
     }
 
-    this.query.method(method);
+    this.query.method(method).args(args);
     return this.queryResolver.resolve();
   }
 };

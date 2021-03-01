@@ -3,7 +3,7 @@ const FBDataLoader = require('dataloader');
 const TreeMap = require('../data/TreeMap');
 const Model = require('../data/Model');
 const QueryBuilder = require('../query/QueryBuilder');
-const BatchQueryBuilder = require('../query/BatchQueryBuilder');
+const QueryBuilderBatch = require('../query/QueryBuilderBatch');
 
 // const TxnQueryBuilder = require('../query/TransactionQueryBuilder');
 // const QueryWorker = require('../query/QueryWorker');
@@ -79,7 +79,7 @@ module.exports = class Resolver {
   }
 
   batch() {
-    return new BatchQueryBuilder(this);
+    return new QueryBuilderBatch(this);
   }
 
   named(model) {

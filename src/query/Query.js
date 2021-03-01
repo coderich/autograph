@@ -7,6 +7,7 @@ module.exports = class Query {
     if (id == null) return this.props.id;
     if (this.where() || this.native() || this.sortBy() || this.limit() || this.skip() || this.before() || this.after() || this.first() || this.last()) throw new Error('Cannot mix id() with where(), native(), sortBy(), limit(), skip(), before(), after(), first(), or last()');
     this.props = id;
+    this.props.match = { id };
     return this;
   }
 
@@ -14,6 +15,7 @@ module.exports = class Query {
     if (where == null) return this.props.where;
     if (this.id() || this.native()) throw new Error('Cannot mix where() with id() or native()');
     this.props.where = where;
+    this.props.match = where;
     return this;
   }
 
@@ -21,6 +23,7 @@ module.exports = class Query {
     if (native == null) return this.props.native;
     if (this.id() || this.where()) throw new Error('Cannot mix native() with id() or where()');
     this.props.native = native;
+    this.props.match = native;
     return this;
   }
 
@@ -79,15 +82,15 @@ module.exports = class Query {
     return this;
   }
 
-  method(method) {
-    if (method == null) return this.props.method;
-    this.props.method = method;
-    return this;
-  }
-
   model(model) {
     if (model == null) return this.props.model;
     this.props.model = model;
+    return this;
+  }
+
+  method(method) {
+    if (method == null) return this.props.method;
+    this.props.method = method;
     return this;
   }
 
@@ -100,6 +103,12 @@ module.exports = class Query {
   doc(doc) {
     if (doc == null) return this.props.doc;
     this.props.doc = doc;
+    return this;
+  }
+
+  args(args) {
+    if (args == null) return this.props.args;
+    this.props.args = args;
     return this;
   }
 

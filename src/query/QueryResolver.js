@@ -15,8 +15,8 @@ module.exports = class QueryResolver {
   }
 
   resolve() {
-    // Loop queries
-
-    // Dispatch events
+    this.set.forEach((query) => {
+      return this.resolver.load(query);
+    });
   }
 };
