@@ -1,13 +1,12 @@
 const Query = require('./Query');
-const QueryResolver = require('./QueryResolver');
 
 module.exports = class QueryBuilder {
-  constructor(resolver, model, targeted = false) {
-    this.targeted = targeted;
+  constructor(resolver, model, options = {}) {
+    this.options = options;
+    this.resolver = resolver;
     this.query = new Query({ model });
-    this.queryResolver = new QueryResolver(resolver, this.query);
 
-    // Composable
+    // Query Composable
     this.id = (...args) => { this.query.id(...args); return this; };
     this.where = (...args) => { this.query.where(...args); return this; };
     this.native = (...args) => { this.query.native(...args); return this; };
@@ -19,7 +18,7 @@ module.exports = class QueryBuilder {
     this.after = (...args) => { this.query.after(...args); return this; };
     this.meta = (...args) => { this.query.meta(...args); return this; };
 
-    // Terminal
+    // Query Terminal
     this.data = (...args) => this.finalize('data', args);
     this.save = (...args) => this.finalize('save', args);
     this.push = (...args) => this.finalize('push', args);
@@ -34,14 +33,19 @@ module.exports = class QueryBuilder {
 
   finalize(cmd, args) {
     let method;
-    const targeted = Boolean(this.targeted || this.query.id() != null);
+    let methodType;
+    let data = {};
+    const targeted = Boolean(this.options.mode === 'target' || this.query.id() != null);
 
     switch (cmd) {
       case 'data': {
+        methodType = 'query';
         method = targeted ? 'findOne' : 'findMany';
         break;
       }
       case 'save': {
+        [data] = args;
+        methodType = 'mutation';
         if (targeted) method = 'updateOne';
         if (!method && this.query.where()) method = 'updateMany';
         if (!method && args.length > 1) method = 'createMany';
@@ -49,18 +53,22 @@ module.exports = class QueryBuilder {
         break;
       }
       case 'push': case 'pull': case 'splice': {
+        methodType = 'mutation';
         method = targeted ? `${cmd}One` : `${cmd}Many`;
         break;
       }
       case 'remove': case 'delete': {
+        methodType = 'mutation';
         method = targeted ? 'removeOne' : 'removeMany';
         break;
       }
       case 'first': case 'last': {
+        methodType = 'query';
         method = 'findMany';
         break;
       }
       case 'count': {
+        methodType = 'query';
         method = 'count';
         break;
       }
@@ -69,7 +77,7 @@ module.exports = class QueryBuilder {
       }
     }
 
-    this.query.method(method).args(args);
-    return this.queryResolver.resolve();
+    this.query.method(method).methodType(methodType).data(data).args(args);
+    return this.resolver.resolve(this.query);
   }
 };

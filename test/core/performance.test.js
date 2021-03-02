@@ -20,9 +20,9 @@ describe('Performance', () => {
 
   describe('Driver # of calls', () => {
     test('Simple find', async () => {
-      const spyGet = jest.spyOn(MongoDriver.prototype, 'get');
-      const spyFind = jest.spyOn(MongoDriver.prototype, 'find');
-      const people = await resolver.match('Person').many();
+      const spyGet = jest.spyOn(MongoDriver.prototype, 'findOne');
+      const spyFind = jest.spyOn(MongoDriver.prototype, 'findMany');
+      const people = await resolver.match('Person').data();
       expect(people.length).toBe(3);
       expect(spyGet).toHaveBeenCalledTimes(0);
       expect(spyFind).toHaveBeenCalledTimes(1);
@@ -31,9 +31,9 @@ describe('Performance', () => {
     });
 
     test('Simple where clause', async () => {
-      const spyGet = jest.spyOn(MongoDriver.prototype, 'get');
-      const spyFind = jest.spyOn(MongoDriver.prototype, 'find');
-      const people = await resolver.match('Person').where({ name: 'name1' }).many();
+      const spyGet = jest.spyOn(MongoDriver.prototype, 'findOne');
+      const spyFind = jest.spyOn(MongoDriver.prototype, 'findMany');
+      const people = await resolver.match('Person').where({ name: 'name1' }).data();
       expect(people.length).toBe(1);
       expect(spyGet).toHaveBeenCalledTimes(0);
       expect(spyFind).toHaveBeenCalledTimes(1);
@@ -42,9 +42,9 @@ describe('Performance', () => {
     });
 
     test('Nested where clause (found)', async () => {
-      const spyGet = jest.spyOn(MongoDriver.prototype, 'get');
-      const spyFind = jest.spyOn(MongoDriver.prototype, 'find');
-      const people = await resolver.match('Person').where({ friends: { name: 'name2' } }).many();
+      const spyGet = jest.spyOn(MongoDriver.prototype, 'findOne');
+      const spyFind = jest.spyOn(MongoDriver.prototype, 'findMany');
+      const people = await resolver.match('Person').where({ friends: { name: 'name2' } }).data();
       expect(people.length).toBe(1);
       expect(spyGet).toHaveBeenCalledTimes(0);
       expect(spyFind).toHaveBeenCalledTimes(2);
@@ -55,7 +55,7 @@ describe('Performance', () => {
     // test('Nested where clause (not found)', async () => {
     //   const spyGet = jest.spyOn(MongoDriver.prototype, 'get');
     //   const spyFind = jest.spyOn(MongoDriver.prototype, 'find');
-    //   const people = await resolver.match('Person').where({ friends: { name: 'name1' } }).many();
+    //   const people = await resolver.match('Person').where({ friends: { name: 'name1' } }).data();
     //   expect(people.length).toBe(0);
     //   expect(spyGet).toHaveBeenCalledTimes(0);
     //   expect(spyFind).toHaveBeenCalledTimes(1);

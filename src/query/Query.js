@@ -6,24 +6,27 @@ module.exports = class Query {
   id(id) {
     if (id == null) return this.props.id;
     if (this.where() || this.native() || this.sortBy() || this.limit() || this.skip() || this.before() || this.after() || this.first() || this.last()) throw new Error('Cannot mix id() with where(), native(), sortBy(), limit(), skip(), before(), after(), first(), or last()');
-    this.props = id;
-    this.props.match = { id };
-    return this;
+    this.props.id = id;
+    return this.match({ id });
   }
 
   where(where) {
     if (where == null) return this.props.where;
     if (this.id() || this.native()) throw new Error('Cannot mix where() with id() or native()');
     this.props.where = where;
-    this.props.match = where;
-    return this;
+    return this.match(where);
   }
 
   native(native) {
     if (native == null) return this.props.native;
     if (this.id() || this.where()) throw new Error('Cannot mix native() with id() or where()');
     this.props.native = native;
-    this.props.match = native;
+    return this.match(native);
+  }
+
+  match(match) {
+    if (match == null) return this.props.match;
+    this.props.match = match;
     return this;
   }
 
@@ -94,6 +97,12 @@ module.exports = class Query {
     return this;
   }
 
+  methodType(methodType) {
+    if (methodType == null) return this.props.methodType;
+    this.props.methodType = methodType;
+    return this;
+  }
+
   data(data) {
     if (data == null) return this.props.data;
     this.props.data = data;
@@ -116,7 +125,11 @@ module.exports = class Query {
     return new Query(this.props);
   }
 
-  plan() {
-    return this.props;
+  getCacheKey() {
+    return {
+      where: this.match(),
+      limit: this.limit(),
+      sortBy: this.sortBy(),
+    };
   }
 };

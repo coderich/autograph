@@ -18,7 +18,7 @@ exports.createSystemEvent = (name, event = {}, thunk = () => {}) => {
 
   if (name !== 'Setup') {
     event.context = event.resolver.getContext();
-    event.meta = event.query.getMeta();
+    event.meta = event.query.meta();
     event.key = `${event.method}${event.model}`;
   }
 

@@ -53,7 +53,6 @@ exports.stripObjectNulls = obj => Object.entries(obj).reduce((prev, [key, value]
 exports.stripObjectUndefineds = obj => Object.entries(obj).reduce((prev, [key, value]) => (value === undefined ? prev : Object.assign(prev, { [key]: value })), {});
 exports.pushIt = (arr, it) => arr[arr.push(it) - 1];
 exports.toKeyObj = obj => exports.keyPaths(obj).reduce((prev, path) => Object.assign(prev, { [path]: _.get(obj, path) }), {});
-exports.hashCacheKey = ({ method, model, query, args }) => exports.hashObject({ method, model: `${model}`, query: query.getCacheKey(), args });
 
 exports.removeUndefinedDeep = (obj) => {
   return exports.unravelObject(exports.keyPaths(obj).reduce((prev, path) => {

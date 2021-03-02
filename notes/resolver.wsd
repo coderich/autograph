@@ -1,0 +1,12 @@
+title AutoGraph (resolver)
+
+Caller->Resolver: match()
+Resolver->Caller: QueryBuilder
+Caller->QueryBuilder: terminal()
+QueryBuilder->Resolver: resolve([query])
+note over Resolver: if (!loaded) ...
+Resolver->Driver: batch([query])
+Driver->Resolver: data
+note over Resolver: Pipeline Data
+note over Resolver: Create System Event
+Resolver->Caller: data

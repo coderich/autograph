@@ -21,7 +21,7 @@ describe('DataManipulations', () => {
   });
 
   test('getPerson', async () => {
-    const person = await resolver.match('Person').id(rawPerson._id).one(); // eslint-disable-line no-underscore-dangle
+    const person = await resolver.match('Person').id(rawPerson._id).data(); // eslint-disable-line no-underscore-dangle
     expect(person).toBeDefined();
     expect(person.name).toEqual('Name');
     expect(person.$manipulate).toBeDefined();
