@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { map, ucFirst, keyPaths, ensureArray, isPlainObject } = require('../service/app.service');
+const { map, ucFirst, keyPaths, ensureArray, isPlainObject, unravelObject } = require('../service/app.service');
 
 module.exports = class QueryPlanner {
   constructor(query) {
@@ -9,7 +9,7 @@ module.exports = class QueryPlanner {
     this.resolver = query.resolver();
   }
 
-  resolveWhereClause(where = {}) {
+  resolveWhereClause(where = {}, flags = {}) {
     // This is needed for where clause (but why!?!)
     if (where.id) where.id = map(where.id, v => this.model.idValue(v));
 
@@ -35,12 +35,12 @@ module.exports = class QueryPlanner {
 
       if (field.isVirtual()) {
         const virtualRef = field.getVirtualRef();
-        const ids = Promise.all(ensureArray(value).map(v => this.resolver.match(modelRef).where(isPlainObject(v) ? v : { id: v }).data().then(docs => docs.map(doc => doc[virtualRef])))).then(results => _.uniq(_.flattenDeep(results)));
+        const ids = Promise.all(ensureArray(value).map(v => this.resolver.match(modelRef).where(isPlainObject(v) ? v : { id: v }).data(flags).then(docs => docs.map(doc => doc[virtualRef])))).then(results => _.uniq(_.flattenDeep(results)));
         return Object.assign(prev, { id: ids });
       }
 
       if (modelRef && !field.isEmbedded()) {
-        const ids = Promise.all(ensureArray(value).map(v => (isPlainObject(v) ? this.resolver.match(modelRef).where(v).data().then(docs => docs.map(doc => doc.id)) : Promise.resolve(v)))).then(results => _.uniq(_.flattenDeep(results)));
+        const ids = Promise.all(ensureArray(value).map(v => (isPlainObject(v) ? this.resolver.match(modelRef).where(v).data(flags).then(docs => docs.map(doc => doc.id)) : Promise.resolve(v)))).then(results => _.uniq(_.flattenDeep(results)));
         return Object.assign(prev, { [key]: ids });
       }
 
@@ -71,9 +71,15 @@ module.exports = class QueryPlanner {
     const fieldNameToKeyMap = fields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: field.getKey() }), {});
     const normalize = data => Object.entries(data).reduce((prev, [name, value]) => Object.assign(prev, { [fieldNameToKeyMap[name]]: value }), {});
 
-    let $where = await this.model.resolveBoundValues(this.query.match());
-    $where = await this.resolveWhereClause($where);
+    // Select fields
+    const $select = unravelObject(this.query.select() ? Object.keys(this.query.select()).map(n => fieldNameToKeyMap[n]) : fields.map(f => f.getKey()));
 
+    // Where clause
+    let $where = unravelObject(this.query.match());
+    $where = await this.model.resolveBoundValues($where);
+    $where = await this.resolveWhereClause($where, flags);
+
+    // Input data
     let $data = {};
     if (crud === 'create' || crud === 'update') {
       $data = await this.model.appendDefaultValues(this.query.data());
@@ -85,7 +91,7 @@ module.exports = class QueryPlanner {
       method: this.query.method(),
       isNative: Boolean(this.query.native()),
       schema: fields.reduce((prev, field) => Object.assign(prev, { [field.getKey()]: field.getType() }), {}),
-      select: this.query.select() ? Object.keys(this.query.select()).map(n => fieldNameToKeyMap[n]) : fields.map(f => f.getKey()),
+      select: $select,
       where: normalize($where),
       data: normalize($data),
       flags,

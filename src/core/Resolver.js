@@ -68,7 +68,7 @@ module.exports = class Resolver {
         return this.loader.load(queryPlanner).then((data) => {
           if (debug) console.log('got result', data);
           if (required && (!data || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
-          return new ResultSet(query, data);
+          return data;
         });
       }
     }

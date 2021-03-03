@@ -1,4 +1,5 @@
 const FBDataLoader = require('dataloader');
+const ResultSet = require('./ResultSet');
 const { hashObject } = require('../service/app.service');
 
 module.exports = class DataLoader extends FBDataLoader {
@@ -37,7 +38,10 @@ module.exports = class DataLoader extends FBDataLoader {
 
       return Promise.all(planners.map((planner) => {
         return planner.getPlan().then((plan) => {
-          return planner.model.getDriver().resolve(plan);
+          return planner.model.getDriver().resolve(plan).then((data) => {
+            if (data == null) return null;
+            return new ResultSet(planner.query, data);
+          });
         });
       }));
     }, {

@@ -31,24 +31,24 @@ module.exports = class MongoDriver {
     return this.query(key, 'findOne', where, flags);
   }
 
-  findMany({ key, select, where }) {
-    return this.query(key, 'find', where).then(cursor => cursor.toArray());
+  findMany({ key, select, where, flags }) {
+    return this.query(key, 'find', where, flags).then(cursor => cursor.toArray());
   }
 
-  createOne({ key, data }) {
-    return this.query(key, 'insertOne', data).then(result => Object.assign(data, { _id: result.insertedId }));
+  createOne({ key, data, flags }) {
+    return this.query(key, 'insertOne', data, flags).then(result => Object.assign(data, { _id: result.insertedId }));
   }
 
-  updateOne({ key, where, data }) {
-    return this.query(key, 'findOneAndUpdate', where, { $set: data }, { returnOriginal: false }).then(result => result.value);
+  updateOne({ key, where, data, flags }) {
+    return this.query(key, 'findOneAndUpdate', where, { $set: data }, { returnOriginal: false }, flags).then(result => result.value);
   }
 
   updateMany() {
     throw new Error('unsupported');
   }
 
-  removeOne({ key, where, data }) {
-    return this.query(key, 'findOneAndDelete', where, { returnOriginal: false }).then(result => result.value);
+  removeOne({ key, where, data, flags }) {
+    return this.query(key, 'findOneAndDelete', where, { returnOriginal: false }, flags).then(result => result.value);
   }
 
   dropModel(model) {
@@ -90,7 +90,7 @@ module.exports = class MongoDriver {
       get(target, prop, rec) {
         const value = Reflect.get(target, prop, rec);
         if (Array.isArray(value)) return { $in: value };
-        // if (typeof value === 'function') return value.bind(target);
+        if (typeof value === 'function') return value.bind(target);
         if (typeof value === 'string') { return globToRegex(value, { nocase: true, regex: true }); }
         return value;
       },

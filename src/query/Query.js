@@ -156,6 +156,7 @@ module.exports = class Query {
 
   getCacheKey() {
     return {
+      model: `${this.model()}`,
       method: this.method(),
       where: this.match(),
       limit: this.limit(),
