@@ -310,7 +310,7 @@ module.exports = (driver = 'mongo', options = {}) => {
       // TODO Embedded tests for non-document databases
       if (driver === 'mongo') {
         test('BookStore', async () => {
-          expect((await resolver.match('BookStore').where({ 'building.id': bookBuilding }).many()).sort(sorter)).toMatchObject([
+          expect((await resolver.match('BookStore').where({ building: bookBuilding }).many()).sort(sorter)).toMatchObject([
             { id: bookstore1.id, name: 'Best Books Ever', building: expect.objectContaining(bookBuilding) },
             { id: bookstore2.id, name: 'New Books', building: expect.objectContaining(bookBuilding) },
           ].sort(sorter));
