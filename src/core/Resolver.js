@@ -37,14 +37,14 @@ module.exports = class Resolver {
   }
 
   /**
-   * Returns a user-defined Map of custom named queries for easier re-use.
+   * Returns a user-defined Map (repository) of custom named queries.
    */
   named(model) {
     return this.toModel(model).getNamedQueries();
   }
 
   /**
-   * Returns the raw driver associated with the model for full query control.
+   * Returns the raw client driver associated with the model.
    */
   raw(model) {
     return this.toModelEntity(model).raw();

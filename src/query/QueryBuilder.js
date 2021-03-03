@@ -1,11 +1,17 @@
 const Query = require('./Query');
 
+/*
+* QueryBuilder
+*
+* Facilitates the creation and execution of a Query. It provides a chainable API to build a query
+* plus a list of terminal commands that will resolve the query.
+*/
 module.exports = class QueryBuilder {
   constructor(resolver, model, options = {}) {
     this.options = options;
     this.query = new Query({ model, resolver });
 
-    // Query Composable
+    // Chainable commands
     this.id = (...args) => { this.query.id(...args); return this; };
     this.where = (...args) => { this.query.where(...args); return this; };
     this.native = (...args) => { this.query.native(...args); return this; };
@@ -18,20 +24,20 @@ module.exports = class QueryBuilder {
     this.meta = (...args) => { this.query.meta(...args); return this; };
     this.merge = (...args) => { this.query.merge(...args); return this; };
 
-    // Query Terminal
-    this.data = (...args) => this.finalize('data', args);
-    this.save = (...args) => this.finalize('save', args);
-    this.push = (...args) => this.finalize('push', args);
-    this.pull = (...args) => this.finalize('pull', args);
-    this.splice = (...args) => this.finalize('splice', args);
-    this.remove = (...args) => this.finalize('remove', args);
-    this.delete = (...args) => this.finalize('delete', args);
-    this.count = (...args) => this.finalize('count', args);
-    this.first = (...args) => { this.query.first(...args); return this.finalize('first', args); };
-    this.last = (...args) => { this.query.last(...args); return this.finalize('last', args); };
+    // Terminal commands
+    this.data = (...args) => this.resolve('data', args);
+    this.save = (...args) => this.resolve('save', args);
+    this.push = (...args) => this.resolve('push', args);
+    this.pull = (...args) => this.resolve('pull', args);
+    this.splice = (...args) => this.resolve('splice', args);
+    this.remove = (...args) => this.resolve('remove', args);
+    this.delete = (...args) => this.resolve('delete', args);
+    this.count = (...args) => this.resolve('count', args);
+    this.first = (...args) => { this.query.first(...args); return this.resolve('first', args); };
+    this.last = (...args) => { this.query.last(...args); return this.resolve('last', args); };
   }
 
-  finalize(cmd, args) {
+  resolve(cmd, args) {
     let method, crud, data = {}, flags = {};
     const targeted = Boolean(this.options.mode === 'target' || this.query.id() != null);
 
