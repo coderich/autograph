@@ -3,11 +3,10 @@ const Query = require('./Query');
 module.exports = class QueryBuilder {
   constructor(resolver, model, options = {}) {
     this.options = options;
-    this.resolver = resolver;
-    this.query = new Query({ model });
+    this.query = new Query({ model, resolver });
 
     // Query Composable
-    this.id = (...args) => { this.query.id(...args); return this; };
+    this.id = (id) => { this.query.id(`${id}`); return this; };
     this.where = (...args) => { this.query.where(...args); return this; };
     this.native = (...args) => { this.query.native(...args); return this; };
     this.select = (...args) => { this.query.select(...args); return this; };
@@ -17,6 +16,7 @@ module.exports = class QueryBuilder {
     this.before = (...args) => { this.query.before(...args); return this; };
     this.after = (...args) => { this.query.after(...args); return this; };
     this.meta = (...args) => { this.query.meta(...args); return this; };
+    this.merge = (...args) => { this.query.merge(...args); return this; };
 
     // Query Terminal
     this.data = (...args) => this.finalize('data', args);
@@ -33,42 +33,44 @@ module.exports = class QueryBuilder {
 
   finalize(cmd, args) {
     let method;
-    let methodType;
-    let data = {};
+    let crud;
     const targeted = Boolean(this.options.mode === 'target' || this.query.id() != null);
 
     switch (cmd) {
       case 'data': {
-        methodType = 'query';
+        crud = 'read';
         method = targeted ? 'findOne' : 'findMany';
+        this.query.flags(args[0] || {});
         break;
       }
       case 'save': {
-        [data] = args;
-        methodType = 'mutation';
         if (targeted) method = 'updateOne';
         if (!method && this.query.where()) method = 'updateMany';
+        if (method) crud = 'update';
         if (!method && args.length > 1) method = 'createMany';
         if (!method) method = 'createOne';
+        if (!crud) crud = 'create';
+        this.query.data(args[0] || {});
+        this.query.flags(args[1] || {});
         break;
       }
       case 'push': case 'pull': case 'splice': {
-        methodType = 'mutation';
+        crud = cmd === 'push' ? 'create' : 'update';
         method = targeted ? `${cmd}One` : `${cmd}Many`;
         break;
       }
       case 'remove': case 'delete': {
-        methodType = 'mutation';
+        crud = 'delete';
         method = targeted ? 'removeOne' : 'removeMany';
         break;
       }
       case 'first': case 'last': {
-        methodType = 'query';
+        crud = 'read';
         method = 'findMany';
         break;
       }
       case 'count': {
-        methodType = 'query';
+        crud = 'read';
         method = 'count';
         break;
       }
@@ -77,7 +79,6 @@ module.exports = class QueryBuilder {
       }
     }
 
-    this.query.method(method).methodType(methodType).data(data).args(args);
-    return this.resolver.resolve(this.query);
+    return this.query.method(method).crud(crud).args(args).resolve();
   }
 };

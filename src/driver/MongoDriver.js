@@ -1,5 +1,6 @@
+const { has } = require('lodash');
 const { MongoClient, ObjectID } = require('mongodb');
-// const { toKeyObj } = require('../service/app.service');
+const { proxyDeep, toKeyObj, globToRegex, proxyPromise } = require('../service/app.service');
 
 module.exports = class MongoDriver {
   constructor(config, schema) {
@@ -12,12 +13,22 @@ module.exports = class MongoDriver {
     return MongoClient.connect(this.config.uri, this.config.options);
   }
 
-  query(collection, method, ...args) {
-    return this.connection.then(client => client.db().collection(collection)[method](...args));
+  raw(collection) {
+    return proxyPromise(this.connection.then(client => client.db().collection(collection)));
   }
 
-  findOne({ key, select, where }) {
-    return this.query(key, 'findOne', where);
+  query(collection, method, ...args) {
+    if (has(args[args.length - 1], 'debug')) console.log(args);
+    return this.raw(collection)[method](...args);
+  }
+
+  resolve(query) {
+    query.where = MongoDriver.normalizeWhere(query.where);
+    return this[query.method](query);
+  }
+
+  findOne({ key, select, where, flags }) {
+    return this.query(key, 'findOne', where, flags);
   }
 
   findMany({ key, select, where }) {
@@ -30,6 +41,33 @@ module.exports = class MongoDriver {
 
   updateOne({ key, where, data }) {
     return this.query(key, 'findOneAndUpdate', where, { $set: data }, { returnOriginal: false }).then(result => result.value);
+  }
+
+  updateMany() {
+    throw new Error('unsupported');
+  }
+
+  removeOne({ key, where, data }) {
+    return this.query(key, 'findOneAndDelete', where, { returnOriginal: false }).then(result => result.value);
+  }
+
+  dropModel(model) {
+    return this.query(model, 'deleteMany');
+  }
+
+  createCollection(model) {
+    return this.connection.then(client => client.db().createCollection(model)).catch(e => null);
+  }
+
+  createIndexes(model, indexes) {
+    return Promise.all(indexes.map(({ name, type, on }) => {
+      const $fields = on.reduce((prev, field) => Object.assign(prev, { [field]: 1 }), {});
+
+      switch (type) {
+        case 'unique': return this.query(model, 'createIndex', $fields, { name, unique: true });
+        default: return null;
+      }
+    }));
   }
 
   static idKey() {
@@ -45,5 +83,17 @@ module.exports = class MongoDriver {
     } catch (e) {
       return value;
     }
+  }
+
+  static normalizeWhere(where) {
+    return proxyDeep(toKeyObj(where), {
+      get(target, prop, rec) {
+        const value = Reflect.get(target, prop, rec);
+        if (Array.isArray(value)) return { $in: value };
+        // if (typeof value === 'function') return value.bind(target);
+        if (typeof value === 'string') { return globToRegex(value, { nocase: true, regex: true }); }
+        return value;
+      },
+    }).toObject();
   }
 };

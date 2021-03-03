@@ -4,17 +4,17 @@ const DataResolver = require('../data/DataResolver');
 const { createSystemEvent } = require('./event.service');
 const { map, globToRegexp, isPlainObject, keyPaths, toGUID, getDeep, ensureArray, hashObject, mergeDeep, objectContaining } = require('./app.service');
 
-exports.makeDataResolver = (doc, model, resolver, query) => {
+exports.makeDataResolver = (doc, model, resolver) => {
   const { id } = doc;
   const guid = toGUID(model.getName(), id);
-  const dataResolver = new DataResolver(doc, (data, prop) => model.resolve(data, prop, resolver, query));
+  const dataResolver = new DataResolver(doc, (data, prop) => model.resolve(data, prop, resolver));
 
   Object.entries(doc).forEach(([key, value]) => {
     const field = model.getFieldByName(key);
 
     if (field && field.isEmbedded()) {
       const modelRef = field.getModelRef();
-      if (modelRef) doc[key] = map(value, v => exports.makeDataResolver(v, modelRef, resolver, query));
+      if (modelRef) doc[key] = map(value, v => exports.makeDataResolver(v, modelRef, resolver));
     }
   });
 
@@ -92,7 +92,7 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
   }
 };
 
-exports.resolveModelWhereClause = (resolver, model, where = {}, options) => {
+exports.resolveModelWhereClause = (resolver, model, where = {}) => {
   // This is needed for where clause (but why!?!)
   if (where.id) where.id = map(where.id, v => model.idValue(v));
 
@@ -118,12 +118,12 @@ exports.resolveModelWhereClause = (resolver, model, where = {}, options) => {
 
     if (field.isVirtual()) {
       const virtualRef = field.getVirtualRef();
-      const ids = Promise.all(ensureArray(value).map(v => resolver.match(modelRef).where(isPlainObject(v) ? v : { id: v }).options(options).data().then(docs => docs.map(doc => doc[virtualRef])))).then(results => _.uniq(_.flattenDeep(results)));
+      const ids = Promise.all(ensureArray(value).map(v => resolver.match(modelRef).where(isPlainObject(v) ? v : { id: v }).data().then(docs => docs.map(doc => doc[virtualRef])))).then(results => _.uniq(_.flattenDeep(results)));
       return Object.assign(prev, { id: ids });
     }
 
     if (modelRef && !field.isEmbedded()) {
-      const ids = Promise.all(ensureArray(value).map(v => (isPlainObject(v) ? resolver.match(modelRef).where(v).options(options).data().then(docs => docs.map(doc => doc.id)) : Promise.resolve(v)))).then(results => _.uniq(_.flattenDeep(results)));
+      const ids = Promise.all(ensureArray(value).map(v => (isPlainObject(v) ? resolver.match(modelRef).where(v).data().then(docs => docs.map(doc => doc.id)) : Promise.resolve(v)))).then(results => _.uniq(_.flattenDeep(results)));
       return Object.assign(prev, { [key]: ids });
     }
 

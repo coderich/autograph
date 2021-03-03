@@ -37,7 +37,7 @@ module.exports = class DataLoader extends FBDataLoader {
 
       return Promise.all(planners.map((planner) => {
         return planner.getPlan().then((plan) => {
-          return planner.model.getDriver()[planner.method](plan);
+          return planner.model.getDriver().resolve(plan);
         });
       }));
     }, {

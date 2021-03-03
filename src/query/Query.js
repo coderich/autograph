@@ -1,6 +1,7 @@
 module.exports = class Query {
   constructor(props) {
     this.props = props || {};
+    this.props.match = this.props.match || {};
   }
 
   id(id) {
@@ -85,6 +86,30 @@ module.exports = class Query {
     return this;
   }
 
+  meta(meta) {
+    if (meta == null) return this.props.meta;
+    this.props.meta = meta;
+    return this;
+  }
+
+  flags(flags) {
+    if (flags == null) return this.props.flags;
+    this.props.flags = flags;
+    return this;
+  }
+
+  merge({ select, where }) {
+    if (select) this.props.select = select;
+    if (where) Object.assign(this.props.match, where);
+    return this;
+  }
+
+  resolver(resolver) {
+    if (resolver == null) return this.props.resolver;
+    this.props.resolver = resolver;
+    return this;
+  }
+
   model(model) {
     if (model == null) return this.props.model;
     this.props.model = model;
@@ -97,9 +122,9 @@ module.exports = class Query {
     return this;
   }
 
-  methodType(methodType) {
-    if (methodType == null) return this.props.methodType;
-    this.props.methodType = methodType;
+  crud(crud) {
+    if (crud == null) return this.props.crud;
+    this.props.crud = crud;
     return this;
   }
 
@@ -125,8 +150,13 @@ module.exports = class Query {
     return new Query(this.props);
   }
 
+  resolve() {
+    return this.resolver().resolve(this);
+  }
+
   getCacheKey() {
     return {
+      method: this.method(),
       where: this.match(),
       limit: this.limit(),
       sortBy: this.sortBy(),

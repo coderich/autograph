@@ -1,12 +1,12 @@
 const _ = require('lodash');
-const { map, keyPaths, ensureArray, isPlainObject } = require('../service/app.service');
+const { map, ucFirst, keyPaths, ensureArray, isPlainObject } = require('../service/app.service');
 
 module.exports = class QueryPlanner {
-  constructor(resolver, query) {
+  constructor(query) {
     this.query = query;
     this.model = query.model();
     this.method = query.method();
-    this.resolver = resolver;
+    this.resolver = query.resolver();
   }
 
   resolveWhereClause(where = {}) {
@@ -65,20 +65,35 @@ module.exports = class QueryPlanner {
   }
 
   async getPlan() {
+    const flags = this.query.flags();
+    const crud = this.query.crud();
     const fields = this.model.getSelectFields();
     const fieldNameToKeyMap = fields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: field.getKey() }), {});
     const normalize = data => Object.entries(data).reduce((prev, [name, value]) => Object.assign(prev, { [fieldNameToKeyMap[name]]: value }), {});
-    const $where = await this.resolveWhereClause(this.query.match());
 
-    return {
+    let $where = await this.model.resolveBoundValues(this.query.match());
+    $where = await this.resolveWhereClause($where);
+
+    let $data = {};
+    if (crud === 'create' || crud === 'update') {
+      $data = await this.model.appendDefaultValues(this.query.data());
+      $data = await this.model[`append${ucFirst(crud)}Fields`]($data);
+    }
+
+    const plan = {
       key: this.model.getKey(),
       method: this.query.method(),
       isNative: Boolean(this.query.native()),
       schema: fields.reduce((prev, field) => Object.assign(prev, { [field.getKey()]: field.getType() }), {}),
-      select: this.query.select() ? this.query.select().map(n => fieldNameToKeyMap[n]) : fields.map(f => f.getKey()),
+      select: this.query.select() ? Object.keys(this.query.select()).map(n => fieldNameToKeyMap[n]) : fields.map(f => f.getKey()),
       where: normalize($where),
-      data: this.query.data() ? normalize(this.query.data()) : {},
+      data: normalize($data),
+      flags,
     };
+
+    if (flags.debug) console.log(plan);
+
+    return plan;
   }
 
   getCacheKey() {

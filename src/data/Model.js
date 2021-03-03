@@ -274,7 +274,7 @@ module.exports = class extends Model {
     return this.validate(data, { required, immutable, selfless });
   }
 
-  resolve(doc, prop, resolver, query) {
+  resolve(doc, prop, resolver) {
     // Value check if already resolved
     const value = doc[prop];
     if (value !== undefined) return value;
@@ -303,18 +303,18 @@ module.exports = class extends Model {
     if (field.isArray()) {
       if (field.isVirtual()) {
         const where = { [field.getVirtualField()]: doc.id };
-        return assignValue(field, doc, prop, resolver.match(fieldModel).query({ where }).many());
+        return assignValue(field, doc, prop, resolver.match(fieldModel).merge({ where }).data());
       }
 
       // Not a "required" query + strip out nulls
-      return assignValue(field, doc, prop, Promise.all(ensureArray($value).map(id => resolver.match(fieldModel).id(id).one())).then(results => results.filter(r => r != null)));
+      return assignValue(field, doc, prop, Promise.all(ensureArray($value).map(id => resolver.match(fieldModel).id(id).data())).then(results => results.filter(r => r != null)));
     }
 
     if (field.isVirtual()) {
       const where = { [field.getVirtualField()]: doc.id };
-      return assignValue(field, doc, prop, resolver.match(fieldModel).query({ where }).one());
+      return assignValue(field, doc, prop, resolver.match(fieldModel).merge({ where }).data());
     }
 
-    return assignValue(field, doc, prop, resolver.match(fieldModel).id($value).one({ required: field.isRequired() }));
+    return assignValue(field, doc, prop, resolver.match(fieldModel).id($value).data({ required: field.isRequired() }));
   }
 };

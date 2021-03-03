@@ -1,3 +1,5 @@
+const { isEmpty } = require('lodash');
+const Boom = require('./Boom');
 const Model = require('../data/Model');
 const DataLoader = require('../data/DataLoader');
 const ResultSet = require('../data/ResultSet');
@@ -9,6 +11,7 @@ module.exports = class Resolver {
     this.schema = schema;
     this.context = context;
     this.loader = new DataLoader();
+    this.schema.setContext(context);
 
     // DataLoader Proxy Methods
     this.clear = key => this.loader.clear(key);
@@ -48,19 +51,25 @@ module.exports = class Resolver {
   }
 
   async resolve(query) {
-    const queryPlanner = new QueryPlanner(this, query);
+    const model = query.model();
+    const { required, debug } = query.flags();
+    const queryPlanner = new QueryPlanner(query);
 
-    switch (query.methodType()) {
-      case 'mutation': {
+    switch (query.crud()) {
+      case 'create': case 'update': case 'delete': {
         return queryPlanner.getPlan().then((plan) => {
-          return query.model().getDriver()[query.method()](plan).then((data) => {
+          return model.getDriver().resolve(plan).then((data) => {
             this.clearAll();
             return new ResultSet(query, data);
           });
         });
       }
       default: {
-        return this.loader.load(queryPlanner).then(data => new ResultSet(query, data));
+        return this.loader.load(queryPlanner).then((data) => {
+          if (debug) console.log('got result', data);
+          if (required && (!data || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
+          return new ResultSet(query, data);
+        });
       }
     }
   }

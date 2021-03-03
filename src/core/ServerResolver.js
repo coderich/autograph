@@ -16,18 +16,23 @@ module.exports = class ServerResolver {
     this.get = ({ autograph }, model, { id: guid }, required = false, info) => {
       const query = { fields: GraphqlFields(info, {}, { processArguments: true }) };
 
-      return autograph.resolver.match(model).id(guidToId(autograph, guid)).query(query).one().then((doc) => {
+      return autograph.resolver.match(model).id(guidToId(autograph, guid)).merge(query).data().then((doc) => {
         if (!doc && required) throw Boom.notFound(`${model} Not Found`);
         return doc;
       });
     };
 
     // Query
-    this.query = ({ autograph }, model, args, info) => autograph.resolver.match(model).query(normalizeQuery(args, info)).many();
+    this.query = ({ autograph }, model, args, info) => autograph.resolver.match(model).merge(normalizeQuery(args, info)).data();
     this.count = ({ autograph }, model, args, info) => autograph.resolver.match(model).where(args.where).count();
 
     // Mutations
-    this.create = ({ autograph }, model, { input, meta }, query) => autograph.resolver.match(model).select(query.fields).meta(meta).save(unrollGuid(autograph, model, input));
+    this.create = async ({ autograph }, model, { input, meta }, query) => {
+      // console.log(query.fields);
+      const doc = await autograph.resolver.match(model).meta(meta).save(unrollGuid(autograph, model, input));
+      console.log(doc);
+      return doc;
+    };
     this.delete = ({ autograph }, model, { id: guid, meta }, query) => autograph.resolver.match(model).id(guidToId(autograph, guid)).select(query.fields).meta(meta).remove();
 
     this.update = ({ autograph }, model, args, query) => {
