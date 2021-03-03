@@ -97,7 +97,7 @@ module.exports = class QueryPlanner {
       flags,
     };
 
-    if (flags.debug) console.log(plan);
+    if (flags.debug) console.log(JSON.stringify(plan));
 
     return plan;
   }
