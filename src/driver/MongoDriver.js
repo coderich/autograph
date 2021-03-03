@@ -18,7 +18,7 @@ module.exports = class MongoDriver {
   }
 
   query(collection, method, ...args) {
-    if (has(args[args.length - 1], 'debug')) console.log(args);
+    if (has(args[args.length - 1], 'debug')) console.log(JSON.stringify(args));
     return this.raw(collection)[method](...args);
   }
 
@@ -49,6 +49,10 @@ module.exports = class MongoDriver {
 
   removeOne({ key, where, data, flags }) {
     return this.query(key, 'findOneAndDelete', where, { returnOriginal: false }, flags).then(result => result.value);
+  }
+
+  count({ key, where, flags }) {
+    return this.query(key, 'countDocuments', where, flags);
   }
 
   dropModel(model) {

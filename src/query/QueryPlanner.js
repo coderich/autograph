@@ -69,7 +69,7 @@ module.exports = class QueryPlanner {
     const crud = this.query.crud();
     const fields = this.model.getSelectFields();
     const fieldNameToKeyMap = fields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: field.getKey() }), {});
-    const normalize = data => Object.entries(data).reduce((prev, [name, value]) => Object.assign(prev, { [fieldNameToKeyMap[name]]: value }), {});
+    // const normalize = data => Object.entries(data).reduce((prev, [name, value]) => Object.assign(prev, { [fieldNameToKeyMap[name]]: value }), {});
 
     // Select fields
     const $select = unravelObject(this.query.select() ? Object.keys(this.query.select()).map(n => fieldNameToKeyMap[n]) : fields.map(f => f.getKey()));
@@ -78,12 +78,15 @@ module.exports = class QueryPlanner {
     let $where = unravelObject(this.query.match());
     $where = await this.model.resolveBoundValues($where);
     $where = await this.resolveWhereClause($where, flags);
+    $where = this.model.normalize($where);
 
     // Input data
     let $data = {};
     if (crud === 'create' || crud === 'update') {
-      $data = await this.model.appendDefaultValues(this.query.data());
+      $data = unravelObject(this.query.data());
+      $data = await this.model.appendDefaultValues($data);
       $data = await this.model[`append${ucFirst(crud)}Fields`]($data);
+      $data = this.model.normalize($data);
     }
 
     const plan = {
@@ -92,8 +95,8 @@ module.exports = class QueryPlanner {
       isNative: Boolean(this.query.native()),
       schema: fields.reduce((prev, field) => Object.assign(prev, { [field.getKey()]: field.getType() }), {}),
       select: $select,
-      where: normalize($where),
-      data: normalize($data),
+      where: $where,
+      data: $data,
       flags,
     };
 

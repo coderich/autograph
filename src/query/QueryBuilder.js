@@ -32,26 +32,25 @@ module.exports = class QueryBuilder {
   }
 
   finalize(cmd, args) {
-    let method;
-    let crud;
+    let method, crud, data = {}, flags = {};
     const targeted = Boolean(this.options.mode === 'target' || this.query.id() != null);
 
     switch (cmd) {
       case 'data': {
         crud = 'read';
+        flags = args[0] || {};
         method = targeted ? 'findOne' : 'findMany';
-        this.query.flags(args[0] || {});
         break;
       }
       case 'save': {
+        data = args[0] || {};
+        flags = args[1] || {};
         if (targeted) method = 'updateOne';
         if (!method && this.query.where()) method = 'updateMany';
         if (method) crud = 'update';
         if (!method && args.length > 1) method = 'createMany';
         if (!method) method = 'createOne';
         if (!crud) crud = 'create';
-        this.query.data(args[0] || {});
-        this.query.flags(args[1] || {});
         break;
       }
       case 'push': case 'pull': case 'splice': {
@@ -61,16 +60,19 @@ module.exports = class QueryBuilder {
       }
       case 'remove': case 'delete': {
         crud = 'delete';
+        flags = args[0] || {};
         method = targeted ? 'removeOne' : 'removeMany';
         break;
       }
       case 'first': case 'last': {
         crud = 'read';
+        flags = args[0] || {};
         method = 'findMany';
         break;
       }
       case 'count': {
         crud = 'read';
+        flags = args[0] || {};
         method = 'count';
         break;
       }
@@ -79,6 +81,6 @@ module.exports = class QueryBuilder {
       }
     }
 
-    return this.query.method(method).crud(crud).args(args).resolve();
+    return this.query.method(method).crud(crud).data(data).flags(flags).args(args).resolve();
   }
 };

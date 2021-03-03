@@ -40,7 +40,7 @@ module.exports = class DataLoader extends FBDataLoader {
         return planner.getPlan().then((plan) => {
           return planner.model.getDriver().resolve(plan).then((data) => {
             if (data == null) return null;
-            return new ResultSet(planner.query, data);
+            return typeof data === 'object' ? new ResultSet(planner.query, data) : data;
           });
         });
       }));
