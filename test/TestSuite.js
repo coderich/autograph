@@ -309,7 +309,7 @@ module.exports = (driver = 'mongo', options = {}) => {
       // TODO Embedded tests for non-document databases
       if (driver === 'mongo') {
         test('BookStore', async () => {
-          expect((await resolver.match('BookStore').where({ 'building.id': bookBuilding }).data({ debug: true })).sort(sorter)).toMatchObject([
+          expect((await resolver.match('BookStore').where({ building: bookBuilding }).data()).sort(sorter)).toMatchObject([
             { id: bookstore1.id, name: 'Best Books Ever', building: expect.objectContaining(bookBuilding) },
             { id: bookstore2.id, name: 'New Books', building: expect.objectContaining(bookBuilding) },
           ].sort(sorter));
@@ -322,8 +322,8 @@ module.exports = (driver = 'mongo', options = {}) => {
         });
 
         test('Art', async () => {
-          expect(await resolver.match('Art').where({ sections: { id: artsy.sections[0].id } }).data()).toMatchObject(artsy);
-          expect(await resolver.match('Art').where({ 'sections.id': artsy.sections[0].id }).data()).toMatchObject(artsy);
+          expect(await resolver.target('Art').where({ sections: { id: artsy.sections[0].id } }).data({ debug: true })).toMatchObject(artsy);
+          expect(await resolver.target('Art').where({ 'sections.id': artsy.sections[0].id }).data()).toMatchObject(artsy);
         });
       }
 

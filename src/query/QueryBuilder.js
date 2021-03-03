@@ -6,7 +6,7 @@ module.exports = class QueryBuilder {
     this.query = new Query({ model, resolver });
 
     // Query Composable
-    this.id = (id) => { this.query.id(`${id}`); return this; };
+    this.id = (...args) => { this.query.id(...args); return this; };
     this.where = (...args) => { this.query.where(...args); return this; };
     this.native = (...args) => { this.query.native(...args); return this; };
     this.select = (...args) => { this.query.select(...args); return this; };
