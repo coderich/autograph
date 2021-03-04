@@ -4,7 +4,7 @@ const { hashObject } = require('../service/app.service');
 
 module.exports = class DataLoader extends FBDataLoader {
   constructor() {
-    return new FBDataLoader((planners) => {
+    return new FBDataLoader((workers) => {
       // const methods = [...new Set(keys.map(k => k.method))];
 
       // if (keys.length > 10 && methods.length === 1 && methods[0] === 'get') {
@@ -36,16 +36,16 @@ module.exports = class DataLoader extends FBDataLoader {
       //   });
       // }
 
-      return Promise.all(planners.map((planner) => {
-        return planner.getPlan().then((plan) => {
-          return planner.model.getDriver().resolve(plan).then((data) => {
+      return Promise.all(workers.map((worker) => {
+        return worker.getWork().then((work) => {
+          return worker.model.getDriver().resolve(work).then((data) => {
             if (data == null) return null;
-            return typeof data === 'object' ? new ResultSet(planner.query, data) : data;
+            return typeof data === 'object' ? new ResultSet(worker.query, data) : data;
           });
         });
       }));
     }, {
-      cacheKeyFn: planner => hashObject(planner.getCacheKey()),
+      cacheKeyFn: worker => hashObject(worker.getCacheKey()),
     });
   }
 };

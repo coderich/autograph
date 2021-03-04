@@ -147,11 +147,15 @@ module.exports = class Query {
   }
 
   clone() {
-    return new Query(this.props);
+    return new Query({ ...this.props });
   }
 
   resolve() {
     return this.resolver().resolve(this);
+  }
+
+  toObject() {
+    return this.props;
   }
 
   getCacheKey() {
