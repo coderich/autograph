@@ -32,8 +32,9 @@ module.exports = class QueryResolver {
     return this.resolver.resolve(query);
   }
 
-  create(query) {
-    const { input } = query.toObject();
+  async create(query) {
+    const { model, input } = query.toObject();
+    await model.validateData(input, {}, 'create');
     return this.resolver.resolve(query).then(id => Object.assign(input, { id }));
   }
 
@@ -41,8 +42,9 @@ module.exports = class QueryResolver {
     const { model, input, flags } = query.toObject();
     const clone = query.clone().method('get').flags(Object.assign({}, flags, { required: true }));
 
-    return this.resolver.resolve(clone).then((doc) => {
+    return this.resolver.resolve(clone).then(async (doc) => {
       if (doc == null) throw Boom.notFound(`${model} Not Found`);
+      await model.validateData(input, doc, 'update');
       const $doc = model.serialize(mergeDeep(doc, removeUndefinedDeep(input)));
       return this.resolver.resolve(query.doc(doc).$doc($doc)).then(() => $doc);
     });
@@ -85,9 +87,8 @@ module.exports = class QueryResolver {
       if (crud === 'create') $input = await model.appendDefaultValues($input);
       $input = await model[`append${ucFirst(crud)}Fields`]($input);
       $input = model.normalize($input);
-      // $input = model.serialize($input);
+      $input = model.serialize($input); // This seems to be needed to accept Objects and convert them to ids; however this also makes .save(<empty>) throw an error and I think you should be able to save empty
       // $input = removeUndefinedDeep($input);
-      await model.validateData($input, {}, crud);
       clone.input($input);
     }
 

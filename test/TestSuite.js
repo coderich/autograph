@@ -381,9 +381,9 @@ module.exports = (driver = 'mongo', options = {}) => {
 
     describe('Data Validation', () => {
       test('Person', async () => {
-        // await expect(resolver.match('Person').save()).rejects.toThrow(); // Should this really throw? New refactor code creates new object and I'm OK with that....
+        await expect(resolver.match('Person').save()).rejects.toThrow(); // Should this really throw? New refactor code creates new object and I'm OK with that....
         await expect(resolver.match('Person').save({ name: 'Richard' })).rejects.toThrow();
-        await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: ['nobody'] }, { debug: true })).rejects.toThrow();
+        await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: ['nobody'] })).rejects.toThrow();
         await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: [richard.id, 'nobody'] })).rejects.toThrow();
         await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguygmail.com' })).rejects.toThrow();
         await expect(resolver.match('Person').id(richard.id).save({ name: 'Christie' })).rejects.toThrow();

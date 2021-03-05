@@ -1,5 +1,4 @@
-const { isEmpty } = require('lodash');
-const Boom = require('./Boom');
+const Rule = require('./Rule');
 const Model = require('../data/Model');
 const DataLoader = require('../data/DataLoader');
 const QueryBuilder = require('../query/QueryBuilder');
@@ -18,6 +17,16 @@ module.exports = class Resolver {
 
     //
     this.getContext = () => this.context;
+
+    //
+    Rule.factory('ensureId', () => (field, v) => {
+      return this.match(field.getType()).id(v).one().then((doc) => {
+        if (doc) return false;
+        return true;
+      });
+    }, {
+      writable: true,
+    });
   }
 
   /**
