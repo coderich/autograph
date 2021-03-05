@@ -18,7 +18,7 @@ module.exports = class MongoDriver {
   }
 
   query(collection, method, ...args) {
-    if (has(args[args.length - 1], 'debug')) console.log(JSON.stringify(args));
+    if (has(args[args.length - 1], 'debug')) console.log(method, JSON.stringify(args));
     return this.raw(collection)[method](...args);
   }
 

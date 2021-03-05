@@ -28,18 +28,22 @@ module.exports = class QueryResolver {
     });
   }
 
+  count(query) {
+    return this.resolver.resolve(query);
+  }
+
   create(query) {
-    const { model, input } = query.toObject();
+    const { input } = query.toObject();
     return this.resolver.resolve(query).then(id => Object.assign(input, { id }));
   }
 
   update(query) {
-    const { id, where, input, model } = query.toObject();
+    const { model, id, where, input } = query.toObject();
 
     // if (id) {
       return this.resolver.resolve(query.clone().method('get')).then((doc) => {
         if (doc == null) throw Boom.notFound(`${model} Not Found`);
-        const $doc = mergeDeep(doc, removeUndefinedDeep(input));
+        const $doc = model.serialize(mergeDeep(doc, removeUndefinedDeep(input)));
         return this.resolver.resolve(query.doc(doc).$doc($doc)).then(() => $doc);
       });
     // }
@@ -65,7 +69,7 @@ module.exports = class QueryResolver {
     const where = await model.resolveBoundValues(unravelObject(this.query.match()));
     let $where = await QueryService.resolveQueryWhereClause(this.query.match(where));
     $where = model.normalize($where);
-    // $where = removeUndefinedDeep($where);
+    $where = removeUndefinedDeep($where);
     clone.match($where);
 
     // Input data
@@ -80,8 +84,9 @@ module.exports = class QueryResolver {
     }
 
     return this[method](clone).then((data) => {
-      if (required && (!data || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
+      if (required && (data == null || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
       if (debug) console.log('got result', data);
+      if (data == null) return null;
       return typeof data === 'object' ? new QueryResult(this.query, data) : data;
     });
   }
