@@ -1,3 +1,5 @@
+const { clone } = require('lodash');
+
 module.exports = class Query {
   constructor(props) {
     this.props = props || {};
@@ -128,15 +130,21 @@ module.exports = class Query {
     return this;
   }
 
-  data(data) {
-    if (data == null) return this.props.data;
-    this.props.data = data;
+  input(input) {
+    if (input == null) return this.props.input;
+    this.props.input = input;
     return this;
   }
 
   doc(doc) {
     if (doc == null) return this.props.doc;
     this.props.doc = doc;
+    return this;
+  }
+
+  $doc($doc) {
+    if ($doc == null) return this.props.$doc;
+    this.props.$doc = $doc;
     return this;
   }
 
@@ -147,11 +155,21 @@ module.exports = class Query {
   }
 
   clone() {
-    return new Query({ ...this.props });
+    return new Query(clone(this.props));
   }
 
-  resolve() {
-    return this.resolver().resolve(this);
+  toDriver() {
+    return {
+      model: this.model().getKey(),
+      method: this.method(),
+      // schema: fields.reduce((prev, field) => Object.assign(prev, { [field.getKey()]: field.getType() }), {}),
+      select: this.select(),
+      where: this.match(),
+      input: this.input(),
+      flags: this.flags(),
+      $doc: this.$doc(),
+      doc: this.doc(),
+    };
   }
 
   toObject() {

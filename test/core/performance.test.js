@@ -20,9 +20,9 @@ describe('Performance', () => {
 
   describe('Driver # of calls', () => {
     test('Simple find', async () => {
-      const spyGet = jest.spyOn(MongoDriver.prototype, 'findOne');
-      const spyFind = jest.spyOn(MongoDriver.prototype, 'findMany');
-      const people = await resolver.match('Person').data();
+      const spyGet = jest.spyOn(MongoDriver.prototype, 'get');
+      const spyFind = jest.spyOn(MongoDriver.prototype, 'find');
+      const people = await resolver.match('Person').many();
       expect(people.length).toBe(3);
       expect(spyGet).toHaveBeenCalledTimes(0);
       expect(spyFind).toHaveBeenCalledTimes(1);
@@ -31,9 +31,9 @@ describe('Performance', () => {
     });
 
     test('Simple where clause', async () => {
-      const spyGet = jest.spyOn(MongoDriver.prototype, 'findOne');
-      const spyFind = jest.spyOn(MongoDriver.prototype, 'findMany');
-      const people = await resolver.match('Person').where({ name: 'name1' }).data();
+      const spyGet = jest.spyOn(MongoDriver.prototype, 'get');
+      const spyFind = jest.spyOn(MongoDriver.prototype, 'find');
+      const people = await resolver.match('Person').where({ name: 'name1' }).many();
       expect(people.length).toBe(1);
       expect(spyGet).toHaveBeenCalledTimes(0);
       expect(spyFind).toHaveBeenCalledTimes(1);
@@ -42,9 +42,9 @@ describe('Performance', () => {
     });
 
     test('Nested where clause (found)', async () => {
-      const spyGet = jest.spyOn(MongoDriver.prototype, 'findOne');
-      const spyFind = jest.spyOn(MongoDriver.prototype, 'findMany');
-      const people = await resolver.match('Person').where({ friends: { name: 'name2' } }).data();
+      const spyGet = jest.spyOn(MongoDriver.prototype, 'get');
+      const spyFind = jest.spyOn(MongoDriver.prototype, 'find');
+      const people = await resolver.match('Person').where({ friends: { name: 'name2' } }).many();
       expect(people.length).toBe(1);
       expect(spyGet).toHaveBeenCalledTimes(0);
       expect(spyFind).toHaveBeenCalledTimes(2);

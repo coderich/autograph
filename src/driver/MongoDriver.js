@@ -27,32 +27,33 @@ module.exports = class MongoDriver {
     return this[query.method](query);
   }
 
-  findOne({ key, select, where, flags }) {
-    return this.query(key, 'findOne', where, flags);
+  get({ model, where, flags }) {
+    return this.query(model, 'findOne', where, flags);
   }
 
-  findMany({ key, select, where, flags }) {
-    return this.query(key, 'find', where, flags).then(cursor => cursor.toArray());
+  find({ model, where, flags }) {
+    return this.query(model, 'find', where, flags).then(cursor => cursor.toArray());
   }
 
-  createOne({ key, data, flags }) {
-    return this.query(key, 'insertOne', data, flags).then(result => Object.assign(data, { _id: result.insertedId }));
+  count({ model, where, flags }) {
+    return this.query(model, 'countDocuments', where, flags);
   }
 
-  updateOne({ key, where, data, flags }) {
-    return this.query(key, 'findOneAndUpdate', where, { $set: data }, { returnOriginal: false }, flags).then(result => result.value);
+  create({ model, input, flags }) {
+    return this.query(model, 'insertOne', input, flags).then(result => result.insertedId);
   }
 
-  updateMany() {
-    throw new Error('unsupported');
+  update({ model, where, $doc, flags }) {
+    const $update = Object.entries($doc).reduce((prev, [key, value]) => {
+      Object.assign(prev.$set, { [key]: value });
+      return prev;
+    }, { $set: {} });
+
+    return this.query(model, 'updateOne', where, $update, flags);
   }
 
-  removeOne({ key, where, data, flags }) {
-    return this.query(key, 'findOneAndDelete', where, { returnOriginal: false }, flags).then(result => result.value);
-  }
-
-  count({ key, where, flags }) {
-    return this.query(key, 'countDocuments', where, flags);
+  delete({ model, where, flags }) {
+    return this.query(model, 'deleteOne', where, flags);
   }
 
   dropModel(model) {

@@ -1,10 +1,9 @@
 const FBDataLoader = require('dataloader');
-const ResultSet = require('./ResultSet');
 const { hashObject } = require('../service/app.service');
 
 module.exports = class DataLoader extends FBDataLoader {
   constructor() {
-    return new FBDataLoader((workers) => {
+    return new FBDataLoader((queries) => {
       // const methods = [...new Set(keys.map(k => k.method))];
 
       // if (keys.length > 10 && methods.length === 1 && methods[0] === 'get') {
@@ -36,16 +35,11 @@ module.exports = class DataLoader extends FBDataLoader {
       //   });
       // }
 
-      return Promise.all(workers.map((worker) => {
-        return worker.getWork().then((work) => {
-          return worker.model.getDriver().resolve(work).then((data) => {
-            if (data == null) return null;
-            return typeof data === 'object' ? new ResultSet(worker.query, data) : data;
-          });
-        });
+      return Promise.all(queries.map((query) => {
+        return query.model().getDriver().resolve(query.toDriver());
       }));
     }, {
-      cacheKeyFn: worker => hashObject(worker.getCacheKey()),
+      cacheKeyFn: query => hashObject(query.getCacheKey()),
     });
   }
 };

@@ -2,9 +2,7 @@ const { isEmpty } = require('lodash');
 const Boom = require('./Boom');
 const Model = require('../data/Model');
 const DataLoader = require('../data/DataLoader');
-const ResultSet = require('../data/ResultSet');
 const QueryBuilder = require('../query/QueryBuilder');
-const QueryWorker = require('../query/QueryWorker');
 
 module.exports = class Resolver {
   constructor(schema, context = {}) {
@@ -23,17 +21,10 @@ module.exports = class Resolver {
   }
 
   /**
-   * Returns a QueryBuilder in "match" mode; which will return an array of records for queries.
+   * Creates and returns a QueryBuilder for a given model
    */
   match(model) {
-    return new QueryBuilder(this, this.toModelEntity(model), { mode: 'match' });
-  }
-
-  /**
-   * Returns a QueryBuilder in "target" mode; which will return a single record for queries.
-   */
-  target(model) {
-    return new QueryBuilder(this, this.toModelEntity(model), { mode: 'target' });
+    return new QueryBuilder(this, this.toModelEntity(model));
   }
 
   /**
@@ -50,26 +41,18 @@ module.exports = class Resolver {
     return this.toModelEntity(model).raw();
   }
 
-  async resolve(query) {
-    const model = query.model();
-    const { required, debug } = query.flags();
-    const queryWorker = new QueryWorker(query);
+  resolve(query) {
+    const { model, method } = query.toObject();
 
-    switch (query.crud()) {
+    switch (method) {
       case 'create': case 'update': case 'delete': {
-        return queryWorker.getWork().then((work) => {
-          return model.getDriver().resolve(work).then((data) => {
-            this.clearAll();
-            return new ResultSet(query, data);
-          });
+        return model.getDriver().resolve(query.toDriver()).then((data) => {
+          this.clearAll();
+          return data;
         });
       }
       default: {
-        return this.loader.load(queryWorker).then((data) => {
-          if (debug) console.log('got result', data);
-          if (required && (!data || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
-          return data;
-        });
+        return this.loader.load(query);
       }
     }
   }

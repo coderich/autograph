@@ -1,10 +1,11 @@
 const Query = require('./Query');
+const QueryResolver = require('./QueryResolver');
 
 /*
 * QueryBuilder
 *
 * Facilitates the creation and execution of a Query. It provides a chainable API to build a query
-* plus a list of terminal commands that will resolve the query.
+* plus a list of terminal commands to resolve the query.
 */
 module.exports = class QueryBuilder {
   constructor(resolver, model, options = {}) {
@@ -25,55 +26,53 @@ module.exports = class QueryBuilder {
     this.merge = (...args) => { this.query.merge(...args); return this; };
 
     // Terminal commands
-    this.data = (...args) => this.resolve('data', args);
+    this.one = (...args) => this.resolve('one', args);
+    this.many = (...args) => this.resolve('many', args);
     this.save = (...args) => this.resolve('save', args);
+    this.delete = (...args) => this.resolve('delete', args);
+    this.remove = (...args) => this.resolve('remove', args);
+    //
+    this.count = (...args) => this.resolve('count', args);
     this.push = (...args) => this.resolve('push', args);
     this.pull = (...args) => this.resolve('pull', args);
     this.splice = (...args) => this.resolve('splice', args);
-    this.remove = (...args) => this.resolve('remove', args);
-    this.delete = (...args) => this.resolve('delete', args);
-    this.count = (...args) => this.resolve('count', args);
     this.first = (...args) => { this.query.first(...args); return this.resolve('first', args); };
     this.last = (...args) => { this.query.last(...args); return this.resolve('last', args); };
   }
 
   resolve(cmd, args) {
-    let method, crud, data = {}, flags = {};
-    const targeted = Boolean(this.options.mode === 'target' || this.query.id() != null);
+    let method, crud, input = {}, flags = {};
+    const { id, where } = this.query.toObject();
 
     switch (cmd) {
-      case 'data': {
+      case 'one': case 'many': {
         crud = 'read';
         flags = args[0] || {};
-        method = targeted ? 'findOne' : 'findMany';
+        method = cmd === 'one' ? 'get' : 'find';
         break;
       }
       case 'save': {
-        data = args[0] || {};
+        input = args[0] || {};
         flags = args[1] || {};
-        if (targeted) method = 'updateOne';
-        if (!method && this.query.where()) method = 'updateMany';
-        if (method) crud = 'update';
-        if (!method && args.length > 1) method = 'createMany';
-        if (!method) method = 'createOne';
-        if (!crud) crud = 'create';
+        crud = id || where ? 'update' : 'create';
+        method = crud;
         break;
       }
       case 'push': case 'pull': case 'splice': {
         crud = cmd === 'push' ? 'create' : 'update';
-        method = targeted ? `${cmd}One` : `${cmd}Many`;
+        method = cmd;
         break;
       }
       case 'remove': case 'delete': {
         crud = 'delete';
         flags = args[0] || {};
-        method = targeted ? 'removeOne' : 'removeMany';
+        method = 'delete';
         break;
       }
       case 'first': case 'last': {
         crud = 'read';
         flags = args[0] || {};
-        method = 'findMany';
+        method = cmd;
         break;
       }
       case 'count': {
@@ -87,6 +86,6 @@ module.exports = class QueryBuilder {
       }
     }
 
-    return this.query.method(method).crud(crud).data(data).flags(flags).args(args).resolve();
+    return new QueryResolver(this.query.method(method).crud(crud).input(input).flags(flags).args(args)).resolve();
   }
 };

@@ -13,7 +13,7 @@ describe('Pipeline', () => {
     const client = await MongoClient.connect(uri, { useUnifiedTopology: true });
     const db = client.db();
     collection = db.collection('Person');
-    const person = await collection.insert({ name: 'friend1', emailAddress: 'friend1@gmail.com' }).then(r => r.ops[0]);
+    const person = await collection.insertOne({ name: 'friend1', emailAddress: 'friend1@gmail.com' }).then(r => r.ops[0]);
     friends = [person];
   });
 

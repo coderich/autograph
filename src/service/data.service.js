@@ -118,12 +118,12 @@ exports.resolveModelWhereClause = (resolver, model, where = {}) => {
 
     if (field.isVirtual()) {
       const virtualRef = field.getVirtualRef();
-      const ids = Promise.all(ensureArray(value).map(v => resolver.match(modelRef).where(isPlainObject(v) ? v : { id: v }).data().then(docs => docs.map(doc => doc[virtualRef])))).then(results => _.uniq(_.flattenDeep(results)));
+      const ids = Promise.all(ensureArray(value).map(v => resolver.match(modelRef).where(isPlainObject(v) ? v : { id: v }).many().then(docs => docs.map(doc => doc[virtualRef])))).then(results => _.uniq(_.flattenDeep(results)));
       return Object.assign(prev, { id: ids });
     }
 
     if (modelRef && !field.isEmbedded()) {
-      const ids = Promise.all(ensureArray(value).map(v => (isPlainObject(v) ? resolver.match(modelRef).where(v).data().then(docs => docs.map(doc => doc.id)) : Promise.resolve(v)))).then(results => _.uniq(_.flattenDeep(results)));
+      const ids = Promise.all(ensureArray(value).map(v => (isPlainObject(v) ? resolver.match(modelRef).where(v).many().then(docs => docs.map(doc => doc.id)) : Promise.resolve(v)))).then(results => _.uniq(_.flattenDeep(results)));
       return Object.assign(prev, { [key]: ids });
     }
 
