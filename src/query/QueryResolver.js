@@ -38,20 +38,23 @@ module.exports = class QueryResolver {
   }
 
   update(query) {
-    const { model, id, where, input } = query.toObject();
+    const { model, input } = query.toObject();
 
-    // if (id) {
-      return this.resolver.resolve(query.clone().method('get')).then((doc) => {
-        if (doc == null) throw Boom.notFound(`${model} Not Found`);
-        const $doc = model.serialize(mergeDeep(doc, removeUndefinedDeep(input)));
-        return this.resolver.resolve(query.doc(doc).$doc($doc)).then(() => $doc);
-      });
-    // }
+    return this.resolver.resolve(query.clone().method('get')).then((doc) => {
+      if (doc == null) throw Boom.notFound(`${model} Not Found`);
+      const $doc = model.serialize(mergeDeep(doc, removeUndefinedDeep(input)));
+      return this.resolver.resolve(query.doc(doc).$doc($doc)).then(() => $doc);
+    });
   }
 
-  // delete(query) {
+  delete(query) {
+    const { model } = query.toObject();
 
-  // }
+    return this.resolver.resolve(query.clone().method('get')).then((doc) => {
+      if (doc == null) throw Boom.notFound(`${model} Not Found`);
+      return this.resolver.resolve(query).then(() => doc);
+    });
+  }
 
   async resolve() {
     const clone = this.query.clone();

@@ -467,21 +467,21 @@ module.exports = (driver = 'mongo', options = {}) => {
     // });
 
 
-    // describe('Data Normalization', () => {
-    //   test('uniq', async () => {
-    //     richard = await resolver.match('Person').id(richard.id).save({ name: 'richard', friends: [christie.id, christie.id, christie.id], telephone: 1234567890 });
-    //     expect(richard.name).toEqual('Richard');
-    //     expect(richard.telephone).toEqual('1234567890');
-    //     expect(richard.friends).toEqual([christie.id]);
-    //   });
-    // });
+    describe('Data Normalization', () => {
+      test('uniq', async () => {
+        richard = await resolver.match('Person').id(richard.id).save({ name: 'richard', friends: [christie.id, christie.id, christie.id], telephone: 1234567890 });
+        expect(richard.name).toEqual('Richard');
+        expect(richard.telephone).toEqual('1234567890');
+        expect(richard.friends).toEqual([christie.id]);
+      });
+    });
 
 
     describe('Find (Deep)', () => {
       test('Person', async () => {
         expect(await resolver.match('Person').where({ authored: { name: 'Moby Dick' } }).many()).toMatchObject([{ id: richard.id, name: 'Richard' }]);
         expect(await resolver.match('Person').where({ authored: { author: { name: 'ChRist??' } } }).many()).toMatchObject([{ id: christie.id, name: 'Christie' }]);
-        expect(await resolver.match('Person').where({ friends: { name: 'Christie' } }).many({ debug: true })).toMatchObject([{ id: richard.id, name: 'Richard' }]);
+        expect(await resolver.match('Person').where({ friends: { name: 'Christie' } }).many()).toMatchObject([{ id: richard.id, name: 'Richard' }]);
         expect(await resolver.match('Person').where({ friends: { authored: { name: 'Health*' } } }).many()).toMatchObject([{ id: richard.id, name: 'Richard' }]);
         expect(await resolver.match('Person').where({ friends: { authored: { name: 'Cray Cray*' } } }).many()).toMatchObject([]);
         expect(await resolver.match('Person').where({ authored: { chapters: { pages: { verbage: 'city lust' } } } }).many()).toMatchObject([]);
@@ -554,16 +554,16 @@ module.exports = (driver = 'mongo', options = {}) => {
     });
 
 
-    // describe('Remove', () => {
-    //   test('Art', async () => {
-    //     const art = await resolver.match('Art').save({ name: 'bye bye', comments: ['yay'] });
-    //     expect(art).toBeDefined();
-    //     expect(await resolver.match('Art').id(art.id).one()).not.toBeNull();
-    //     expect(await resolver.match('Art').id(art.id).remove()).toMatchObject({ id: art.id, name: 'Bye Bye' });
-    //     expect(await resolver.match('Art').id(art.id).one()).toBeNull();
-    //     await resolver.match('Art').id(artsy.id).remove(); // Need to delete it to not mess up later tests
-    //   });
-    // });
+    describe('Remove', () => {
+      test('Art', async () => {
+        const art = await resolver.match('Art').save({ name: 'bye bye', comments: ['yay'] });
+        expect(art).toBeDefined();
+        expect(await resolver.match('Art').id(art.id).one()).not.toBeNull();
+        expect(await resolver.match('Art').id(art.id).remove()).toMatchObject({ id: art.id, name: 'Bye Bye' });
+        expect(await resolver.match('Art').id(art.id).one()).toBeNull();
+        await resolver.match('Art').id(artsy.id).remove(); // Need to delete it to not mess up later tests
+      });
+    });
 
 
     // describe('Query (sortBy sliced results)', () => {
