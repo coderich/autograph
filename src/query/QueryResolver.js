@@ -38,9 +38,10 @@ module.exports = class QueryResolver {
   }
 
   update(query) {
-    const { model, input } = query.toObject();
+    const { model, input, flags } = query.toObject();
+    const clone = query.clone().method('get').flags(Object.assign({}, flags, { required: true }));
 
-    return this.resolver.resolve(query.clone().method('get')).then((doc) => {
+    return this.resolver.resolve(clone).then((doc) => {
       if (doc == null) throw Boom.notFound(`${model} Not Found`);
       const $doc = model.serialize(mergeDeep(doc, removeUndefinedDeep(input)));
       return this.resolver.resolve(query.doc(doc).$doc($doc)).then(() => $doc);
@@ -48,9 +49,10 @@ module.exports = class QueryResolver {
   }
 
   delete(query) {
-    const { model } = query.toObject();
+    const { model, flags } = query.toObject();
+    const clone = query.clone().method('get').flags(Object.assign({}, flags, { required: true }));
 
-    return this.resolver.resolve(query.clone().method('get')).then((doc) => {
+    return this.resolver.resolve(clone).then((doc) => {
       if (doc == null) throw Boom.notFound(`${model} Not Found`);
       return this.resolver.resolve(query).then(() => doc);
     });
@@ -58,7 +60,7 @@ module.exports = class QueryResolver {
 
   async resolve() {
     const clone = this.query.clone();
-    const { model, crud, method, flags } = this.query.toObject();
+    const { model, crud, method, flags, isNative } = this.query.toObject();
     const { required, debug } = flags;
     const fields = model.getSelectFields();
     const fieldNameToKeyMap = fields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: field.getKey() }), {});
@@ -69,20 +71,23 @@ module.exports = class QueryResolver {
     clone.select($select);
 
     // Where clause
-    const where = await model.resolveBoundValues(unravelObject(this.query.match()));
-    let $where = await QueryService.resolveQueryWhereClause(this.query.match(where));
-    $where = model.normalize($where);
-    $where = removeUndefinedDeep($where);
-    clone.match($where);
+    if (!isNative) {
+      const where = await model.resolveBoundValues(unravelObject(this.query.match()));
+      let $where = await QueryService.resolveQueryWhereClause(this.query.match(where));
+      $where = model.normalize($where);
+      $where = removeUndefinedDeep($where);
+      clone.match($where);
+    }
 
     // Input data
-    let $input = {};
     if (crud === 'create' || crud === 'update') {
-      $input = unravelObject(this.query.input());
+      let $input = unravelObject(this.query.input());
       if (crud === 'create') $input = await model.appendDefaultValues($input);
       $input = await model[`append${ucFirst(crud)}Fields`]($input);
       $input = model.normalize($input);
+      // $input = model.serialize($input);
       // $input = removeUndefinedDeep($input);
+      await model.validateData($input, {}, crud);
       clone.input($input);
     }
 

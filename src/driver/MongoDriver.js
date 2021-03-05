@@ -23,7 +23,8 @@ module.exports = class MongoDriver {
   }
 
   resolve(query) {
-    query.where = MongoDriver.normalizeWhere(query.where);
+    const { isNative } = query;
+    if (!isNative) query.where = MongoDriver.normalizeWhere(query.where);
     return this[query.method](query);
   }
 

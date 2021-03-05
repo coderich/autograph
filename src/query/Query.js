@@ -165,6 +165,7 @@ module.exports = class Query {
       // schema: fields.reduce((prev, field) => Object.assign(prev, { [field.getKey()]: field.getType() }), {}),
       select: this.select(),
       where: this.match(),
+      isNative: Boolean(this.native()),
       input: this.input(),
       flags: this.flags(),
       $doc: this.$doc(),
