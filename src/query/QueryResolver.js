@@ -84,9 +84,17 @@ module.exports = class QueryResolver {
     });
   }
 
+  first(query) {
+    return this.find(query.method('find'));
+  }
+
+  last(query) {
+    return this.find(query.method('find'));
+  }
+
   async resolve() {
     const clone = this.query.clone();
-    const { model, crud, method, select, match, input, sortBy, flags, isNative } = this.query.toObject();
+    const { model, crud, method, select, match, input, sort, flags, isNative } = this.query.toObject();
     const { required, debug } = flags;
     const fields = model.getSelectFields();
     const fieldNameToKeyMap = fields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: field.getKey() }), {});
@@ -116,8 +124,8 @@ module.exports = class QueryResolver {
       clone.input($input);
     }
 
-    if (sortBy) {
-      clone.sortBy(Object.entries(sortBy).reduce((prev, [key, value]) => {
+    if (sort) {
+      clone.sort(Object.entries(sort).reduce((prev, [key, value]) => {
         return Object.assign(prev, { [key]: value === 'asc' ? 1 : -1 });
       }, {}));
     }

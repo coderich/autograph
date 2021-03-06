@@ -17,8 +17,8 @@ module.exports = class QueryBuilder {
     this.where = (...args) => { this.query.where(...args); return this; };
     this.native = (...args) => { this.query.native(...args); return this; };
     this.select = (...args) => { this.query.select(...args); return this; };
-    this.sortBy = (...args) => { this.query.sortBy(...args); return this; };
-    this.limit = (...args) => { this.query.limit(...args); return this; };
+    this.sort = (...args) => { this.query.sort(...args); return this; };
+    this.sortBy = (...args) => { this.query.sort(...args); return this; };
     this.skip = (...args) => { this.query.skip(...args); return this; };
     this.before = (...args) => { this.query.before(...args); return this; };
     this.after = (...args) => { this.query.after(...args); return this; };
@@ -51,6 +51,12 @@ module.exports = class QueryBuilder {
         method = cmd === 'one' ? 'get' : 'find';
         break;
       }
+      case 'first': case 'last': {
+        crud = 'read';
+        flags = args[0] || {};
+        method = cmd;
+        break;
+      }
       case 'save': {
         input = args[0] || {};
         flags = args[1] || {};
@@ -67,12 +73,6 @@ module.exports = class QueryBuilder {
         crud = 'delete';
         flags = args[0] || {};
         method = 'delete';
-        break;
-      }
-      case 'first': case 'last': {
-        crud = 'read';
-        flags = args[0] || {};
-        method = cmd;
         break;
       }
       case 'count': {

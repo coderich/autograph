@@ -8,7 +8,7 @@ module.exports = class Query {
 
   id(id) {
     if (id == null) return this.props.id;
-    if (this.where() || this.native() || this.sortBy() || this.limit() || this.skip() || this.before() || this.after() || this.first() || this.last()) throw new Error('Cannot mix id() with where(), native(), sortBy(), limit(), skip(), before(), after(), first(), or last()');
+    if (this.where() || this.native() || this.sort() || this.skip() || this.before() || this.after() || this.first() || this.last()) throw new Error('Cannot mix id() with where(), native(), sort(), skip(), before(), after(), first(), or last()');
     this.props.id = id;
     return this.match({ id });
   }
@@ -39,17 +39,10 @@ module.exports = class Query {
     return this;
   }
 
-  sortBy(sortBy) {
-    if (sortBy == null) return this.props.sortBy;
-    if (this.id()) throw new Error('Cannot mix sortBy() with id()');
-    this.props.sortBy = sortBy;
-    return this;
-  }
-
-  limit(limit) {
-    if (limit == null) return this.props.limit;
-    if (this.id()) throw new Error('Cannot mix limit() with id()');
-    this.props.limit = limit;
+  sort(sort) {
+    if (sort == null) return this.props.sort;
+    if (this.id()) throw new Error('Cannot mix sort() with id()');
+    this.props.sort = sort;
     return this;
   }
 
@@ -160,14 +153,15 @@ module.exports = class Query {
 
   toDriver() {
     return {
+      isNative: Boolean(this.native()),
       model: this.model().getKey(),
-      method: this.method(),
       schema: this.model().getSelectFields().reduce((prev, field) => Object.assign(prev, { [field.getKey()]: field.getDataType() }), {}),
+      method: this.method(),
       select: this.select(),
       where: this.match(),
-      sortBy: this.sortBy(),
-      limit: this.limit(),
-      isNative: Boolean(this.native()),
+      sort: this.sort(),
+      first: this.first(),
+      last: this.last(),
       input: this.input(),
       flags: this.flags(),
       $doc: this.$doc(),
@@ -184,8 +178,9 @@ module.exports = class Query {
       model: `${this.model()}`,
       method: this.method(),
       where: this.match(),
-      sortBy: this.sortBy(),
-      limit: this.limit(),
+      sort: this.sort(),
+      first: this.first(),
+      last: this.last(),
     };
   }
 };

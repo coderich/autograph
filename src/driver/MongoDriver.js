@@ -29,12 +29,12 @@ module.exports = class MongoDriver {
   }
 
   get(query) {
-    return this.find(Object.assign(query, { limit: 1 })).then(docs => docs[0]);
+    return this.find(Object.assign(query, { first: 1 })).then(docs => docs[0]);
   }
 
   find(query) {
-    const { model, flags } = query;
-    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), flags).then(cursor => cursor.toArray());
+    const { model, last = 0, flags } = query;
+    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), flags).then(cursor => cursor.toArray()).then(docs => docs.splice(-last));
   }
 
   count({ model, where, flags }) {
@@ -106,7 +106,7 @@ module.exports = class MongoDriver {
 
   static aggregateQuery(query) {
     const $aggregate = [];
-    const { where, sortBy, limit, schema } = query;
+    const { schema, where, sort, first } = query;
 
     // Used for $regex matching
     const $addFields = Object.entries(schema).reduce((prev, [key, type]) => {
@@ -120,8 +120,8 @@ module.exports = class MongoDriver {
 
     if (Object.keys($addFields).length) $aggregate.push({ $addFields });
     $aggregate.push({ $match: where });
-    if (sortBy) $aggregate.push({ $sort: sortBy });
-    if (limit) $aggregate.push({ $limit: limit });
+    if (sort && Object.keys(sort).length) $aggregate.push({ $sort: sort });
+    if (first) $aggregate.push({ $limit: first });
     return $aggregate;
   }
 };
