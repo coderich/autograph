@@ -1,5 +1,4 @@
-const { isEmpty } = require('lodash');
-const { map, mapPromise, keyPaths, ensureArray } = require('../service/app.service');
+const { toGUID, map } = require('../service/app.service');
 const { makeDataResolver } = require('../service/data.service');
 
 module.exports = class ResultSet {
@@ -14,29 +13,33 @@ module.exports = class ResultSet {
     //   return query.model().deserialize(doc);
     // });
 
-    const results = map(model.deserialize(data), (obj) => {
-      return makeDataResolver(obj, model, resolver);
+    const results = map(model.deserialize(data), (doc, i) => {
+      const cursor = toGUID(i, doc.$id);
+      const dataResolver = makeDataResolver(doc, model, resolver);
+      return Object.defineProperty(dataResolver, '$$cursor', { writable: true, value: cursor });
     });
 
-    // const paths = [...new Set([...keyPaths(query.getSortFields())])]; // Only need sortFields for hydrating (get rid of this)
-    const paths = [];
+    return results;
 
-    return Promise.all(ensureArray(results).map((doc) => {
-      return Promise.all(paths.map((path) => {
-        return path.split('.').reduce((promise, prop) => {
-          return promise.then((subdoc) => {
-            if (subdoc == null) return Promise.resolve(subdoc);
-            if (Array.isArray(subdoc)) return Promise.all(subdoc.map(sd => Promise.resolve(sd[prop])));
-            return Promise.resolve(subdoc[prop]);
-          });
-        }, Promise.resolve(doc));
-      }));
-    })).then(() => results);
+    // // const paths = [...new Set([...keyPaths(query.getSortFields())])]; // Only need sortFields for hydrating (get rid of this)
+    // const paths = [];
 
-    // return mapPromise(data, (doc) => {
-    //   return Promise.resolve(model.deserialize(doc)).then((obj) => {
-    //     return makeDataResolver(obj, model, resolver);
-    //   });
-    // });
+    // return Promise.all(ensureArray(results).map((doc) => {
+    //   return Promise.all(paths.map((path) => {
+    //     return path.split('.').reduce((promise, prop) => {
+    //       return promise.then((subdoc) => {
+    //         if (subdoc == null) return Promise.resolve(subdoc);
+    //         if (Array.isArray(subdoc)) return Promise.all(subdoc.map(sd => Promise.resolve(sd[prop])));
+    //         return Promise.resolve(subdoc[prop]);
+    //       });
+    //     }, Promise.resolve(doc));
+    //   }));
+    // })).then(() => results);
+
+    // // return mapPromise(data, (doc) => {
+    // //   return Promise.resolve(model.deserialize(doc)).then((obj) => {
+    // //     return makeDataResolver(obj, model, resolver);
+    // //   });
+    // // });
   }
 };
