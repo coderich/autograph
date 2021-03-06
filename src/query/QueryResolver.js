@@ -60,6 +60,30 @@ module.exports = class QueryResolver {
     });
   }
 
+  push(query) {
+    const [key, ...values] = query.args();
+    return this.splice(query.args([key, null, values]));
+  }
+
+  pull(query) {
+    const [key, ...values] = query.args();
+    return this.splice(query.args([key, values]));
+  }
+
+  splice(query) {
+    const { model, flags, args } = query.toObject();
+    const [key, from, to] = args;
+    const clone = query.clone().method('get').flags(Object.assign({}, flags, { required: true }));
+
+    return this.resolver.resolve(clone).then(async (doc) => {
+      if (doc == null) throw Boom.notFound(`${model} Not Found`);
+      const data = await QueryService.spliceEmbeddedArray(query, doc, key, from, to);
+      await model.validateData(data, doc, 'update');
+      const $doc = mergeDeep(doc, removeUndefinedDeep(data));
+      return this.resolver.resolve(query.method('update').doc(doc).$doc($doc)).then(() => $doc);
+    });
+  }
+
   async resolve() {
     const clone = this.query.clone();
     const { model, crud, method, flags, isNative } = this.query.toObject();
