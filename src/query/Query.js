@@ -162,9 +162,11 @@ module.exports = class Query {
     return {
       model: this.model().getKey(),
       method: this.method(),
-      // schema: fields.reduce((prev, field) => Object.assign(prev, { [field.getKey()]: field.getType() }), {}),
+      schema: this.model().getSelectFields().reduce((prev, field) => Object.assign(prev, { [field.getKey()]: field.getDataType() }), {}),
       select: this.select(),
       where: this.match(),
+      sortBy: this.sortBy(),
+      limit: this.limit(),
       isNative: Boolean(this.native()),
       input: this.input(),
       flags: this.flags(),
@@ -182,8 +184,8 @@ module.exports = class Query {
       model: `${this.model()}`,
       method: this.method(),
       where: this.match(),
-      limit: this.limit(),
       sortBy: this.sortBy(),
+      limit: this.limit(),
     };
   }
 };

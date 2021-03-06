@@ -86,19 +86,19 @@ module.exports = class QueryResolver {
 
   async resolve() {
     const clone = this.query.clone();
-    const { model, crud, method, flags, isNative } = this.query.toObject();
+    const { model, crud, method, select, match, input, sortBy, flags, isNative } = this.query.toObject();
     const { required, debug } = flags;
     const fields = model.getSelectFields();
     const fieldNameToKeyMap = fields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: field.getKey() }), {});
     // const normalize = data => Object.entries(data).reduce((prev, [name, value]) => Object.assign(prev, { [fieldNameToKeyMap[name]]: value }), {});
 
     // Select fields
-    const $select = unravelObject(this.query.select() ? Object.keys(this.query.select()).map(n => fieldNameToKeyMap[n]) : fields.map(f => f.getKey()));
+    const $select = unravelObject(select ? Object.keys(select).map(n => fieldNameToKeyMap[n]) : fields.map(f => f.getKey()));
     clone.select($select);
 
     // Where clause
     if (!isNative) {
-      const where = await model.resolveBoundValues(unravelObject(this.query.match()));
+      const where = await model.resolveBoundValues(unravelObject(match));
       let $where = await QueryService.resolveQueryWhereClause(this.query.match(where));
       $where = model.normalize($where);
       $where = removeUndefinedDeep($where);
@@ -107,13 +107,19 @@ module.exports = class QueryResolver {
 
     // Input data
     if (crud === 'create' || crud === 'update') {
-      let $input = unravelObject(this.query.input());
+      let $input = unravelObject(input);
       if (crud === 'create') $input = await model.appendDefaultValues($input);
       $input = await model[`append${ucFirst(crud)}Fields`]($input);
       $input = model.normalize($input);
       $input = model.serialize($input); // This seems to be needed to accept Objects and convert them to ids; however this also makes .save(<empty>) throw an error and I think you should be able to save empty
       // $input = removeUndefinedDeep($input);
       clone.input($input);
+    }
+
+    if (sortBy) {
+      clone.sortBy(Object.entries(sortBy).reduce((prev, [key, value]) => {
+        return Object.assign(prev, { [key]: value === 'asc' ? 1 : -1 });
+      }, {}));
     }
 
     return this[method](clone).then((data) => {

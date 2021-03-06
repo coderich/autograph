@@ -1,6 +1,6 @@
 const { has } = require('lodash');
 const { MongoClient, ObjectID } = require('mongodb');
-const { proxyDeep, toKeyObj, globToRegex, proxyPromise } = require('../service/app.service');
+const { proxyDeep, toKeyObj, globToRegex, proxyPromise, isScalarDataType } = require('../service/app.service');
 
 module.exports = class MongoDriver {
   constructor(config, schema) {
@@ -28,12 +28,13 @@ module.exports = class MongoDriver {
     return this[query.method](query);
   }
 
-  get({ model, where, flags }) {
-    return this.query(model, 'findOne', where, flags);
+  get(query) {
+    return this.find(Object.assign(query, { limit: 1 })).then(docs => docs[0]);
   }
 
-  find({ model, where, flags }) {
-    return this.query(model, 'find', where, flags).then(cursor => cursor.toArray());
+  find(query) {
+    const { model, flags } = query;
+    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), flags).then(cursor => cursor.toArray());
   }
 
   count({ model, where, flags }) {
@@ -101,5 +102,26 @@ module.exports = class MongoDriver {
         return value;
       },
     }).toObject();
+  }
+
+  static aggregateQuery(query) {
+    const $aggregate = [];
+    const { where, sortBy, limit, schema } = query;
+
+    // Used for $regex matching
+    const $addFields = Object.entries(schema).reduce((prev, [key, type]) => {
+      const value = where[key];
+      if (value === undefined) return prev;
+      if (!isScalarDataType(type)) return false;
+      const stype = String((type === 'Float' || type === 'Int' ? 'Number' : type)).toLowerCase();
+      if (String(typeof value) === `${stype}`) return prev;
+      return Object.assign(prev, { [key]: { $toString: `$${key}` } });
+    }, {});
+
+    if (Object.keys($addFields).length) $aggregate.push({ $addFields });
+    $aggregate.push({ $match: where });
+    if (sortBy) $aggregate.push({ $sort: sortBy });
+    if (limit) $aggregate.push({ $limit: limit });
+    return $aggregate;
   }
 };
