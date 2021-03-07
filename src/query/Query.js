@@ -48,7 +48,7 @@ module.exports = class Query {
 
   skip(skip) {
     if (skip == null) return this.props.skip;
-    if (this.id()) throw new Error('Cannot mix skip() with id()');
+    if (this.id() || this.last()) throw new Error('Cannot mix skip() with id() or last()');
     this.props.skip = skip;
     return this;
   }
@@ -76,7 +76,7 @@ module.exports = class Query {
 
   last(last) {
     if (last == null) return this.props.last;
-    if (this.id() || this.first()) throw new Error('Cannot mix last() with id() or first()');
+    if (this.id() || this.skip() || this.first()) throw new Error('Cannot mix last() with id(), skip(), or first()');
     this.props.last = last;
     return this;
   }
@@ -162,6 +162,8 @@ module.exports = class Query {
       sort: this.sort(),
       first: this.first(),
       last: this.last(),
+      after: this.after(),
+      before: this.before(),
       input: this.input(),
       flags: this.flags(),
       $doc: this.$doc(),
@@ -181,6 +183,8 @@ module.exports = class Query {
       sort: this.sort(),
       first: this.first(),
       last: this.last(),
+      after: this.after(),
+      before: this.before(),
     };
   }
 };

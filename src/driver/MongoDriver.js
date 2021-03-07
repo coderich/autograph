@@ -33,8 +33,8 @@ module.exports = class MongoDriver {
   }
 
   find(query) {
-    const { model, last = 0, flags } = query;
-    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), flags).then(cursor => cursor.toArray()).then(docs => docs.splice(-last));
+    const { model, flags } = query;
+    return this.query(model, 'aggregate', MongoDriver.facetQuery(query), flags).then(cursor => cursor.next()).then(facet => facet.docs);
   }
 
   count({ model, where, flags }) {
@@ -104,12 +104,10 @@ module.exports = class MongoDriver {
     }).toObject();
   }
 
-  static aggregateQuery(query) {
-    const $aggregate = [];
-    const { schema, where, sort, first } = query;
+  static getAddFields(query) {
+    const { schema, where } = query;
 
-    // Used for $regex matching
-    const $addFields = Object.entries(schema).reduce((prev, [key, type]) => {
+    return Object.entries(schema).reduce((prev, [key, type]) => {
       const value = where[key];
       if (value === undefined) return prev;
       if (!isScalarDataType(type)) return false;
@@ -117,11 +115,54 @@ module.exports = class MongoDriver {
       if (String(typeof value) === `${stype}`) return prev;
       return Object.assign(prev, { [key]: { $toString: `$${key}` } });
     }, {});
+  }
 
-    if (Object.keys($addFields).length) $aggregate.push({ $addFields });
-    $aggregate.push({ $match: where });
-    if (sort && Object.keys(sort).length) $aggregate.push({ $sort: sort });
-    if (first) $aggregate.push({ $limit: first });
+  // static aggregateQuery(query) {
+  //   const $aggregate = [];
+  //   const { where, sort, first } = query;
+
+  //   // Used for $regex matching
+  //   const $addFields = MongoDriver.getAddFields(query);
+  //   if (Object.keys($addFields).length) $aggregate.push({ $addFields });
+
+  //   // Match documents on the where clause
+  //   $aggregate.push({ $match: where });
+
+  //   // Sort documents
+  //   if (sort && Object.keys(sort).length) $aggregate.push({ $sort: sort });
+
+  //   // Limit the number of records
+  //   if (first) $aggregate.push({ $limit: first });
+
+  //   return $aggregate;
+  // }
+
+  static facetQuery(query) {
+    const { where: $match, sort, first, last } = query;
+    const $facet = { docs: [{ $match }] };
+    const $aggregate = [{ $facet }];
+
+    // Used for $regex matching
+    const $addFields = MongoDriver.getAddFields(query);
+    if (Object.keys($addFields).length) $facet.docs.unshift({ $addFields });
+
+    // Sort documents
+    if (sort && Object.keys(sort).length) $facet.docs.push({ $sort: sort });
+
+    // Limit the number of records
+    if (first) $facet.docs.push({ $limit: first });
+
+    // Grab the last n records
+    if (last) {
+      $aggregate.push({
+        $project: {
+          docs: {
+            $slice: ['$docs', -last],
+          },
+        },
+      });
+    }
+
     return $aggregate;
   }
 };

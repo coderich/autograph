@@ -14,9 +14,9 @@ module.exports = class ResultSet {
     // });
 
     const results = map(model.deserialize(data), (doc, i) => {
-      const cursor = toGUID(i, doc.$id);
+      // const cursor = toGUID(i, doc.$id);
       const dataResolver = makeDataResolver(doc, model, resolver);
-      return Object.defineProperty(dataResolver, '$$cursor', { writable: true, value: cursor });
+      return Object.defineProperty(dataResolver, '$$cursor', { writable: true, value: doc._id });
     });
 
     return results;
