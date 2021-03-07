@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const { keyPaths, keyPathLeafs, unravelObject, isPlainObject, isScalarValue, mergeDeep, proxyDeep, getDeep, uniq, hashObject, removeUndefinedDeep } = require('../../src/service/app.service');
+const { toKeyObj, keyPaths, keyPathLeafs, unravelObject, isPlainObject, isScalarValue, mergeDeep, proxyDeep, getDeep, uniq, hashObject, removeUndefinedDeep } = require('../../src/service/app.service');
 
 const obj1 = { name: 'name1', friends: ['a', 'b', 'c'] };
 const obj2 = { name: 'name2', friends: ['d', 'e', 'f'] };
@@ -78,7 +78,7 @@ describe('AppService', () => {
     expect(uniq(['a', 'b', 'c', 'a', 'd', 'b'])).toEqual(['a', 'b', 'c', 'd']);
   });
 
-  test('keyPaths', () => {
+  test('keyPathObj, keyPaths', () => {
     expect(keyPaths({ a: 'a' })).toEqual(['a']);
     expect(keyPaths({ a: { c: 'c' }, b: 'b' })).toEqual(['a.c', 'b']);
     expect(keyPaths({ a: { 'c.d': 'e', c: 'c' }, b: 'b' })).toEqual(['a.c.d', 'a.c', 'b']);
@@ -123,5 +123,9 @@ describe('AppService', () => {
     expect(removeUndefinedDeep({ a: 1 })).toEqual({ a: 1 });
     expect(removeUndefinedDeep({ a: undefined })).toEqual({});
     expect(removeUndefinedDeep({ a: { b: 'b', c: false, d: undefined } })).toEqual({ a: { b: 'b', c: false } });
+  });
+
+  test('toKeyObj', () => {
+    expect({ a: undefined }).toEqual({ a: undefined });
   });
 });

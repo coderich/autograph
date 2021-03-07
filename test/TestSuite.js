@@ -586,14 +586,14 @@ module.exports = (driver = 'mongo', options = {}) => {
         const [healthCursor, mobyCursor] = [health.$$cursor, moby.$$cursor];
         expect(healthCursor).toBeDefined();
         expect(mobyCursor).toBeDefined();
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(healthCursor).first(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(healthCursor).last(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(healthCursor).first(1)).toMatchObject([]);
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(healthCursor).last(1)).toMatchObject([]);
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(mobyCursor).first(1)).toMatchObject([]);
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(mobyCursor).last(1)).toMatchObject([]);
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(mobyCursor).first(1)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }]);
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(mobyCursor).last(1)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(healthCursor).first(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(healthCursor).last(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(healthCursor).first(1)).toMatchObject([]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(healthCursor).last(1)).toMatchObject([]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(mobyCursor).first(1)).toMatchObject([]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(mobyCursor).last(1)).toMatchObject([]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(mobyCursor).first(1)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(mobyCursor).last(1)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }]);
       });
     });
 
@@ -764,27 +764,27 @@ module.exports = (driver = 'mongo', options = {}) => {
     // });
 
 
-    // describe('$hydrated results', () => {
-    //   test('manual', async () => {
-    //     const person = await resolver.match('Person').id(christie.id).one();
-    //     expect(person.$authored.name).not.toBeDefined();
+    describe('$hydrated results', () => {
+      test('manual', async () => {
+        const person = await resolver.match('Person').id(christie.id).one();
+        expect(person.$authored.name).not.toBeDefined();
 
-    //     // Hydrate book
-    //     const [$book] = await person.$authored;
-    //     expect($book.name).toBe('Health And Wellness');
+        // Hydrate book
+        const [$book] = await person.$authored;
+        expect($book.name).toBe('Health And Wellness');
 
-    //     // Sanity check that you're able to await repeatedly
-    //     const [$book2] = await person.$authored;
-    //     expect($book2.name).toBe('Health And Wellness');
-    //   });
-    // });
+        // Sanity check that you're able to await repeatedly
+        const [$book2] = await person.$authored;
+        expect($book2.name).toBe('Health And Wellness');
+      });
+    });
 
 
     // describe('Native Queries', () => {
     //   test('get', async () => {
     //     switch (driver) {
     //       case 'mongo': {
-    //         expect(await resolver.match('Person').native({ name: 'Richard' }).one({ debug: true })).not.toBeDefined();
+    //         expect(await resolver.match('Person').native({ name: 'Richard' }).one()).not.toBeDefined();
     //         expect(await resolver.match('Person').native({ name: 'christie' }).one()).not.toBeDefined(); // case sensitive
     //         expect(await resolver.match('Person').native({ name: 'Christie' }).one()).toMatchObject({ id: christie.id, name: 'Christie', emailAddress: 'christie@gmail.com' });
     //         expect(await resolver.match('Person').native({ name: 'Richard' }).count()).toBe(0);

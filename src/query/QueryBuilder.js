@@ -20,8 +20,8 @@ module.exports = class QueryBuilder {
     this.sort = (...args) => { this.query.sort(...args); return this; };
     this.sortBy = (...args) => { this.query.sort(...args); return this; };
     this.skip = (...args) => { this.query.skip(...args); return this; };
-    this.before = (...args) => { this.query.before(...args); return this; };
-    this.after = (...args) => { this.query.after(...args); return this; };
+    this.before = (cursor) => { this.query.before(JSON.parse(Buffer.from(cursor, 'base64').toString('ascii'))); return this; };
+    this.after = (cursor) => { this.query.after(JSON.parse(Buffer.from(cursor, 'base64').toString('ascii'))); return this; };
     this.meta = (...args) => { this.query.meta(...args); return this; };
     this.merge = (...args) => { this.query.merge(...args); return this; };
 
@@ -53,7 +53,7 @@ module.exports = class QueryBuilder {
       }
       case 'first': case 'last': {
         crud = 'read';
-        flags = args[0] || {};
+        flags = args[1] || {};
         method = cmd;
         break;
       }

@@ -8,7 +8,7 @@ module.exports = class Query {
 
   id(id) {
     if (id == null) return this.props.id;
-    if (this.where() || this.native() || this.sort() || this.skip() || this.before() || this.after() || this.first() || this.last()) throw new Error('Cannot mix id() with where(), native(), sort(), skip(), before(), after(), first(), or last()');
+    if (this.where() || this.native() || this.sort() || this.skip() || this.limit() || this.before() || this.after() || this.first() || this.last()) throw new Error('Cannot mix id() with where(), native(), sort(), skip(), limit(), before(), after(), first(), or last()');
     this.props.id = id;
     return this.match({ id });
   }
@@ -48,8 +48,15 @@ module.exports = class Query {
 
   skip(skip) {
     if (skip == null) return this.props.skip;
-    if (this.id() || this.last()) throw new Error('Cannot mix skip() with id() or last()');
+    if (this.id()) throw new Error('Cannot mix skip() with id()');
     this.props.skip = skip;
+    return this;
+  }
+
+  limit(limit) {
+    if (limit == null) return this.props.limit;
+    if (this.id()) throw new Error('Cannot mix limit() with id()');
+    this.props.limit = limit;
     return this;
   }
 
@@ -76,7 +83,7 @@ module.exports = class Query {
 
   last(last) {
     if (last == null) return this.props.last;
-    if (this.id() || this.skip() || this.first()) throw new Error('Cannot mix last() with id(), skip(), or first()');
+    if (this.id() || this.first()) throw new Error('Cannot mix last() with id() or first()');
     this.props.last = last;
     return this;
   }
@@ -160,10 +167,12 @@ module.exports = class Query {
       select: this.select(),
       where: this.match(),
       sort: this.sort(),
+      skip: this.skip(),
+      limit: this.limit(),
+      before: this.before(),
+      after: this.after(),
       first: this.first(),
       last: this.last(),
-      after: this.after(),
-      before: this.before(),
       input: this.input(),
       flags: this.flags(),
       $doc: this.$doc(),

@@ -117,28 +117,8 @@ module.exports = class MongoDriver {
     }, {});
   }
 
-  // static aggregateQuery(query) {
-  //   const $aggregate = [];
-  //   const { where, sort, first } = query;
-
-  //   // Used for $regex matching
-  //   const $addFields = MongoDriver.getAddFields(query);
-  //   if (Object.keys($addFields).length) $aggregate.push({ $addFields });
-
-  //   // Match documents on the where clause
-  //   $aggregate.push({ $match: where });
-
-  //   // Sort documents
-  //   if (sort && Object.keys(sort).length) $aggregate.push({ $sort: sort });
-
-  //   // Limit the number of records
-  //   if (first) $aggregate.push({ $limit: first });
-
-  //   return $aggregate;
-  // }
-
   static facetQuery(query) {
-    const { where: $match, sort, first, last } = query;
+    const { where: $match, sort, skip, limit } = query;
     const $facet = { docs: [{ $match }] };
     const $aggregate = [{ $facet }];
 
@@ -146,22 +126,47 @@ module.exports = class MongoDriver {
     const $addFields = MongoDriver.getAddFields(query);
     if (Object.keys($addFields).length) $facet.docs.unshift({ $addFields });
 
-    // Sort documents
-    if (sort && Object.keys(sort).length) $facet.docs.push({ $sort: sort });
+    // Sort, Skip, Limit documents
+    if (sort && Object.keys(sort).length) $facet.docs.push({ $sort: Object.assign(sort, { _id: -1 }) });
+    if (skip) $facet.docs.push({ $skip: skip });
+    if (limit) $facet.docs.push({ $limit: limit });
 
-    // Limit the number of records
-    if (first) $facet.docs.push({ $limit: first });
+    const { after, before, first, last } = query;
 
-    // Grab the last n records
-    if (last) {
+    if (after) {
       $aggregate.push({
         $project: {
           docs: {
-            $slice: ['$docs', -last],
+            $filter: {
+              input: '$docs',
+              as: 'doc',
+              cond: {
+                $or: Object.entries(after).reduce((prev, [key, value]) => prev.concat({ $gt: [`$$doc.${key}`, value] }), []),
+              },
+            },
           },
         },
       });
     }
+
+    if (before) {
+      $aggregate.push({
+        $project: {
+          docs: {
+            $filter: {
+              input: '$docs',
+              as: 'doc',
+              cond: {
+                $or: Object.entries(before).reduce((prev, [key, value]) => prev.concat({ $lt: [`$$doc.${key}`, value] }), []),
+              },
+            },
+          },
+        },
+      });
+    }
+
+    if (first) $aggregate.push({ $project: { docs: { $slice: ['$docs', 0, first] } } });
+    if (last) $aggregate.push({ $project: { docs: { $slice: ['$docs', -last] } } });
 
     return $aggregate;
   }

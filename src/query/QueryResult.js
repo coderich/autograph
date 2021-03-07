@@ -1,5 +1,9 @@
-const { toGUID, map } = require('../service/app.service');
+const { get } = require('lodash');
+const { map, keyPaths } = require('../service/app.service');
 const { makeDataResolver } = require('../service/data.service');
+
+// exports.toGUID = (model, id) => Buffer.from(`${model},${`${id}`}`).toString('base64');
+// exports.fromGUID = guid => Buffer.from(`${guid}`, 'base64').toString('ascii').split(',');
 
 module.exports = class ResultSet {
   constructor(query, data) {
@@ -15,8 +19,12 @@ module.exports = class ResultSet {
 
     const results = map(model.deserialize(data), (doc, i) => {
       // const cursor = toGUID(i, doc.$id);
+      const sortPaths = keyPaths(query.sort());
+      const sortValues = sortPaths.reduce((prev, path) => Object.assign(prev, { [path]: get(doc, path) }), {});
+      const sortJSON = JSON.stringify(sortValues);
+      const cursor = Buffer.from(sortJSON).toString('base64');
       const dataResolver = makeDataResolver(doc, model, resolver);
-      return Object.defineProperty(dataResolver, '$$cursor', { writable: true, value: doc._id });
+      return Object.defineProperty(dataResolver, '$$cursor', { writable: true, value: cursor });
     });
 
     return results;
