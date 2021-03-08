@@ -22,6 +22,7 @@ module.exports = class QueryBuilder {
     this.before = (cursor) => { this.query.before(JSON.parse(Buffer.from(cursor, 'base64').toString('ascii'))); return this; };
     this.after = (cursor) => { this.query.after(JSON.parse(Buffer.from(cursor, 'base64').toString('ascii'))); return this; };
     this.meta = (...args) => { this.query.meta(...args); return this; };
+    this.flags = (...args) => { this.query.flags(...args); return this; };
     this.merge = (...args) => { this.query.merge(...args); return this; };
 
     // Terminal commands
@@ -37,12 +38,11 @@ module.exports = class QueryBuilder {
     this.splice = (...args) => this.resolve('splice', args);
     this.first = (...args) => { this.query.first(...args); return this.resolve('first', args); };
     this.last = (...args) => { this.query.last(...args); return this.resolve('last', args); };
-    //
-    // this.exec = (query) => { this.query = query; return this.resolve(query.cmd(), query.args()); };
   }
 
   resolve(cmd, args) {
-    let method, crud, input = {}, flags = {};
+    let method, crud, input = {};
+    let { flags = {} } = this.query.toObject();
     const { id, where } = this.query.toObject();
 
     switch (cmd) {
@@ -59,10 +59,9 @@ module.exports = class QueryBuilder {
         break;
       }
       case 'save': {
-        input = args[0] || {};
-        flags = args[1] || {};
         crud = id || where ? 'update' : 'create';
-        method = crud;
+        if (crud === 'update') { method = id ? 'updateOne' : 'updateMany'; [input] = args; }
+        if (crud === 'create') { method = args.length < 2 ? 'createOne' : 'createMany'; input = args.length < 2 ? args[0] || {} : args; }
         break;
       }
       case 'push': case 'pull': case 'splice': {

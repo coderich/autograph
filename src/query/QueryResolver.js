@@ -2,7 +2,7 @@ const { isEmpty } = require('lodash');
 const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
 const QueryResult = require('./QueryResult');
-const { ucFirst, unravelObject, mergeDeep, removeUndefinedDeep } = require('../service/app.service');
+const { mapPromise, ucFirst, unravelObject, mergeDeep, removeUndefinedDeep } = require('../service/app.service');
 
 module.exports = class QueryResolver {
   constructor(query) {
@@ -32,20 +32,26 @@ module.exports = class QueryResolver {
     return this.resolver.resolve(query);
   }
 
-  async create(query) {
+  async createOne(query) {
     const { model, input } = query.toObject();
     await model.validateData({ ...input }, {}, 'create');
     return this.resolver.resolve(query).then(id => Object.assign(input, { id }));
   }
 
-  update(query) {
-    const { model, id, input, flags } = query.toObject();
-    if (!id) return this.updateMany(query);
+  createMany(query) {
+    const { model, input, transaction } = query.toObject();
+    const txn = this.resolver.transaction(transaction);
+    input.forEach(doc => txn.match(model).save(doc));
+    return txn.run();
+  }
+
+  updateOne(query) {
+    const { model, input, flags } = query.toObject();
     const clone = query.clone().method('get').flags(Object.assign({}, flags, { required: true }));
 
     return this.resolver.resolve(clone).then(async (doc) => {
       if (doc == null) throw Boom.notFound(`${model} Not Found`);
-      await model.validateData(input, doc, 'update');
+      await model.validateData(input, model.deserialize(doc), 'update');
       const $doc = model.serialize(mergeDeep(doc, removeUndefinedDeep(input)));
       return this.resolver.resolve(query.doc(doc).$doc($doc)).then(() => $doc);
     });
@@ -92,7 +98,7 @@ module.exports = class QueryResolver {
       const data = await QueryService.spliceEmbeddedArray(query, doc, key, from, to);
       await model.validateData(data, doc, 'update');
       const $doc = mergeDeep(doc, removeUndefinedDeep(data));
-      return this.resolver.resolve(query.method('update').doc(doc).$doc($doc)).then(() => $doc);
+      return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc)).then(() => $doc);
     });
   }
 
@@ -110,7 +116,6 @@ module.exports = class QueryResolver {
     const { required, debug } = flags;
     const fields = model.getSelectFields();
     const fieldNameToKeyMap = fields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: field.getKey() }), {});
-    // const normalize = data => Object.entries(data).reduce((prev, [name, value]) => Object.assign(prev, { [fieldNameToKeyMap[name]]: value }), {});
 
     // Select fields
     const $select = unravelObject(select ? Object.keys(select).map(n => fieldNameToKeyMap[n]) : fields.map(f => f.getKey()));
@@ -127,12 +132,18 @@ module.exports = class QueryResolver {
 
     // Input data
     if (crud === 'create' || crud === 'update') {
-      let $input = unravelObject(input);
-      if (crud === 'create') $input = await model.appendDefaultValues($input);
-      $input = await model[`append${ucFirst(crud)}Fields`]($input);
-      $input = model.normalize($input);
-      $input = model.serialize($input); // This seems to be needed to accept Objects and convert them to ids; however this also makes .save(<empty>) throw an error and I think you should be able to save empty
-      $input = removeUndefinedDeep($input);
+      const $input = await mapPromise(input, (obj) => {
+        return new Promise(async (resolve) => {
+          let result = unravelObject(obj);
+          if (crud === 'create') result = await model.appendDefaultValues(result);
+          result = await model[`append${ucFirst(crud)}Fields`](result);
+          result = model.normalize(result);
+          result = model.serialize(result); // This seems to be needed to accept Objects and convert them to ids; however this also makes .save(<empty>) throw an error and I think you should be able to save empty
+          result = removeUndefinedDeep(result);
+          resolve(result);
+        });
+      });
+
       clone.input($input);
     }
 
@@ -143,6 +154,7 @@ module.exports = class QueryResolver {
     }
 
     if (debug) console.log(clone.toDriver());
+
     return this[method](clone).then((data) => {
       if (required && (data == null || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
       if (data == null) return null;

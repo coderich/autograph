@@ -133,6 +133,24 @@ module.exports = class Query {
   method(method) {
     if (method == null) return this.props.method;
     this.props.method = method;
+    switch (method) {
+      case 'createOne': case 'createMany': {
+        this.props.crud = 'create';
+        break;
+      }
+      case 'updateOne': case 'updateMany': {
+        this.props.crud = 'update';
+        break;
+      }
+      case 'deleteOne': case 'deleteMay': case 'removeOne': case 'removeMany': {
+        this.props.crud = 'delete';
+        break;
+      }
+      default: {
+        this.props.crud = 'read';
+        break;
+      }
+    }
     return this;
   }
 

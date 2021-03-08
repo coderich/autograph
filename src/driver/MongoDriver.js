@@ -42,11 +42,11 @@ module.exports = class MongoDriver {
     return this.query(model, 'countDocuments', where, flags);
   }
 
-  create({ model, input, flags }) {
+  createOne({ model, input, flags }) {
     return this.query(model, 'insertOne', input, flags).then(result => result.insertedId);
   }
 
-  update({ model, where, $doc, flags }) {
+  updateOne({ model, where, $doc, flags }) {
     const $update = Object.entries($doc).reduce((prev, [key, value]) => {
       Object.assign(prev.$set, { [key]: value });
       return prev;
