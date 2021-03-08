@@ -17,7 +17,7 @@ module.exports = class ResultSet {
     //   return query.model().deserialize(doc);
     // });
 
-    const results = map(model.deserialize(data), (doc, i) => {
+    const results = map(model.deserialize(data), (doc) => {
       // const cursor = toGUID(i, doc.$id);
       const sortPaths = keyPaths(query.sort());
       const sortValues = sortPaths.reduce((prev, path) => Object.assign(prev, { [path]: get(doc, path) }), {});

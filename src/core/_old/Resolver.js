@@ -9,8 +9,6 @@ const Query = require('../query/Query');
 const { hashCacheKey } = require('../service/app.service');
 const Rule = require('./Rule');
 
-let count = 0;
-
 module.exports = class Resolver {
   constructor(schema, context = {}) {
     this.schema = schema;
@@ -123,7 +121,7 @@ module.exports = class Resolver {
     })();
 
     // Create txn
-    const txn = ((data, driverMap, txMap, id) => {
+    const txn = ((data, driverMap, txMap) => {
       return {
         get match() {
           return (modelName) => {
@@ -185,7 +183,7 @@ module.exports = class Resolver {
           return txMap;
         },
       };
-    })([], new Map(), txnMap, count++);
+    })([], new Map(), txnMap);
 
     // Save txn to map
     txnMap.add(parentTxn, txn);

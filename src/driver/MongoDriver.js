@@ -1,12 +1,13 @@
-const { has } = require('lodash');
+const { get, has } = require('lodash');
 const { MongoClient, ObjectID } = require('mongodb');
-const { proxyDeep, toKeyObj, globToRegex, proxyPromise, isScalarDataType } = require('../service/app.service');
+const { proxyDeep, toKeyObj, globToRegex, proxyPromise, isScalarDataType, promiseRetry } = require('../service/app.service');
 
 module.exports = class MongoDriver {
   constructor(config, schema) {
     this.config = config;
     this.schema = schema;
     this.connection = this.connect();
+    this.getDirectives = () => get(config, 'directives', {});
   }
 
   connect() {
@@ -75,6 +76,28 @@ module.exports = class MongoDriver {
         default: return null;
       }
     }));
+  }
+
+  async transaction(ops) {
+    const promise = async () => {
+      // Create session and start transaction
+      const session = await this.connection.then(client => client.startSession({ readPreference: { mode: 'primary' } }));
+      session.startTransaction({ readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' } });
+      const close = () => { session.endSession(); };
+
+      // Execute each operation with session
+      return Promise.all(ops.map(op => op.exec({ session }))).then((results) => {
+        results.$commit = () => session.commitTransaction().then(close);
+        results.$rollback = () => session.abortTransaction().then(close);
+        return results;
+      }).catch((e) => {
+        close();
+        throw e;
+      });
+    };
+
+    // Retry promise conditionally
+    return promiseRetry(promise, 200, 5, e => e.errorLabels && e.errorLabels.indexOf('TransientTransactionError') > -1);
   }
 
   static idKey() {

@@ -626,25 +626,25 @@ module.exports = (driver = 'mongo', options = {}) => {
     // });
 
 
-    // describe('Transactions (auto)', () => {
-    //   test('multi-update', async () => {
-    //     await resolver.match('Person').where({}).save({ status: 'online' });
-    //     expect(await resolver.match('Person').many()).toMatchObject([{ status: 'online' }, { status: 'online' }]);
-    //     await resolver.match('Person').where({ status: 'online' }).save({ status: 'offline' });
-    //     expect(await resolver.match('Person').many()).toMatchObject([{ status: 'offline' }, { status: 'offline' }]);
-    //     await expect(resolver.match('Chapter').save({ name: 'chapter1' }, { name: 'chapter2' })).rejects.toThrow();
-    //   });
+    describe('Transactions (auto)', () => {
+      test('multi-update', async () => {
+        expect(await resolver.match('Person').where({}).save({ status: 'online' })).toMatchObject([{ status: 'online' }, { status: 'online' }]);
+        expect(await resolver.match('Person').many()).toMatchObject([{ status: 'online' }, { status: 'online' }]);
+        await resolver.match('Person').where({ status: 'online' }).save({ status: 'offline' });
+        expect(await resolver.match('Person').many()).toMatchObject([{ status: 'offline' }, { status: 'offline' }]);
+        await expect(resolver.match('Chapter').save({ name: 'chapter1' }, { name: 'chapter2' })).rejects.toThrow();
+      });
 
-    //   test('multi-push-pull', async () => {
-    //     // push
-    //     await resolver.match('Art').save({ name: 'Art1' }, { name: 'Art2' });
-    //     await resolver.match('Art').where({}).push('bids', 69.99, '109.99');
-    //     expect(await resolver.match('Art').many()).toMatchObject([{ bids: [69.99, 109.99] }, { bids: [69.99, 109.99] }]);
-    //     // pull
-    //     await resolver.match('Art').where({}).pull('bids', '69.99');
-    //     expect(await resolver.match('Art').many()).toMatchObject([{ bids: [109.99] }, { bids: [109.99] }]);
-    //   });
-    // });
+      // test('multi-push-pull', async () => {
+      //   // push
+      //   await resolver.match('Art').save({ name: 'Art1' }, { name: 'Art2' });
+      //   await resolver.match('Art').where({}).push('bids', 69.99, '109.99');
+      //   expect(await resolver.match('Art').many()).toMatchObject([{ bids: [69.99, 109.99] }, { bids: [69.99, 109.99] }]);
+      //   // pull
+      //   await resolver.match('Art').where({}).pull('bids', '69.99');
+      //   expect(await resolver.match('Art').many()).toMatchObject([{ bids: [109.99] }, { bids: [109.99] }]);
+      // });
+    });
 
 
     // if (options.transactions !== false) {

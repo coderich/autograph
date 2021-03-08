@@ -118,6 +118,18 @@ module.exports = class Query {
     return this;
   }
 
+  transaction(transaction) {
+    if (transaction == null) return this.props.transaction;
+    this.props.transaction = transaction;
+    return this;
+  }
+
+  cmd(cmd) {
+    if (cmd == null) return this.props.cmd;
+    this.props.cmd = cmd;
+    return this;
+  }
+
   method(method) {
     if (method == null) return this.props.method;
     this.props.method = method;
@@ -181,7 +193,10 @@ module.exports = class Query {
   }
 
   toObject() {
-    return this.props;
+    return {
+      ...this.props,
+      schema: this.model().getSelectFields().reduce((prev, field) => Object.assign(prev, { [field.getKey()]: field.getDataType() }), {}),
+    };
   }
 
   getCacheKey() {
@@ -190,10 +205,12 @@ module.exports = class Query {
       method: this.method(),
       where: this.match(),
       sort: this.sort(),
+      skip: this.skip(),
+      limit: this.limit(),
+      before: this.before(),
+      after: this.after(),
       first: this.first(),
       last: this.last(),
-      after: this.after(),
-      before: this.before(),
     };
   }
 };

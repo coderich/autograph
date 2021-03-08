@@ -8,8 +8,7 @@ const QueryResolver = require('./QueryResolver');
 * plus a list of terminal commands to resolve the query.
 */
 module.exports = class QueryBuilder {
-  constructor(resolver, model, options = {}) {
-    this.options = options;
+  constructor(resolver, model) {
     this.query = new Query({ model, resolver });
 
     // Chainable commands
@@ -38,6 +37,8 @@ module.exports = class QueryBuilder {
     this.splice = (...args) => this.resolve('splice', args);
     this.first = (...args) => { this.query.first(...args); return this.resolve('first', args); };
     this.last = (...args) => { this.query.last(...args); return this.resolve('last', args); };
+    //
+    // this.exec = (query) => { this.query = query; return this.resolve(query.cmd(), query.args()); };
   }
 
   resolve(cmd, args) {
@@ -86,6 +87,6 @@ module.exports = class QueryBuilder {
       }
     }
 
-    return new QueryResolver(this.query.method(method).crud(crud).input(input).flags(flags).args(args)).resolve();
+    return new QueryResolver(this.query.cmd(cmd).method(method).crud(crud).input(input).flags(flags).args(args)).resolve();
   }
 };

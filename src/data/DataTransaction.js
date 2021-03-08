@@ -1,69 +1,14 @@
 const { flatten } = require('lodash');
-const TreeMap = require('../data/TreeMap');
-
-const Rule = require('./Rule');
-const Model = require('../data/Model');
-const DataLoader = require('../data/DataLoader');
-// const DataTransaction = require('../data/DataTransaction');
+const TreeMap = require('./TreeMap');
 const QueryBuilderTransaction = require('../query/QueryBuilderTransaction');
-const QueryBuilder = require('../query/QueryBuilder');
 
-module.exports = class Resolver {
-  constructor(schema, context = {}) {
-    this.schema = schema;
-    this.context = context;
-    this.loader = new DataLoader();
-    this.schema.setContext(context);
+module.exports = class DataTransaction {
+  constructor(resolver, parentTxn) {
+    // this.resolver = resolver;
+    // this.parentTxn = parentTxn;
+    // this.driverMap = new Map();
+    // this.data = [];
 
-    // DataLoader Proxy Methods
-    this.clear = key => this.loader.clear(key);
-    this.clearAll = () => this.loader.clearAll();
-    this.prime = (key, value) => this.loader.prime(key, value);
-
-    //
-    this.getContext = () => this.context;
-
-    //
-    Rule.factory('ensureId', () => (field, v) => {
-      return this.match(field.getType()).id(v).one().then((doc) => {
-        if (doc) return false;
-        return true;
-      });
-    }, {
-      writable: true,
-    });
-  }
-
-  /**
-   * Creates and returns a QueryBuilder for a given model
-   */
-  match(model) {
-    return new QueryBuilder(this, this.toModelEntity(model));
-  }
-
-  /**
-   * Returns a user-defined Map (repository) of custom named queries.
-   */
-  named(model) {
-    return this.toModel(model).getNamedQueries();
-  }
-
-  /**
-   * Returns the raw client driver associated with the model.
-   */
-  raw(model) {
-    return this.toModelEntity(model).raw();
-  }
-
-  // /**
-  //  * Creates and returns a Transaction to run multiple queries
-  //  */
-  // transaction(parentTxn) {
-  //   return new DataTransaction(this, parentTxn);
-  // }
-
-  transaction(parentTxn) {
-    const resolver = this;
     const txnMap = (parentTxn || {}).txnMap || (() => {
       let resolve, reject;
       const map = new TreeMap();
@@ -107,7 +52,7 @@ module.exports = class Resolver {
             const model = resolver.toModelMarked(modelName);
             const driver = model.getDriver();
             if (!driverMap.has(driver)) driverMap.set(driver, []);
-            const op = new QueryBuilderTransaction(resolver, model, parentTxn);
+            const op = new QueryBuilderTransaction(resolver, model, this);
             driverMap.get(driver).push(op);
             return op;
           };
@@ -171,38 +116,51 @@ module.exports = class Resolver {
     return txn;
   }
 
-  resolve(query) {
-    const { model, method } = query.toObject();
+  // match(modelish) {
+  //   const model = this.resolver.toModelMarked(modelish);
+  //   const driver = model.getDriver();
+  //   if (!this.driverMap.has(driver)) this.driverMap.set(driver, []);
+  //   const op = new QueryBuilderTransaction(model, this.resolver, this);
+  //   this.driverMap.get(driver).push(op);
+  //   return op;
+  // }
 
-    switch (method) {
-      case 'create': case 'update': case 'delete': {
-        return model.getDriver().resolve(query.toDriver()).then((data) => {
-          this.clearAll();
-          return data;
-        });
-      }
-      default: {
-        return this.loader.load(query);
-      }
-    }
-  }
+  // exec() {
+  //   return Promise.all(Array.from(this.driverMap.entries()).map(([driver, ops]) => {
+  //     if (driver.getDirectives().transactions === false) {
+  //       return Promise.all(ops.map(op => op.exec())).then((results) => {
+  //         results.$commit = () => this.resolver.clearAll();
+  //         results.$rollback = () => this.resolver.clearAll();
+  //         return results;
+  //       });
+  //     }
 
-  toModel(model) {
-    const $model = model instanceof Model ? model : this.schema.getModel(model);
-    return $model;
-  }
+  //     return driver.transaction(ops);
+  //   })).then((results) => {
+  //     this.data = results;
+  //     return flatten(results);
+  //   });
+  // }
 
-  toModelMarked(model) {
-    const marked = this.toModel(model);
-    if (!marked) throw new Error(`${model} is not defined in schema`);
-    if (!marked.isMarkedModel()) throw new Error(`${model} is not a marked model`);
-    return marked;
-  }
+  // run() {
+  //   return this.exec().then((results) => {
+  //     if (this.txMap.root(this) === this) return this.commit().then(() => results);
+  //     this.commit();
+  //     return results;
+  //   }).catch((e) => {
+  //     if (this.txMap.root(this) === this) return this.rollback().then(() => Promise.reject(e));
+  //     this.rollback();
+  //     throw e;
+  //   });
+  // }
 
-  toModelEntity(model) {
-    const entity = this.toModel(model);
-    if (!entity) throw new Error(`${model} is not defined in schema`);
-    if (!entity.isEntity()) throw new Error(`${model} is not an entity`);
-    return entity;
-  }
+  // commit() {
+  //   if (this.marker !== 'rollback') this.marker = 'commit';
+  //   return this.txMap.perform();
+  // }
+
+  // rollback() {
+  //   this.marker = 'rollback';
+  //   return this.txMap.perform();
+  // }
 };

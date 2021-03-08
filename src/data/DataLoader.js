@@ -39,6 +39,7 @@ module.exports = class DataLoader extends FBDataLoader {
         return query.model().getDriver().resolve(query.toDriver());
       }));
     }, {
+      // cache: false,
       cacheKeyFn: query => hashObject(query.getCacheKey()),
     });
   }

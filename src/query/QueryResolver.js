@@ -34,12 +34,13 @@ module.exports = class QueryResolver {
 
   async create(query) {
     const { model, input } = query.toObject();
-    await model.validateData(input, {}, 'create');
+    await model.validateData({ ...input }, {}, 'create');
     return this.resolver.resolve(query).then(id => Object.assign(input, { id }));
   }
 
   update(query) {
-    const { model, input, flags } = query.toObject();
+    const { model, id, input, flags } = query.toObject();
+    if (!id) return this.updateMany(query);
     const clone = query.clone().method('get').flags(Object.assign({}, flags, { required: true }));
 
     return this.resolver.resolve(clone).then(async (doc) => {
@@ -47,6 +48,17 @@ module.exports = class QueryResolver {
       await model.validateData(input, doc, 'update');
       const $doc = model.serialize(mergeDeep(doc, removeUndefinedDeep(input)));
       return this.resolver.resolve(query.doc(doc).$doc($doc)).then(() => $doc);
+    });
+  }
+
+  updateMany(query) {
+    const { model, input, transaction } = query.toObject();
+    const lookup = query.clone().method('find');
+
+    return this.resolver.resolve(lookup).then((docs) => {
+      const txn = this.resolver.transaction(transaction);
+      docs.forEach(doc => txn.match(model).id(doc._id).save(input));
+      return txn.run();
     });
   }
 
@@ -120,7 +132,7 @@ module.exports = class QueryResolver {
       $input = await model[`append${ucFirst(crud)}Fields`]($input);
       $input = model.normalize($input);
       $input = model.serialize($input); // This seems to be needed to accept Objects and convert them to ids; however this also makes .save(<empty>) throw an error and I think you should be able to save empty
-      // $input = removeUndefinedDeep($input);
+      $input = removeUndefinedDeep($input);
       clone.input($input);
     }
 
@@ -130,11 +142,13 @@ module.exports = class QueryResolver {
       }, {}));
     }
 
+    if (debug) console.log(clone.toDriver());
     return this[method](clone).then((data) => {
       if (required && (data == null || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
-      if (debug) console.log('got result', data);
       if (data == null) return null;
-      return typeof data === 'object' ? new QueryResult(this.query, data) : data;
+      const result = typeof data === 'object' ? new QueryResult(this.query, data) : data;
+      if (debug) console.log('got result', method, result);
+      return result;
     });
   }
 };
