@@ -49,7 +49,7 @@ module.exports = class QueryBuilder {
       case 'one': case 'many': {
         crud = 'read';
         flags = args[0] || {};
-        method = cmd === 'one' ? 'get' : 'find';
+        method = cmd === 'one' ? 'findOne' : 'findMany';
         break;
       }
       case 'first': case 'last': {

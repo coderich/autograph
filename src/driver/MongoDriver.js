@@ -29,11 +29,11 @@ module.exports = class MongoDriver {
     return this[query.method](query);
   }
 
-  get(query) {
-    return this.find(Object.assign(query, { first: 1 })).then(docs => docs[0]);
+  findOne(query) {
+    return this.findMany(Object.assign(query, { first: 1 })).then(docs => docs[0]);
   }
 
-  find(query) {
+  findMany(query) {
     const { model, flags } = query;
     return this.query(model, 'aggregate', MongoDriver.facetQuery(query), flags).then(cursor => cursor.next()).then(facet => facet.docs);
   }

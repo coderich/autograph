@@ -10,7 +10,7 @@ module.exports = class QueryResolver {
     this.resolver = query.resolver();
   }
 
-  get(query) {
+  findOne(query) {
     const { model, flags } = query.toObject();
 
     return this.resolver.resolve(query).then((doc) => {
@@ -19,7 +19,7 @@ module.exports = class QueryResolver {
     });
   }
 
-  find(query) {
+  findMany(query) {
     const { model, flags } = query.toObject();
 
     return this.resolver.resolve(query).then((docs) => {
@@ -47,7 +47,7 @@ module.exports = class QueryResolver {
 
   updateOne(query) {
     const { model, input, flags } = query.toObject();
-    const clone = query.clone().method('get').flags(Object.assign({}, flags, { required: true }));
+    const clone = query.clone().method('findOne').flags(Object.assign({}, flags, { required: true }));
 
     return this.resolver.resolve(clone).then(async (doc) => {
       if (doc == null) throw Boom.notFound(`${model} Not Found`);
@@ -59,7 +59,7 @@ module.exports = class QueryResolver {
 
   updateMany(query) {
     const { model, input, transaction } = query.toObject();
-    const lookup = query.clone().method('find');
+    const lookup = query.clone().method('findMany');
 
     return this.resolver.resolve(lookup).then((docs) => {
       const txn = this.resolver.transaction(transaction);
@@ -70,7 +70,7 @@ module.exports = class QueryResolver {
 
   delete(query) {
     const { model, flags } = query.toObject();
-    const clone = query.clone().method('get').flags(Object.assign({}, flags, { required: true }));
+    const clone = query.clone().method('findOne').flags(Object.assign({}, flags, { required: true }));
 
     return this.resolver.resolve(clone).then((doc) => {
       if (doc == null) throw Boom.notFound(`${model} Not Found`);
@@ -91,7 +91,7 @@ module.exports = class QueryResolver {
   splice(query) {
     const { model, flags, args } = query.toObject();
     const [key, from, to] = args;
-    const clone = query.clone().method('get').flags(Object.assign({}, flags, { required: true }));
+    const clone = query.clone().method('findOne').flags(Object.assign({}, flags, { required: true }));
 
     return this.resolver.resolve(clone).then(async (doc) => {
       if (doc == null) throw Boom.notFound(`${model} Not Found`);
@@ -103,11 +103,11 @@ module.exports = class QueryResolver {
   }
 
   first(query) {
-    return this.find(query.method('find'));
+    return this.findMany(query.method('findMany'));
   }
 
   last(query) {
-    return this.find(query.method('find'));
+    return this.findMany(query.method('findMany'));
   }
 
   async resolve() {
