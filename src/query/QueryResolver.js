@@ -39,9 +39,9 @@ module.exports = class QueryResolver {
   }
 
   createMany(query) {
-    const { model, input, transaction } = query.toObject();
+    const { model, args, transaction } = query.toObject();
     const txn = this.resolver.transaction(transaction);
-    input.forEach(doc => txn.match(model).save(doc));
+    args.forEach(arg => txn.match(model).save(arg));
     return txn.run();
   }
 
@@ -58,12 +58,12 @@ module.exports = class QueryResolver {
   }
 
   updateMany(query) {
-    const { model, input, transaction } = query.toObject();
+    const { model, args, transaction } = query.toObject();
     const lookup = query.clone().method('findMany');
 
     return this.resolver.resolve(lookup).then((docs) => {
       const txn = this.resolver.transaction(transaction);
-      docs.forEach(doc => txn.match(model).id(doc._id).save(input));
+      docs.forEach(doc => txn.match(model).id(doc._id).save(...args));
       return txn.run();
     });
   }
