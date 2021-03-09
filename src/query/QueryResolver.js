@@ -78,14 +78,38 @@ module.exports = class QueryResolver {
     });
   }
 
-  push(query) {
+  pushOne(query) {
     const [key, ...values] = query.args();
     return this.splice(query.args([key, null, values]));
   }
 
-  pull(query) {
+  pushMany(query) {
+    const { model, transaction } = query.toObject();
+    const lookup = query.clone().method('findMany');
+    const [key, ...values] = query.args();
+
+    return this.resolver.resolve(lookup).then((docs) => {
+      const txn = this.resolver.transaction(transaction);
+      docs.forEach(doc => txn.match(model).id(doc._id).push(key, ...values));
+      return txn.run();
+    });
+  }
+
+  pullOne(query) {
     const [key, ...values] = query.args();
     return this.splice(query.args([key, values]));
+  }
+
+  pullMany(query) {
+    const { model, transaction } = query.toObject();
+    const lookup = query.clone().method('findMany');
+    const [key, ...values] = query.args();
+
+    return this.resolver.resolve(lookup).then((docs) => {
+      const txn = this.resolver.transaction(transaction);
+      docs.forEach(doc => txn.match(model).id(doc._id).pull(key, ...values));
+      return txn.run();
+    });
   }
 
   splice(query) {

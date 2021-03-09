@@ -12,8 +12,10 @@ module.exports = class QueryBuilderTransaction extends QueryBuilder {
     });
   }
 
-  exec() {
+  exec(options) {
     if (!this.theCall) return undefined;
+
+    this.query.options(options);
     const { cmd, args, resolve } = this.theCall;
 
     return super.resolve(cmd, args).then((result) => {

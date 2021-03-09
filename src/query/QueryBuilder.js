@@ -66,7 +66,7 @@ module.exports = class QueryBuilder {
       }
       case 'push': case 'pull': case 'splice': {
         crud = cmd === 'push' ? 'create' : 'update';
-        method = cmd;
+        method = id ? `${cmd}One` : `${cmd}Many`;
         break;
       }
       case 'remove': case 'delete': {

@@ -4,6 +4,7 @@ module.exports = class Query {
   constructor(props) {
     this.props = props || {};
     this.props.match = this.props.match || {};
+    this.props.options = this.props.options || {};
   }
 
   id(id) {
@@ -85,6 +86,12 @@ module.exports = class Query {
     if (last == null) return this.props.last;
     if (this.id() || this.first()) throw new Error('Cannot mix last() with id() or first()');
     this.props.last = last;
+    return this;
+  }
+
+  options(options) {
+    if (options == null) return this.props.options;
+    this.props.options = options;
     return this;
   }
 
@@ -203,6 +210,7 @@ module.exports = class Query {
       after: this.after(),
       first: this.first(),
       last: this.last(),
+      options: this.options(),
       input: this.input(),
       flags: this.flags(),
       $doc: this.$doc(),
@@ -229,6 +237,7 @@ module.exports = class Query {
       after: this.after(),
       first: this.first(),
       last: this.last(),
+      options: this.options(),
     };
   }
 };

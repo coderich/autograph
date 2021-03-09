@@ -34,29 +34,29 @@ module.exports = class MongoDriver {
   }
 
   findMany(query) {
-    const { model, flags } = query;
-    return this.query(model, 'aggregate', MongoDriver.facetQuery(query), flags).then(cursor => cursor.next()).then(facet => facet.docs);
+    const { model, options, flags } = query;
+    return this.query(model, 'aggregate', MongoDriver.facetQuery(query), options, flags).then(cursor => cursor.next()).then(facet => facet.docs);
   }
 
-  count({ model, where, flags }) {
-    return this.query(model, 'countDocuments', where, flags);
+  count({ model, where, options, flags }) {
+    return this.query(model, 'countDocuments', where, options, flags);
   }
 
-  createOne({ model, input, flags }) {
-    return this.query(model, 'insertOne', input, flags).then(result => result.insertedId);
+  createOne({ model, input, options, flags }) {
+    return this.query(model, 'insertOne', input, options, flags).then(result => result.insertedId);
   }
 
-  updateOne({ model, where, $doc, flags }) {
+  updateOne({ model, where, $doc, options, flags }) {
     const $update = Object.entries($doc).reduce((prev, [key, value]) => {
       Object.assign(prev.$set, { [key]: value });
       return prev;
     }, { $set: {} });
 
-    return this.query(model, 'updateOne', where, $update, flags);
+    return this.query(model, 'updateOne', where, $update, options, flags);
   }
 
-  delete({ model, where, flags }) {
-    return this.query(model, 'deleteOne', where, flags);
+  delete({ model, where, options, flags }) {
+    return this.query(model, 'deleteOne', where, options, flags);
   }
 
   dropModel(model) {
@@ -78,7 +78,7 @@ module.exports = class MongoDriver {
     }));
   }
 
-  async transaction(ops) {
+  transaction(ops) {
     const promise = async () => {
       // Create session and start transaction
       const session = await this.connection.then(client => client.startSession({ readPreference: { mode: 'primary' } }));
