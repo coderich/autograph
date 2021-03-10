@@ -747,7 +747,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
         expect(await resolver.match('Person').where({ name: '{christie,richard}' }).many()).toMatchObject([{ id: christie.id }]);
         expect(await resolver.match('Book').many()).toMatchObject([{ id: healthBook.id }]);
-        // expect(await resolver.match('Chapter').sortBy({ name: 'ASC' }).many()).toMatchObject([{ id: chapter1.id }, { id: chapter2.id }]);
+        expect(await resolver.match('Chapter').sortBy({ name: 'ASC' }).many()).toMatchObject([{ id: chapter1.id }, { id: chapter2.id }]);
       });
 
       test('remove multi', async () => {
@@ -822,60 +822,60 @@ module.exports = (driver = 'mongo', options = {}) => {
     });
 
 
-    // describe('Bug Fixes', () => {
-    //   test('embedded arrays', async () => {
-    //     const art = await resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1' }] });
-    //     expect(art.id).toBeDefined();
-    //     expect(art.sections).toMatchObject([{ name: 'section1' }]); // toLowerCase
-    //     expect(art.sections[0].id).toBeDefined();
-    //     expect(art.sections[0].name).toBeDefined();
-    //     expect(art.sections[0].$name).toBeDefined();
-    //   });
+    describe('Bug Fixes', () => {
+      test('embedded arrays', async () => {
+        const art = await resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1' }] });
+        expect(art.id).toBeDefined();
+        expect(art.sections).toMatchObject([{ name: 'section1' }]); // toLowerCase
+        expect(art.sections[0].id).toBeDefined();
+        expect(art.sections[0].name).toBeDefined();
+        expect(art.sections[0].$name).toBeDefined();
+      });
 
-    //   test('push/pull embedded arrays', async () => {
-    //     const art = await resolver.match('Art').save({ name: 'Piedmont Beauty' });
+      test('push/pull embedded arrays', async () => {
+        const art = await resolver.match('Art').save({ name: 'Piedmont Beauty' });
 
-    //     // Push
-    //     const push = await resolver.match('Art').id(art.id).push('sections', { name: 'Pushed Section' });
-    //     expect(push.sections.length).toBe(1);
-    //     expect(push.sections[0].id).toBeDefined();
-    //     expect(push.sections[0].name).toEqual('pushed section');
-    //     expect(push.sections[0].$name).toBeDefined();
+        // Push
+        const push = await resolver.match('Art').id(art.id).push('sections', { name: 'Pushed Section' });
+        expect(push.sections.length).toBe(1);
+        expect(push.sections[0].id).toBeDefined();
+        expect(push.sections[0].name).toEqual('pushed section');
+        expect(push.sections[0].$name).toBeDefined();
 
-    //     // Pull
-    //     const pull = await resolver.match('Art').id(art.id).pull('sections', { name: 'pushed section' });
-    //     expect(pull.sections.length).toBe(0);
-    //   });
+        // Pull
+        const pull = await resolver.match('Art').id(art.id).pull('sections', { name: 'pushed section' });
+        expect(pull.sections.length).toBe(0);
+      });
 
-    //   test('embedded array with modelRef', async () => {
-    //     // Create section
-    //     await expect(resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: richard.id }] })).rejects.toThrow();
-    //     const art = await resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: christie.id }] });
-    //     expect(art).toBeDefined();
-    //     expect(art.sections[0].id).toBeDefined();
-    //     expect(art.sections[0].person).toBe(christie.id);
-    //     expect((await art.sections[0].$person).name).toBe('Christie');
-    //   });
+      test('embedded array with modelRef', async () => {
+        // Create section
+        await expect(resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: richard.id }] })).rejects.toThrow();
+        const art = await resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: christie.id }] });
+        expect(art).toBeDefined();
+        expect(art.sections[0].id).toBeDefined();
+        expect(art.sections[0].person).toBe(christie.id);
+        expect((await art.sections[0].$person).name).toBe('Christie');
+      });
 
-    //   test('update should not clobber unknown attributes', async () => {
-    //     switch (driver) {
-    //       case 'mongo': {
-    //         await resolver.raw('Person').findOneAndUpdate({ _id: christie.id }, { $set: { unknownAttr: 1 } });
-    //         const person = await resolver.match('Person').id(christie.id).save({ age: 20 });
-    //         expect(person.age).toBe(20);
-    //         const dbPerson = await resolver.raw('Person').findOne({ _id: christie.id });
-    //         expect(dbPerson).toBeDefined();
-    //         expect(dbPerson.unknownAttr).toBe(1);
-    //         break;
-    //       }
-    //       default: break;
-    //     }
-    //   });
+      test('update should not clobber unknown attributes', async () => {
+        switch (driver) {
+          case 'mongo': {
+            await resolver.raw('Person').findOneAndUpdate({ _id: christie.id }, { $set: { unknownAttr: 1 } });
+            const person = await resolver.match('Person').id(christie.id).save({ age: 20 });
+            expect(person.age).toBe(20);
+            const dbPerson = await resolver.raw('Person').findOne({ _id: christie.id });
+            expect(dbPerson).toBeDefined();
+            expect(dbPerson.unknownAttr).toBe(1);
+            break;
+          }
+          default: break;
+        }
+      });
 
-    //   test('where clause with one(required) should throw', async () => {
-    //     await expect(resolver.match('Person').where({ age: 400 }).one({ required: true })).rejects.toThrow();
-    //     await expect(resolver.match('Person').where({ age: 400 }).many({ required: true })).rejects.toThrow();
-    //   });
-    // });
+      test('where clause with one(required) should throw', async () => {
+        await expect(resolver.match('Person').where({ age: 400 }).one({ required: true })).rejects.toThrow();
+        await expect(resolver.match('Person').where({ age: 400 }).many({ required: true })).rejects.toThrow();
+      });
+    });
   });
 };

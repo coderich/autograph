@@ -186,7 +186,7 @@ module.exports = class QueryResolver {
     }
 
     if (sort) {
-      clone.sort(Object.entries(sort).reduce((prev, [key, value]) => {
+      clone.sort(Object.entries(model.serialize(sort)).reduce((prev, [key, value]) => {
         return Object.assign(prev, { [key]: value.toLowerCase() === 'asc' ? 1 : -1 });
       }, {}));
     }
