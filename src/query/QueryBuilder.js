@@ -1,5 +1,6 @@
 const Query = require('./Query');
 const QueryResolver = require('./QueryResolver');
+const { unravelObject } = require('../service/app.service');
 
 /*
 * QueryBuilder
@@ -12,33 +13,42 @@ module.exports = class QueryBuilder {
     this.query = new Query({ model, resolver });
 
     // Chainable commands
-    this.id = (...args) => { this.query.id(...args); return this; };
-    this.where = (...args) => { this.query.where(...args); return this; };
-    this.native = (...args) => { this.query.native(...args); return this; };
-    this.select = (...args) => { this.query.select(...args); return this; };
-    this.sort = (...args) => { this.query.sort(...args); return this; };
-    this.sortBy = (...args) => { this.query.sort(...args); return this; };
-    this.skip = (...args) => { this.query.skip(...args); return this; };
+    this.id = (id) => { this.query.id(id); return this; };
+    this.select = (select) => { this.query.select(unravelObject(select)); return this; };
+    this.where = (where) => { this.query.where(unravelObject(where)); return this; };
+    this.native = (native) => { this.query.native(native); return this; };
+    this.sort = (sort) => { this.query.sort(unravelObject(sort)); return this; };
+    this.sortBy = (sortBy) => { this.query.sort(unravelObject(sortBy)); return this; };
+    this.skip = (skip) => { this.query.skip(skip); return this; };
     this.before = (cursor) => { this.query.before(JSON.parse(Buffer.from(cursor, 'base64').toString('ascii'))); return this; };
     this.after = (cursor) => { this.query.after(JSON.parse(Buffer.from(cursor, 'base64').toString('ascii'))); return this; };
-    this.meta = (...args) => { this.query.meta(...args); return this; };
-    this.flags = (...args) => { this.query.flags(...args); return this; };
-    this.merge = (...args) => { this.query.merge(...args); return this; };
-    this.transaction = (...args) => { this.query.transaction(...args); return this; };
+    this.meta = (meta) => { this.query.meta(meta); return this; };
+    this.flags = (flags) => { this.query.flags(flags); return this; };
+    this.merge = (merge) => { this.query.merge(merge); return this; };
+    this.transaction = (txn) => { this.query.transaction(txn); return this; };
 
     // Terminal commands
     this.one = (...args) => this.resolve('one', args);
     this.many = (...args) => this.resolve('many', args);
-    this.save = (...args) => this.resolve('save', args);
+    this.save = (...args) => this.resolve('save', args.map(arg => unravelObject(arg)));
     this.delete = (...args) => this.resolve('delete', args);
     this.remove = (...args) => this.resolve('remove', args);
     //
     this.count = (...args) => this.resolve('count', args);
-    this.push = (...args) => this.resolve('push', args);
-    this.pull = (...args) => this.resolve('pull', args);
-    this.splice = (...args) => this.resolve('splice', args);
+    this.push = (...args) => this.resolve('push', args.map(arg => unravelObject(arg)));
+    this.pull = (...args) => this.resolve('pull', args.map(arg => unravelObject(arg)));
+    this.splice = (...args) => this.resolve('splice', args.map(arg => unravelObject(arg)));
     this.first = (...args) => { this.query.first(...args); return this.resolve('first', args); };
     this.last = (...args) => { this.query.last(...args); return this.resolve('last', args); };
+    //
+    // this.min = (...args) => this.makeTheCall(query, 'min', args);
+    // this.max = (...args) => this.makeTheCall(query, 'max', args);
+    // this.avg = (...args) => this.makeTheCall(query, 'avg', args);
+    // // Food for thought...
+    // this.archive = (...args) => this.makeTheCall(query, 'archive', args); // Soft Delete
+    // this.stream = (...args) => this.makeTheCall(query, 'stream', args); // Stream records 1 by 1
+    // this.sum = (...args) => this.makeTheCall(query, 'sum', args); // Would sum be different than count?
+    // this.rollup = (...args) => this.makeTheCall(query, 'rollup', args); // Like sum, but for nested attributes (eg. Person.rollupAuthoredChaptersPages)
   }
 
   resolve(cmd, args) {

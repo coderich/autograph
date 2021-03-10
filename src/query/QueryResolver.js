@@ -2,7 +2,7 @@ const { isEmpty } = require('lodash');
 const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
 const QueryResult = require('./QueryResult');
-const { mapPromise, ucFirst, unravelObject, mergeDeep, removeUndefinedDeep } = require('../service/app.service');
+const { mapPromise, ucFirst, mergeDeep, removeUndefinedDeep } = require('../service/app.service');
 
 module.exports = class QueryResolver {
   constructor(query) {
@@ -149,22 +149,22 @@ module.exports = class QueryResolver {
   }
 
   async resolve() {
-    const clone = this.query.clone();
     const { model, crud, method, select, match, input, sort, flags, isNative } = this.query.toObject();
+    const clone = this.query.clone();
     const { required, debug } = flags;
     const fields = model.getSelectFields();
     const fieldNameToKeyMap = fields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: field.getKey() }), {});
 
     // Select fields
-    const $select = unravelObject(select ? Object.keys(select).map(n => fieldNameToKeyMap[n]) : fields.map(f => f.getKey()));
+    const $select = select ? Object.keys(select).map(n => fieldNameToKeyMap[n]) : fields.map(f => f.getKey());
     clone.select($select);
 
     // Where clause
     if (!isNative) {
-      const where = await model.resolveBoundValues(unravelObject(match));
-      let $where = await QueryService.resolveQueryWhereClause(this.query.match(where));
+      const where = await model.resolveBoundValues(match);
+      let $where = await QueryService.resolveWhereClause(this.query.match(where));
       $where = model.normalize($where);
-      $where = removeUndefinedDeep($where);
+      // $where = removeUndefinedDeep($where);
       clone.match($where);
     }
 
@@ -172,12 +172,12 @@ module.exports = class QueryResolver {
     if (crud === 'create' || crud === 'update') {
       const $input = await mapPromise(input, (obj) => {
         return new Promise(async (resolve) => {
-          let result = unravelObject(obj);
+          let result = obj;
           if (crud === 'create') result = await model.appendDefaultValues(result);
           result = await model[`append${ucFirst(crud)}Fields`](result);
-          result = model.normalize(result);
+          // result = model.normalize(result);
           result = model.serialize(result); // This seems to be needed to accept Objects and convert them to ids; however this also makes .save(<empty>) throw an error and I think you should be able to save empty
-          result = removeUndefinedDeep(result);
+          // result = removeUndefinedDeep(result);
           resolve(result);
         });
       });

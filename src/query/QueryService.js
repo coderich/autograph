@@ -19,7 +19,7 @@ const resolveEmbeddedWhere = (ref, key, value) => {
   return resolved.length > 1 ? resolved : resolved[0];
 };
 
-exports.resolveQueryWhereClause = (query) => {
+exports.resolveWhereClause = (query) => {
   const { resolver, model, match: where = {}, flags = {} } = query.toObject();
 
   // This is needed for where clause (but why!?!)
@@ -62,12 +62,11 @@ exports.resolveQueryWhereClause = (query) => {
 };
 
 exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
-  const model = query.model();
+  const { model, resolver } = query.toObject();
   const field = model.getField(key);
   if (!field || !field.isArray()) return Promise.reject(Boom.badRequest(`Cannot splice field '${key}'`));
 
   const modelRef = field.getModelRef();
-  const resolver = model.getResolver();
   const $from = model.transform({ [key]: from })[key];
   let $to = model.transform({ [key]: to })[key];
 

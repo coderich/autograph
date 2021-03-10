@@ -20,44 +20,6 @@ module.exports = class extends Model {
     this.namedQueries = {};
   }
 
-  // // CRUD
-  // get(where, options) {
-  //   this.normalizeOptions(options);
-  //   return new ResultSet(this, this.driver.dao.get(this.getKey(), this.normalize(where), options));
-  // }
-
-  // find(where = {}, options) {
-  //   this.normalizeOptions(options);
-  //   return new ResultSet(this, this.driver.dao.find(this.getKey(), this.normalize(where), options));
-  // }
-
-  // count(where = {}, options) {
-  //   this.normalizeOptions(options);
-  //   return this.driver.dao.count(this.getKey(), this.normalize(where), options);
-  // }
-
-  // create(data, options) {
-  //   this.normalizeOptions(options);
-  //   return new ResultSet(this, this.driver.dao.create(this.getKey(), this.serialize(data), options));
-  // }
-
-  // update(id, data, doc, options) {
-  //   this.normalizeOptions(options);
-  //   return new ResultSet(this, this.driver.dao.update(this.getKey(), this.idValue(id), this.serialize(data), this.serialize(doc), options));
-  // }
-
-  // delete(id, doc, options) {
-  //   this.normalizeOptions(options);
-  //   return new ResultSet(this, this.driver.dao.delete(this.getKey(), this.idValue(id), doc, options));
-  // }
-
-  // native(method, ...args) {
-  //   switch (method) {
-  //     case 'count': return this.driver.dao.native(this.getKey(), method, ...args);
-  //     default: return new ResultSet(this, this.driver.dao.native(this.getKey(), method, ...args));
-  //   }
-  // }
-
   raw() {
     return this.driver.dao.raw(this.getKey());
   }
@@ -65,8 +27,6 @@ module.exports = class extends Model {
   drop() {
     return this.driver.dao.dropModel(this.getKey());
   }
-
-  //
 
   idValue(id) {
     return this.driver.idValue(id);
@@ -82,16 +42,6 @@ module.exports = class extends Model {
 
   getDriver() {
     return this.driver.dao;
-  }
-
-  // Temporary until you can rely fully on Query for resolver
-  getResolver() { return this.resolver; }
-
-  setResolver(resolver) { this.resolver = resolver; }
-  //
-
-  createResultSet(results) {
-    return new ResultSet(this, results);
   }
 
   createNamedQuery(name, fn) {
