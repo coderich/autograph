@@ -192,7 +192,7 @@ module.exports = class Query {
   }
 
   clone() {
-    return new Query(clone(this.props));
+    return new Query(clone({ ...this.props }));
   }
 
   toDriver() {
@@ -221,6 +221,7 @@ module.exports = class Query {
   toObject() {
     return {
       ...this.props,
+      isNative: Boolean(this.native()),
       schema: this.model().getSelectFields().reduce((prev, field) => Object.assign(prev, { [field.getKey()]: field.getDataType() }), {}),
     };
   }

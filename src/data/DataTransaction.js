@@ -4,11 +4,6 @@ const QueryBuilderTransaction = require('../query/QueryBuilderTransaction');
 
 module.exports = class DataTransaction {
   constructor(resolver, parentTxn) {
-    // this.resolver = resolver;
-    // this.parentTxn = parentTxn;
-    // this.driverMap = new Map();
-    // this.data = [];
-
     const txnMap = (parentTxn || {}).txnMap || (() => {
       let resolve, reject;
       const map = new TreeMap();

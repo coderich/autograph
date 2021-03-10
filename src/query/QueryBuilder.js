@@ -24,6 +24,7 @@ module.exports = class QueryBuilder {
     this.meta = (...args) => { this.query.meta(...args); return this; };
     this.flags = (...args) => { this.query.flags(...args); return this; };
     this.merge = (...args) => { this.query.merge(...args); return this; };
+    this.transaction = (...args) => { this.query.transaction(...args); return this; };
 
     // Terminal commands
     this.one = (...args) => this.resolve('one', args);
@@ -72,7 +73,9 @@ module.exports = class QueryBuilder {
       case 'remove': case 'delete': {
         crud = 'delete';
         flags = args[0] || {};
-        method = 'delete';
+        if (id) method = 'deleteOne';
+        else if (where) method = 'deleteMany';
+        else return Promise.reject(new Error('Remove requires an id() or where()'));
         break;
       }
       case 'count': {

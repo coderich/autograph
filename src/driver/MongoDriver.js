@@ -55,7 +55,7 @@ module.exports = class MongoDriver {
     return this.query(model, 'updateOne', where, $update, options, flags);
   }
 
-  delete({ model, where, options, flags }) {
+  deleteOne({ model, where, options, flags }) {
     return this.query(model, 'deleteOne', where, options, flags);
   }
 

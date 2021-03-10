@@ -128,3 +128,42 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
     return { [key]: (get(doc, key) || []).concat($to) };
   }
 };
+
+exports.resolveReferentialIntegrity = (query) => {
+  const { id, model, resolver, transaction, flags } = query.toObject();
+  const txn = resolver.transaction(transaction);
+
+  return new Promise((resolve, reject) => {
+    try {
+      model.referentialIntegrity().forEach(({ model: ref, field, fieldRef, isArray, op }) => {
+        const fieldStr = fieldRef ? `${field}.${fieldRef}` : `${field}`;
+        const $where = { [fieldStr]: id };
+
+        switch (op) {
+          case 'cascade': {
+            if (isArray) {
+              txn.match(ref).where($where).flags(flags).pull(fieldStr, id);
+            } else {
+              txn.match(ref).where($where).flags(flags).remove();
+            }
+            break;
+          }
+          case 'nullify': {
+            txn.match(ref).where($where).flags(flags).save({ [fieldStr]: null });
+            break;
+          }
+          case 'restrict': {
+            txn.match(ref).where($where).flags(flags).count().then(count => (count ? reject(new Error('Restricted')) : count));
+            break;
+          }
+          default: throw new Error(`Unknown onDelete operator: '${op}'`);
+        }
+      });
+
+      // Execute the transaction
+      txn.run().then(results => resolve(results)).catch(e => reject(e));
+    } catch (e) {
+      txn.rollback().then(() => reject(e)).catch(err => reject(err));
+    }
+  });
+};

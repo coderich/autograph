@@ -739,29 +739,29 @@ module.exports = (driver = 'mongo', options = {}) => {
     }
 
 
-    // describe('Referential Integrity', () => {
-    //   test('remove', async () => {
-    //     await expect(resolver.match('Person').remove()).rejects.toThrow();
-    //     await expect(resolver.match('Person').id(christie.id).remove()).rejects.toThrow();
-    //     await resolver.match('Chapter').id(chapter3.id).remove(); // Need to delete chapter to remove Author....
-    //     expect(await resolver.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
-    //     expect(await resolver.match('Person').where({ name: '{christie,richard}' }).many()).toMatchObject([{ id: christie.id }]);
-    //     expect(await resolver.match('Book').many()).toMatchObject([{ id: healthBook.id }]);
-    //     expect(await resolver.match('Chapter').sortBy({ name: 'ASC' }).many()).toMatchObject([{ id: chapter1.id }, { id: chapter2.id }]);
-    //   });
+    describe('Referential Integrity', () => {
+      test('remove', async () => {
+        await expect(resolver.match('Person').remove()).rejects.toThrow();
+        await expect(resolver.match('Person').id(christie.id).remove()).rejects.toThrow();
+        await resolver.match('Chapter').id(chapter3.id).remove(); // Need to delete chapter to remove Author....
+        expect(await resolver.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
+        expect(await resolver.match('Person').where({ name: '{christie,richard}' }).many()).toMatchObject([{ id: christie.id }]);
+        expect(await resolver.match('Book').many()).toMatchObject([{ id: healthBook.id }]);
+        // expect(await resolver.match('Chapter').sortBy({ name: 'ASC' }).many()).toMatchObject([{ id: chapter1.id }, { id: chapter2.id }]);
+      });
 
-    //   test('remove multi', async () => {
-    //     // Create some colors
-    //     const colors = await resolver.match('Color').save({ type: 'blue' }, { type: 'red' }, { type: 'green' }, { type: 'purple' });
-    //     expect(colors.length).toBe(4);
+      test('remove multi', async () => {
+        // Create some colors
+        const colors = await resolver.match('Color').save({ type: 'blue' }, { type: 'red' }, { type: 'green' }, { type: 'purple' });
+        expect(colors.length).toBe(4);
 
-    //     // Remove some colors
-    //     const ids = await resolver.match('Color').where({ type: '{red,purple}' }).remove();
-    //     const results = await resolver.match('Color').sortBy({ type: 'ASC' }).many();
-    //     expect(ids.sort(sorter)).toMatchObject([{ id: colors[1].id }, { id: colors[3].id }].sort(sorter));
-    //     expect(results).toMatchObject([{ type: 'blue' }, { type: 'green' }]);
-    //   });
-    // });
+        // Remove some colors
+        const ids = await resolver.match('Color').where({ type: '{red,purple}' }).remove();
+        const results = await resolver.match('Color').sortBy({ type: 'ASC' }).many();
+        expect(ids.sort(sorter)).toMatchObject([{ id: colors[1].id }, { id: colors[3].id }].sort(sorter));
+        expect(results).toMatchObject([{ type: 'blue' }, { type: 'green' }]);
+      });
+    });
 
 
     describe('$hydrated results', () => {
@@ -780,46 +780,46 @@ module.exports = (driver = 'mongo', options = {}) => {
     });
 
 
-    // describe('Native Queries', () => {
-    //   test('get', async () => {
-    //     switch (driver) {
-    //       case 'mongo': {
-    //         expect(await resolver.match('Person').native({ name: 'Richard' }).one()).not.toBeDefined();
-    //         expect(await resolver.match('Person').native({ name: 'christie' }).one()).not.toBeDefined(); // case sensitive
-    //         expect(await resolver.match('Person').native({ name: 'Christie' }).one()).toMatchObject({ id: christie.id, name: 'Christie', emailAddress: 'christie@gmail.com' });
-    //         expect(await resolver.match('Person').native({ name: 'Richard' }).count()).toBe(0);
-    //         expect(await resolver.match('Person').native({ name: 'christie' }).count()).toBe(0);
-    //         expect(await resolver.match('Person').native({ name: 'Christie' }).count()).toBe(1);
-    //         const count = await resolver.match('Person').native({ name: { $ne: 'chard' } }).count();
-    //         expect(count).toBeGreaterThanOrEqual(1);
-    //         expect(await resolver.match('Person').native({ name: { $ne: 'Christie' } }).count()).toBe(count - 1);
-    //         expect(await resolver.match('Person').native({ email_address: 'christie@gmail.com' }).count()).toBe(1);
-    //         break;
-    //       }
-    //       default: {
-    //         break;
-    //       }
-    //     }
-    //   });
-    // });
+    describe('Native Queries', () => {
+      test('get', async () => {
+        switch (driver) {
+          case 'mongo': {
+            expect(await resolver.match('Person').native({ name: 'Richard' }).one()).toBeNull();
+            expect(await resolver.match('Person').native({ name: 'christie' }).one()).toBeNull(); // case sensitive
+            expect(await resolver.match('Person').native({ name: 'Christie' }).one()).toMatchObject({ id: christie.id, name: 'Christie', emailAddress: 'christie@gmail.com' });
+            expect(await resolver.match('Person').native({ name: 'Richard' }).count()).toBe(0);
+            expect(await resolver.match('Person').native({ name: 'christie' }).count()).toBe(0);
+            expect(await resolver.match('Person').native({ name: 'Christie' }).count()).toBe(1);
+            const count = await resolver.match('Person').native({ name: { $ne: 'chard' } }).count();
+            expect(count).toBeGreaterThanOrEqual(1);
+            expect(await resolver.match('Person').native({ name: { $ne: 'Christie' } }).count()).toBe(count - 1);
+            expect(await resolver.match('Person').native({ email_address: 'christie@gmail.com' }).count()).toBe(1);
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      });
+    });
 
 
-    // describe('Raw Queries', () => {
-    //   test('get', async () => {
-    //     switch (driver) {
-    //       case 'mongo': {
-    //         expect(await resolver.raw('Person').findOne({})).toBeDefined();
-    //         expect(await resolver.raw('Person').findOne({ name: 'Richard' })).toBeNull();
-    //         expect(await resolver.raw('Person').findOne({ name: 'christie' })).toBeNull();
-    //         expect(await resolver.raw('Person').findOne({ name: 'Christie' })).toMatchObject({ name: 'Christie', email_address: 'christie@gmail.com' });
-    //         break;
-    //       }
-    //       default: {
-    //         break;
-    //       }
-    //     }
-    //   });
-    // });
+    describe('Raw Queries', () => {
+      test('get', async () => {
+        switch (driver) {
+          case 'mongo': {
+            expect(await resolver.raw('Person').findOne({})).toBeDefined();
+            expect(await resolver.raw('Person').findOne({ name: 'Richard' })).toBeNull();
+            expect(await resolver.raw('Person').findOne({ name: 'christie' })).toBeNull();
+            expect(await resolver.raw('Person').findOne({ name: 'Christie' })).toMatchObject({ name: 'Christie', email_address: 'christie@gmail.com' });
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      });
+    });
 
 
     // describe('Bug Fixes', () => {

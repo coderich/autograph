@@ -58,23 +58,38 @@ module.exports = class QueryResolver {
   }
 
   updateMany(query) {
-    const { model, args, transaction } = query.toObject();
-    const lookup = query.clone().method('findMany');
+    const { model, args, where, transaction } = query.toObject();
+    // const lookup = query.clone().method('findMany');
 
-    return this.resolver.resolve(lookup).then((docs) => {
+    // return this.resolver.resolve(lookup).then((docs) => {
+    return this.resolver.match(model).where(where).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);
       docs.forEach(doc => txn.match(model).id(doc._id).save(...args));
       return txn.run();
     });
   }
 
-  delete(query) {
-    const { model, flags } = query.toObject();
-    const clone = query.clone().method('findOne').flags(Object.assign({}, flags, { required: true }));
+  deleteOne(query) {
+    const { model, id, flags } = query.toObject();
+    // const clone = query.clone().method('findOne').flags(Object.assign({}, flags, { required: true }));
 
-    return this.resolver.resolve(clone).then((doc) => {
+    // return this.resolver.resolve(clone).then((doc) => {
+    return this.resolver.match(model).id(id).flags(Object.assign({}, flags, { required: true })).one().then((doc) => {
       if (doc == null) throw Boom.notFound(`${model} Not Found`);
-      return this.resolver.resolve(query).then(() => doc);
+
+      return QueryService.resolveReferentialIntegrity(query).then(() => {
+        return this.resolver.resolve(query).then(() => doc);
+      });
+    });
+  }
+
+  deleteMany(query) {
+    const { model, where, transaction, flags } = query.toObject();
+
+    return this.resolver.match(model).where(where).flags(flags).many().then((docs) => {
+      const txn = this.resolver.transaction(transaction);
+      docs.forEach(doc => txn.match(model).id(doc._id).flags(flags).delete());
+      return txn.run();
     });
   }
 
@@ -101,11 +116,10 @@ module.exports = class QueryResolver {
   }
 
   pullMany(query) {
-    const { model, transaction } = query.toObject();
-    const lookup = query.clone().method('findMany');
+    const { model, where, transaction } = query.toObject();
     const [key, ...values] = query.args();
 
-    return this.resolver.resolve(lookup).then((docs) => {
+    return this.resolver.match(model).where(where).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);
       docs.forEach(doc => txn.match(model).id(doc._id).pull(key, ...values));
       return txn.run();
@@ -173,7 +187,7 @@ module.exports = class QueryResolver {
 
     if (sort) {
       clone.sort(Object.entries(sort).reduce((prev, [key, value]) => {
-        return Object.assign(prev, { [key]: value === 'asc' ? 1 : -1 });
+        return Object.assign(prev, { [key]: value.toLowerCase() === 'asc' ? 1 : -1 });
       }, {}));
     }
 
@@ -182,6 +196,7 @@ module.exports = class QueryResolver {
     return this[method](clone).then((data) => {
       if (required && (data == null || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
       if (data == null) return null;
+      // if (data instanceof QueryResult) return data;
       const result = typeof data === 'object' ? new QueryResult(this.query, data) : data;
       if (debug) console.log('got result', method, result);
       return result;
