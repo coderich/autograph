@@ -1,10 +1,45 @@
 const { clone } = require('lodash');
 
+let count = 0;
+
 module.exports = class Query {
   constructor(props) {
+    this.timers = {};
+    this.queryId = `query${++count}`;
     this.props = props || {};
     this.props.match = this.props.match || {};
     this.props.options = this.props.options || {};
+  }
+
+  time(label = 'default') {
+    this.timers[label] = { start: new Date().getTime() };
+    return this;
+  }
+
+  timeEnd(label = 'default') {
+    this.timers[label].end = new Date().getTime();
+    return this;
+  }
+
+  timeReport() {
+    const report = Object.entries(this.timers).reduce((prev, [key, value]) => {
+      return Object.assign(prev, { [key]: value.end - value.start });
+    }, {});
+
+    const toDriver = this.toDriver();
+
+    console.log(JSON.stringify({
+      [this.queryId]: {
+        details: {
+          model: toDriver.model,
+          method: toDriver.method,
+          where: toDriver.where,
+          input: toDriver.input,
+          flags: toDriver.flags,
+        },
+        report,
+      },
+    }, null, 2));
   }
 
   id(id) {

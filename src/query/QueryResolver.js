@@ -11,18 +11,22 @@ module.exports = class QueryResolver {
   }
 
   findOne(query) {
+    query.time('findOne');
     const { model, flags } = query.toObject();
 
     return this.resolver.resolve(query).then((doc) => {
+      query.timeEnd('findOne');
       if (flags.required && doc == null) throw Boom.notFound(`${model} Not Found`);
       return doc;
     });
   }
 
   findMany(query) {
+    query.time('findMany');
     const { model, flags } = query.toObject();
 
     return this.resolver.resolve(query).then((docs) => {
+      query.timeEnd('findMany');
       if (flags.required && isEmpty(docs)) throw Boom.notFound(`${model} Not Found`);
       return docs;
     });
@@ -154,6 +158,7 @@ module.exports = class QueryResolver {
     const { required, debug } = flags;
     const fields = model.getSelectFields();
     const fieldNameToKeyMap = fields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: field.getKey() }), {});
+    clone.time('query').time('resolve').time('prepare');
 
     // Select fields
     const $select = select ? Object.keys(select).map(n => fieldNameToKeyMap[n]) : fields.map(f => f.getKey());
@@ -191,14 +196,17 @@ module.exports = class QueryResolver {
       }, {}));
     }
 
-    if (debug) console.log(clone.toDriver());
+    clone.timeEnd('prepare').time('execute').time('driver');
 
     return this[method](clone).then((data) => {
+      clone.timeEnd('driver');
       if (required && (data == null || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
       if (data == null) return null;
-      // if (data instanceof QueryResult) return data;
       const result = typeof data === 'object' ? new QueryResult(this.query, data) : data;
-      if (debug) console.log('got result', method, result);
+      clone.timeEnd('execute').timeEnd('resolve').timeEnd('query');
+      // clone.timeReport();
+      // console.log(result);
+      // console.log('-------------');
       return result;
     });
   }
