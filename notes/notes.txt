@@ -1,31 +1,33 @@
-Release 0.6:
-  ** WRITE A TEST THAT SHOWS resolveModelWhereClause (if (where.id) where.id = map(where.id, v => model.idValue(v));)
+Release TODOs:
+  * Abilty to TRACE query through stages (console.log + console.time)
+  * Finalize data pipeline methods (normalize, serialize, deserialize, defaults, etc)
+  * Try/Catch (model.deserialize) ????
+  * SystemEvents (new event structure with query)
+  * Finalize flags() vs options() - possibly use resolver.match(model, flags)
+  * Update ConnectionTypes to return { count pageInfo edges }
+  * Deserialize should set default values if undefined
+  * DataLoader handling of queries + caching done properly
+  * Ability to hydrate adhoc results (such as from raw() query)
+  * WRITE A TEST THAT SHOWS resolveModelWhereClause (if (where.id) where.id = map(where.id, v => model.idValue(v));)
     - its needed...
+  * Field-level ConnectionType args (where, first, last, etc)
+  * Deep sort (akin to where clause resolution?)
+  * Finalize Driver interface - consider moving out of Autograph into new NPM module
 
-  * Add ability to query (where, first, last, etc) nested array types
-    - Should return ConnectionType
-  ? Possibly rename input type to end with Input (eg. CreatePersonInput)
-  * deserialize should set default values if undefined
-  * helper methods:
-    - field.getPathFromModel(model) => 'a.b.c.d';
   -------------
 
 Bugs:
   * Nested embedded object in array cannot delete without doing an explicit $pull operation (race condition)
     - Drivers need concept of push and pull
-  * DataLoaders are not being used propertly - need re-architecture
   * MongoDB cannot-create-namespace-in-multi-document-transaction (collection must first be defined)
 
 Performance:
   * Select as alias/key can be done at the driver level (not require transformation during hydration)
-  * Pagination should pass limit & sort to dao if possible
-    - Can all queries default sort by _id? Is this the Mongo default thing to do?
   * Post-Query hydration needs to be faster
   * Verify that Transformer + Rules are only being called when needed
 
 Next:
   * Incorporate Logger
-  * You know EventEmitter wants to emit Query (will be a breaking change so consider when to do it)
   * Support @value on Model itself?
   * Framework directive param validation
   * Take a look at all Mongoose options/features (eg. minimize)
@@ -34,6 +36,7 @@ Next:
   * Deserialization and ids (_id) and code throughout (remove _id in deserlialization if possible)
   * How do you handle the hydrate() problem? QueryWorker is hydrating, what about concept of returning ResultSet and letting user hydrate() or populate() from resolver?
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
+  ? Possibly rename input type to end with Input (eg. CreatePersonInput)
 
 Enhancements:
   * Lodash Transformers
@@ -45,6 +48,8 @@ Enhancements:
   * Get a list of references that would be onDelete affected
   * URL, RGB, RGBA, validator?
   * Composite Rule Definitions?
+  * helper methods:
+    - field.getPathFromModel(model) => 'a.b.c.d';
 
 Todo:
   * MeteorUser _id is a String (not ID). How to handle?
@@ -66,8 +71,6 @@ Ideas:
 Figure out:
   * createdBy? (Audit trail)
   * Authorization. Specifically owner records, segmentation, recursive data resolution
-  * dependencies vs peerDependencies (graphql)
-  * What was the reason for Query vs Find? Do you need it? I know it had to do with final stage of sorting/filtering/pagination.
 
 How:
   data: {
