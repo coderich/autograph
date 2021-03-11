@@ -13,6 +13,10 @@ Release TODOs:
   * Field-level ConnectionType args (where, first, last, etc)
   * Deep sort (akin to where clause resolution?)
   * Finalize Driver interface - consider moving out of Autograph into new NPM module
+  * Add query.context() option to override @value etc????
+    - OR you could have .update() .create() which would be the equiv to .native()
+    - Maybe something like .force()...
+  * I think having ResultSet.hydrate() as a method is a good idea... useful when using resoler.raw()
 
   -------------
 
