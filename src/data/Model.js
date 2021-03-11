@@ -235,7 +235,11 @@ module.exports = class extends Model {
       if (obj == null) return obj;
 
       return Object.keys(obj).forEach((key) => {
-        if (key !== '_id' && !this.getFieldByName(key)) delete obj[key];
+        try {
+          if (key !== '_id' && !this.getFieldByName(key)) delete obj[key];
+        } catch (e) {
+          console.log(e);
+        }
       });
     });
 
