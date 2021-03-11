@@ -17,6 +17,7 @@ Release TODOs:
     - OR you could have .update() .create() which would be the equiv to .native()
     - Maybe something like .force()...
   * I think having ResultSet.hydrate() as a method is a good idea... useful when using resoler.raw()
+  * .archive() would be useful to softDelete yet still emit delete event
 
   -------------
 
