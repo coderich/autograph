@@ -302,6 +302,7 @@ module.exports = class extends Model {
     // Set $value to the original unhydrated value
     const $value = doc[$prop];
 
+    if ($value == null && !field.isVirtual() && !field.hasBoundValue()) return assignValue(field, doc, prop, field.isArray() ? [] : $value);
     if (field.isScalar() || field.isEmbedded()) return assignValue(field, doc, prop, $value); // No hydration needed; apply $value
 
     // Model resolver
