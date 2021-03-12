@@ -4,7 +4,6 @@ const { makeDataResolver } = require('../service/data.service');
 
 module.exports = class QueryResult {
   constructor(query, data) {
-    if (data == null) return data;
     const { model, resolver, sort } = query.toObject();
 
     const results = map(model.deserialize(data), (doc) => {

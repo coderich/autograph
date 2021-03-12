@@ -7,8 +7,8 @@ module.exports = class QueryBuilderTransaction extends QueryBuilder {
   }
 
   resolve(cmd, args) {
-    return new Promise((resolve) => {
-      this.theCall = { cmd, args, resolve };
+    return new Promise((resolve, reject) => {
+      this.theCall = { cmd, args, resolve, reject };
     });
   }
 

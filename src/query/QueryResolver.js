@@ -39,7 +39,7 @@ module.exports = class QueryResolver {
     const { model, input, match } = query.toObject();
 
     return this.resolver.match(model).where(match).one({ required: true }).then(async (doc) => {
-      await model.validateData(input, model.deserialize(doc), 'update');
+      await model.validateData({ ...input }, doc, 'update');
       const $doc = model.serialize(mergeDeep(doc, removeUndefinedDeep(input)));
       return this.resolver.resolve(query.doc(doc).$doc($doc)).then(() => $doc);
     });
@@ -116,7 +116,7 @@ module.exports = class QueryResolver {
 
     return this.resolver.match(model).where(match).one({ required: true }).then(async (doc) => {
       const data = await QueryService.spliceEmbeddedArray(query, doc, key, from, to);
-      await model.validateData(data, doc, 'update');
+      await model.validateData({ ...data }, doc, 'update');
       const $doc = mergeDeep(doc, removeUndefinedDeep(data));
       return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc)).then(() => $doc);
     });
