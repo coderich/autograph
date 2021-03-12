@@ -4,12 +4,15 @@ const RuleService = require('../service/rule.service');
 const { map, ensureArray, stripObjectUndefineds } = require('../service/app.service');
 
 const assignValue = (field, doc, prop, value) => {
-  return Promise.resolve(value).then(($value) => {
+  const $promise = Promise.resolve(value).then(($value) => {
     return field.resolve($value).then(($$value) => {
       Object.defineProperty(doc, prop, { value: $$value, writable: true });
       return $$value;
     });
   });
+
+  doc[prop] = $promise;
+  return $promise;
 };
 
 module.exports = class extends Model {
@@ -260,6 +263,7 @@ module.exports = class extends Model {
       }
 
       // Not a "required" query + strip out nulls
+      console.log(prop, $value, value);
       return assignValue(field, doc, prop, Promise.all(ensureArray($value).map(id => resolver.match(fieldModel).id(id).one())).then(results => results.filter(r => r != null)));
     }
 

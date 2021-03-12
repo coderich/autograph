@@ -2,6 +2,7 @@ const { get, has } = require('lodash');
 const { MongoClient, ObjectID } = require('mongodb');
 const { proxyDeep, toKeyObj, globToRegex, proxyPromise, isScalarDataType, promiseRetry } = require('../service/app.service');
 
+let counter = 0;
 module.exports = class MongoDriver {
   constructor(config, schema) {
     this.config = config;
@@ -34,8 +35,13 @@ module.exports = class MongoDriver {
   }
 
   findMany(query) {
+    const id = `${++counter}findMany`;
+    console.time(id);
     const { model, options, flags } = query;
-    return this.query(model, 'aggregate', MongoDriver.facetQuery(query), options, flags).then(cursor => cursor.next()).then(facet => facet.docs);
+    return this.query(model, 'aggregate', MongoDriver.facetQuery(query), options, flags).then(cursor => cursor.next()).then((facet) => {
+      console.timeEnd(id);
+      return facet.docs;
+    });
   }
 
   count({ model, where, options, flags }) {

@@ -129,7 +129,7 @@ module.exports = class QueryResolver {
 
   async resolve() {
     const clone = this.query.clone();
-    const { model, crud, method, select, match, input, sort, flags, isNative } = clone.toObject();
+    const { model, crud, method, match, input, sort, flags, isNative } = clone.toObject();
     clone.time('query').time('resolve').time('prepare');
 
     // // Select fields
