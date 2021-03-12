@@ -38,6 +38,7 @@ module.exports = class MongoDriver {
     const id = `${++counter}findMany`;
     console.time(id);
     const { model, options, flags } = query;
+    console.log(query.where);
     return this.query(model, 'aggregate', MongoDriver.facetQuery(query), options, flags).then(cursor => cursor.next()).then((facet) => {
       console.timeEnd(id);
       return facet.docs;

@@ -7,7 +7,7 @@ const { mapPromise, ucFirst, mergeDeep, removeUndefinedDeep } = require('../serv
 module.exports = class QueryResolver {
   constructor(query) {
     this.query = query;
-    this.resolver = query.resolver();
+    this.resolver = query.toObject().resolver;
   }
 
   findOne(query) {
@@ -76,13 +76,15 @@ module.exports = class QueryResolver {
   }
 
   pushOne(query) {
-    const [key, ...values] = query.args();
+    const { args } = query.toObject();
+    const [key, ...values] = args;
     return this.splice(query.args([key, null, values]));
   }
 
   pushMany(query) {
+    const { args } = query.toObject();
     const { model, match, transaction } = query.toObject();
-    const [key, ...values] = query.args();
+    const [key, ...values] = args;
 
     return this.resolver.match(model).where(match).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);
@@ -92,13 +94,14 @@ module.exports = class QueryResolver {
   }
 
   pullOne(query) {
-    const [key, ...values] = query.args();
+    const { args } = query.toObject();
+    const [key, ...values] = args;
     return this.splice(query.args([key, values]));
   }
 
   pullMany(query) {
-    const { model, match, transaction } = query.toObject();
-    const [key, ...values] = query.args();
+    const { model, match, transaction, args } = query.toObject();
+    const [key, ...values] = args;
 
     return this.resolver.match(model).where(match).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);

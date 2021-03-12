@@ -5,10 +5,10 @@ const { makeDataResolver } = require('../service/data.service');
 module.exports = class QueryResult {
   constructor(query, data) {
     if (data == null) return data;
-    const { model, resolver } = query.toObject();
+    const { model, resolver, sort } = query.toObject();
 
     const results = map(model.deserialize(data), (doc) => {
-      const sortPaths = keyPaths(query.sort());
+      const sortPaths = keyPaths(sort);
       const sortValues = sortPaths.reduce((prev, path) => Object.assign(prev, { [path]: get(doc, path) }), {});
       const sortJSON = JSON.stringify(sortValues);
       const cursor = Buffer.from(sortJSON).toString('base64');

@@ -36,7 +36,8 @@ module.exports = class DataLoader extends FBDataLoader {
       // }
 
       return Promise.all(queries.map((query) => {
-        return query.model().getDriver().resolve(query.toDriver());
+        const { model } = query.toObject();
+        return model.getDriver().resolve(query.toDriver());
       }));
     }, {
       cache: false,

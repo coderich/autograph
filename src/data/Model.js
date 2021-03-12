@@ -263,7 +263,7 @@ module.exports = class extends Model {
       }
 
       // Not a "required" query + strip out nulls
-      console.log(prop, $value, value);
+      // console.log(prop, $value);
       return assignValue(field, doc, prop, Promise.all(ensureArray($value).map(id => resolver.match(fieldModel).id(id).one())).then(results => results.filter(r => r != null)));
     }
 
@@ -272,6 +272,7 @@ module.exports = class extends Model {
       return assignValue(field, doc, prop, resolver.match(fieldModel).merge({ where }).one());
     }
 
+    console.log(prop, $value);
     return assignValue(field, doc, prop, resolver.match(fieldModel).id($value).one({ required: field.isRequired() }));
   }
 };
