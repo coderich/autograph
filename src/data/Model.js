@@ -187,7 +187,7 @@ module.exports = class extends Model {
         try {
           if (key !== '_id' && !this.getFieldByName(key)) delete obj[key];
         } catch (e) {
-          console.log(e.message);
+          console.log(e.message, obj);
         }
       });
     });
