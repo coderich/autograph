@@ -236,10 +236,6 @@ module.exports = class extends Model {
     if (value !== undefined) return value;
     if (typeof prop === 'symbol') return value;
 
-    // // Count resolver
-    // const countField = this.getCountField(prop);
-    // if (countField) return assignValue(f, doc, prop, countField.count(resolver, doc));
-
     // Hydration check
     const [, $prop] = prop.split('$');
     if (!$prop) return value; // Nothing to hydrate
@@ -251,6 +247,7 @@ module.exports = class extends Model {
     // Set $value to the original unhydrated value
     const $value = doc[$prop];
 
+    if ($value == null && !field.isVirtual() && !field.hasBoundValue()) return assignValue(field, doc, prop, field.isArray() ? [] : $value);
     if (field.isScalar() || field.isEmbedded()) return assignValue(field, doc, prop, $value); // No hydration needed; apply $value
 
     // Model resolver
@@ -263,7 +260,6 @@ module.exports = class extends Model {
       }
 
       // Not a "required" query + strip out nulls
-      // console.log(prop, $value);
       return assignValue(field, doc, prop, Promise.all(ensureArray($value).map(id => resolver.match(fieldModel).id(id).one())).then(results => results.filter(r => r != null)));
     }
 
@@ -272,7 +268,6 @@ module.exports = class extends Model {
       return assignValue(field, doc, prop, resolver.match(fieldModel).merge({ where }).one());
     }
 
-    console.log(prop, $value);
     return assignValue(field, doc, prop, resolver.match(fieldModel).id($value).one({ required: field.isRequired() }));
   }
 };

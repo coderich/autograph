@@ -35,13 +35,16 @@ module.exports = class MongoDriver {
   }
 
   findMany(query) {
-    const id = `${++counter}findMany`;
-    console.time(id);
-    const { model, options, flags } = query;
-    console.log(query.where);
-    return this.query(model, 'aggregate', MongoDriver.facetQuery(query), options, flags).then(cursor => cursor.next()).then((facet) => {
-      console.timeEnd(id);
-      return facet.docs;
+    // const id = `${++counter}findMany`;
+    // console.time(id);
+    const { model, options, last, flags } = query;
+    // console.log(query.where);
+    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), options, flags).then((cursor) => {
+      return cursor.toArray().then((results) => {
+        // console.timeEnd(id);
+        if (last) return results.splice(-last);
+        return results;
+      });
     });
   }
 
@@ -147,56 +150,25 @@ module.exports = class MongoDriver {
     }, {});
   }
 
-  static facetQuery(query) {
+  static aggregateQuery(query) {
     const { where: $match, sort, skip, limit } = query;
-    const $facet = { docs: [{ $match }] };
-    const $aggregate = [{ $facet }];
+    const $aggregate = [{ $match }];
 
     // Used for $regex matching
     const $addFields = MongoDriver.getAddFields(query);
-    if (Object.keys($addFields).length) $facet.docs.unshift({ $addFields });
+    if (Object.keys($addFields).length) $aggregate.unshift({ $addFields });
 
     // Sort, Skip, Limit documents
-    if (sort && Object.keys(sort).length) $facet.docs.push({ $sort: Object.assign(sort, { _id: -1 }) });
-    if (skip) $facet.docs.push({ $skip: skip });
-    if (limit) $facet.docs.push({ $limit: limit });
+    if (sort && Object.keys(sort).length) $aggregate.push({ $sort: Object.assign(sort, { _id: -1 }) });
+    if (skip) $aggregate.push({ $skip: skip });
+    if (limit) $aggregate.push({ $limit: limit });
 
+    // Pagination
     const { after, before, first, last } = query;
-
-    if (after) {
-      $aggregate.push({
-        $project: {
-          docs: {
-            $filter: {
-              input: '$docs',
-              as: 'doc',
-              cond: {
-                $or: Object.entries(after).reduce((prev, [key, value]) => prev.concat({ $gt: [`$$doc.${key}`, value] }), []),
-              },
-            },
-          },
-        },
-      });
-    }
-
-    if (before) {
-      $aggregate.push({
-        $project: {
-          docs: {
-            $filter: {
-              input: '$docs',
-              as: 'doc',
-              cond: {
-                $or: Object.entries(before).reduce((prev, [key, value]) => prev.concat({ $lt: [`$$doc.${key}`, value] }), []),
-              },
-            },
-          },
-        },
-      });
-    }
-
-    if (first) $aggregate.push({ $project: { docs: { $slice: ['$docs', 0, first] } } });
-    if (last) $aggregate.push({ $project: { docs: { $slice: ['$docs', -last] } } });
+    if (after) $aggregate.push({ $match: { $or: Object.entries(after).reduce((prev, [key, value]) => prev.concat({ [key]: { $gt: value } }), []) } });
+    if (before) $aggregate.push({ $match: { $or: Object.entries(before).reduce((prev, [key, value]) => prev.concat({ [key]: { $lt: value } }), []) } });
+    if (first) $aggregate.push({ $limit: first });
+    // if (last) $aggregate.push({ $project: { docs: { $slice: ['$docs', -last] } } });
 
     return $aggregate;
   }
