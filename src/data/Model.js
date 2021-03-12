@@ -5,12 +5,15 @@ const RuleService = require('../service/rule.service');
 const { map, ensureArray, stripObjectUndefineds } = require('../service/app.service');
 
 const assignValue = (field, doc, prop, value) => {
-  return Promise.resolve(value).then(($value) => {
+  const $promise = Promise.resolve(value).then(($value) => {
     return field.resolve($value).then(($$value) => {
       Object.defineProperty(doc, prop, { value: $$value, writable: true });
       return $$value;
     });
   });
+
+  doc[prop] = $promise;
+  return $promise;
 };
 
 module.exports = class extends Model {
