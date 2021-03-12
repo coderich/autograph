@@ -143,3 +143,20 @@ QueryPlan {
     },
   ],
 }
+
+const pipeline = {
+  query: {
+    resolve: {
+      prepare: {
+        select,
+        where,
+        input,
+        sort,
+      },
+      execute: {
+        driver,
+        hydrate,
+      },
+    },
+  },
+};
