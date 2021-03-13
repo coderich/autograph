@@ -152,6 +152,9 @@ module.exports = class extends Model {
     });
   }
 
+  /**
+   * From Domain Model to Data Model
+   */
   serialize(data) {
     return map(data, (obj) => {
       if (obj == null) return obj;
@@ -166,6 +169,9 @@ module.exports = class extends Model {
     });
   }
 
+  /**
+   * From Data Model to Domain Model
+   */
   deserialize(data) {
     return map(data, (obj) => {
       if (obj == null) return obj;
@@ -180,21 +186,27 @@ module.exports = class extends Model {
     });
   }
 
-  transform(data, mapper) {
+  /**
+   * Apply user-defined transformations to the data
+   */
+  transform(data) {
     return map(data, (obj) => {
       if (obj == null) return obj;
 
       return Object.entries(obj).reduce((prev, [key, value]) => {
         const field = this.getField(key);
         if (!field) return prev;
-        return Object.assign(prev, { [field]: field.transform(value, mapper) });
+        return Object.assign(prev, { [field]: field.transform(value) });
       }, obj); // Keep $hydrated props
     });
   }
 
+  /**
+   * Validate the data
+   */
   validate(data, mapper) {
     // Validate does an explicit transform first
-    const transformed = this.transform(data, mapper);
+    const transformed = this.transform(data);
 
     // Enforce the rules
     return Promise.all(this.getFields().map((field) => {
