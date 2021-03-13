@@ -4,6 +4,13 @@ const { hashObject } = require('../service/app.service');
 module.exports = class DataLoader extends FBDataLoader {
   constructor() {
     return new FBDataLoader((queries) => {
+      // const queriesByModel = queries.reduce((prev, query) => {
+      //   const { model } = query.toObject();
+      //   prev[model] = (prev[model] || []).concat(query);
+      //   return prev;
+      // }, {});
+
+      // console.log(Object.keys(queriesByModel).map(m => `${m}`));
       // const methods = [...new Set(keys.map(k => k.method))];
 
       // if (keys.length > 10 && methods.length === 1 && methods[0] === 'get') {

@@ -70,6 +70,11 @@ module.exports = class Query {
     return this;
   }
 
+  fields(fields) {
+    this.props.select = fields;
+    return this;
+  }
+
   sort(sort) {
     if (this.props.id) throw new Error('Cannot mix sort() with id()');
     this.props.sort = sort;
@@ -127,7 +132,7 @@ module.exports = class Query {
     return this;
   }
 
-  merge({ select, where }) {
+  merge({ fields, select = fields, where }) {
     if (select) this.props.select = select;
     if (where) Object.assign(this.props.match, where);
     return this;

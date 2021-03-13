@@ -27,12 +27,7 @@ module.exports = class ServerResolver {
     this.count = ({ autograph }, model, args, info) => autograph.resolver.match(model).where(args.where).count();
 
     // Mutations
-    this.create = async ({ autograph }, model, { input, meta }, query) => {
-      // console.log(query.fields);
-      const doc = await autograph.resolver.match(model).meta(meta).save(unrollGuid(autograph, model, input));
-      // console.log(doc);
-      return doc;
-    };
+    this.create = ({ autograph }, model, { input, meta }, query) => autograph.resolver.match(model).meta(meta).save(unrollGuid(autograph, model, input));
     this.delete = ({ autograph }, model, { id: guid, meta }, query) => autograph.resolver.match(model).id(guidToId(autograph, guid)).select(query.fields).meta(meta).remove();
 
     this.update = ({ autograph }, model, args, query) => {
