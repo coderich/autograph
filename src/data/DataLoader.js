@@ -1,51 +1,56 @@
+const { flatten } = require('lodash');
 const FBDataLoader = require('dataloader');
 const { hashObject } = require('../service/app.service');
 
 module.exports = class DataLoader extends FBDataLoader {
   constructor() {
     return new FBDataLoader((queries) => {
-      // const queriesByModel = queries.reduce((prev, query) => {
-      //   const { model } = query.toObject();
-      //   prev[model] = (prev[model] || []).concat(query);
-      //   return prev;
-      // }, {});
-
-      // console.log(Object.keys(queriesByModel).map(m => `${m}`));
-      // const methods = [...new Set(keys.map(k => k.method))];
-
-      // if (keys.length > 10 && methods.length === 1 && methods[0] === 'get') {
-      //   const hashKey = ({ model, query, args }) => hashObject({ model: `${model}`, where: query.getWhere(), args });
-
-      //   const batches = keys.reduce((prev, key) => {
-      //     const hash = hashKey(key);
-      //     prev[hash] = prev[hash] || [];
-      //     prev[hash].push(key);
-      //     return prev;
-      //   }, {});
-
-      //   return Promise.all(Object.values(batches).map((batch, i) => {
-      //     const [{ query, model, args }] = batch; // First is ok, they should all be the same
-      //     const ids = batch.map(key => key.query.getId());
-      //     const where = Object.assign(query.getWhere(), { id: ids });
-
-      //     return this.worker.find(new Query(this, model, { where }), ...args).then((results) => {
-      //       return ids.map((id) => {
-      //         return { key: batch.find(b => `${b.query.getId()}` === `${id}`), value: results.find(r => `${r.id}` === `${id}`) };
-      //       });
-      //     });
-      //   })).then((results) => {
-      //     const data = flatten(results);
-
-      //     return keys.map((key) => {
-      //       return data.find(d => d.key === key).value;
-      //     });
-      //   });
-      // }
-
-      return Promise.all(queries.map((query) => {
+      const queriesByModel = queries.reduce((prev, query, i) => {
+        const toDriver = query.toDriver();
         const { model } = query.toObject();
-        return model.getDriver().resolve(query.toDriver());
-      }));
+        const key = model.idKey();
+        prev[model] = (prev[model] || { model, key, get: {}, find: [] });
+        toDriver.$index = i;
+
+        if (Object.prototype.hasOwnProperty.call(toDriver.where, key)) {
+          const { [key]: id, ...rest } = toDriver.where;
+          const hash = hashObject(rest);
+          prev[model].get[hash] = prev[model].get[hash] || [];
+          prev[model].get[hash].push(toDriver);
+          return prev;
+        }
+
+        prev[model].find.push(toDriver);
+        return prev;
+      }, {});
+
+      return new Promise((resolve, reject) => {
+        const results = [];
+
+        Promise.all(Object.values(queriesByModel).map(({ model, key, get, find }) => {
+          return Promise.all(flatten([
+            ...find.map(q => model.getDriver().resolve(q)),
+            ...Object.values(get).map(set => set.map(q => model.getDriver().resolve(q))),
+          ]));
+        })).then((resultsByModel) => {
+          resultsByModel.forEach((modelResults, i) => {
+            const { get, find } = Object.values(queriesByModel)[i];
+
+            modelResults.splice(0, find.length).forEach((result, j) => (results[find[j].$index] = result));
+
+            Object.values(get).forEach((set) => {
+              modelResults.splice(0, set.length).forEach((result, j) => (results[set[j].$index] = result));
+            });
+
+            resolve(results);
+          });
+        });
+      });
+
+      // return Promise.all(queries.map((query) => {
+      //   const { model } = query.toObject();
+      //   return model.getDriver().resolve(query.toDriver());
+      // }));
     }, {
       cache: false,
       cacheKeyFn: query => hashObject(query.getCacheKey()),

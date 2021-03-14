@@ -1,4 +1,5 @@
 Release TODOs:
+  * You're making uneccessary calls! _id === null so short-circuit this
   * Abilty to TRACE query through stages (console.log + console.time)
   * Finalize data pipeline methods (normalize, serialize, deserialize, defaults, etc)
   * Try/Catch (model.deserialize) ????

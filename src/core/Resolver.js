@@ -69,6 +69,9 @@ module.exports = class Resolver {
         });
       }
       default: {
+        const key = model.idKey();
+        const { where } = query.toDriver();
+        if (Object.prototype.hasOwnProperty.call(where, key) && where[key] == null) return Promise.resolve(null);
         return this.loader.load(query);
       }
     }
