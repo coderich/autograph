@@ -6,8 +6,8 @@ module.exports = class QueryResult {
   constructor(query, data) {
     const { model, resolver, select = {}, sort } = query.toObject();
 
-    // Select fields
-    const selectFields = Object.keys(select).map(f => model.getField(f).getKey()).concat('id').concat(model.idKey());
+    // // Select fields
+    // const selectFields = Object.keys(select).map(f => model.getField(f).getKey()).concat('id').concat(model.idKey());
 
     const results = map(data, (doc) => {
       // // Delete fields not selected (you do not want to deserialize everything)
