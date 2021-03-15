@@ -1,5 +1,6 @@
 const { flatten } = require('lodash');
 const FBDataLoader = require('dataloader');
+const ResultSet = require('./ResultSet');
 const { hashObject } = require('../service/app.service');
 
 let counter = 0;
@@ -67,10 +68,12 @@ module.exports = class DataLoader extends FBDataLoader {
 
       return Promise.all(queries.map((query) => {
         const { model } = query.toObject();
-        return model.getDriver().resolve(query.toDriver());
+        return model.getDriver().resolve(query.toDriver()).then(data => (typeof data === 'object' ? new ResultSet(data) : data));
       })).then((results) => {
-        // console.timeEnd(timeID);
         return results;
+        // return new ResultSet(results);
+        // console.timeEnd(timeID);
+        // return results.map((result, i) => new ResultSet(result));
       });
     }, {
       // cache: false,
