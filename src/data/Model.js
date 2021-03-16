@@ -178,14 +178,15 @@ module.exports = class extends Model {
    * Apply user-defined transformations to the data
    */
   transform(data) {
-    return map(data, (obj) => {
-      if (obj == null) return obj;
+    return map(data, (doc) => {
+      if (doc == null) return doc;
 
-      return Object.entries(obj).reduce((prev, [key, value]) => {
+      Object.entries(doc).forEach(([key, value]) => {
         const field = this.getField(key);
-        if (!field) return prev;
-        return Object.assign(prev, { [field]: field.transform(value) });
-      }, obj); // Keep $hydrated props
+        if (field) doc[field] = field.transform(value);
+      });
+
+      return doc;
     });
   }
 

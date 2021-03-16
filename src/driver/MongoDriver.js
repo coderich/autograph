@@ -48,8 +48,7 @@ module.exports = class MongoDriver {
   }
 
   createOne({ model, input, options, flags }) {
-    return this.query(model, 'insertOne', input, options, flags).then(result => Object.assign(input, { id: result.insertedId }));
-    // return this.query(model, 'insertOne', input, options, flags).then(result => result.insertedId);
+    return this.query(model, 'insertOne', input, options, flags).then(result => Object.assign(input, { _id: result.insertedId }));
   }
 
   updateOne({ model, where, $doc, options, flags }) {

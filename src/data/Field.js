@@ -1,6 +1,5 @@
 const _ = require('lodash');
 const Type = require('./Type');
-const Memoizer = require('./Memoizer');
 const Field = require('../graphql/ast/Field');
 const Rule = require('../core/Rule');
 const Transformer = require('../core/Transformer');
@@ -11,7 +10,8 @@ module.exports = class extends Field {
     super(model, JSON.parse(JSON.stringify((field.getAST()))));
     this.type = new Type(field);
     this.model = model;
-    return new Memoizer(this, ['getName', 'getKey', 'isEmbedded', 'isVirtual', 'getModelRef']);
+    this.allSerializers = [...this.getTransformers(), ...this.getSerializers()];
+    this.allDeserializers = [...this.getTransformers(), ...this.getDeserializers()];
   }
 
   // CRUD
@@ -104,8 +104,25 @@ module.exports = class extends Field {
     return this.transform(value, mapper, false, true);
   }
 
+  // serialize(value) {
+  //   const modelRef = this.getModelRef();
+  //   const serializers = [...this.getTransformers(), ...this.getSerializers()];
+  //   if (modelRef) {
+  //     serializers.push(Transformer.serialize());
+  //     if (!this.isEmbedded()) serializers.push(Transformer.toId());
+  //   }
+  //   return this.applyTransformers(serializers, value);
+  // }
+
+  // deserialize(value) {
+  //   const modelRef = this.getModelRef();
+  //   const transformed = this.applyTransformers(this.allDeserializers, value);
+  //   return modelRef ? modelRef.transform(transformed) : transformed;
+  //   // if ((modelRef && !modelRef.isEntity()) && isPlainObject(ensureArray(value)[0])) return modelRef.transform(transformed); // delegate
+  //   // return transformed;
+  // }
+
   resolve(value) {
-    // console.log(this.getName(), 'resolve', value);
     const resolvers = [...this.getResolvers()];
 
     return promiseChain(resolvers.map(resolver => (chain) => {
@@ -148,7 +165,7 @@ module.exports = class extends Field {
     return this.applyTransformers(transformers, value, mapper);
   }
 
-  applyTransformers(transformers, value, mapper, cast = true) {
+  applyTransformers(transformers, value, mapper = {}, cast = true) {
     return transformers.reduce((prev, transformer) => {
       const cmp = mapper[transformer.method];
       return transformer(this, prev, cmp);

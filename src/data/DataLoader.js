@@ -7,14 +7,14 @@ let counter = 0;
 module.exports = class DataLoader extends FBDataLoader {
   constructor() {
     return new FBDataLoader((queries) => {
-      const timeID = `${++counter}Loader`;
+      const timeID = `${++counter}DataLoader`;
       console.time(timeID);
 
       // const queriesByModel = queries.reduce((prev, query, i) => {
       //   const toDriver = query.toDriver();
       //   const { model, method } = query.toObject();
       //   const key = model.idKey();
-      //   prev[model] = (prev[model] || { model, key, get: {}, find: [] });
+      //   prev[model] = (prev[model] || { query, model, key, get: {}, find: [] });
       //   toDriver.$index = i;
 
       //   if (method === 'findOne' && Object.prototype.hasOwnProperty.call(toDriver.where, key) && !Array.isArray(toDriver.where[key])) {
@@ -32,16 +32,16 @@ module.exports = class DataLoader extends FBDataLoader {
       // return new Promise((resolve, reject) => {
       //   const results = [];
 
-      //   Promise.all(Object.values(queriesByModel).map(({ model, key, get, find }) => {
+      //   Promise.all(Object.values(queriesByModel).map(({ query, model, key, get, find }) => {
       //     return Promise.all(flatten([
       //       ...find.map(q => model.getDriver().resolve(q)),
-      //       // ...Object.values(get).map(set => set.map(q => model.getDriver().resolve(q))),
       //       ...Object.values(get).map((set) => {
       //         const ids = [...new Set(set.map(({ where }) => where[key]))];
       //         const toDriver = { ...set[0] };
       //         toDriver.method = 'findMany';
       //         toDriver.where[key] = ids;
-      //         return model.getDriver().resolve(toDriver);
+      //         return model.getDriver().resolve(toDriver).then(data => (typeof data === 'object' ? new ResultSet(query, data) : data));
+      //         // return model.getDriver().resolve(toDriver);
       //       }),
       //     ]));
       //   })).then((resultsByModel) => {
@@ -61,7 +61,7 @@ module.exports = class DataLoader extends FBDataLoader {
       //         // modelResults.splice(0, set.length).forEach((result, j) => (results[set[j].$index] = result));
       //       });
 
-      //       resolve(results);
+      //       return results;
       //     });
       //   });
       // });
@@ -70,7 +70,7 @@ module.exports = class DataLoader extends FBDataLoader {
         const { model } = query.toObject();
         return model.getDriver().resolve(query.toDriver()).then(data => (typeof data === 'object' ? new ResultSet(query, data) : data));
       })).then((results) => {
-        // console.timeEnd(timeID);
+        console.timeEnd(timeID);
         return results;
       });
     }, {
