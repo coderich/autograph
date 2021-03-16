@@ -1,43 +1,41 @@
+const setup = require('../setup');
+const Query = require('../../src/query/Query');
 const ResultSet = require('../../src/data/ResultSet');
+const { ucFirst } = require('../../src/service/app.service');
+
+let query;
 
 const data = Array.from(new Array(2000)).map((el, i) => ({
-  age: `age${i}`,
+  my_age: `my_age${i}`,
   name: `name${i}`,
-  nickname: `nickname${i}`,
-  title: `title${i}`,
-  description: `description${i}`,
+  state: `state${i}`,
+  telephone: `telephone${i}`,
 }));
 
-const schema = {
-  age: {
-    key: 'age',
-  },
-  name: {
-    key: 'name',
-  },
-  nick: {
-    key: 'nickname',
-  },
-  title: {
-    key: 'title',
-  },
-  description: {
-    key: 'description',
-  },
-};
-
 describe('ResultSet', () => {
+  beforeAll(async () => {
+    // Setup
+    const { schema, resolver } = await setup();
+    const model = schema.getModel('Person');
+    query = new Query({ resolver, model });
+  });
+
   test('speed test', () => {
     let start = new Date().getTime();
-    const t1 = data.map(({ age, name, nickname, title, description }) => ({ age, name, nickname, title, description }));
+    const t1 = data.map(({ my_age: age, name, state, telephone }) => ({ age, name: ucFirst(name), state, telephone }));
     let stop = new Date().getTime();
     console.log(stop - start);
 
     start = new Date().getTime();
-    const RS = new ResultSet(data, schema);
-    const t2 = RS.map(({ age, name, nick, title, description }) => ({ age, name, nickname: nick, title, description }));
+    const RS = new ResultSet(query, data);
+    const t2 = RS.map(({ age, name, status, telephone }) => ({ age, name, state: status, telephone }));
     stop = new Date().getTime();
     console.log(stop - start);
     expect(t1).toMatchObject(t2);
+  });
+
+  test('Object keys', () => {
+    const RS = new ResultSet(query, data);
+    console.log(Object.keys(RS[0]));
   });
 });

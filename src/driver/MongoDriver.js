@@ -19,7 +19,7 @@ module.exports = class MongoDriver {
   }
 
   query(collection, method, ...args) {
-    if (has(args[args.length - 1], 'debug')) console.log(method, JSON.stringify(args));
+    if (has(args[args.length - 1], 'debug')) console.log(collection, method, JSON.stringify(args));
     return this.raw(collection)[method](...args);
   }
 
@@ -48,7 +48,8 @@ module.exports = class MongoDriver {
   }
 
   createOne({ model, input, options, flags }) {
-    return this.query(model, 'insertOne', input, options, flags).then(result => result.insertedId);
+    return this.query(model, 'insertOne', input, options, flags).then(result => Object.assign(input, { id: result.insertedId }));
+    // return this.query(model, 'insertOne', input, options, flags).then(result => result.insertedId);
   }
 
   updateOne({ model, where, $doc, options, flags }) {
@@ -57,7 +58,7 @@ module.exports = class MongoDriver {
       return prev;
     }, { $set: {} });
 
-    return this.query(model, 'updateOne', where, $update, options, flags);
+    return this.query(model, 'updateOne', where, $update, options, flags).then(() => $doc);
   }
 
   deleteOne({ model, where, options, flags }) {
@@ -135,7 +136,7 @@ module.exports = class MongoDriver {
   static getAddFields(query) {
     const { schema, where } = query;
 
-    return Object.entries(schema).reduce((prev, [key, type]) => {
+    return Object.entries(schema).reduce((prev, [key, { type }]) => {
       const value = where[key];
       if (value === undefined) return prev;
       if (!isScalarDataType(type)) return false;

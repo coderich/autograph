@@ -1,7 +1,6 @@
 const { isEmpty } = require('lodash');
 const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
-const QueryResult = require('./QueryResult');
 const { mapPromise, ucFirst, mergeDeep, removeUndefinedDeep } = require('../service/app.service');
 
 module.exports = class QueryResolver {
@@ -25,7 +24,7 @@ module.exports = class QueryResolver {
   async createOne(query) {
     const { model, input } = query.toObject();
     await model.validateData({ ...input }, {}, 'create');
-    return this.resolver.resolve(query).then(id => Object.assign(input, { id }));
+    return this.resolver.resolve(query);
   }
 
   createMany(query) {
@@ -41,7 +40,7 @@ module.exports = class QueryResolver {
     return this.resolver.match(model).where(match).one({ required: true }).then(async (doc) => {
       await model.validateData({ ...input }, doc, 'update');
       const $doc = model.serialize(mergeDeep(doc, removeUndefinedDeep(input)));
-      return this.resolver.resolve(query.doc(doc).$doc($doc)).then(() => $doc);
+      return this.resolver.resolve(query.doc(doc).$doc($doc));
     });
   }
 
@@ -147,6 +146,7 @@ module.exports = class QueryResolver {
       $where = await model.resolveBoundValues(match);
       $where = await QueryService.resolveWhereClause(clone.match($where));
       $where = model.normalize($where);
+      // if (model.getName() === 'Book') console.log($where);
       clone.match($where);
     }
 
@@ -177,12 +177,7 @@ module.exports = class QueryResolver {
       clone.timeEnd('driver');
       if (flags.required && (data == null || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
       if (data == null) return null;
-      const result = typeof data === 'object' ? new QueryResult(this.query, data) : data;
-      clone.timeEnd('execute').timeEnd('resolve').timeEnd('query');
-      // clone.timeReport();
-      // console.log(result);
-      // console.log('-------------');
-      return result;
+      return data;
     });
   }
 };

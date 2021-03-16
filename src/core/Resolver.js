@@ -1,5 +1,6 @@
 const Rule = require('./Rule');
 const Model = require('../data/Model');
+const ResultSet = require('../data/ResultSet');
 const DataLoader = require('../data/DataLoader');
 const DataTransaction = require('../data/DataTransaction');
 const QueryBuilder = require('../query/QueryBuilder');
@@ -65,7 +66,7 @@ module.exports = class Resolver {
       case 'create': case 'update': case 'delete': {
         return model.getDriver().resolve(query.toDriver()).then((data) => {
           this.clearAll();
-          return data;
+          return new ResultSet(query, data);
         });
       }
       default: {

@@ -68,12 +68,10 @@ module.exports = class DataLoader extends FBDataLoader {
 
       return Promise.all(queries.map((query) => {
         const { model } = query.toObject();
-        return model.getDriver().resolve(query.toDriver()).then(data => (typeof data === 'object' ? new ResultSet(data) : data));
+        return model.getDriver().resolve(query.toDriver()).then(data => (typeof data === 'object' ? new ResultSet(query, data) : data));
       })).then((results) => {
-        return results;
-        // return new ResultSet(results);
         // console.timeEnd(timeID);
-        // return results.map((result, i) => new ResultSet(result));
+        return results;
       });
     }, {
       // cache: false,

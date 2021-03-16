@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const Type = require('./Type');
+const Memoizer = require('./Memoizer');
 const Field = require('../graphql/ast/Field');
 const Rule = require('../core/Rule');
 const Transformer = require('../core/Transformer');
@@ -10,6 +11,7 @@ module.exports = class extends Field {
     super(model, JSON.parse(JSON.stringify((field.getAST()))));
     this.type = new Type(field);
     this.model = model;
+    return new Memoizer(this, ['getName', 'getKey', 'isEmbedded', 'isVirtual', 'getModelRef']);
   }
 
   // CRUD
@@ -103,6 +105,7 @@ module.exports = class extends Field {
   }
 
   resolve(value) {
+    // console.log(this.getName(), 'resolve', value);
     const resolvers = [...this.getResolvers()];
 
     return promiseChain(resolvers.map(resolver => (chain) => {
