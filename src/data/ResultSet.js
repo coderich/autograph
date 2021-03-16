@@ -1,5 +1,5 @@
 const { get } = require('lodash');
-const { map, keyPaths, ensureArray, toGUID } = require('../service/app.service');
+const { map, mapPromise, keyPaths, ensureArray, toGUID } = require('../service/app.service');
 
 module.exports = class ResultSet {
   constructor(query, data) {
@@ -64,7 +64,7 @@ module.exports = class ResultSet {
                   return resolver.match(fieldModel).id(value).one({ required: field.isRequired() });
                 })().then((results) => {
                   if (results == null) return field.resolve(results); // Allow field to determine
-                  return map(results, result => field.resolve(result));
+                  return mapPromise(results, result => field.resolve(result));
                 }).then((resolved) => {
                   resolve(resolved);
                 }).catch((e) => {
