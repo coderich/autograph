@@ -1,4 +1,4 @@
-const { flatten } = require('lodash');
+// const { flatten } = require('lodash');
 const FBDataLoader = require('dataloader');
 const ResultSet = require('./ResultSet');
 const { hashObject } = require('../service/app.service');

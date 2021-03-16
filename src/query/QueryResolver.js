@@ -146,7 +146,6 @@ module.exports = class QueryResolver {
       $where = await model.resolveBoundValues(match);
       $where = await QueryService.resolveWhereClause(clone.match($where));
       $where = model.normalize($where);
-      // if (model.getName() === 'Book') console.log($where);
       clone.match($where);
     }
 
@@ -176,7 +175,7 @@ module.exports = class QueryResolver {
     return this[method](clone).then((data) => {
       clone.timeEnd('driver');
       if (flags.required && (data == null || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
-      if (data == null) return null;
+      if (data == null) return null; // Explicitly return null here
       return data;
     });
   }

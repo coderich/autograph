@@ -160,11 +160,10 @@ module.exports = class MongoDriver {
     if (limit) $aggregate.push({ $limit: limit });
 
     // Pagination
-    const { after, before, first, last } = query;
+    const { after, before, first } = query;
     if (after) $aggregate.push({ $match: { $or: Object.entries(after).reduce((prev, [key, value]) => prev.concat({ [key]: { $gt: value } }), []) } });
     if (before) $aggregate.push({ $match: { $or: Object.entries(before).reduce((prev, [key, value]) => prev.concat({ [key]: { $lt: value } }), []) } });
     if (first) $aggregate.push({ $limit: first });
-    // if (last) $aggregate.push({ $project: { docs: { $slice: ['$docs', -last] } } });
 
     return $aggregate;
   }
