@@ -1,7 +1,7 @@
 {
   "name": "@coderich/autograph",
   "author": "Richard Livolsi (coderich)",
-  "version": "0.7.0",
+  "version": "0.7.1",
   "description": "AutoGraph",
   "keywords": [
     "graphql",
@@ -52,12 +52,6 @@
     "neodb": "^3.0.0",
     "redis": "^2.8.0",
     "redis-mock": "^0.47.0"
-  },
-  "peerDependencies": {
-    "graphql": ">= 14.6",
-    "mongodb": ">= 3.5",
-    "neo4j-driver": ">= 4.0",
-    "redis": ">= 2.8"
   },
   "repository": {
     "type": "git",
