@@ -1,13 +1,13 @@
-const _ = require('lodash');
 const GraphqlFields = require('graphql-fields');
 const Boom = require('./Boom');
 const { unrollGuid, guidToId, ensureArray, promiseChain } = require('../service/app.service');
 
 const normalizeQuery = (args = {}, info) => {
   const query = { fields: GraphqlFields(info, {}, { processArguments: true }), ...args };
-  const { fields = {} } = query;
-  const { first, last, before, after } = args;
-  return Object.assign(query, { pagination: { first, last, before, after }, fields: _.get(fields, 'edges.node') });
+  return query;
+  // const { fields = {} } = query;
+  // const { first, last, before, after } = args;
+  // return Object.assign(query, { pagination: { first, last, before, after }, fields: _.get(fields, 'edges.node') });
 };
 
 module.exports = class ServerResolver {

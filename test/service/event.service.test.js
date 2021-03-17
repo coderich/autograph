@@ -9,7 +9,7 @@ const stores = require('../stores');
 const schema = new Schema({ typeDefs: gql }, stores);
 const resolver = new Resolver(schema);
 const model = schema.getModel('Person');
-const query = new Query(model);
+const query = new Query({ model });
 
 describe('EventService', () => {
   test('createSystemEvent', async (done) => {

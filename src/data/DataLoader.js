@@ -7,7 +7,7 @@ let counter = 0;
 module.exports = class DataLoader extends FBDataLoader {
   constructor() {
     return new FBDataLoader((queries) => {
-      const timeID = `${++counter}DataLoader`;
+      const timeID = `${++counter}DataLoader(${queries.length})[${new Date().getTime()}]`;
       console.time(timeID);
 
       // const queriesByModel = queries.reduce((prev, query, i) => {
@@ -71,10 +71,12 @@ module.exports = class DataLoader extends FBDataLoader {
         return model.getDriver().resolve(query.toDriver()).then(data => (typeof data === 'object' ? new ResultSet(query, data) : data));
       })).then((results) => {
         console.timeEnd(timeID);
+        console.log(new Date().getTime());
         return results;
       });
     }, {
       // cache: false,
+      // maxBatchSize: 50,
       cacheKeyFn: query => hashObject(query.getCacheKey()),
     });
   }

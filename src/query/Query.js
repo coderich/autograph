@@ -3,10 +3,11 @@ const { clone } = require('lodash');
 let count = 0;
 
 module.exports = class Query {
-  constructor(props) {
+  constructor(props = {}) {
+    this.props = {};
     this.timers = {};
     this.queryId = `query${++count}`;
-    this.props = props || {};
+    this.merge(props);
     this.props.match = this.props.match || {};
     this.props.options = this.props.options || {};
   }
@@ -81,6 +82,10 @@ module.exports = class Query {
     return this;
   }
 
+  sortBy(sort) {
+    return this.sort(sort);
+  }
+
   skip(skip) {
     if (this.props.id) throw new Error('Cannot mix skip() with id()');
     this.props.skip = skip;
@@ -132,9 +137,17 @@ module.exports = class Query {
     return this;
   }
 
-  merge({ fields, select = fields, where }) {
-    if (select) this.props.select = select;
-    if (where) Object.assign(this.props.match, where);
+  merge(query) {
+    Object.entries(query).forEach(([key, value]) => {
+      try {
+        this[key](value);
+      } catch (e) {
+        console.log(key, e.message);
+      }
+    });
+    // Object.assign(this.props, query);
+    // if (select) this.props.select = select;
+    // if (where) Object.assign(this.props.match, where);
     return this;
   }
 
@@ -209,7 +222,7 @@ module.exports = class Query {
   }
 
   clone() {
-    return new Query(clone({ ...this.props }));
+    return new Query({ ...this.props });
   }
 
   toDriver() {
@@ -239,7 +252,7 @@ module.exports = class Query {
     return {
       ...this.props,
       isNative: Boolean(this.props.native),
-      schema: Query.getSchema(this.props.model, true),
+      // schema: Query.getSchema(this.props.model, true),
     };
   }
 

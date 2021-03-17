@@ -23,6 +23,7 @@
     "test": "APP_ROOT_PATH=$(pwd) ratchet test",
     "test:debug": "APP_ROOT_PATH=$(pwd) node --inspect-brk ./node_modules/jest/bin/jest.js --watch --runInBand",
     "lint": "APP_ROOT_PATH=$(pwd) ratchet lint",
+    "inspect": "APP_ROOT_PATH=$(pwd) node --expose-gc --inspect=9222 ./src/server",
     "ratchet": "ratchet"
   },
   "dependencies": {

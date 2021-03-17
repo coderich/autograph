@@ -1,7 +1,5 @@
 const { get } = require('lodash');
-const { map, mapPromise, keyPaths, ensureArray, toGUID } = require('../service/app.service');
-
-let counter = 0;
+const { map, mapPromise, keyPaths, toGUID } = require('../service/app.service');
 
 module.exports = class ResultSet {
   constructor(query, data) {
@@ -13,7 +11,7 @@ module.exports = class ResultSet {
       return Object.defineProperties(
         {},
 
-        model.getFields().reduce((prev, field) => {
+        model.getFields().filter(f => f.getName() !== 'id').reduce((prev, field) => {
           const cache = new Map();
           const name = field.getName();
 
@@ -60,7 +58,6 @@ module.exports = class ResultSet {
 
                     // Not a "required" query + strip out nulls
                     return resolver.match(fieldModel).where({ id: value }).many();
-                    // return Promise.all(ensureArray(value).map(id => resolver.match(fieldModel).id(id).one())).then(results => results.filter(r => r != null));
                   }
 
                   if (field.isVirtual()) {
