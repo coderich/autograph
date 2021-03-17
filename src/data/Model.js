@@ -158,23 +158,6 @@ module.exports = class extends Model {
   }
 
   /**
-   * From Data Model to Domain Model
-   */
-  deserialize(data) {
-    return map(data, (obj) => {
-      if (obj == null) return obj;
-
-      return Object.entries(obj).reduce((prev, [key, value]) => {
-        const field = this.getFieldByKey(key) || this.getFieldByName(key);
-        if (!field) return prev;
-        value = field.deserialize(value);
-        if (!field.getDeserialize() && field.isEmbedded()) value = field.getModelRef().deserialize(value);
-        return Object.assign(prev, { [field.getName()]: value });
-      }, {});
-    });
-  }
-
-  /**
    * Apply user-defined transformations to the data
    */
   transform(data) {

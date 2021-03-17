@@ -70,8 +70,8 @@ module.exports = class DataLoader extends FBDataLoader {
         const { model } = query.toObject();
         return model.getDriver().resolve(query.toDriver()).then(data => (typeof data === 'object' ? new ResultSet(query, data) : data));
       })).then((results) => {
-        console.timeEnd(timeID);
-        console.log(new Date().getTime());
+        // console.timeEnd(timeID);
+        // console.log(new Date().getTime());
         return results;
       });
     }, {

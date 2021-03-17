@@ -1,5 +1,3 @@
-const { clone } = require('lodash');
-
 let count = 0;
 
 module.exports = class Query {
@@ -284,7 +282,7 @@ module.exports = class Query {
           alias: name ? field.getKey() : field.getName(),
           type: field.getDataType(),
           isArray: field.isArray(),
-          schema: isEmbedded ? Query.getSchema(modelRef, name) : null,
+          // schema: isEmbedded ? Query.getSchema(modelRef, name) : null,
         },
       });
     }, {});
