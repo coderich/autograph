@@ -164,13 +164,17 @@ describe('GraphQL', () => {
           },
         ],
       },
-      friends: {
-        edges: expect.objectContaining([
-          { node: { id: expect.anything(), name: 'Friend1', emailAddress: 'friend1@gmail.com' } },
-          { node: { id: expect.anything(), name: 'Friend2', emailAddress: 'friend2@gmail.com' } },
-          { node: { id: expect.anything(), name: 'Friend3', emailAddress: 'friend3@gmail.com' } },
-        ]),
-      },
+    });
+
+    // Need to sort friends to make sure it matches order
+    result.data.findPerson.edges[3].node.friends.edges = result.data.findPerson.edges[3].node.friends.edges.sort((a, b) => b.node.id - a.node.id);
+
+    expect(result.data.findPerson.edges[3].node.friends).toMatchObject({
+      edges: expect.objectContaining([
+        { node: { id: expect.anything(), name: 'Friend1', emailAddress: 'friend1@gmail.com' } },
+        { node: { id: expect.anything(), name: 'Friend2', emailAddress: 'friend2@gmail.com' } },
+        { node: { id: expect.anything(), name: 'Friend3', emailAddress: 'friend3@gmail.com' } },
+      ]),
     });
   });
 

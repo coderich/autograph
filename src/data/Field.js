@@ -140,7 +140,7 @@ module.exports = class extends Field {
     const modelRef = this.getModelRef();
     const isEmbedded = this.isEmbedded();
     if (isEmbedded) return modelRef.serialize(value);
-    if (modelRef && !isEmbedded) return map(value, v => modelRef.idValue(v.id || this.normalize(v)));
+    if (modelRef && !isEmbedded) return map(value, v => modelRef.idValue(v.id || v));
     return this.normalize(value);
   }
 

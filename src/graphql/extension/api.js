@@ -98,9 +98,7 @@ module.exports = (schema) => {
         return Object.assign(def, {
           [fieldName]: async (root) => {
             const $fieldName = root[`$${fieldName}`] && typeof root[`$${fieldName}`] !== 'function' ? `$${fieldName}` : fieldName; // only $hydrated when set and not a function (Mongoose has $magic functions!)
-            const $result = await root[$fieldName];
-            // if (fieldName === 'actionLinks') console.log($result);
-            return $result;
+            return root[$fieldName];
           },
         });
       }, {});
