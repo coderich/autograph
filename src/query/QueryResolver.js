@@ -1,7 +1,7 @@
 const { isEmpty } = require('lodash');
 const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
-const { mapPromise, ucFirst, mergeDeep, removeUndefinedDeep } = require('../service/app.service');
+const { mergeDeep, removeUndefinedDeep } = require('../service/app.service');
 
 module.exports = class QueryResolver {
   constructor(query) {
@@ -23,8 +23,8 @@ module.exports = class QueryResolver {
 
   async createOne(query) {
     const { model, input } = query.toObject();
-    await model.validateData({ ...input }, {}, 'create');
-    return this.resolver.resolve(query);
+    await model.validateData(input, {}, 'create');
+    return this.resolver.resolve(query.input(model.serialize(model.appendCreateFields(input))));
   }
 
   createMany(query) {
@@ -35,11 +35,11 @@ module.exports = class QueryResolver {
   }
 
   updateOne(query) {
-    const { model, input, match } = query.toObject();
+    const { model, input, match, flags } = query.toObject();
 
     return this.resolver.match(model).where(match).one({ required: true }).then(async (doc) => {
-      await model.validateData({ ...input }, doc, 'update');
-      const $doc = model.serialize(mergeDeep(doc, removeUndefinedDeep(input)));
+      await model.validateData(input, doc, 'update');
+      const $doc = model.serialize(mergeDeep(doc, model.appendUpdateFields(input)));
       return this.resolver.resolve(query.doc(doc).$doc($doc));
     });
   }
@@ -131,7 +131,7 @@ module.exports = class QueryResolver {
 
   async resolve() {
     const clone = this.query.clone();
-    const { model, crud, method, match, input, sort, flags, isNative } = clone.toObject();
+    const { model, method, match, sort, flags, isNative } = clone.toObject();
     // clone.time('query').time('resolve').time('prepare');
 
     // // Select fields
@@ -142,26 +142,12 @@ module.exports = class QueryResolver {
 
     // Where clause
     if (!isNative) {
-      let $where = removeUndefinedDeep(match);
-      $where = await model.resolveBoundValues(match);
-      $where = await QueryService.resolveWhereClause(clone.match($where));
-      $where = model.normalize($where);
-      clone.match($where);
-    }
-
-    // Input data
-    if (crud === 'create' || crud === 'update') {
-      const $input = await mapPromise(input, (obj) => {
-        return new Promise(async (resolve) => {
-          let result = removeUndefinedDeep(obj);
-          if (crud === 'create') result = await model.appendDefaultValues(result);
-          result = await model[`append${ucFirst(crud)}Fields`](result);
-          result = model.serialize(result); // This seems to be needed to accept Objects and convert them to ids; however this also makes .save(<empty>) throw an error and I think you should be able to save empty
-          resolve(result);
-        });
-      });
-
-      clone.input($input);
+      await QueryService.resolveWhereClause(clone.match(model.serialize(match)));
+      // let $where = removeUndefinedDeep(match);
+      // $where = await model.resolveBoundValues(match);
+      // $where = await QueryService.resolveWhereClause(clone.match($where));
+      // $where = model.normalize($where);
+      // clone.match($where);
     }
 
     if (sort) {
@@ -174,6 +160,7 @@ module.exports = class QueryResolver {
 
     return this[method](clone).then((data) => {
       // clone.timeEnd('driver');
+      if (flags.debug) console.log(Object.entries(data.building));
       if (flags.required && (data == null || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
       if (data == null) return null; // Explicitly return null here
       return data;

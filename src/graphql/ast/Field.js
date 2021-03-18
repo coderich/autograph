@@ -45,25 +45,19 @@ module.exports = class Field extends Node {
     return this.schema.getContext();
   }
 
-  resolveBoundValue(initialValue) {
-    if (!this.hasBoundValue()) return Promise.resolve(initialValue);
+  resolveBoundValue(initialValue = this.getDefaultValue()) {
+    if (!this.hasBoundValue()) return initialValue;
 
-    let promise;
-    const context = this.getContext();
-    const { scope, path, merge } = this.getDirectiveArgs('value');
+    const { scope, path } = this.getDirectiveArgs('value');
 
     switch (scope) {
       case 'context': {
+        const context = this.getContext();
         const value = get(context, path);
-        promise = (typeof value === 'function') ? Promise.resolve(value()) : Promise.resolve(value);
-        break;
+        return (typeof value === 'function') ? value() : value;
       }
-      default:
-        promise = path.split('.').map();
-        break;
+      default: return this[path];
     }
-
-    return promise.then(value => Promise.resolve(merge ? mergeDeep(initialValue, value) : value));
   }
 
   // Model Methods

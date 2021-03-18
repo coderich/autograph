@@ -3,7 +3,7 @@ const Type = require('./Type');
 const Field = require('../graphql/ast/Field');
 const Rule = require('../core/Rule');
 const Transformer = require('../core/Transformer');
-const { map, uvl, isPlainObject, ensureArray, promiseChain } = require('../service/app.service');
+const { uvl, isPlainObject, ensureArray, promiseChain } = require('../service/app.service');
 
 module.exports = class extends Field {
   constructor(model, field) {
@@ -96,6 +96,82 @@ module.exports = class extends Field {
     return resolvers.concat(this.type.getResolvers());
   }
 
+  // serialize(value, mapper) {
+  //   return this.transform(value, mapper, true);
+  // }
+
+  // deserialize(value, mapper) {
+  //   return this.transform(value, mapper, false, true);
+  // }
+
+  // serialize(value) {
+  //   const modelRef = this.getModelRef();
+  //   const serializers = [...this.getTransformers(), ...this.getSerializers()];
+  //   if (modelRef) {
+  //     serializers.push(Transformer.serialize());
+  //     if (!this.isEmbedded()) serializers.push(Transformer.toId());
+  //   }
+  //   return this.applyTransformers(serializers, value);
+  // }
+
+  // deserialize(value) {
+  //   const modelRef = this.getModelRef();
+  //   const transformed = this.applyTransformers(this.allDeserializers, value);
+  //   return modelRef ? modelRef.transform(transformed) : transformed;
+  //   // if ((modelRef && !modelRef.isEntity()) && isPlainObject(ensureArray(value)[0])) return modelRef.transform(transformed); // delegate
+  //   // return transformed;
+  // }
+
+  // resolve(value) {
+  //   const resolvers = [...this.getResolvers()];
+
+  //   return promiseChain(resolvers.map(resolver => (chain) => {
+  //     return Promise.resolve(resolver(this, uvl(chain.pop(), value)));
+  //   })).then((results) => {
+  //     return uvl(results.pop(), value);
+  //   });
+  // }
+
+  // normalize(value, mapper) {
+  //   mapper = mapper || {};
+  //   const modelRef = this.getModelRef();
+  //   const transformers = [...this.getTransformers()];
+
+  //   // If we're a modelRef field, need to either id(value) or delegate object to model
+  //   if (modelRef) {
+  //     if (!modelRef.isEntity() && isPlainObject(ensureArray(value)[0])) return modelRef.normalize(value, mapper); // delegate
+  //     if (!this.isEmbedded()) transformers.push(Transformer.toId());
+  //   }
+
+  //   // Perform transformation
+  //   return this.applyTransformers(transformers, value, mapper, !this.isEmbedded());
+  // }
+
+  // transform(value, mapper, serialize, deserialize) {
+  //   mapper = mapper || {};
+  //   const modelRef = this.getModelRef();
+  //   const transformers = [...this.getTransformers()];
+  //   if (serialize) transformers.push(...this.getSerializers());
+  //   if (deserialize) transformers.push(...this.getDeserializers());
+
+  //   // If we're a modelRef field, need to either id(value) or delegate object to model
+  //   if (modelRef) {
+  //     if ((!serialize || !modelRef.isEntity()) && isPlainObject(ensureArray(value)[0])) return modelRef.transform(this.applyTransformers(transformers, value, mapper), mapper); // delegate
+  //     if (serialize) transformers.push(Transformer.serialize()); // Serializer
+  //     if (!this.isEmbedded()) transformers.push(Transformer.toId());
+  //   }
+
+  //   // Perform transformation
+  //   return this.applyTransformers(transformers, value, mapper);
+  // }
+
+  // applyTransformers(transformers, value, mapper = {}, cast = true) {
+  //   return transformers.reduce((prev, transformer) => {
+  //     const cmp = mapper[transformer.method];
+  //     return transformer(this, prev, cmp);
+  //   }, cast ? this.cast(value) : value);
+  // }
+
   validate(value, mapper) {
     mapper = mapper || {};
     const modelRef = this.getModelRef();
@@ -110,45 +186,5 @@ module.exports = class extends Field {
       const cmp = mapper[rule.method];
       return rule(this, value, cmp);
     }));
-  }
-
-  normalize(value) {
-    // // If embedded; delegate
-    // if (this.isEmbedded()) {
-    //   const modelRef = this.getModelRef();
-
-    //   return map(value, (doc) => {
-    //     return Object.entries(doc).reduce((prev, [k, v]) => {
-    //       const field = modelRef.getField(k);
-    //       if (!field) return prev;
-    //       prev[k] = field.normalize(v);
-    //       return prev;
-    //     }, {});
-    //   });
-    // }
-
-    // Determine value
-    const $value = this.resolveBoundValue(value);
-
-    // Transform
-    return this.getTransformers().reduce((prev, transformer) => {
-      return transformer(this, prev);
-    }, this.cast($value));
-  }
-
-  serialize(value) {
-    const modelRef = this.getModelRef();
-    if (modelRef && !this.isEmbedded()) return map(value, v => modelRef.idValue(v.id || v));
-    return this.normalize(value);
-  }
-
-  resolve(value) {
-    const resolvers = [...this.getResolvers()];
-
-    return promiseChain(resolvers.map(resolver => (chain) => {
-      return Promise.resolve(resolver(this, this.cast(uvl(chain.pop()), value)));
-    })).then((results) => {
-      return uvl(this.cast(results.pop()), value);
-    });
   }
 };

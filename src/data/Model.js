@@ -27,10 +27,6 @@ module.exports = class extends Model {
     return this.getDirectiveArg('model', 'id', this.driver.idKey());
   }
 
-  normalizeOptions(options) {
-    options.fields = this.getPersistableFields().map(f => f.getKey());
-  }
-
   getDriver() {
     return this.driver.dao;
   }
@@ -48,7 +44,7 @@ module.exports = class extends Model {
     return this.referentials;
   }
 
-  async appendCreateFields(input, embed = false) {
+  appendCreateFields(input, embed = false) {
     const idKey = this.idKey();
 
     if (embed && idKey && !input[idKey]) input[idKey] = this.idValue();
@@ -56,137 +52,61 @@ module.exports = class extends Model {
     input.updatedAt = new Date();
 
     // Generate embedded default values
-    await Promise.all(this.getEmbeddedFields().filter(field => field.hasGQLScope('c')).map((field) => {
-      if (!input[field]) return Promise.resolve();
-      return Promise.all(ensureArray(map(input[field], v => field.getModelRef().appendCreateFields(v, true))));
-    }));
+    this.getEmbeddedFields().filter(field => field.hasGQLScope('c')).forEach((field) => {
+      if (input[field]) map(input[field], v => field.getModelRef().appendCreateFields(v, true));
+    });
 
     return input;
   }
 
-  async appendDefaultValues(input) {
-    input = await this.resolveDefaultValues(stripObjectUndefineds(input));
-
-    // Generate embedded default values
-    await Promise.all(this.getEmbeddedFields().filter(field => field.hasGQLScope('c')).map((field) => {
-      if (!input[field]) return Promise.resolve();
-      return Promise.all(ensureArray(map(input[field], v => field.getModelRef().appendDefaultValues(v))));
-    }));
-
-    return input;
-  }
-
-  async appendUpdateFields(input) {
+  appendUpdateFields(input) {
     input.updatedAt = new Date();
     input = this.removeBoundKeys(input);
     return input;
   }
 
-  getDefaultValues(data = {}) {
-    if (data === null) return null; // Explicitely being told to null out?
+  // /**
+  //  *
+  //  */
+  // normalize(data) {
+  //   const boundFields = this.getBoundValueFields();
 
-    const defaultedFields = this.getDefaultedFields();
-    const fieldNames = [...new Set(Object.keys(ensureArray(data)[0]).concat(defaultedFields.map(field => `${field}`)))];
+  //   return map(data, (doc) => {
+  //     const fields = [...new Set(boundFields.concat(Object.keys(doc).map(k => this.getField(k))))].filter(f => f);
 
-    return fieldNames.reduce((prev, fieldName) => {
-      const field = this.getFieldByName(fieldName);
-      if (fieldName !== '_id' && !field) return prev; // There can still be nonsense passed in via the DAO
-      let value = data[fieldName];
-      if (value === undefined) value = field.getDefaultValue();
-      if (fieldName !== '_id' && field.isEmbedded()) value = Array.isArray(value) ? value.map(v => field.getModelRef().getDefaultValues(v)) : field.getModelRef().getDefaultValues(value);
-      return Object.assign(prev, { [fieldName]: value });
-    }, {});
-  }
-
-  resolveDefaultValues(data) {
-    return this.resolveBoundValues(this.getDefaultValues(data));
-  }
-
-  resolveBoundValues(data) {
-    const boundFields = this.getBoundValueFields();
-
-    return Promise.all(ensureArray(data).map((obj) => {
-      return Promise.all(boundFields.map((boundField) => {
-        return boundField.resolveBoundValue(obj[boundField]);
-      })).then((values) => {
-        values.forEach((value, i) => { obj[boundFields[i]] = value; }); // Assign new value
-        return values;
-      });
-    })).then(() => {
-      return data;
-    });
-  }
-
-  removeBoundKeys(data) {
-    return map(data, obj => Object.entries(obj).reduce((prev, [key, value]) => {
-      const field = this.getFieldByName(key);
-      if (field && field.hasBoundValue()) return prev;
-      return Object.assign(prev, { [key]: value });
-    }, {}));
-  }
-
-  normalize(data, mapper) {
-    return map(data, (obj) => {
-      if (obj == null) return obj;
-
-      return Object.entries(obj).reduce((prev, [key, value]) => {
-        const field = this.getFieldByName(key) || this.getFieldByKey(key);
-        if (!field || !field.isPersistable()) return prev;
-        if (value === undefined) value = obj[field.getKey()];
-        value = field.normalize(value, mapper);
-        if (field.isEmbedded()) value = field.getModelRef().normalize(value, mapper);
-        return Object.assign(prev, { [field.getKey()]: value });
-      }, {}); // Strip away all props not in schema
-    });
-  }
+  //     return fields.reduce((prev, field) => {
+  //       prev[field.getName()] = field.normalize(doc[field.getKey()]);
+  //       return prev;
+  //     }, {});
+  //   });
+  // }
 
   /**
-   * From Domain Model to Data Model
+   * Going to the driver
    */
   serialize(data) {
-    return map(data, (obj) => {
-      if (obj == null) return obj;
+    const boundFields = this.getBoundValueFields();
 
-      return Object.entries(obj).reduce((prev, [key, value]) => {
-        const field = this.getFieldByName(key) || this.getFieldByKey(key);
-        if (!field || !field.isPersistable()) return prev;
-        value = field.serialize(value);
-        if (!field.getSerialize() && field.isEmbedded()) value = field.getModelRef().serialize(value);
-        return Object.assign(prev, { [field.getKey()]: value });
+    return map(data, (doc) => {
+      const fields = [...new Set(boundFields.concat(Object.keys(doc).map(k => this.getField(k))))].filter(f => f);
+
+      return fields.reduce((prev, field) => {
+        prev[field.getKey()] = field.serialize(doc[field.getName()]);
+        return prev;
       }, {});
     });
   }
 
   /**
-   * Apply user-defined transformations to the data
-   */
-  transform(data) {
-    return map(data, (doc) => {
-      if (doc == null) return doc;
-
-      Object.entries(doc).forEach(([key, value]) => {
-        const field = this.getField(key);
-        if (field) doc[field] = field.transform(value);
-      });
-
-      return doc;
-    });
-  }
-
-  /**
-   * Validate the data
+   * Enforce validation rules
    */
   validate(data, mapper) {
-    // Validate does an explicit transform first
-    const transformed = this.transform(data);
-
-    // Enforce the rules
     return Promise.all(this.getFields().map((field) => {
-      return Promise.all(ensureArray(map(transformed, (obj) => {
+      return Promise.all(ensureArray(map(data, (obj) => {
         if (obj == null) return Promise.resolve();
         return field.validate(obj[field.getName()], mapper);
       })));
-    })).then(() => transformed);
+    }));
   }
 
   validateData(data, oldData, op) {

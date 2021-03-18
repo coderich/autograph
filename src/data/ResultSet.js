@@ -3,7 +3,9 @@ const { map, mapPromise, keyPaths, toGUID } = require('../service/app.service');
 
 module.exports = class ResultSet {
   constructor(query, data) {
-    const { resolver, model, sort } = query.toObject();
+    const { resolver, model, sort, flags } = query.toObject();
+
+    if (flags.debug) console.log(model.getName(), data);
 
     return map(data, (doc) => {
       if (doc == null || typeof doc !== 'object') return doc;
@@ -13,68 +15,74 @@ module.exports = class ResultSet {
 
         model.getFields().filter(f => f.getName() !== 'id').reduce((prev, field) => {
           const cache = new Map();
-          const [name, key, modelRef, isEmbedded, isVirtual, hasResolver] = [field.getName(), field.getKey(), field.getModelRef(), field.isEmbedded(), field.isVirtual(), field.hasResolver()];
-          const value = field.deserialize(doc[key]);
+          const key = field.getKey();
+          const name = field.getName();
+          const $name = `$${name}`;
+          const value = doc[key];
 
-          if (value !== undefined) {
-            prev[name] = {
-              value: isEmbedded ? new ResultSet(query.model(modelRef), value) : value,
-              writable: true,
-              enumerable: true,
-            };
-          }
+          prev[name] = {
+            get() {
+              if (cache.has(name)) return cache.get(name);
+              // let $value = field.normalize(value);
+              const $value = field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), value) : field.normalize(value);
+              cache.set(name, $value);
+              return $value;
+            },
+            set($value) {
+              cache.set(name, $value);
+            },
+            enumerable: true,
+          };
 
-          if (value !== undefined || isVirtual || hasResolver) {
-            prev[`$${name}`] = {
-              get() {
-                //
-                const $name = `$${name}`;
-                if (cache.has($name)) return cache.get($name);
+          prev[`$${name}`] = {
+            get() {
+              //
+              if (cache.has($name)) return cache.get($name);
 
-                const promise = new Promise((resolve, reject) => {
-                  (() => {
-                    if (field.isScalar()) return Promise.resolve(value);
+              const $value = this[name];
 
-                    if (isEmbedded) return Promise.resolve(value == null ? value : new ResultSet(query.model(modelRef), value));
+              const promise = new Promise((resolve, reject) => {
+                (() => {
+                  if (field.isScalar() || field.isEmbedded()) return Promise.resolve($value);
 
-                    if (field.isArray()) {
-                      if (field.isVirtual()) {
-                        const where = { [field.getVirtualField()]: this.id };
-                        return resolver.match(modelRef).where(where).many();
-                      }
+                  // if (field.isEmbedded()) return Promise.resolve(value == null ? value : new ResultSet(query.model(modelRef), value));
 
-                      // Not a "required" query + strip out nulls
-                      return resolver.match(modelRef).where({ id: value }).many();
-                    }
-
+                  if (field.isArray()) {
                     if (field.isVirtual()) {
                       const where = { [field.getVirtualField()]: this.id };
-                      return resolver.match(modelRef).where(where).one();
+                      return resolver.match(field.getModelRef()).where(where).many();
                     }
 
-                    return resolver.match(modelRef).id(value).one({ required: field.isRequired() });
-                  })().then((results) => {
-                    if (results == null) return field.resolve(results); // Allow field to determine
-                    return mapPromise(results, result => field.resolve(result));
-                  }).then((resolved) => {
-                    resolve(resolved == null ? resolved : field.cast(resolved));
-                  }).catch((e) => {
-                    reject(e);
-                  });
-                });
+                    // Not a "required" query + strip out nulls
+                    return resolver.match(field.getModelRef()).where({ id: $value }).many();
+                  }
 
-                cache.set($name, promise);
-                return promise;
-              },
-              enumerable: false,
-            };
-          }
+                  if (field.isVirtual()) {
+                    const where = { [field.getVirtualField()]: this.id };
+                    return resolver.match(field.getModelRef()).where(where).one();
+                  }
+
+                  return resolver.match(field.getModelRef()).id($value).one({ required: field.isRequired() });
+                })().then((results) => {
+                  if (results == null) return field.resolve(results); // Allow field to determine
+                  return mapPromise(results, result => field.resolve(result));
+                }).then((resolved) => {
+                  resolve(resolved);
+                }).catch((e) => {
+                  reject(e);
+                });
+              });
+
+              cache.set($name, promise);
+              return promise;
+            },
+            enumerable: false,
+          };
 
           return prev;
         }, {
           id: {
-            value: doc.id || doc[model.idKey()],
-            writable: true,
+            get() { return doc.id || doc[model.idKey()]; },
             enumerable: true,
           },
 
@@ -91,6 +99,11 @@ module.exports = class ResultSet {
               const cursor = Buffer.from(sortJSON).toString('base64');
               return cursor;
             },
+            enumerable: false,
+          },
+
+          $$doc: {
+            get() { return doc; },
             enumerable: false,
           },
         }),
