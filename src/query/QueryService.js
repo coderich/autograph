@@ -67,8 +67,8 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
   if (!field || !field.isArray()) return Promise.reject(Boom.badRequest(`Cannot splice field '${key}'`));
 
   const modelRef = field.getModelRef();
-  const $from = model.transform({ [key]: from })[key];
-  let $to = model.transform({ [key]: to })[key];
+  const $from = model.normalize({ [key]: from })[key];
+  let $to = model.normalize({ [key]: to })[key];
 
   // Edit
   if (from && to) {

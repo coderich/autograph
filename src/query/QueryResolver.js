@@ -1,7 +1,7 @@
 const { isEmpty } = require('lodash');
 const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
-const { mergeDeep, removeUndefinedDeep } = require('../service/app.service');
+const { ucFirst, mergeDeep, removeUndefinedDeep } = require('../service/app.service');
 
 module.exports = class QueryResolver {
   constructor(query) {
@@ -24,7 +24,7 @@ module.exports = class QueryResolver {
   async createOne(query) {
     const { model, input } = query.toObject();
     await model.validateData(input, {}, 'create');
-    return this.resolver.resolve(query.input(model.serialize(model.appendCreateFields(input))));
+    return this.resolver.resolve(query);
   }
 
   createMany(query) {
@@ -34,20 +34,20 @@ module.exports = class QueryResolver {
     return txn.run();
   }
 
-  updateOne(query) {
+  async updateOne(query) {
     const { model, input, match } = query.toObject();
 
-    return this.resolver.match(model).where(match).one({ required: true }).then(async (doc) => {
+    return this.resolver.match(model).native(match).one({ required: true }).then(async (doc) => {
       await model.validateData(input, doc, 'update');
-      const $doc = model.serialize(mergeDeep(doc, model.appendUpdateFields(input)));
+      const $doc = mergeDeep(model.serialize(doc), input);
       return this.resolver.resolve(query.doc(doc).$doc($doc));
     });
   }
 
   updateMany(query) {
-    const { model, args, match, transaction } = query.toObject();
+    const { model, args, match, transaction, flags } = query.toObject();
 
-    return this.resolver.match(model).where(match).many().then((docs) => {
+    return this.resolver.match(model).native(match).flags(flags).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);
       docs.forEach(doc => txn.match(model).id(doc.id).save(...args));
       return txn.run();
@@ -67,7 +67,7 @@ module.exports = class QueryResolver {
   deleteMany(query) {
     const { model, match, transaction } = query.toObject();
 
-    return this.resolver.match(model).where(match).many().then((docs) => {
+    return this.resolver.match(model).native(match).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);
       docs.forEach(doc => txn.match(model).id(doc.id).delete());
       return txn.run();
@@ -85,7 +85,7 @@ module.exports = class QueryResolver {
     const { model, match, transaction } = query.toObject();
     const [key, ...values] = args;
 
-    return this.resolver.match(model).where(match).many().then((docs) => {
+    return this.resolver.match(model).native(match).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);
       docs.forEach(doc => txn.match(model).id(doc.id).push(key, ...values));
       return txn.run();
@@ -102,7 +102,7 @@ module.exports = class QueryResolver {
     const { model, match, transaction, args } = query.toObject();
     const [key, ...values] = args;
 
-    return this.resolver.match(model).where(match).many().then((docs) => {
+    return this.resolver.match(model).native(match).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);
       docs.forEach(doc => txn.match(model).id(doc.id).pull(key, ...values));
       return txn.run();
@@ -113,7 +113,7 @@ module.exports = class QueryResolver {
     const { model, match, args } = query.toObject();
     const [key, from, to] = args;
 
-    return this.resolver.match(model).where(match).one({ required: true }).then(async (doc) => {
+    return this.resolver.match(model).native(match).one({ required: true }).then(async (doc) => {
       const data = await QueryService.spliceEmbeddedArray(query, doc, key, from, to);
       await model.validateData({ ...data }, doc, 'update');
       const $doc = mergeDeep(doc, removeUndefinedDeep(data));
@@ -131,7 +131,7 @@ module.exports = class QueryResolver {
 
   async resolve() {
     const clone = this.query.clone();
-    const { model, method, sort, flags, isNative } = clone.toObject();
+    const { model, crud, method, input, sort, flags, isNative } = clone.toObject();
     // clone.time('query').time('resolve').time('prepare');
 
     // // Select fields
@@ -144,6 +144,11 @@ module.exports = class QueryResolver {
     if (!isNative) {
       const $where = await QueryService.resolveWhereClause(clone);
       clone.match(model.serialize($where));
+    }
+
+    // Input data
+    if (crud === 'create' || crud === 'update') {
+      clone.input(model.serialize(model[`append${ucFirst(crud)}Fields`](input)));
     }
 
     if (sort) {

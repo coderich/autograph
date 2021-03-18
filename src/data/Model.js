@@ -66,25 +66,25 @@ module.exports = class extends Model {
 
   appendUpdateFields(input) {
     input.updatedAt = new Date();
-    input = this.removeBoundKeys(input);
+    // input = this.removeBoundKeys(input);
     return input;
   }
 
-  // /**
-  //  *
-  //  */
-  // normalize(data) {
-  //   const boundFields = this.getBoundValueFields();
+  /**
+   *
+   */
+  normalize(data) {
+    const boundFields = this.getBoundValueFields();
 
-  //   return map(data, (doc) => {
-  //     const fields = [...new Set(boundFields.concat(Object.keys(doc).map(k => this.getField(k))))].filter(f => f);
+    return map(data, (doc) => {
+      const fields = [...new Set(boundFields.concat(Object.keys(doc).map(k => this.getField(k))))].filter(f => f);
 
-  //     return fields.reduce((prev, field) => {
-  //       prev[field.getName()] = field.normalize(doc[field.getKey()]);
-  //       return prev;
-  //     }, {});
-  //   });
-  // }
+      return fields.reduce((prev, field) => {
+        prev[field.getName()] = field.normalize(doc[field.getKey()]);
+        return prev;
+      }, {});
+    });
+  }
 
   /**
    * Going to the driver
@@ -106,8 +106,10 @@ module.exports = class extends Model {
    * Enforce validation rules
    */
   validate(data, mapper) {
+    const normalized = this.normalize(data);
+
     return Promise.all(this.getFields().map((field) => {
-      return Promise.all(ensureArray(map(data, (obj) => {
+      return Promise.all(ensureArray(map(normalized, (obj) => {
         if (obj == null) return Promise.resolve();
         return field.validate(obj[field.getName()], mapper);
       })));

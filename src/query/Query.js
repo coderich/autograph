@@ -273,8 +273,8 @@ module.exports = class Query {
   static getSchema(model, name = false) {
     return model.getSelectFields().reduce((prev, field) => {
       const key = name ? field.getName() : field.getKey();
-      const modelRef = field.getModelRef();
-      const isEmbedded = field.isEmbedded();
+      // const modelRef = field.getModelRef();
+      // const isEmbedded = field.isEmbedded();
 
       return Object.assign(prev, {
         [key]: {
