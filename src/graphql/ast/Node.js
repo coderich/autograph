@@ -292,6 +292,14 @@ module.exports = class Node {
     return els.some(el => Boolean(this.getFieldScope().toLowerCase().indexOf(el.toLowerCase()) > -1));
   }
 
+  /**
+   * Does the field have an explicit "resolve" set
+   */
+  hasResolver() {
+    return Boolean(this.getDirectiveArg('field', 'resolve'));
+  }
+
+
   // Create
   isCreatable() {
     return Boolean(this.getDALScope().toLowerCase().indexOf('c') > -1);

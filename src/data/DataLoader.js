@@ -68,14 +68,16 @@ module.exports = class DataLoader extends FBDataLoader {
 
       return Promise.all(queries.map((query) => {
         const { model } = query.toObject();
-        return model.getDriver().resolve(query.toDriver()).then(data => (typeof data === 'object' ? new ResultSet(query, data) : data));
+        return model.getDriver().resolve(query.toDriver()).then((data) => {
+          return (data != null && typeof data === 'object' ? new ResultSet(query, data) : data);
+        });
       })).then((results) => {
         // console.timeEnd(timeID);
         // console.log(new Date().getTime());
         return results;
       });
     }, {
-      // cache: false,
+      cache: false,
       // maxBatchSize: 50,
       cacheKeyFn: query => hashObject(query.getCacheKey()),
     });
