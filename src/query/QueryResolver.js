@@ -67,7 +67,7 @@ module.exports = class QueryResolver {
   deleteMany(query) {
     const { model, match, transaction } = query.toObject();
 
-    return this.resolver.match(model).native(match).many().then((docs) => {
+    return this.resolver.match(model).where(match).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);
       docs.forEach(doc => txn.match(model).id(doc.id).delete());
       return txn.run();
