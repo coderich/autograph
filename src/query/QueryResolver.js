@@ -35,7 +35,7 @@ module.exports = class QueryResolver {
   }
 
   updateOne(query) {
-    const { model, input, match, flags } = query.toObject();
+    const { model, input, match } = query.toObject();
 
     return this.resolver.match(model).where(match).one({ required: true }).then(async (doc) => {
       await model.validateData(input, doc, 'update');
@@ -131,7 +131,7 @@ module.exports = class QueryResolver {
 
   async resolve() {
     const clone = this.query.clone();
-    const { model, method, match, sort, flags, isNative } = clone.toObject();
+    const { model, method, sort, flags, isNative } = clone.toObject();
     // clone.time('query').time('resolve').time('prepare');
 
     // // Select fields
@@ -142,12 +142,8 @@ module.exports = class QueryResolver {
 
     // Where clause
     if (!isNative) {
-      await QueryService.resolveWhereClause(clone.match(model.serialize(match)));
-      // let $where = removeUndefinedDeep(match);
-      // $where = await model.resolveBoundValues(match);
-      // $where = await QueryService.resolveWhereClause(clone.match($where));
-      // $where = model.normalize($where);
-      // clone.match($where);
+      const $where = await QueryService.resolveWhereClause(clone);
+      clone.match(model.serialize($where));
     }
 
     if (sort) {
@@ -160,7 +156,7 @@ module.exports = class QueryResolver {
 
     return this[method](clone).then((data) => {
       // clone.timeEnd('driver');
-      if (flags.debug) console.log(Object.entries(data.building));
+      // if (flags.debug) console.log(Object.entries(data.building));
       if (flags.required && (data == null || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
       if (data == null) return null; // Explicitly return null here
       return data;

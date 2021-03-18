@@ -5,8 +5,6 @@ module.exports = class ResultSet {
   constructor(query, data) {
     const { resolver, model, sort, flags } = query.toObject();
 
-    if (flags.debug) console.log(model.getName(), data);
-
     return map(data, (doc) => {
       if (doc == null || typeof doc !== 'object') return doc;
 
@@ -23,8 +21,8 @@ module.exports = class ResultSet {
           prev[name] = {
             get() {
               if (cache.has(name)) return cache.get(name);
-              // let $value = field.normalize(value);
-              const $value = field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), value) : field.normalize(value);
+              let $value = field.normalize(value);
+              $value = field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), $value) : $value;
               cache.set(name, $value);
               return $value;
             },

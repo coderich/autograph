@@ -138,7 +138,9 @@ module.exports = class extends Field {
 
   serialize(value) {
     const modelRef = this.getModelRef();
-    if (modelRef && !this.isEmbedded()) return map(value, v => modelRef.idValue(v.id || v));
+    const isEmbedded = this.isEmbedded();
+    if (isEmbedded) return modelRef.serialize(value);
+    if (modelRef && !isEmbedded) return map(value, v => modelRef.idValue(v.id || this.normalize(v)));
     return this.normalize(value);
   }
 

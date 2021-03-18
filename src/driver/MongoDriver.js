@@ -138,7 +138,7 @@ module.exports = class MongoDriver {
     return Object.entries(schema).reduce((prev, [key, { type }]) => {
       const value = where[key];
       if (value === undefined) return prev;
-      if (!isScalarDataType(type)) return false;
+      if (!isScalarDataType(type)) return prev;
       const stype = String((type === 'Float' || type === 'Int' ? 'Number' : type)).toLowerCase();
       if (String(typeof value) === `${stype}`) return prev;
       return Object.assign(prev, { [key]: { $toString: `$${key}` } });

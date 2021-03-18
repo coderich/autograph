@@ -45,11 +45,16 @@ module.exports = class extends Model {
   }
 
   appendCreateFields(input, embed = false) {
-    const idKey = this.idKey();
-
-    if (embed && idKey && !input[idKey]) input[idKey] = this.idValue();
+    // id, createdAt, updatedAt
+    if (embed && !input.id && this.idKey()) input.id = this.idValue();
     if (!input.createdAt) input.createdAt = new Date();
     input.updatedAt = new Date();
+
+    // Bound + Default value
+    this.getDefaultedFields().filter(field => field.hasGQLScope('c')).forEach((field) => {
+      const key = field.getKey();
+      if (!Object.prototype.hasOwnProperty.call(input, key)) input[key] = undefined;
+    });
 
     // Generate embedded default values
     this.getEmbeddedFields().filter(field => field.hasGQLScope('c')).forEach((field) => {
