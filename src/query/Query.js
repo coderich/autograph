@@ -224,6 +224,11 @@ module.exports = class Query {
     return this;
   }
 
+  merged(merged) {
+    this.props.merged = merged;
+    return this;
+  }
+
   $doc($doc) {
     this.props.$doc = $doc;
     return this;

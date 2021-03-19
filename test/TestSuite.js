@@ -784,15 +784,15 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('get', async () => {
         switch (driver) {
           case 'mongo': {
-            expect(await resolver.match('Person').native({ name: 'Richard' }).one()).toBeNull();
-            expect(await resolver.match('Person').native({ name: 'christie' }).one()).toBeNull(); // case sensitive
-            expect(await resolver.match('Person').native({ name: 'Christie' }).one()).toMatchObject({ id: christie.id, name: 'Christie', emailAddress: 'christie@gmail.com' });
-            expect(await resolver.match('Person').native({ name: 'Richard' }).count()).toBe(0);
-            expect(await resolver.match('Person').native({ name: 'christie' }).count()).toBe(0);
-            expect(await resolver.match('Person').native({ name: 'Christie' }).count()).toBe(1);
+            expect(await resolver.match('Person').native({ name: 'richard' }).one()).toBeNull(); // case sensitive
+            expect(await resolver.match('Person').native({ name: 'Christie' }).one()).toBeNull(); // case sensitive
+            expect(await resolver.match('Person').native({ name: 'christie' }).one()).toMatchObject({ id: christie.id, name: 'Christie', emailAddress: 'christie@gmail.com' });
+            expect(await resolver.match('Person').native({ name: 'richard' }).count()).toBe(0);
+            expect(await resolver.match('Person').native({ name: 'Christie' }).count()).toBe(0);
+            expect(await resolver.match('Person').native({ name: 'christie' }).count()).toBe(1);
             const count = await resolver.match('Person').native({ name: { $ne: 'chard' } }).count();
             expect(count).toBeGreaterThanOrEqual(1);
-            expect(await resolver.match('Person').native({ name: { $ne: 'Christie' } }).count()).toBe(count - 1);
+            expect(await resolver.match('Person').native({ name: { $ne: 'christie' } }).count()).toBe(count - 1);
             expect(await resolver.match('Person').native({ email_address: 'christie@gmail.com' }).count()).toBe(1);
             break;
           }
@@ -809,9 +809,9 @@ module.exports = (driver = 'mongo', options = {}) => {
         switch (driver) {
           case 'mongo': {
             expect(await resolver.raw('Person').findOne({})).toBeDefined();
-            expect(await resolver.raw('Person').findOne({ name: 'Richard' })).toBeNull();
-            expect(await resolver.raw('Person').findOne({ name: 'christie' })).toBeNull();
-            expect(await resolver.raw('Person').findOne({ name: 'Christie' })).toMatchObject({ name: 'Christie', email_address: 'christie@gmail.com' });
+            expect(await resolver.raw('Person').findOne({ name: 'richard' })).toBeNull(); // deleted
+            expect(await resolver.raw('Person').findOne({ name: 'Christie' })).toBeNull(); // case
+            expect(await resolver.raw('Person').findOne({ name: 'christie' })).toMatchObject({ name: 'christie', email_address: 'christie@gmail.com' });
             break;
           }
           default: {

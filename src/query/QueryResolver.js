@@ -30,7 +30,9 @@ module.exports = class QueryResolver {
 
   createOne(query) {
     return createSystemEvent('Mutation', { method: 'create', query }, () => {
-      const { model, $input } = query.toObject();
+      const { model, input } = query.toObject();
+      const $input = model.serialize(model.appendCreateFields(input));
+      query.$input($input);
       return model.validateData($input, {}, 'create').then(() => this.resolver.resolve(query));
     });
   }
@@ -43,14 +45,19 @@ module.exports = class QueryResolver {
   }
 
   updateOne(query) {
-    const { model, $input, match } = query.toObject();
+    const { model, match } = query.toObject();
 
-    return this.resolver.match(model).native(match).one({ required: true }).then(async (doc) => {
-      // return createSystemEvent('Mutation', { method: 'update', query, doc, merged }, async () => {
+    return this.resolver.match(model).native(match).one({ required: true }).then((doc) => {
+      const { input } = query.toObject();
+      const merged = mergeDeep(doc, input);
+      const $input = model.serialize(model.appendUpdateFields(input));
+      query.doc(doc).merged(merged).$input($input);
+
+      return createSystemEvent('Mutation', { method: 'update', query }, async () => {
         await model.validateData($input, doc, 'update');
         const $doc = mergeDeep(model.serialize(doc), $input);
-        return this.resolver.resolve(query.doc(doc).$doc($doc));
-      // });
+        return this.resolver.resolve(query.$doc($doc));
+      });
     });
   }
 
@@ -126,12 +133,14 @@ module.exports = class QueryResolver {
     const [key, from, to] = args;
 
     return this.resolver.match(model).native(match).one({ required: true }).then(async (doc) => {
-      // return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, input: data, doc, merged }, async () => {
-        const data = await QueryService.spliceEmbeddedArray(query, doc, key, from, to);
+      const data = await QueryService.spliceEmbeddedArray(query, doc, key, from, to);
+      const merged = mergeDeep(doc, data);
+
+      return createSystemEvent('Mutation', { method: 'splice', query: query.doc(doc).input(data).merged(merged) }, async () => {
         await model.validateData(data, doc, 'update');
         const $doc = mergeDeep(model.serialize(doc), model.serialize(data));
         return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc));
-      // });
+      });
     });
   }
 
@@ -144,7 +153,7 @@ module.exports = class QueryResolver {
   }
 
   async resolve() {
-    const { model, crud, method, input, sort, flags, isNative } = this.query.toObject();
+    const { model, method, sort, flags, isNative } = this.query.toObject();
 
     // // Select fields
     // const fields = model.getSelectFields();
@@ -158,10 +167,10 @@ module.exports = class QueryResolver {
       this.query.match(model.serialize($where));
     }
 
-    // Input data
-    if (crud === 'create' || crud === 'update') {
-      this.query.$input(model.serialize(model[`append${ucFirst(crud)}Fields`](input)));
-    }
+    // // Input data
+    // if (crud === 'create' || crud === 'update') {
+    //   this.query.$input(model.serialize(model[`append${ucFirst(crud)}Fields`](input)));
+    // }
 
     if (sort) {
       this.query.$sort(Object.entries(sort).reduce((prev, [key, value]) => {

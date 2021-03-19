@@ -21,7 +21,7 @@ module.exports = {
       @index(name: "uix_person_name", type: unique, on: [name])
     {
       age: Int @field(key: "my_age")
-      name: String! @field(transform: toTitleCase)
+      name: String! @field(deserialize: toTitleCase, serialize: toLowerCase)
       authored: [Book] @link(by: author) @field(connection: true)
       emailAddress: String! @field(key: "email_address", enforce: email)
       friends: [Person] @field(transform: dedupe, enforce: selfless, onDelete: cascade, connection: true)

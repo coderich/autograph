@@ -19,13 +19,11 @@ module.exports = class ResultSet {
           const name = field.getName();
           const $name = `$${name}`;
           const value = doc[key];
-          // const normalized = field.normalize(value);
-          // const finalized = normalized != null && field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), normalized) : normalized;
 
           prev[name] = {
             get() {
               if (cache.has(name)) return cache.get(name);
-              let $value = field.normalize(value);
+              let $value = field.deserialize(value);
               $value = $value != null && field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), $value) : $value;
               cache.set(name, $value);
               return $value;

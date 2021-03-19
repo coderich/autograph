@@ -74,43 +74,30 @@ module.exports = class extends Model {
     return input;
   }
 
-  /**
-   * Ensures an object that has keys per the graphql schema and resolved (defaulted + transformed) values
-   */
-  normalize(data) {
-    const boundFields = this.getBoundValueFields();
-
-    return map(data, (doc) => {
-      const fields = [...new Set(boundFields.concat(Object.keys(doc).map(k => this.getField(k))))].filter(f => f);
-
-      return fields.reduce((prev, field) => {
-        prev[field.getName()] = field.normalize(doc[field.getKey()]);
-        return prev;
-      }, {});
-    });
-  }
-
-  /**
-   * Ensures an object that has keys the driver expects for persistence and resolved (defaulted + transformed) values
-   */
   serialize(data) {
+    return this.transform(data, 'serialize');
+  }
+
+  deserialize(data) {
+    return this.transform(data, 'deserialize');
+  }
+
+  transform(data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); })()) {
     const boundFields = this.getBoundValueFields();
 
     return map(data, (doc) => {
       const fields = [...new Set(boundFields.concat(Object.keys(doc).map(k => this.getField(k))))].filter(f => f);
 
       return fields.reduce((prev, field) => {
-        prev[field.getKey()] = field.serialize(doc[field.getName()]);
+        const [key, name] = serdes === 'serialize' ? [field.getKey(), field.getName()] : [field.getName(), field.getKey()];
+        prev[key] = field[serdes](doc[name]);
         return prev;
       }, {});
     });
   }
 
-  /**
-   * Enforce validation rules
-   */
   validate(data, mapper) {
-    const normalized = this.normalize(data);
+    const normalized = this.deserialize(data);
 
     return Promise.all(this.getFields().map((field) => {
       return Promise.all(ensureArray(map(normalized, (obj) => {

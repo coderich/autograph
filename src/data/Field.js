@@ -95,26 +95,15 @@ module.exports = class extends Field {
   /**
    * Ensures the value of the field via bound @value + transformations
    */
-  normalize(value) {
-    // // If embedded; delegate
-    // if (this.isEmbedded()) {
-    //   const modelRef = this.getModelRef();
-
-    //   return map(value, (doc) => {
-    //     return Object.entries(doc).reduce((prev, [k, v]) => {
-    //       const field = modelRef.getField(k);
-    //       if (!field) return prev;
-    //       prev[k] = field.normalize(v);
-    //       return prev;
-    //     }, {});
-    //   });
-    // }
-
+  transform(value, serdes = (() => { throw new Error('No Sir Sir SerDes!'); })()) {
     // Determine value
     const $value = this.resolveBoundValue(value);
 
+    // Determine transformers
+    const transformers = [...this.getTransformers(), ...(serdes === 'serialize' ? this.getSerializers() : this.getDeserializers())];
+
     // Transform
-    return this.getTransformers().reduce((prev, transformer) => {
+    return transformers.reduce((prev, transformer) => {
       return transformer(this, prev);
     }, this.cast($value));
   }
@@ -130,9 +119,13 @@ module.exports = class extends Field {
     if (isEmbedded) return modelRef.serialize(value);
 
     // Now, normalize and resolve
-    const $value = this.normalize(value);
+    const $value = this.transform(value, 'serialize');
     if (modelRef && !isEmbedded) return map($value, v => modelRef.idValue(v.id || v));
     return $value;
+  }
+
+  deserialize(value) {
+    return this.transform(value, 'deserialize');
   }
 
   /**

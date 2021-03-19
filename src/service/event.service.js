@@ -19,7 +19,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
 
   if (name !== 'Setup') {
     const { method, query } = mixed;
-    const { resolver, model, meta, doc, input } = query.toObject();
+    const { resolver, model, meta, doc, input, merged } = query.toObject();
 
     event = {
       context: resolver.getContext(),
@@ -31,6 +31,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
       input,
       query,
       doc,
+      merged,
     };
   } else {
     event = mixed;
@@ -63,7 +64,7 @@ const eventHandler = (event) => {
 
         if (values.length) {
           values.forEach((val) => {
-            const clone = query.clone().model(newModel).doc(doc);
+            const clone = query.clone().model(newModel).input(val).doc(doc);
             exports.createSystemEvent('Mutation', { method, query: clone }, () => {
               if (++i >= values.length) resolve();
             }).catch(e => reject(e));
