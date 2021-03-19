@@ -4,15 +4,27 @@ const { map, mapPromise, keyPaths, toGUID } = require('../service/app.service');
 module.exports = class ResultSet {
   constructor(query, data) {
     const { resolver, model, sort } = query.toObject();
+    const fields = model.getFields().filter(f => f.getName() !== 'id').map(field => ({
+      field,
+      key: field.getKey(),
+      name: field.getName(),
+      modelRef: field.getModelRef(),
+      isEmbedded: field.isEmbedded(),
+      isArray: field.isArray(),
+      isVirtual: field.isVirtual(),
+      isRequired: field.isRequired(),
+      virtualField: field.getVirtualField(),
+    }));
 
     return map(data, (doc) => {
       if (doc == null || typeof doc !== 'object') return doc;
 
+      const cache = new Map();
+
       return Object.defineProperties(
         {},
 
-        model.getFields().filter(f => f.getName() !== 'id').reduce((prev, field) => {
-          const cache = new Map();
+        fields.reduce((prev, { field }) => {
           const key = field.getKey();
           const name = field.getName();
           const $name = `$${name}`;

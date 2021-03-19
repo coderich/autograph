@@ -167,7 +167,11 @@ describe('GraphQL', () => {
     });
 
     // Need to sort friends to make sure it matches order
-    result.data.findPerson.edges[3].node.friends.edges = result.data.findPerson.edges[3].node.friends.edges.sort((a, b) => b.node.id - a.node.id);
+    result.data.findPerson.edges[3].node.friends.edges.sort((a, b) => {
+      if (a.node.name < b.node.name) return -1;
+      if (a.node.name > b.node.name) return 1;
+      return 0;
+    });
 
     expect(result.data.findPerson.edges[3].node.friends).toMatchObject({
       edges: expect.objectContaining([
