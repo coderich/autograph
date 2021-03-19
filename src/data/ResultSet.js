@@ -3,7 +3,7 @@ const { map, mapPromise, keyPaths, toGUID } = require('../service/app.service');
 
 module.exports = class ResultSet {
   constructor(query, data) {
-    const { resolver, model, sort, flags } = query.toObject();
+    const { resolver, model, sort } = query.toObject();
 
     return map(data, (doc) => {
       if (doc == null || typeof doc !== 'object') return doc;
@@ -22,7 +22,7 @@ module.exports = class ResultSet {
             get() {
               if (cache.has(name)) return cache.get(name);
               let $value = field.normalize(value);
-              $value = field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), $value) : $value;
+              $value = $value != null && field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), $value) : $value;
               cache.set(name, $value);
               return $value;
             },
@@ -43,7 +43,7 @@ module.exports = class ResultSet {
                 (() => {
                   if (field.isScalar() || field.isEmbedded()) return Promise.resolve($value);
 
-                  // if (field.isEmbedded()) return Promise.resolve(value == null ? value : new ResultSet(query.model(modelRef), value));
+                  // if (field.isEmbedded()) return Promise.resolve($value == null ? $value : new ResultSet(query.model(field.getModelRef()), $value));
 
                   if (field.isArray()) {
                     if (field.isVirtual()) {
@@ -100,8 +100,8 @@ module.exports = class ResultSet {
             enumerable: false,
           },
 
-          $$doc: {
-            get() { return doc; },
+          $$data: {
+            get() { return data; },
             enumerable: false,
           },
         }),

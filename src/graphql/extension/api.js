@@ -96,7 +96,7 @@ module.exports = (schema) => {
         const fieldName = field.getName();
         if (fieldName === 'id') return Object.assign(def, { id: (root, args, { autograph }) => (autograph.legacyMode ? root.id : root.$id) });
         return Object.assign(def, {
-          [fieldName]: async (root) => {
+          [fieldName]: (root) => {
             const $fieldName = root[`$${fieldName}`] && typeof root[`$${fieldName}`] !== 'function' ? `$${fieldName}` : fieldName; // only $hydrated when set and not a function (Mongoose has $magic functions!)
             return root[$fieldName];
           },

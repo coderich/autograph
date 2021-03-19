@@ -139,16 +139,21 @@ module.exports = class extends Field {
   serialize(value) {
     const modelRef = this.getModelRef();
     const isEmbedded = this.isEmbedded();
+
+    // If embedded, simply delgate
     if (isEmbedded) return modelRef.serialize(value);
-    if (modelRef && !isEmbedded) return map(value, v => modelRef.idValue(v.id || v));
-    return this.normalize(value);
+
+    // Now, normalize and resolve
+    const $value = this.normalize(value);
+    if (modelRef && !isEmbedded) return map($value, v => modelRef.idValue(v.id || v));
+    return $value;
   }
 
   resolve(value) {
     const resolvers = [...this.getResolvers()];
 
     return promiseChain(resolvers.map(resolver => (chain) => {
-      return Promise.resolve(resolver(this, this.cast(uvl(chain.pop()), value)));
+      return Promise.resolve(resolver(this, uvl(this.cast(chain.pop()), value)));
     })).then((results) => {
       return uvl(this.cast(results.pop()), value);
     });
