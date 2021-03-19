@@ -77,7 +77,7 @@ module.exports = class DataLoader extends FBDataLoader {
         return results;
       });
     }, {
-      cache: false,
+      // cache: false,
       // maxBatchSize: 50,
       cacheKeyFn: query => hashObject(query.getCacheKey()),
     });
