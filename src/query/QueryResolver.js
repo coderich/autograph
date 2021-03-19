@@ -115,9 +115,9 @@ module.exports = class QueryResolver {
 
     return this.resolver.match(model).native(match).one({ required: true }).then(async (doc) => {
       const data = await QueryService.spliceEmbeddedArray(query, doc, key, from, to);
-      await model.validateData({ ...data }, doc, 'update');
-      const $doc = mergeDeep(doc, removeUndefinedDeep(data));
-      return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc)).then(() => $doc);
+      await model.validateData(data, doc, 'update');
+      const $doc = mergeDeep(model.serialize(doc), model.serialize(data));
+      return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc));
     });
   }
 

@@ -839,7 +839,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         const push = await resolver.match('Art').id(art.id).push('sections', { name: 'Pushed Section' });
         expect(push.sections.length).toBe(1);
         expect(push.sections[0].id).toBeDefined();
-        expect(push.sections[0].name).toEqual('pushed section');
+        expect(push.sections[0].name).toEqual('pushed section'); // toLowerCase
         expect(push.sections[0].$name).toBeDefined();
 
         // Pull

@@ -85,11 +85,9 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
     if (field.isEmbedded()) {
       return Promise.all(edits.map((edit, i) => {
         if (hashObject(edit) !== hashObject(arr[i])) {
-          return modelRef.appendDefaultValues(edit).then((input) => {
-            return createSystemEvent('Mutation', { method: 'update', model: modelRef, resolver, query, input, parent: doc }, async () => {
-              input = await modelRef.appendCreateFields(input, true);
-              return modelRef.validateData(input, {}, 'update').then(() => input);
-            });
+          return createSystemEvent('Mutation', { method: 'update', model: modelRef, resolver, query, input: edit, parent: doc }, async () => {
+            edit = await modelRef.appendCreateFields(edit, true);
+            return modelRef.validateData(edit, {}, 'update').then(() => edit);
           });
         }
 
@@ -112,12 +110,10 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
   // Push
   if (to) {
     if (field.isEmbedded()) {
-      return Promise.all($to.map((el) => {
-        return modelRef.appendDefaultValues(el).then((input) => {
-          return createSystemEvent('Mutation', { method: 'create', model: modelRef, resolver, query, input, parent: doc }, async () => {
-            input = await modelRef.appendCreateFields(input, true);
-            return modelRef.validateData(input, {}, 'create').then(() => input);
-          });
+      return Promise.all($to.map((input) => {
+        return createSystemEvent('Mutation', { method: 'create', model: modelRef, resolver, query, input, parent: doc }, async () => {
+          input = await modelRef.appendCreateFields(input, true);
+          return modelRef.validateData(input, {}, 'create').then(() => input);
         });
       })).then((results) => {
         return { [key]: (get(doc, key) || []).concat(...results) };
@@ -126,6 +122,9 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
 
     return { [key]: (get(doc, key) || []).concat($to) };
   }
+
+  // Should never get here
+  return Promise.reject(new Error('Invalid spliceEmbeddedArray'));
 };
 
 exports.resolveReferentialIntegrity = (query) => {
