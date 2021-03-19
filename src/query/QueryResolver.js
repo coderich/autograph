@@ -1,6 +1,7 @@
 const { isEmpty } = require('lodash');
 const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
+const { createSystemEvent } = require('../service/event.service');
 const { ucFirst, mergeDeep } = require('../service/app.service');
 
 module.exports = class QueryResolver {
@@ -10,21 +11,28 @@ module.exports = class QueryResolver {
   }
 
   findOne(query) {
-    return this.resolver.resolve(query);
+    // return createSystemEvent('Query', { method: 'get', query }, () => {
+      return this.resolver.resolve(query);
+    // });
   }
 
   findMany(query) {
-    return this.resolver.resolve(query);
+    // return createSystemEvent('Query', { method: 'find', query }, () => {
+      return this.resolver.resolve(query);
+    // });
   }
 
   count(query) {
-    return this.resolver.resolve(query);
+    // return createSystemEvent('Query', { method: 'count', query }, () => {
+      return this.resolver.resolve(query);
+    // });
   }
 
-  async createOne(query) {
-    const { model, input } = query.toObject();
-    await model.validateData(input, {}, 'create');
-    return this.resolver.resolve(query);
+  createOne(query) {
+    // return createSystemEvent('Mutation', { method: 'create', query }, () => {
+      const { model, $input } = query.toObject();
+      return model.validateData($input, {}, 'create').then(() => this.resolver.resolve(query));
+    // });
   }
 
   createMany(query) {
@@ -34,13 +42,15 @@ module.exports = class QueryResolver {
     return txn.run();
   }
 
-  async updateOne(query) {
-    const { model, input, match } = query.toObject();
+  updateOne(query) {
+    const { model, $input, match } = query.toObject();
 
     return this.resolver.match(model).native(match).one({ required: true }).then(async (doc) => {
-      await model.validateData(input, doc, 'update');
-      const $doc = mergeDeep(model.serialize(doc), input);
-      return this.resolver.resolve(query.doc(doc).$doc($doc));
+      // return createSystemEvent('Mutation', { method: 'update', query, doc, merged }, async () => {
+        await model.validateData($input, doc, 'update');
+        const $doc = mergeDeep(model.serialize(doc), $input);
+        return this.resolver.resolve(query.doc(doc).$doc($doc));
+      // });
     });
   }
 
@@ -58,9 +68,11 @@ module.exports = class QueryResolver {
     const { model, id } = query.toObject();
 
     return this.resolver.match(model).id(id).one({ required: true }).then((doc) => {
-      return QueryService.resolveReferentialIntegrity(query).then(() => {
-        return this.resolver.resolve(query).then(() => doc);
-      });
+      // return createSystemEvent('Mutation', { method: 'delete', query: query.doc(doc) }, () => {
+        return QueryService.resolveReferentialIntegrity(query).then(() => {
+          return this.resolver.resolve(query).then(() => doc);
+        });
+      // });
     });
   }
 
@@ -114,10 +126,12 @@ module.exports = class QueryResolver {
     const [key, from, to] = args;
 
     return this.resolver.match(model).native(match).one({ required: true }).then(async (doc) => {
-      const data = await QueryService.spliceEmbeddedArray(query, doc, key, from, to);
-      await model.validateData(data, doc, 'update');
-      const $doc = mergeDeep(model.serialize(doc), model.serialize(data));
-      return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc));
+      // return createSystemEvent('Mutation', { method: 'splice', model, resolver, query, input: data, doc, merged }, async () => {
+        const data = await QueryService.spliceEmbeddedArray(query, doc, key, from, to);
+        await model.validateData(data, doc, 'update');
+        const $doc = mergeDeep(model.serialize(doc), model.serialize(data));
+        return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc));
+      // });
     });
   }
 
@@ -130,9 +144,7 @@ module.exports = class QueryResolver {
   }
 
   async resolve() {
-    const clone = this.query.clone();
-    const { model, crud, method, input, sort, flags, isNative } = clone.toObject();
-    // clone.time('query').time('resolve').time('prepare');
+    const { model, crud, method, input, sort, flags, isNative } = this.query.toObject();
 
     // // Select fields
     // const fields = model.getSelectFields();
@@ -142,26 +154,22 @@ module.exports = class QueryResolver {
 
     // Where clause
     if (!isNative) {
-      const $where = await QueryService.resolveWhereClause(clone);
-      clone.match(model.serialize($where));
+      const $where = await QueryService.resolveWhereClause(this.query);
+      this.query.match(model.serialize($where));
     }
 
     // Input data
     if (crud === 'create' || crud === 'update') {
-      clone.input(model.serialize(model[`append${ucFirst(crud)}Fields`](input)));
+      this.query.$input(model.serialize(model[`append${ucFirst(crud)}Fields`](input)));
     }
 
     if (sort) {
-      clone.sort(Object.entries(sort).reduce((prev, [key, value]) => {
+      this.query.$sort(Object.entries(sort).reduce((prev, [key, value]) => {
         return Object.assign(prev, { [model.getFieldByName(key).getKey()]: value.toLowerCase() === 'asc' ? 1 : -1 });
       }, {}));
     }
 
-    // clone.timeEnd('prepare').time('execute').time('driver');
-
-    return this[method](clone).then((data) => {
-      // clone.timeEnd('driver');
-      // if (flags.debug) console.log(Object.entries(data.building));
+    return this[method](this.query).then((data) => {
       if (flags.required && (data == null || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
       if (data == null) return null; // Explicitly return null here
       return data;

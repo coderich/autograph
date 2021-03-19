@@ -69,6 +69,11 @@ module.exports = class Query {
     return this;
   }
 
+  $select(select) {
+    this.props.$select = select;
+    return this;
+  }
+
   fields(fields) {
     this.props.select = fields;
     return this;
@@ -77,6 +82,11 @@ module.exports = class Query {
   sort(sort) {
     if (this.props.id) throw new Error('Cannot mix sort() with id()');
     this.props.sort = sort;
+    return this;
+  }
+
+  $sort(sort) {
+    this.props.$sort = sort;
     return this;
   }
 
@@ -204,6 +214,11 @@ module.exports = class Query {
     return this;
   }
 
+  $input(input) {
+    this.props.$input = input;
+    return this;
+  }
+
   doc(doc) {
     this.props.doc = doc;
     return this;
@@ -229,9 +244,9 @@ module.exports = class Query {
       model: this.props.model.getKey(),
       schema: Query.getSchema(this.props.model),
       method: this.props.method,
-      select: this.props.select,
+      select: this.props.$select,
       where: this.props.match,
-      sort: this.props.sort,
+      sort: this.props.$sort,
       skip: this.props.skip,
       limit: this.props.limit,
       before: this.props.before,
@@ -239,7 +254,7 @@ module.exports = class Query {
       first: this.props.first,
       last: this.props.last,
       options: this.props.options,
-      input: this.props.input,
+      input: this.props.$input,
       flags: this.props.flags,
       $doc: this.props.$doc,
       doc: this.props.doc,
@@ -250,7 +265,6 @@ module.exports = class Query {
     return {
       ...this.props,
       isNative: Boolean(this.props.native),
-      // schema: Query.getSchema(this.props.model, true),
     };
   }
 
