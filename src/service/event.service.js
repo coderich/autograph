@@ -13,13 +13,27 @@ const systemEvent = new EventEmitter().on('system', async (event, next) => {
 });
 
 //
-exports.createSystemEvent = (name, event = {}, thunk = () => {}) => {
+exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
+  let event;
   const type = ucFirst(name);
 
   if (name !== 'Setup') {
-    event.context = event.resolver.getContext();
-    event.meta = event.query.meta();
-    event.key = `${event.method}${event.model}`;
+    const { method, query } = mixed;
+    const { resolver, model, meta, doc, input } = query.toObject();
+
+    event = {
+      context: resolver.getContext(),
+      key: `${method}${model}`,
+      resolver,
+      method,
+      model,
+      meta,
+      input,
+      query,
+      doc,
+    };
+  } else {
+    event = mixed;
   }
 
   return systemEvent.emit('system', { type: `pre${type}`, data: event }).then(thunk).then((result) => {
@@ -37,7 +51,7 @@ exports.internalEmitter = internalEmitter;
  * Kick off system events for embedded fields
  */
 const eventHandler = (event) => {
-  const { model, input, method, resolver, meta, doc = input } = event;
+  const { model, input, method, doc = input, query } = event;
 
   return Promise.all(model.getEmbeddedFields().map((field) => {
     return new Promise((resolve, reject) => {
@@ -49,10 +63,14 @@ const eventHandler = (event) => {
 
         if (values.length) {
           values.forEach((val) => {
-            const newEvent = { parent: doc, key: `${method}${field}`, method, model: newModel, resolver, query: new Query(resolver, newModel, { meta }), input: val };
-            exports.createSystemEvent('Mutation', newEvent, () => {
+            const clone = query.clone().model(newModel).doc(doc);
+            exports.createSystemEvent('Mutation', { method, query: clone }, () => {
               if (++i >= values.length) resolve();
             }).catch(e => reject(e));
+            // const newEvent = { parent: doc, key: `${method}${field}`, method, model: newModel, resolver, query: new Query(resolver, newModel, { meta }), input: val };
+            // exports.createSystemEvent('Mutation', newEvent, () => {
+            //   if (++i >= values.length) resolve();
+            // }).catch(e => reject(e));
           });
         } else {
           resolve();

@@ -1,8 +1,7 @@
 const { get, set, remove, uniq, flattenDeep } = require('lodash');
 const Boom = require('../core/Boom');
+const { createSystemEvent } = require('../service/event.service');
 const { map, keyPaths, ensureArray, isPlainObject, objectContaining, mergeDeep, hashObject } = require('../service/app.service');
-
-const createSystemEvent = (...args) => args.pop()();
 
 const resolveEmbeddedWhere = (ref, key, value) => {
   const resolved = ensureArray(map(value, (obj) => {
@@ -85,7 +84,8 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
     if (field.isEmbedded()) {
       return Promise.all(edits.map((edit, i) => {
         if (hashObject(edit) !== hashObject(arr[i])) {
-          return createSystemEvent('Mutation', { method: 'update', model: modelRef, resolver, query, input: edit, parent: doc }, async () => {
+          // return createSystemEvent('Mutation', { method: 'update', model: modelRef, resolver, query, input: edit, parent: doc }, async () => {
+          return createSystemEvent('Mutation', { method: 'update', query: query.clone().model(modelRef).input(edit).doc(doc) }, async () => {
             edit = await modelRef.appendCreateFields(edit, true);
             return modelRef.validateData(edit, {}, 'update').then(() => edit);
           });
@@ -111,7 +111,8 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
   if (to) {
     if (field.isEmbedded()) {
       return Promise.all($to.map((input) => {
-        return createSystemEvent('Mutation', { method: 'create', model: modelRef, resolver, query, input, parent: doc }, async () => {
+        // return createSystemEvent('Mutation', { method: 'create', model: modelRef, resolver, query, input, parent: doc }, async () => {
+        return createSystemEvent('Mutation', { method: 'create', query: query.clone().model(modelRef).input(input).doc(doc) }, async () => {
           input = await modelRef.appendCreateFields(input, true);
           return modelRef.validateData(input, {}, 'create').then(() => input);
         });

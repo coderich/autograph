@@ -11,28 +11,28 @@ module.exports = class QueryResolver {
   }
 
   findOne(query) {
-    // return createSystemEvent('Query', { method: 'get', query }, () => {
+    return createSystemEvent('Query', { method: 'get', query }, () => {
       return this.resolver.resolve(query);
-    // });
+    });
   }
 
   findMany(query) {
-    // return createSystemEvent('Query', { method: 'find', query }, () => {
+    return createSystemEvent('Query', { method: 'find', query }, () => {
       return this.resolver.resolve(query);
-    // });
+    });
   }
 
   count(query) {
-    // return createSystemEvent('Query', { method: 'count', query }, () => {
+    return createSystemEvent('Query', { method: 'count', query }, () => {
       return this.resolver.resolve(query);
-    // });
+    });
   }
 
   createOne(query) {
-    // return createSystemEvent('Mutation', { method: 'create', query }, () => {
+    return createSystemEvent('Mutation', { method: 'create', query }, () => {
       const { model, $input } = query.toObject();
       return model.validateData($input, {}, 'create').then(() => this.resolver.resolve(query));
-    // });
+    });
   }
 
   createMany(query) {
@@ -68,11 +68,11 @@ module.exports = class QueryResolver {
     const { model, id } = query.toObject();
 
     return this.resolver.match(model).id(id).one({ required: true }).then((doc) => {
-      // return createSystemEvent('Mutation', { method: 'delete', query: query.doc(doc) }, () => {
+      return createSystemEvent('Mutation', { method: 'delete', query: query.doc(doc) }, () => {
         return QueryService.resolveReferentialIntegrity(query).then(() => {
           return this.resolver.resolve(query).then(() => doc);
         });
-      // });
+      });
     });
   }
 

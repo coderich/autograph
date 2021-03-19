@@ -9,7 +9,7 @@ const stores = require('../stores');
 const schema = new Schema({ typeDefs: gql }, stores);
 const resolver = new Resolver(schema);
 const model = schema.getModel('Person');
-const query = new Query({ model });
+const query = new Query({ model, resolver });
 
 describe('EventService', () => {
   test('createSystemEvent', async (done) => {
@@ -22,8 +22,8 @@ describe('EventService', () => {
 
     eventEmitter.on('preTest', cb1);
     eventEmitter.once('preTest', cb2);
-    await createSystemEvent('test', { model, query, resolver });
-    await createSystemEvent('test', { model, query, resolver });
+    await createSystemEvent('test', { query });
+    await createSystemEvent('test', { query });
     expect(cb1).toHaveBeenCalledTimes(2);
     expect(cb2).toHaveBeenCalledTimes(1);
     done();
