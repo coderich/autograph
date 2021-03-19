@@ -1,7 +1,7 @@
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
 const RuleService = require('../service/rule.service');
-const { map, ensureArray, stripObjectUndefineds } = require('../service/app.service');
+const { map, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Model {
   constructor(schema, model, driver) {
@@ -44,6 +44,10 @@ module.exports = class extends Model {
     return this.referentials;
   }
 
+  /**
+   * Called when creating a new document. Will add attributes such as id, createdAt, updatedAt
+   * while ensuring that all defaulted values are set appropriately
+   */
   appendCreateFields(input, embed = false) {
     // id, createdAt, updatedAt
     if (embed && !input.id && this.idKey()) input.id = this.idValue();
@@ -71,7 +75,7 @@ module.exports = class extends Model {
   }
 
   /**
-   *
+   * Ensures an object that has keys per the graphql schema and resolved (defaulted + transformed) values
    */
   normalize(data) {
     const boundFields = this.getBoundValueFields();
@@ -87,7 +91,7 @@ module.exports = class extends Model {
   }
 
   /**
-   * Going to the driver
+   * Ensures an object that has keys the driver expects for persistence and resolved (defaulted + transformed) values
    */
   serialize(data) {
     const boundFields = this.getBoundValueFields();
@@ -116,6 +120,9 @@ module.exports = class extends Model {
     }));
   }
 
+  /**
+   * The validation method needs to be dynamic based on update vs create
+   */
   validateData(data, oldData, op) {
     const required = (op === 'create' ? (f, v) => v == null : (f, v) => Object.prototype.hasOwnProperty.call(data, f.getName()) && v == null);
     const immutable = (f, v) => RuleService.immutable(v, oldData, op, `${f.getModel()}.${f.getName()}`);

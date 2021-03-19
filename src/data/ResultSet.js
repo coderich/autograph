@@ -1,20 +1,10 @@
 const { get } = require('lodash');
-const { map, mapPromise, keyPaths, toGUID } = require('../service/app.service');
+const { map, keyPaths, mapPromise, toGUID } = require('../service/app.service');
 
 module.exports = class ResultSet {
   constructor(query, data) {
     const { resolver, model, sort } = query.toObject();
-    const fields = model.getFields().filter(f => f.getName() !== 'id').map(field => ({
-      field,
-      key: field.getKey(),
-      name: field.getName(),
-      modelRef: field.getModelRef(),
-      isEmbedded: field.isEmbedded(),
-      isArray: field.isArray(),
-      isVirtual: field.isVirtual(),
-      isRequired: field.isRequired(),
-      virtualField: field.getVirtualField(),
-    }));
+    const fields = model.getFields().filter(f => f.getName() !== 'id');
 
     return map(data, (doc) => {
       if (doc == null || typeof doc !== 'object') return doc;
@@ -24,11 +14,13 @@ module.exports = class ResultSet {
       return Object.defineProperties(
         {},
 
-        fields.reduce((prev, { field }) => {
+        fields.reduce((prev, field) => {
           const key = field.getKey();
           const name = field.getName();
           const $name = `$${name}`;
           const value = doc[key];
+          // const normalized = field.normalize(value);
+          // const finalized = normalized != null && field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), normalized) : normalized;
 
           prev[name] = {
             get() {
@@ -112,10 +104,10 @@ module.exports = class ResultSet {
             enumerable: false,
           },
 
-          $$data: {
-            get() { return data; },
-            enumerable: false,
-          },
+          // $$data: {
+          //   get() { return data; },
+          //   enumerable: false,
+          // },
         }),
       );
     });

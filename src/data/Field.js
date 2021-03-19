@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const Type = require('./Type');
 const Field = require('../graphql/ast/Field');
 const Rule = require('../core/Rule');
@@ -12,25 +11,6 @@ module.exports = class extends Field {
     this.model = model;
     this.allSerializers = [...this.getTransformers(), ...this.getSerializers()];
     this.allDeserializers = [...this.getTransformers(), ...this.getDeserializers()];
-  }
-
-  // CRUD
-  count(resolver, doc, w = {}) {
-    const where = _.cloneDeep(w);
-    const fieldRef = this.getModelRef();
-
-    if (this.isVirtual()) {
-      where[this.getVirtualRef()] = doc.id;
-      return resolver.match(fieldRef).where(where).count();
-    }
-
-    if (!Object.keys(where).length) {
-      return (doc[this.getName()] || []).length; // Making big assumption that it's an array
-    }
-
-    const ids = (doc[this.getName()] || []);
-    where[fieldRef.idKey()] = ids;
-    return resolver.match(fieldRef).where(where).count();
   }
 
   cast(value) {
@@ -112,6 +92,9 @@ module.exports = class extends Field {
     }));
   }
 
+  /**
+   * Ensures the value of the field via bound @value + transformations
+   */
   normalize(value) {
     // // If embedded; delegate
     // if (this.isEmbedded()) {
@@ -136,6 +119,9 @@ module.exports = class extends Field {
     }, this.cast($value));
   }
 
+  /**
+   * Ensures the value of the field is appropriate for the driver
+   */
   serialize(value) {
     const modelRef = this.getModelRef();
     const isEmbedded = this.isEmbedded();
@@ -149,6 +135,10 @@ module.exports = class extends Field {
     return $value;
   }
 
+  /**
+   * Applies any user-defined @field(resolve: [...methods]) in series
+   * This is ONLY run when resolving a value via the $<name> attribute
+   */
   resolve(value) {
     const resolvers = [...this.getResolvers()];
 

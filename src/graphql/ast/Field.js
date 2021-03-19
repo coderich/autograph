@@ -1,8 +1,7 @@
 const { get } = require('lodash');
 const Node = require('./Node');
 const Type = require('./Type');
-const { mergeDeep } = require('../../service/app.service');
-// const Memoizer = require('../../data/Memoizer');
+const { uvl } = require('../../service/app.service');
 
 module.exports = class Field extends Node {
   constructor(model, ast) {
@@ -10,12 +9,16 @@ module.exports = class Field extends Node {
     this.model = model;
     this.schema = model.getSchema();
     this.type = new Type(this.ast);
+    this.key = uvl(this.getDirectiveArg('field', 'key'), this.getName());
     this.isArray = this.type.isArray.bind(this.type);
     this.isArrayElementRequired = this.type.isArrayElementRequired.bind(this.type);
-    // return new Memoizer(this, Object.getOwnPropertyNames(Field.prototype).filter(m => ['getContext', 'resolveBoundValue'].indexOf(m) === -1));
   }
 
   // Field Methods
+  getKey() {
+    return this.key;
+  }
+
   getType() {
     return this.type.getName();
   }

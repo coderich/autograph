@@ -1,7 +1,7 @@
 const { isEmpty } = require('lodash');
 const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
-const { ucFirst, mergeDeep, removeUndefinedDeep } = require('../service/app.service');
+const { ucFirst, mergeDeep } = require('../service/app.service');
 
 module.exports = class QueryResolver {
   constructor(query) {
@@ -152,8 +152,8 @@ module.exports = class QueryResolver {
     }
 
     if (sort) {
-      clone.sort(Object.entries(model.serialize(sort)).reduce((prev, [key, value]) => {
-        return Object.assign(prev, { [key]: value.toLowerCase() === 'asc' ? 1 : -1 });
+      clone.sort(Object.entries(sort).reduce((prev, [key, value]) => {
+        return Object.assign(prev, { [model.getFieldByName(key).getKey()]: value.toLowerCase() === 'asc' ? 1 : -1 });
       }, {}));
     }
 

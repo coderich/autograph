@@ -1,6 +1,6 @@
 const Node = require('./Node');
 const Field = require('./Field');
-// const Memoizer = require('../../data/Memoizer');
+const { uvl } = require('../../service/app.service');
 
 module.exports = class Model extends Node {
   constructor(schema, ast) {
@@ -9,7 +9,7 @@ module.exports = class Model extends Node {
     this.fields = this.ast.fields.map(f => new Field(this, f));
     this.fieldsByName = {};
     this.fieldsByKey = {};
-    // return new Memoizer(this, Object.getOwnPropertyNames(Model.prototype).filter(m => ['getContext'].indexOf(m) === -1));
+    this.key = uvl(this.getDirectiveArg('model', 'key'), this.getName());
   }
 
   getSchema() {
@@ -18,6 +18,10 @@ module.exports = class Model extends Node {
 
   getFields() {
     return this.fields;
+  }
+
+  getKey() {
+    return this.key;
   }
 
   getField(path = '') {

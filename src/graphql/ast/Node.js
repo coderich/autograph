@@ -17,6 +17,7 @@ module.exports = class Node {
     this.directives = (this.ast.directives || []).map(el => new Node(el));
     this.toString = () => this.getName();
     this.nodeType = nodeType;
+    this.name = get(this.ast, 'name.value');
     // return new Memoizer(this, Object.getOwnPropertyNames(Node.prototype).filter(m => ['getContext'].indexOf(m) === -1));
   }
 
@@ -30,7 +31,8 @@ module.exports = class Node {
   }
 
   getName() {
-    return get(this.ast, 'name.value');
+    return this.name;
+    // return get(this.ast, 'name.value');
   }
 
   getValue(ast = this.ast) {
@@ -96,14 +98,14 @@ module.exports = class Node {
     return this.getArguments().find(arg => arg.getName() === name);
   }
 
-  // Framework Methods
-  getKey(defaultValue) {
-    switch (this.nodeType) {
-      case 'model': return uvl(this.getDirectiveArg('model', 'key'), defaultValue, this.getName());
-      case 'field': return uvl(this.getDirectiveArg('field', 'key'), defaultValue, this.getName());
-      default: return defaultValue;
-    }
-  }
+  // // Framework Methods
+  // getKey() {
+  //   switch (this.nodeType) {
+  //     case 'model': return uvl(this.getDirectiveArg('model', 'key'), this.getName());
+  //     case 'field': return uvl(this.getDirectiveArg('field', 'key'), this.getName());
+  //     default: return null;
+  //   }
+  // }
 
   getOnDelete() {
     return this.getDirectiveArg('field', 'onDelete');

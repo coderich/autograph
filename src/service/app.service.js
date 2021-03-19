@@ -176,7 +176,7 @@ exports.unrollGuid = (autograph, model, data) => {
 exports.keyPaths = (obj = {}, keys = [], path) => {
   return Object.entries(obj).reduce((prev, [key, value]) => {
     const keyPath = path ? `${path}.${key}` : key;
-    if (exports.isPlainObject(value)) return exports.keyPaths(value, prev, keyPath);
+    if (exports.isPlainObject(value) && Object.keys(value).length) return exports.keyPaths(value, prev, keyPath);
 
     // if (Array.isArray(value)) {
     //   const arr = value.filter(v => exports.isPlainObject(v));
