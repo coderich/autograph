@@ -1,4 +1,4 @@
-const Query = require('../query/Query');
+const QueryService = require('../query/QueryService');
 const EventEmitter = require('../core/EventEmitter');
 const { ensureArray, ucFirst } = require('./app.service');
 
@@ -15,11 +15,12 @@ const systemEvent = new EventEmitter().on('system', async (event, next) => {
 //
 exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
   let event;
+  let middleware;
   const type = ucFirst(name);
 
   if (name !== 'Setup') {
     const { method, query } = mixed;
-    const { resolver, model, meta, doc, input, merged } = query.toObject();
+    const { resolver, model, meta, doc, input, merged, isNative } = query.toObject();
 
     event = {
       context: resolver.getContext(),
@@ -33,11 +34,24 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
       doc,
       merged,
     };
+
+    middleware = new Promise(async (resolve) => {
+      // Where clause
+      if (!isNative) {
+        const $where = await QueryService.resolveWhereClause(query);
+        query.match(model.serialize($where));
+      }
+
+      resolve();
+    });
   } else {
+    middleware = Promise.resolve();
     event = mixed;
   }
 
-  return systemEvent.emit('system', { type: `pre${type}`, data: event }).then(thunk).then((result) => {
+  return systemEvent.emit('system', { type: `pre${type}`, data: event }).then(() => {
+    return middleware.then(thunk);
+  }).then((result) => {
     event.doc = result;
     return systemEvent.emit('system', { type: `post${type}`, data: event }).then(() => result);
   });

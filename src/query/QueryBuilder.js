@@ -16,6 +16,7 @@ module.exports = class QueryBuilder {
     this.id = (id) => { this.query.id(id); return this; };
     this.select = (select) => { this.query.select(unravelObject(select)); return this; };
     this.where = (where) => { this.query.where(unravelObject(where)); return this; };
+    this.match = (match) => { this.query.match(unravelObject(match)); return this; };
     this.native = (native) => { this.query.native(native); return this; };
     this.sort = (sort) => { this.query.sort(unravelObject(sort)); return this; };
     this.sortBy = (sortBy) => { this.query.sort(unravelObject(sortBy)); return this; };

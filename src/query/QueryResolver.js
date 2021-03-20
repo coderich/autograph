@@ -1,8 +1,9 @@
 const { isEmpty } = require('lodash');
 const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
+const DataService = require('../data/DataService');
 const { createSystemEvent } = require('../service/event.service');
-const { ucFirst, mergeDeep } = require('../service/app.service');
+const { mergeDeep } = require('../service/app.service');
 
 module.exports = class QueryResolver {
   constructor(query) {
@@ -47,16 +48,15 @@ module.exports = class QueryResolver {
   updateOne(query) {
     const { model, match } = query.toObject();
 
-    return this.resolver.match(model).native(match).one({ required: true }).then((doc) => {
+    return this.resolver.match(model).match(match).one({ required: true }).then((doc) => {
       const { input } = query.toObject();
       const merged = mergeDeep(doc, input);
-      const $input = model.serialize(model.appendUpdateFields(input));
-      query.doc(doc).merged(merged).$input($input);
 
-      return createSystemEvent('Mutation', { method: 'update', query }, async () => {
+      return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(merged) }, async () => {
+        const $input = model.serialize(model.appendUpdateFields(input));
         await model.validateData($input, doc, 'update');
         const $doc = mergeDeep(model.serialize(doc), $input);
-        return this.resolver.resolve(query.$doc($doc));
+        return this.resolver.resolve(query.$doc($doc).$input($input));
       });
     });
   }
@@ -64,7 +64,7 @@ module.exports = class QueryResolver {
   updateMany(query) {
     const { model, args, match, transaction, flags } = query.toObject();
 
-    return this.resolver.match(model).native(match).flags(flags).many().then((docs) => {
+    return this.resolver.match(model).match(match).flags(flags).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);
       docs.forEach(doc => txn.match(model).id(doc.id).save(...args));
       return txn.run();
@@ -104,7 +104,7 @@ module.exports = class QueryResolver {
     const { model, match, transaction } = query.toObject();
     const [key, ...values] = args;
 
-    return this.resolver.match(model).native(match).many().then((docs) => {
+    return this.resolver.match(model).match(match).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);
       docs.forEach(doc => txn.match(model).id(doc.id).push(key, ...values));
       return txn.run();
@@ -121,7 +121,7 @@ module.exports = class QueryResolver {
     const { model, match, transaction, args } = query.toObject();
     const [key, ...values] = args;
 
-    return this.resolver.match(model).native(match).many().then((docs) => {
+    return this.resolver.match(model).match(match).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);
       docs.forEach(doc => txn.match(model).id(doc.id).pull(key, ...values));
       return txn.run();
@@ -132,8 +132,8 @@ module.exports = class QueryResolver {
     const { model, match, args } = query.toObject();
     const [key, from, to] = args;
 
-    return this.resolver.match(model).native(match).one({ required: true }).then(async (doc) => {
-      const data = await QueryService.spliceEmbeddedArray(query, doc, key, from, to);
+    return this.resolver.match(model).match(match).one({ required: true }).then(async (doc) => {
+      const data = await DataService.spliceEmbeddedArray(query, doc, key, from, to);
       const merged = mergeDeep(doc, data);
 
       return createSystemEvent('Mutation', { method: 'splice', query: query.doc(doc).input(data).merged(merged) }, async () => {
@@ -161,11 +161,11 @@ module.exports = class QueryResolver {
     // const $select = select ? Object.keys(select).map(n => fieldNameToKeyMap[n]) : fields.map(f => f.getKey());
     // clone.select($select);
 
-    // Where clause
-    if (!isNative) {
-      const $where = await QueryService.resolveWhereClause(this.query);
-      this.query.match(model.serialize($where));
-    }
+    // // Where clause
+    // if (!isNative) {
+    //   const $where = await QueryService.resolveWhereClause(this.query);
+    //   this.query.match(model.serialize($where));
+    // }
 
     // // Input data
     // if (crud === 'create' || crud === 'update') {
