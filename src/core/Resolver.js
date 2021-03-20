@@ -18,6 +18,7 @@ module.exports = class Resolver {
     this.prime = (key, value) => this.loader.prime(key, value);
 
     //
+    this.getSchema = () => this.schema;
     this.getContext = () => this.context;
 
     //
