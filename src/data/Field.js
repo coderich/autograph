@@ -120,7 +120,6 @@ module.exports = class extends Field {
 
     // Now, normalize and resolve
     const $value = this.transform(value, 'serialize');
-    if (this.getName() === 'dataChannels') console.log(value, $value);
     if (modelRef && !isEmbedded) return map($value, v => modelRef.idValue(v.id || v));
     return $value;
   }

@@ -54,14 +54,8 @@ module.exports = class extends Model {
     if (!input.createdAt) input.createdAt = new Date();
     input.updatedAt = new Date();
 
-    // Bound + Default value
-    this.getDefaultedFields().filter(field => field.hasGQLScope('c')).forEach((field) => {
-      const key = field.getKey();
-      if (!Object.prototype.hasOwnProperty.call(input, key)) input[key] = undefined;
-    });
-
     // Generate embedded default values
-    this.getEmbeddedFields().filter(field => field.hasGQLScope('c')).forEach((field) => {
+    this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
       if (input[field]) map(input[field], v => field.getModelRef().appendCreateFields(v, true));
     });
 
@@ -70,8 +64,27 @@ module.exports = class extends Model {
 
   appendUpdateFields(input) {
     input.updatedAt = new Date();
-    // input = this.removeBoundKeys(input);
+    this.removeBoundKeys(input);
     return input;
+  }
+
+  appendDefaultFields(input) {
+    this.getDefaultedFields().filter(field => field.isPersistable()).forEach((field) => {
+      input[field] = field.resolveBoundValue(input[field]);
+    });
+
+    // Generate embedded default values
+    this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
+      map(input[field], v => field.getModelRef().appendDefaultFields(v));
+    });
+
+    return input;
+  }
+
+  removeBoundKeys(data) {
+    this.getBoundValueFields().forEach((field) => {
+      delete data[field.getName()];
+    });
   }
 
   serialize(data) {

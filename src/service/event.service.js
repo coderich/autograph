@@ -20,7 +20,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
 
   if (name !== 'Setup') {
     const { method, query } = mixed;
-    const { resolver, model, meta, doc, input, merged, isNative } = query.toObject();
+    const { resolver, model, meta, doc, input, sort, merged, isNative } = query.toObject();
 
     event = {
       context: resolver.getContext(),
@@ -36,10 +36,15 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
     };
 
     middleware = new Promise(async (resolve) => {
-      // Where clause
       if (!isNative) {
         const $where = await QueryService.resolveWhereClause(query);
         query.match(model.serialize($where));
+      }
+
+      if (sort) {
+        query.$sort(Object.entries(sort).reduce((prev, [key, value]) => {
+          return Object.assign(prev, { [model.getFieldByName(key).getKey()]: value.toLowerCase() === 'asc' ? 1 : -1 });
+        }, {}));
       }
 
       resolve();

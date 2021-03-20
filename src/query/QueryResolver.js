@@ -30,8 +30,10 @@ module.exports = class QueryResolver {
   }
 
   createOne(query) {
+    const { model, input } = query.toObject();
+    model.appendDefaultFields(input);
+
     return createSystemEvent('Mutation', { method: 'create', query }, () => {
-      const { model, input } = query.toObject();
       const $input = model.serialize(model.appendCreateFields(input));
       query.$input($input);
       return model.validateData($input, {}, 'create').then(() => this.resolver.resolve(query));
@@ -153,30 +155,7 @@ module.exports = class QueryResolver {
   }
 
   async resolve() {
-    const { model, method, sort, flags, isNative } = this.query.toObject();
-
-    // // Select fields
-    // const fields = model.getSelectFields();
-    // const fieldNameToKeyMap = fields.reduce((prev, field) => Object.assign(prev, { [field.getName()]: field.getKey() }), {});
-    // const $select = select ? Object.keys(select).map(n => fieldNameToKeyMap[n]) : fields.map(f => f.getKey());
-    // clone.select($select);
-
-    // // Where clause
-    // if (!isNative) {
-    //   const $where = await QueryService.resolveWhereClause(this.query);
-    //   this.query.match(model.serialize($where));
-    // }
-
-    // // Input data
-    // if (crud === 'create' || crud === 'update') {
-    //   this.query.$input(model.serialize(model[`append${ucFirst(crud)}Fields`](input)));
-    // }
-
-    if (sort) {
-      this.query.$sort(Object.entries(sort).reduce((prev, [key, value]) => {
-        return Object.assign(prev, { [model.getFieldByName(key).getKey()]: value.toLowerCase() === 'asc' ? 1 : -1 });
-      }, {}));
-    }
+    const { model, method, flags } = this.query.toObject();
 
     return this[method](this.query).then((data) => {
       if (flags.required && (data == null || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);

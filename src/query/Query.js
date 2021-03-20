@@ -209,7 +209,7 @@ module.exports = class Query {
     return this;
   }
 
-  input(input) {
+  input(input = {}) { // Allows .save(/* empty */);
     this.props.input = input;
     return this;
   }
