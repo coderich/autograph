@@ -80,6 +80,10 @@ module.exports = class Model extends Node {
     return this.getFields().filter(field => field.isRequired());
   }
 
+  getDefaultFields() {
+    return this.getFields().filter(field => field.getDefaultValue() != null);
+  }
+
   getDefaultedFields() {
     return this.getFields().filter(field => field.isDefaulted());
   }

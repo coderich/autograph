@@ -1,0 +1,33 @@
+** sort has custom serializer
+
+transform(serdes = null):
+
+serialize:
+  - input/data
+  - where
+
+deserialize:
+  - output/data
+
+default:
+  * serialize
+    - input
+      - If not present will populate
+  * deserialize
+    - data
+      - If not present will populate
+
+@value
+  * serialize
+    - input/data
+    - where
+  * deserialize
+    - output/data
+
+create:
+  * serialize input
+
+update:
+  * serialize input
+  * serialize where
+

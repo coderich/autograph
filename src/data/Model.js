@@ -109,7 +109,7 @@ module.exports = class extends Model {
     const appendFields = (serdes === 'serialize' ? [...this.getBoundValueFields()] : []);
 
     // Certain cases do not want custom serdes or defaults
-    if (!minimal) appendFields.push(...this[`get${ucFirst(serdes)}Fields`](), ...this.getDefaultedFields());
+    if (!minimal) appendFields.push(...this[`get${ucFirst(serdes)}Fields`](), ...this.getDefaultFields());
 
     // Transform all the data
     return map(data, (doc) => {

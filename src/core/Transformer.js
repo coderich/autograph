@@ -2,6 +2,7 @@ const { get, set, uniqWith } = require('lodash');
 const { map, serialize, castCmp, hashObject } = require('../service/app.service');
 
 const instances = {};
+let allInstances;
 
 const jsStringMethods = [
   'charAt', 'charCodeAt', 'codePointAt', 'concat', 'indexOf', 'lastIndexOf', 'localeCompare',
@@ -36,10 +37,12 @@ class Transformer {
   }
 
   static getInstances() {
+    if (allInstances) return allInstances;
     const defaultTransformers = Object.entries(Transformer).map(([name, method]) => ({ name, instance: method() }));
     const customTransformers = Object.entries(instances).map(([name, instance]) => ({ name, instance }));
     const transformers = defaultTransformers.concat(customTransformers);
-    return transformers.reduce((prev, { name, instance }) => Object.assign(prev, { [name]: instance }), {});
+    allInstances = transformers.reduce((prev, { name, instance }) => Object.assign(prev, { [name]: instance }), {});
+    return allInstances;
   }
 }
 

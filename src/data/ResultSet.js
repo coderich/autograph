@@ -5,10 +5,12 @@ module.exports = class ResultSet {
   constructor(query, data) {
     const { resolver, model, sort } = query.toObject();
     const fields = model.getFields().filter(f => f.getName() !== 'id');
+    // const appendFields = [...model.getDeserializeFields(), ...model.getDefaultFields()];
 
     return map(data, (doc) => {
       if (doc == null || typeof doc !== 'object') return doc;
 
+      //
       const cache = new Map();
 
       return Object.defineProperties(
@@ -39,13 +41,12 @@ module.exports = class ResultSet {
               //
               if (cache.has($name)) return cache.get($name);
 
-              const $value = this[name];
-
               const promise = new Promise((resolve, reject) => {
                 (() => {
-                  if (field.isScalar() || field.isEmbedded()) return Promise.resolve($value);
+                  // if (!Object.prototype.hasOwnProperty.call(this, name)) return Promise.resolve();
+                  const $value = this[name];
 
-                  // if (field.isEmbedded()) return Promise.resolve($value == null ? $value : new ResultSet(query.model(field.getModelRef()), $value));
+                  if (field.isScalar() || field.isEmbedded()) return Promise.resolve($value);
 
                   if (field.isArray()) {
                     if (field.isVirtual()) {
