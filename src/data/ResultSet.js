@@ -1,12 +1,12 @@
 const { get } = require('lodash');
-const { map, keyPaths, mapPromise, toGUID } = require('../service/app.service');
+const { map, ensureArray, keyPaths, mapPromise, toGUID } = require('../service/app.service');
 
 module.exports = class ResultSet {
   constructor(query, data) {
     const { resolver, model, sort } = query.toObject();
     const fields = model.getFields().filter(f => f.getName() !== 'id');
 
-    return map(data, (doc) => {
+    const rs = map(data, (doc) => {
       if (doc == null || typeof doc !== 'object') return doc;
 
       //
@@ -93,10 +93,9 @@ module.exports = class ResultSet {
           $$cursor: {
             get() {
               const sortPaths = keyPaths(sort);
-              const sortValues = sortPaths.reduce((prv, path) => Object.assign(prv, { [path]: get(doc, path) }), {});
+              const sortValues = sortPaths.reduce((prv, path) => Object.assign(prv, { [path]: get(this, path) }), {});
               const sortJSON = JSON.stringify(sortValues);
-              const cursor = Buffer.from(sortJSON).toString('base64');
-              return cursor;
+              return Buffer.from(sortJSON).toString('base64');
             },
             enumerable: false,
           },
@@ -107,6 +106,22 @@ module.exports = class ResultSet {
           // },
         }),
       );
+    });
+
+    return Object.defineProperties(rs, {
+      $$pageInfo: {
+        get() {
+          const edges = ensureArray(rs);
+
+          return {
+            startCursor: get(edges, '0.$$cursor', ''),
+            endCursor: get(edges, `${edges.length - 1}.$$cursor`, ''),
+            // hasPreviousPage: hasPreviousPage(results, before, after, first, last),
+            // hasNextPage: hasNextPage(results, before, after, first, last),
+          };
+        },
+        enumerable: false,
+      },
     });
   }
 };

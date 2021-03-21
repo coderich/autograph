@@ -21,8 +21,8 @@ module.exports = class QueryBuilder {
     this.sort = (sort) => { this.query.sort(unravelObject(sort)); return this; };
     this.sortBy = (sortBy) => { this.query.sort(unravelObject(sortBy)); return this; };
     this.skip = (skip) => { this.query.skip(skip); return this; };
-    this.before = (cursor) => { this.query.before(JSON.parse(Buffer.from(cursor, 'base64').toString('ascii'))); return this; };
-    this.after = (cursor) => { this.query.after(JSON.parse(Buffer.from(cursor, 'base64').toString('ascii'))); return this; };
+    this.before = (cursor) => { this.query.before(cursor); return this; };
+    this.after = (cursor) => { this.query.after(cursor); return this; };
     this.meta = (meta) => { this.query.meta(meta); return this; };
     this.flags = (flags) => { this.query.flags(flags); return this; };
     this.merge = (merge) => { this.query.merge(merge); return this; };

@@ -26,7 +26,7 @@ module.exports = (schema) => {
       return '';
     }).concat(`
       interface Node { id: ID! }
-      enum SortOrderEnum { ASC DESC }
+      enum SortOrderEnum { asc desc }
     `),
   });
 };

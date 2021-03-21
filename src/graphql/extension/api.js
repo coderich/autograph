@@ -73,7 +73,6 @@ module.exports = (schema) => {
         endCursor: String!
         hasPreviousPage: Boolean!
         hasNextPage: Boolean!
-        totalCount: Int!
       }`,
 
       `type Query {

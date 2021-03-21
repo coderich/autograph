@@ -155,13 +155,14 @@ module.exports = class MongoDriver {
 
     // Sort, Skip, Limit documents
     if (sort && Object.keys(sort).length) $aggregate.push({ $sort: Object.assign(sort, { _id: -1 }) });
+    // if (sort && Object.keys(sort).length) $aggregate.push({ $sort: sort });
     if (skip) $aggregate.push({ $skip: skip });
     if (limit) $aggregate.push({ $limit: limit });
 
     // Pagination
     const { after, before, first } = query;
-    if (after) $aggregate.push({ $match: { $or: Object.entries(after).reduce((prev, [key, value]) => prev.concat({ [key]: { $gt: value } }), []) } });
-    if (before) $aggregate.push({ $match: { $or: Object.entries(before).reduce((prev, [key, value]) => prev.concat({ [key]: { $lt: value } }), []) } });
+    if (after) $aggregate.push({ $match: { $or: Object.entries(after).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$gt' : '$lt']: value } }), []) } });
+    if (before) $aggregate.push({ $match: { $or: Object.entries(before).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$lt' : '$gt']: value } }), []) } });
     if (first) $aggregate.push({ $limit: first });
 
     return $aggregate;
