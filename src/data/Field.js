@@ -97,7 +97,7 @@ module.exports = class extends Field {
    */
   transform(resolver, value, serdes = (() => { throw new Error('No Sir Sir SerDes!'); })()) {
     // Determine value
-    const $value = serdes === 'serialize' ? this.resolveBoundValue(resolver, value) : value;
+    const $value = serdes === 'serialize' ? this.resolveBoundValue(resolver, value) : uvl(value, this.getDefaultValue());
 
     // Determine transformers
     const transformers = [...(serdes === 'serialize' ? this.getSerializers() : this.getDeserializers()), ...this.getTransformers()];
