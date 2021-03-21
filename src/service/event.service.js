@@ -38,7 +38,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
     middleware = new Promise(async (resolve) => {
       if (!isNative) {
         const $where = await QueryService.resolveWhereClause(query);
-        query.match(model.serialize($where));
+        query.match(model.serialize($where, true));
       }
 
       if (sort) {

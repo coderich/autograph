@@ -55,9 +55,9 @@ module.exports = class QueryResolver {
       const merged = mergeDeep(doc, input);
 
       return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(merged) }, async () => {
-        const $input = model.serialize(model.appendUpdateFields(input));
+        const $input = model.serialize(model.appendUpdateFields(input), true);
         await model.validateData($input, doc, 'update');
-        const $doc = mergeDeep(model.serialize(doc), $input);
+        const $doc = mergeDeep(model.serialize(doc, true), $input);
         return this.resolver.resolve(query.$doc($doc).$input($input));
       });
     });
@@ -140,7 +140,7 @@ module.exports = class QueryResolver {
 
       return createSystemEvent('Mutation', { method: 'splice', query: query.doc(doc).input(data).merged(merged) }, async () => {
         await model.validateData(data, doc, 'update');
-        const $doc = mergeDeep(model.serialize(doc), model.serialize(data));
+        const $doc = mergeDeep(model.serialize(doc, true), model.serialize(data, true));
         return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc));
       });
     });

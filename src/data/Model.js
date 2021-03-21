@@ -1,7 +1,7 @@
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
 const RuleService = require('../service/rule.service');
-const { map, ensureArray } = require('../service/app.service');
+const { map, ucFirst, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Model {
   constructor(schema, model, driver) {
@@ -87,23 +87,39 @@ module.exports = class extends Model {
     });
   }
 
-  serialize(data) {
-    return this.transform(data, 'serialize');
+  /**
+   * Serialize data from Domain Model to Data Model (where clause has special handling)
+   */
+  serialize(data, minimal = false) {
+    return this.transform(data, 'serialize', minimal);
   }
 
+  /**
+   * Deserialize data from Data Model to Domain Model
+   */
   deserialize(data) {
     return this.transform(data, 'deserialize');
   }
 
-  transform(data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); })()) {
-    const boundFields = this.getBoundValueFields();
+  /**
+   * Serializer/Deserializer
+   */
+  transform(data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); })(), minimal = false) {
+    // Serialize always gets the bound values
+    const appendFields = (serdes === 'serialize' ? [...this.getBoundValueFields()] : []);
 
+    // Certain cases do not want custom serdes or defaults
+    if (!minimal) appendFields.push(...this[`get${ucFirst(serdes)}Fields`](), ...this.getDefaultedFields());
+
+    // Transform all the data
     return map(data, (doc) => {
-      const fields = [...new Set(boundFields.concat(Object.keys(doc).map(k => this.getField(k))))].filter(f => f);
+      // We want the appendFields + those in the data, deduped
+      const fields = [...new Set(appendFields.concat(Object.keys(doc).map(k => this.getField(k))))].filter(f => f);
 
+      // Loop through the fields and delegate (renaming keys appropriately)
       return fields.reduce((prev, field) => {
         const [key, name] = serdes === 'serialize' ? [field.getKey(), field.getName()] : [field.getName(), field.getKey()];
-        prev[key] = field[serdes](doc[name]);
+        prev[key] = field[serdes](doc[name], minimal);
         return prev;
       }, {});
     });

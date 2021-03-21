@@ -97,10 +97,10 @@ module.exports = class extends Field {
    */
   transform(value, serdes = (() => { throw new Error('No Sir Sir SerDes!'); })()) {
     // Determine value
-    const $value = this.resolveBoundValue(value);
+    const $value = serdes === 'serialize' ? this.resolveBoundValue(value) : value;
 
     // Determine transformers
-    const transformers = [...this.getTransformers(), ...(serdes === 'serialize' ? this.getSerializers() : this.getDeserializers())];
+    const transformers = [...(serdes === 'serialize' ? this.getSerializers() : this.getDeserializers()), ...this.getTransformers()];
 
     // Transform
     return transformers.reduce((prev, transformer) => {
@@ -111,12 +111,12 @@ module.exports = class extends Field {
   /**
    * Ensures the value of the field is appropriate for the driver
    */
-  serialize(value) {
+  serialize(value, minimal = false) {
     const modelRef = this.getModelRef();
     const isEmbedded = this.isEmbedded();
 
     // If embedded, simply delgate
-    if (isEmbedded) return modelRef.serialize(value);
+    if (isEmbedded) return modelRef.serialize(value, minimal);
 
     // Now, normalize and resolve
     const $value = this.transform(value, 'serialize');
