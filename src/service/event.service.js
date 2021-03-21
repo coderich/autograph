@@ -38,7 +38,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
     middleware = new Promise(async (resolve) => {
       if (!isNative) {
         const $where = await QueryService.resolveWhereClause(query);
-        query.match(model.serialize($where, true));
+        query.match(model.serialize(resolver, $where, true));
       }
 
       if (sort) {
@@ -57,7 +57,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
   return systemEvent.emit('system', { type: `pre${type}`, data: event }).then(() => {
     return middleware.then(thunk);
   }).then((result) => {
-    event.doc = result;
+    // event.doc = result;
     return systemEvent.emit('system', { type: `post${type}`, data: event }).then(() => result);
   });
 };

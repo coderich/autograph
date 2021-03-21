@@ -5,7 +5,6 @@ module.exports = class ResultSet {
   constructor(query, data) {
     const { resolver, model, sort } = query.toObject();
     const fields = model.getFields().filter(f => f.getName() !== 'id');
-    // const appendFields = [...model.getDeserializeFields(), ...model.getDefaultFields()];
 
     return map(data, (doc) => {
       if (doc == null || typeof doc !== 'object') return doc;
@@ -25,7 +24,7 @@ module.exports = class ResultSet {
           prev[name] = {
             get() {
               if (cache.has(name)) return cache.get(name);
-              let $value = field.deserialize(value);
+              let $value = field.deserialize(resolver, value);
               $value = $value != null && field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), $value) : $value;
               cache.set(name, $value);
               return $value;
@@ -43,7 +42,6 @@ module.exports = class ResultSet {
 
               const promise = new Promise((resolve, reject) => {
                 (() => {
-                  // if (!Object.prototype.hasOwnProperty.call(this, name)) return Promise.resolve();
                   const $value = this[name];
 
                   if (field.isScalar() || field.isEmbedded()) return Promise.resolve($value);
@@ -65,8 +63,8 @@ module.exports = class ResultSet {
 
                   return resolver.match(field.getModelRef()).id($value).one({ required: field.isRequired() });
                 })().then((results) => {
-                  if (results == null) return field.resolve(results); // Allow field to determine
-                  return mapPromise(results, result => field.resolve(result));
+                  if (results == null) return field.resolve(resolver, results); // Allow field to determine
+                  return mapPromise(results, result => field.resolve(resolver, result));
                 }).then((resolved) => {
                   resolve(resolved);
                 }).catch((e) => {

@@ -68,14 +68,14 @@ module.exports = class extends Model {
     return input;
   }
 
-  appendDefaultFields(input) {
+  appendDefaultFields(resolver, input) {
     this.getDefaultedFields().filter(field => field.isPersistable()).forEach((field) => {
-      input[field] = field.resolveBoundValue(input[field]);
+      input[field] = field.resolveBoundValue(resolver, input[field]);
     });
 
     // Generate embedded default values
     this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
-      map(input[field], v => field.getModelRef().appendDefaultFields(v));
+      map(input[field], v => field.getModelRef().appendDefaultFields(resolver, v));
     });
 
     return input;
@@ -90,21 +90,21 @@ module.exports = class extends Model {
   /**
    * Serialize data from Domain Model to Data Model (where clause has special handling)
    */
-  serialize(data, minimal = false) {
-    return this.transform(data, 'serialize', minimal);
+  serialize(resolver, data, minimal = false) {
+    return this.transform(resolver, data, 'serialize', minimal);
   }
 
   /**
    * Deserialize data from Data Model to Domain Model
    */
-  deserialize(data) {
-    return this.transform(data, 'deserialize');
+  deserialize(resolver, data) {
+    return this.transform(resolver, data, 'deserialize');
   }
 
   /**
    * Serializer/Deserializer
    */
-  transform(data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); })(), minimal = false) {
+  transform(resolver, data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); })(), minimal = false) {
     // Serialize always gets the bound values
     const appendFields = (serdes === 'serialize' ? [...this.getBoundValueFields()] : []);
 
@@ -119,19 +119,19 @@ module.exports = class extends Model {
       // Loop through the fields and delegate (renaming keys appropriately)
       return fields.reduce((prev, field) => {
         const [key, name] = serdes === 'serialize' ? [field.getKey(), field.getName()] : [field.getName(), field.getKey()];
-        prev[key] = field[serdes](doc[name], minimal);
+        prev[key] = field[serdes](resolver, doc[name], minimal);
         return prev;
       }, {});
     });
   }
 
-  validate(data, mapper) {
-    const normalized = this.deserialize(data);
+  validate(resolver, data, mapper) {
+    const normalized = this.deserialize(resolver, data);
 
     return Promise.all(this.getFields().map((field) => {
       return Promise.all(ensureArray(map(normalized, (obj) => {
         if (obj == null) return Promise.resolve();
-        return field.validate(obj[field.getName()], mapper);
+        return field.validate(resolver, obj[field.getName()], mapper);
       })));
     }));
   }
@@ -139,10 +139,10 @@ module.exports = class extends Model {
   /**
    * The validation method needs to be dynamic based on update vs create
    */
-  validateData(data, oldData, op) {
+  validateData(resolver, data, oldData, op) {
     const required = (op === 'create' ? (f, v) => v == null : (f, v) => Object.prototype.hasOwnProperty.call(data, f.getName()) && v == null);
     const immutable = (f, v) => RuleService.immutable(v, oldData, op, `${f.getModel()}.${f.getName()}`);
     const selfless = (f, v) => RuleService.selfless(v, oldData, op, `${f.getModel()}.${f.getName()}`);
-    return this.validate(data, { required, immutable, selfless });
+    return this.validate(resolver, data, { required, immutable, selfless });
   }
 };

@@ -10,7 +10,6 @@ module.exports = class Resolver {
     this.schema = schema;
     this.context = context;
     this.loader = new DataLoader();
-    this.schema.setContext(context);
 
     // DataLoader Proxy Methods
     this.clear = key => this.loader.clear(key);

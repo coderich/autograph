@@ -44,18 +44,14 @@ module.exports = class Field extends Node {
     return this.getDirectiveArg('field', 'default');
   }
 
-  getContext() {
-    return this.schema.getContext();
-  }
-
-  resolveBoundValue(initialValue = this.getDefaultValue()) {
+  resolveBoundValue(resolver, initialValue = this.getDefaultValue()) {
     if (!this.hasBoundValue()) return initialValue;
 
     const { scope, path } = this.getDirectiveArgs('value');
 
     switch (scope) {
       case 'context': {
-        const context = this.getContext();
+        const context = resolver.getContext();
         const value = get(context, path);
         return (typeof value === 'function') ? value() : value;
       }

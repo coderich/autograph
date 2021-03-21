@@ -76,13 +76,13 @@ module.exports = class extends Field {
     return resolvers.concat(this.type.getResolvers());
   }
 
-  validate(value, mapper) {
+  validate(resolver, value, mapper) {
     mapper = mapper || {};
     const modelRef = this.getModelRef();
     const rules = [...this.getRules()];
 
     if (modelRef) {
-      if (isPlainObject(ensureArray(value)[0])) return modelRef.validate(value, mapper); // Model delegation
+      if (isPlainObject(ensureArray(value)[0])) return modelRef.validate(resolver, value, mapper); // Model delegation
       if (!this.isEmbedded()) rules.push(Rule.ensureId());
     }
 
@@ -95,9 +95,9 @@ module.exports = class extends Field {
   /**
    * Ensures the value of the field via bound @value + transformations
    */
-  transform(value, serdes = (() => { throw new Error('No Sir Sir SerDes!'); })()) {
+  transform(resolver, value, serdes = (() => { throw new Error('No Sir Sir SerDes!'); })()) {
     // Determine value
-    const $value = serdes === 'serialize' ? this.resolveBoundValue(value) : value;
+    const $value = serdes === 'serialize' ? this.resolveBoundValue(resolver, value) : value;
 
     // Determine transformers
     const transformers = [...(serdes === 'serialize' ? this.getSerializers() : this.getDeserializers()), ...this.getTransformers()];
@@ -111,32 +111,32 @@ module.exports = class extends Field {
   /**
    * Ensures the value of the field is appropriate for the driver
    */
-  serialize(value, minimal = false) {
+  serialize(resolver, value, minimal = false) {
     const modelRef = this.getModelRef();
     const isEmbedded = this.isEmbedded();
 
     // If embedded, simply delgate
-    if (isEmbedded) return modelRef.serialize(value, minimal);
+    if (isEmbedded) return modelRef.serialize(resolver, value, minimal);
 
     // Now, normalize and resolve
-    const $value = this.transform(value, 'serialize');
+    const $value = this.transform(resolver, value, 'serialize');
     if (modelRef && !isEmbedded) return map($value, v => modelRef.idValue(v.id || v));
     return $value;
   }
 
-  deserialize(value) {
-    return this.transform(value, 'deserialize');
+  deserialize(resolver, value) {
+    return this.transform(resolver, value, 'deserialize');
   }
 
   /**
    * Applies any user-defined @field(resolve: [...methods]) in series
    * This is ONLY run when resolving a value via the $<name> attribute
    */
-  resolve(value) {
+  resolve(resolver, value) {
     const resolvers = [...this.getResolvers()];
 
-    return promiseChain(resolvers.map(resolver => (chain) => {
-      return Promise.resolve(resolver(this, uvl(this.cast(chain.pop()), value)));
+    return promiseChain(resolvers.map(fn => (chain) => {
+      return Promise.resolve(fn(this, uvl(this.cast(chain.pop()), value)));
     })).then((results) => {
       return uvl(this.cast(results.pop()), value);
     });
