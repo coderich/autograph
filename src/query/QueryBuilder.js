@@ -14,12 +14,12 @@ module.exports = class QueryBuilder {
 
     // Chainable commands
     this.id = (id) => { this.query.id(id); return this; };
-    this.select = (select) => { this.query.select(unravelObject(select)); return this; };
-    this.where = (where) => { this.query.where(unravelObject(where)); return this; };
-    this.match = (match) => { this.query.match(unravelObject(match)); return this; };
+    this.select = (select) => { this.query.select(select); return this; };
+    this.where = (where) => { this.query.where(where); return this; };
+    this.match = (match) => { this.query.match(match); return this; };
     this.native = (native) => { this.query.native(native); return this; };
-    this.sort = (sort) => { this.query.sort(unravelObject(sort)); return this; };
-    this.sortBy = (sortBy) => { this.query.sort(unravelObject(sortBy)); return this; };
+    this.sort = (sort) => { this.query.sort(sort); return this; };
+    this.sortBy = (sortBy) => { this.query.sort(sortBy); return this; };
     this.skip = (skip) => { this.query.skip(skip); return this; };
     this.before = (cursor) => { this.query.before(cursor); return this; };
     this.after = (cursor) => { this.query.after(cursor); return this; };

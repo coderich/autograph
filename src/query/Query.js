@@ -1,44 +1,12 @@
-let count = 0;
+const { unravelObject } = require('../service/app.service');
 
 module.exports = class Query {
   constructor(props = {}) {
     this.props = {};
     this.timers = {};
-    this.queryId = `query${++count}`;
     this.merge(props);
     this.props.match = this.props.match || {};
     this.props.options = this.props.options || {};
-  }
-
-  time(label = 'default') {
-    this.timers[label] = { start: new Date().getTime() };
-    return this;
-  }
-
-  timeEnd(label = 'default') {
-    this.timers[label].end = new Date().getTime();
-    return this;
-  }
-
-  timeReport() {
-    const report = Object.entries(this.timers).reduce((prev, [key, value]) => {
-      return Object.assign(prev, { [key]: value.end - value.start });
-    }, {});
-
-    const toDriver = this.toDriver();
-
-    console.log(JSON.stringify({
-      [this.queryId]: {
-        details: {
-          model: toDriver.model,
-          method: toDriver.method,
-          where: toDriver.where,
-          input: toDriver.input,
-          flags: toDriver.flags,
-        },
-        report,
-      },
-    }, null, 2));
   }
 
   id(id) {
@@ -49,7 +17,7 @@ module.exports = class Query {
 
   where(where) {
     if (this.props.id || this.props.native) throw new Error('Cannot mix where() with id() or native()');
-    this.props.where = where;
+    this.props.where = unravelObject(where);
     return this.match(where);
   }
 
@@ -60,12 +28,12 @@ module.exports = class Query {
   }
 
   match(match) {
-    this.props.match = match;
+    this.props.match = unravelObject(match);
     return this;
   }
 
   select(select) {
-    this.props.select = select;
+    this.props.select = unravelObject(select);
     return this;
   }
 
@@ -81,7 +49,7 @@ module.exports = class Query {
 
   sort(sort) {
     if (this.props.id) throw new Error('Cannot mix sort() with id()');
-    this.props.sort = sort;
+    this.props.sort = unravelObject(sort);
     return this;
   }
 
