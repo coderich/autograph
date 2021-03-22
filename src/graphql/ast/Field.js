@@ -133,6 +133,18 @@ module.exports = class Field extends Node {
     return type;
   }
 
+  getExtendArgs() {
+    return this.isConnection() ? `(
+      where: ${this.getType()}InputWhere
+      sortBy: ${this.getType()}InputSort
+      limit: Int
+      first: Int
+      after: String
+      last: Int
+      before: String
+    )` : '';
+  }
+
   getPayloadType() {
     let type = this.getType();
     const req = this.isRequired() ? '!' : '';

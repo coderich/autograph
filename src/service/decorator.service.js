@@ -300,7 +300,6 @@ exports.makeReadAPI = (name, model, parent) => {
         last: Int
         before: String
       ): ${model.getName()}Connection!
-      count${name}(where: ${model.getName()}InputWhere): Int!
     `;
   }
 
@@ -352,7 +351,6 @@ exports.makeQueryResolver = (name, model, resolver, embeds = []) => {
   if ((!field || field.hasFieldScope('r')) && model.hasGQLScope('r')) {
     obj[`get${name}`] = resolveQuery('get', name, resolver, model, embeds);
     obj[`find${name}`] = resolveQuery('find', name, resolver, model, embeds);
-    obj[`count${name}`] = resolveQuery('count', name, resolver, model, embeds);
   }
 
   return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'query', embeds));

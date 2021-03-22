@@ -49,7 +49,7 @@ module.exports = (schema) => {
 
       ...readModels.map(model => `
         extend type ${model.getName()} {
-          ${model.getFields().filter(field => field.hasGQLScope('r')).map(field => `${field.getName()}: ${field.getPayloadType()}`)}
+          ${model.getFields().filter(field => field.hasGQLScope('r')).map(field => `${field.getName()}${field.getExtendArgs()}: ${field.getPayloadType()}`)}
         }
         type ${model.getName()}Connection {
           pageInfo: PageInfo!
@@ -99,8 +99,8 @@ module.exports = (schema) => {
         return Object.assign(def, {
           [fieldName]: (root, args, { autograph }) => {
             if (fieldName === 'id') return autograph.legacyMode ? root.id : root.$id;
+
             const $fieldName = `$${fieldName}`;
-            // const $fieldName = root[`$${fieldName}`] && typeof root[`$${fieldName}`] !== 'function' ? `$${fieldName}` : fieldName; // only $hydrated when set and not a function (Mongoose has $magic functions!)
 
             if (isConnection) {
               return {

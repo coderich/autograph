@@ -1,5 +1,3 @@
-const { ucFirst } = require('../../service/app.service');
-
 /**
  * Decorate Entity Models
  */
@@ -17,8 +15,6 @@ module.exports = (schema) => {
             ${id ? `id: ID! @field(key: "${id}", gqlScope: r)` : ''}
             ${createdAt ? `createdAt: AutoGraphDateTime @field(key: "${createdAt}", gqlScope: r)` : ''}
             ${updatedAt ? `updatedAt: AutoGraphDateTime @field(key: "${updatedAt}", gqlScope: r)` : ''}
-            # ${model.getCountableFields().map(field => `count${ucFirst(field.getName())}(where: ${field.getDataRef()}InputWhere): Int @field(persist: false, gqlScope: r)`)}
-            # countSelf(where: ${modelName}InputWhere): Int @field(persist: false, gqlScope: r)
           }
         `;
       }
