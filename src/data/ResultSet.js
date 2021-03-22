@@ -124,6 +124,11 @@ module.exports = class ResultSet {
             enumerable: false,
           },
 
+          $$isResultSet: {
+            value: true,
+            enumerable: false,
+          },
+
           // $$data: {
           //   get() { return data; },
           //   enumerable: false,
