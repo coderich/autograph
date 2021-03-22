@@ -25,7 +25,7 @@ module.exports = class ResultSet {
           prev[name] = {
             get() {
               if (cache.has(name)) return cache.get(name);
-              let $value = field.deserialize(resolver, value);
+              let $value = field.deserialize(query, value);
               $value = $value != null && field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), $value) : $value;
               cache.set(name, $value);
               return $value;

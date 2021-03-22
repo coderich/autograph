@@ -30,13 +30,13 @@ module.exports = class QueryResolver {
   }
 
   createOne(query) {
-    const { resolver, model, input } = query.toObject();
-    model.appendDefaultFields(resolver, input);
+    const { model, input } = query.toObject();
+    model.appendDefaultFields(query, input);
 
     return createSystemEvent('Mutation', { method: 'create', query }, () => {
-      const $input = model.serialize(resolver, model.appendCreateFields(input));
+      const $input = model.serialize(query, model.appendCreateFields(input));
       query.$input($input);
-      return model.validateData(resolver, $input, {}, 'create').then(() => this.resolver.resolve(query));
+      return model.validateData(query, $input, {}, 'create').then(() => this.resolver.resolve(query));
     });
   }
 
@@ -48,16 +48,16 @@ module.exports = class QueryResolver {
   }
 
   updateOne(query) {
-    const { resolver, model, match } = query.toObject();
+    const { model, match } = query.toObject();
 
     return this.resolver.match(model).match(match).one({ required: true }).then((doc) => {
       const { input } = query.toObject();
       const merged = mergeDeep(doc, input);
 
       return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(merged) }, async () => {
-        const $input = model.serialize(resolver, model.appendUpdateFields(input), true);
-        await model.validateData(resolver, $input, doc, 'update');
-        const $doc = mergeDeep(model.serialize(resolver, doc, true), $input);
+        const $input = model.serialize(query, model.appendUpdateFields(input), true);
+        await model.validateData(query, $input, doc, 'update');
+        const $doc = mergeDeep(model.serialize(query, doc, true), $input);
         return this.resolver.resolve(query.$doc($doc).$input($input));
       });
     });
@@ -131,7 +131,7 @@ module.exports = class QueryResolver {
   }
 
   splice(query) {
-    const { resolver, model, match, args } = query.toObject();
+    const { model, match, args } = query.toObject();
     const [key, from, to] = args;
 
     return this.resolver.match(model).match(match).one({ required: true }).then(async (doc) => {
@@ -139,8 +139,8 @@ module.exports = class QueryResolver {
       const merged = mergeDeep(doc, data);
 
       return createSystemEvent('Mutation', { method: 'splice', query: query.doc(doc).input(data).merged(merged) }, async () => {
-        await model.validateData(resolver, data, doc, 'update');
-        const $doc = mergeDeep(model.serialize(resolver, doc, true), model.serialize(resolver, data, true));
+        await model.validateData(query, data, doc, 'update');
+        const $doc = mergeDeep(model.serialize(query, doc, true), model.serialize(query, data, true));
         return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc));
       });
     });

@@ -44,13 +44,14 @@ module.exports = class Field extends Node {
     return this.getDirectiveArg('field', 'default');
   }
 
-  resolveBoundValue(resolver, initialValue = this.getDefaultValue()) {
+  resolveBoundValue(query, initialValue = this.getDefaultValue()) {
     if (!this.hasBoundValue()) return initialValue;
 
     const { scope, path } = this.getDirectiveArgs('value');
 
     switch (scope) {
       case 'context': {
+        const { resolver } = query.toObject();
         const context = resolver.getContext();
         const value = get(context, path);
         return (typeof value === 'function') ? value() : value;

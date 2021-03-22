@@ -4,13 +4,13 @@ const { createSystemEvent } = require('../service/event.service');
 const { isPlainObject, objectContaining, mergeDeep, hashObject } = require('../service/app.service');
 
 exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
-  const { resolver, model } = query.toObject();
+  const { model } = query.toObject();
   const field = model.getField(key);
   if (!field || !field.isArray()) return Promise.reject(Boom.badRequest(`Cannot splice field '${key}'`));
 
   const modelRef = field.getModelRef();
-  const $from = model.deserialize(resolver, { [key]: from })[key];
-  let $to = model.deserialize(resolver, { [key]: to })[key];
+  const $from = model.deserialize(query, { [key]: from })[key];
+  let $to = model.deserialize(query, { [key]: to })[key];
 
   // Edit
   if (from && to) {
@@ -27,10 +27,9 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
     if (field.isEmbedded()) {
       return Promise.all(edits.map((edit, i) => {
         if (hashObject(edit) !== hashObject(arr[i])) {
-          // return createSystemEvent('Mutation', { method: 'update', model: modelRef, resolver, query, input: edit, parent: doc }, async () => {
           return createSystemEvent('Mutation', { method: 'update', query: query.clone().model(modelRef).input(edit).doc(doc) }, () => {
-            edit = modelRef.appendDefaultFields(resolver, modelRef.appendCreateFields(edit, true));
-            return modelRef.validateData(resolver, edit, {}, 'update').then(() => edit);
+            edit = modelRef.appendDefaultFields(query, modelRef.appendCreateFields(edit, true));
+            return modelRef.validateData(query, edit, {}, 'update').then(() => edit);
           });
         }
 
@@ -54,10 +53,9 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
   if (to) {
     if (field.isEmbedded()) {
       return Promise.all($to.map((input) => {
-        // return createSystemEvent('Mutation', { method: 'create', model: modelRef, resolver, query, input, parent: doc }, async () => {
         return createSystemEvent('Mutation', { method: 'create', query: query.clone().model(modelRef).input(input).doc(doc) }, () => {
-          input = modelRef.appendDefaultFields(resolver, modelRef.appendCreateFields(input, true));
-          return modelRef.validateData(resolver, input, {}, 'create').then(() => input);
+          input = modelRef.appendDefaultFields(query, modelRef.appendCreateFields(input, true));
+          return modelRef.validateData(query, input, {}, 'create').then(() => input);
         });
       })).then((results) => {
         return { [key]: (get(doc, key) || []).concat(...results) };
