@@ -70,8 +70,8 @@ module.exports = class ResultSet {
 
                     return resolver.match(field.getModelRef()).id($value).one({ required: field.isRequired() });
                   })().then((results) => {
-                    if (results == null) return field.resolve(resolver, results); // Allow field to determine
-                    return mapPromise(results, result => field.resolve(resolver, result));
+                    if (results == null) return field.resolve(query, results); // Allow field to determine
+                    return mapPromise(results, result => field.resolve(query, result));
                   }).then((resolved) => {
                     resolve(resolved);
                   }).catch((e) => {
