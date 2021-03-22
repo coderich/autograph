@@ -74,19 +74,17 @@ module.exports = class extends Field {
     return resolvers.concat(this.type.getResolvers());
   }
 
-  validate(query, value, mapper) {
-    mapper = mapper || {};
+  validate(query, value) {
     const modelRef = this.getModelRef();
     const rules = [...this.getRules()];
 
     if (modelRef) {
-      if (isPlainObject(ensureArray(value)[0])) return modelRef.validate(query, value, mapper); // Model delegation
+      if (isPlainObject(ensureArray(value)[0])) return modelRef.validate(query, value); // Model delegation
       if (!this.isEmbedded()) rules.push(Rule.ensureId());
     }
 
     return Promise.all(rules.map((rule) => {
-      const cmp = mapper[rule.method];
-      return rule(this, value, cmp);
+      return rule(this, value, query);
     }));
   }
 

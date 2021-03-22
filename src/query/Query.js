@@ -82,7 +82,7 @@ module.exports = class Query {
 
   after(after) {
     if (this.props.id) throw new Error('Cannot mix after() with id()');
-    this.props.after = JSON.parse(Buffer.from(after, 'base64').toString('ascii'));;
+    this.props.after = JSON.parse(Buffer.from(after, 'base64').toString('ascii'));
     return this;
   }
 

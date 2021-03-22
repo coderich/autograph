@@ -1,6 +1,5 @@
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
-const RuleService = require('../service/rule.service');
 const { map, ucFirst, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Model {
@@ -125,24 +124,14 @@ module.exports = class extends Model {
     });
   }
 
-  validate(query, data, mapper) {
+  validate(query, data) {
     const normalized = this.deserialize(query, data);
 
     return Promise.all(this.getFields().map((field) => {
       return Promise.all(ensureArray(map(normalized, (obj) => {
         if (obj == null) return Promise.resolve();
-        return field.validate(query, obj[field.getName()], mapper);
+        return field.validate(query, obj[field.getName()]);
       })));
     }));
-  }
-
-  /**
-   * The validation method needs to be dynamic based on update vs create
-   */
-  validateData(query, data, oldData, op) {
-    const required = (op === 'create' ? (f, v) => v == null : (f, v) => Object.prototype.hasOwnProperty.call(data, f.getName()) && v == null);
-    const immutable = (f, v) => RuleService.immutable(v, oldData, op, `${f.getModel()}.${f.getName()}`);
-    const selfless = (f, v) => RuleService.selfless(v, oldData, op, `${f.getModel()}.${f.getName()}`);
-    return this.validate(query, data, { required, immutable, selfless });
   }
 };

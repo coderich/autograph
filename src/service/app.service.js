@@ -5,21 +5,21 @@ const DeepMerge = require('deepmerge');
 const { ObjectID } = require('mongodb');
 const ObjectHash = require('object-hash');
 
-const combineMerge = (target, source, options) => {
-  const destination = target.slice();
+// const combineMerge = (target, source, options) => {
+//   const destination = target.slice();
 
-  source.forEach((item, index) => {
-    if (typeof destination[index] === 'undefined') {
-      destination[index] = options.cloneUnlessOtherwiseSpecified(item, options);
-    } else if (options.isMergeableObject(item)) {
-      destination[index] = DeepMerge(target[index], item, options);
-    } else if (target.indexOf(item) === -1) {
-      destination.push(item);
-    }
-  });
+//   source.forEach((item, index) => {
+//     if (typeof destination[index] === 'undefined') {
+//       destination[index] = options.cloneUnlessOtherwiseSpecified(item, options);
+//     } else if (options.isMergeableObject(item)) {
+//       destination[index] = DeepMerge(target[index], item, options);
+//     } else if (target.indexOf(item) === -1) {
+//       destination.push(item);
+//     }
+//   });
 
-  return destination;
-};
+//   return destination;
+// };
 
 const smartMerge = (target, source, options) => {
   return source;

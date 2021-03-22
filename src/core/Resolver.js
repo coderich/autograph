@@ -1,4 +1,3 @@
-const Rule = require('./Rule');
 const Model = require('../data/Model');
 const ResultSet = require('../data/ResultSet');
 const DataLoader = require('../data/DataLoader');
@@ -19,16 +18,6 @@ module.exports = class Resolver {
     //
     this.getSchema = () => this.schema;
     this.getContext = () => this.context;
-
-    //
-    Rule.factory('ensureId', () => (field, v) => {
-      return this.match(field.getType()).id(v).one().then((doc) => {
-        if (doc) return false;
-        return true;
-      });
-    }, {
-      writable: true,
-    });
   }
 
   /**

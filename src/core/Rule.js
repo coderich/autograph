@@ -1,6 +1,7 @@
+const { get } = require('lodash');
 const isEmail = require('validator/lib/isEmail');
 const Boom = require('./Boom');
-const { map, ensureArray } = require('../service/app.service');
+const { map, ensureArray, hashObject } = require('../service/app.service');
 
 const instances = {};
 const jsStringMethods = ['endsWith', 'includes', 'match', 'search', 'startsWith'];
@@ -13,20 +14,20 @@ class Rule {
       toError = (field, value, msg) => Boom.notAcceptable(`Rule (${name}) failed for { ${field.getModel()}.${field}: ${value} }`),
     } = (options || {});
 
-    return Object.defineProperty((field, val, cmp = (f, v) => thunk(f, v)) => {
+    return Object.defineProperty((field, val, query) => {
       return new Promise((resolve, reject) => {
         if (ignoreNull && val == null) return resolve();
 
         if (ignoreNull && itemize) {
           return Promise.all(ensureArray(map(val, async (v) => {
-            const err = await cmp(field, v);
+            const err = await thunk(field, v, query);
             if (err) return Promise.reject(toError(field, v));
             return Promise.resolve();
           }))).then(v => resolve()).catch(e => reject(e));
         }
 
         return Promise.all([(async () => {
-          const err = await cmp(field, val);
+          const err = await thunk(field, val, query);
           if (err) return Promise.reject(toError(field, val));
           return Promise.resolve();
         })()]).then(v => resolve()).catch(e => reject(e));
@@ -59,8 +60,36 @@ class Rule {
 
 // Factory methods
 jsStringMethods.forEach(name => Rule.factory(name, (...args) => (f, v) => !String(v)[name](...args)));
-Rule.factory('ensureId', () => (f, v) => false, { writable: true });
-Rule.factory('required', () => (f, v) => v == null, { ignoreNull: false, enumerable: true });
+
+// Ensures Foreign Key relationships
+Rule.factory('ensureId', () => (f, v, q) => {
+  const { resolver } = q.toObject();
+  return resolver.match(f.getType()).id(v).one().then(doc => Boolean(doc == null));
+});
+
+// Enforces required fields (only during create)
+Rule.factory('required', () => (f, v, q) => {
+  const { crud, input } = q.toObject();
+  return (crud === 'create' ? v == null : Object.prototype.hasOwnProperty.call(input, f.getName()) && v == null);
+}, { ignoreNull: false, enumerable: true });
+
+// A field cannot hold a reference to itself (model)
+Rule.factory('selfless', () => (f, v, q) => {
+  const { doc } = q.toObject();
+  if (`${v}` === `${get(doc, 'id')}`) throw Boom.badRequest(`${f.getModel()}.${f.getName()} cannot hold a reference to itself`);
+  return false;
+}, { enumerable: true });
+
+// Once set it cannot be changed
+Rule.factory('immutable', () => (f, v, q) => {
+  const { doc, crud } = q.toObject();
+  const path = `${f.getModel()}.${f.getName()}`;
+  const p = path.substr(path.indexOf('.') + 1);
+  const oldVal = get(doc, p);
+  if (crud === 'update' && v !== undefined && `${hashObject(v)}` !== `${hashObject(oldVal)}`) throw Boom.badRequest(`${path} is immutable; cannot be changed once set`);
+  return false;
+}, { enumerable: true });
+
 Rule.factory('allow', (...args) => (f, v) => args.indexOf(v) === -1);
 Rule.factory('deny', (...args) => (f, v) => args.indexOf(v) > -1);
 Rule.factory('range', (min, max) => {
@@ -69,8 +98,6 @@ Rule.factory('range', (min, max) => {
   return (f, v) => Number.isNaN(v) || v < min || v > max;
 });
 Rule.factory('email', () => (f, v) => !isEmail(v), { enumerable: true });
-Rule.factory('selfless', () => (f, v) => false, { enumerable: true });
-Rule.factory('immutable', () => (f, v) => false, { enumerable: true });
 Rule.factory('distinct', () => (f, v) => false, { enumerable: true });
 
 module.exports = Rule;

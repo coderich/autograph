@@ -36,7 +36,7 @@ module.exports = class QueryResolver {
     return createSystemEvent('Mutation', { method: 'create', query }, () => {
       const $input = model.serialize(query, model.appendCreateFields(input));
       query.$input($input);
-      return model.validateData(query, $input, {}, 'create').then(() => this.resolver.resolve(query));
+      return model.validate(query, $input).then(() => this.resolver.resolve(query));
     });
   }
 
@@ -56,7 +56,7 @@ module.exports = class QueryResolver {
 
       return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(merged) }, async () => {
         const $input = model.serialize(query, model.appendUpdateFields(input), true);
-        await model.validateData(query, $input, doc, 'update');
+        await model.validate(query, $input);
         const $doc = mergeDeep(model.serialize(query, doc, true), $input);
         return this.resolver.resolve(query.$doc($doc).$input($input));
       });
@@ -139,7 +139,7 @@ module.exports = class QueryResolver {
       const merged = mergeDeep(doc, data);
 
       return createSystemEvent('Mutation', { method: 'splice', query: query.doc(doc).input(data).merged(merged) }, async () => {
-        await model.validateData(query, data, doc, 'update');
+        await model.validate(query, data);
         const $doc = mergeDeep(model.serialize(query, doc, true), model.serialize(query, data, true));
         return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc));
       });

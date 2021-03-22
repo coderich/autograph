@@ -29,7 +29,7 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
         if (hashObject(edit) !== hashObject(arr[i])) {
           return createSystemEvent('Mutation', { method: 'update', query: query.clone().model(modelRef).input(edit).doc(doc) }, () => {
             edit = modelRef.appendDefaultFields(query, modelRef.appendCreateFields(edit, true));
-            return modelRef.validateData(query, edit, {}, 'update').then(() => edit);
+            return modelRef.validate(query, edit).then(() => edit);
           });
         }
 
@@ -55,7 +55,7 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
       return Promise.all($to.map((input) => {
         return createSystemEvent('Mutation', { method: 'create', query: query.clone().model(modelRef).input(input).doc(doc) }, () => {
           input = modelRef.appendDefaultFields(query, modelRef.appendCreateFields(input, true));
-          return modelRef.validateData(query, input, {}, 'create').then(() => input);
+          return modelRef.validate(query, input).then(() => input);
         });
       })).then((results) => {
         return { [key]: (get(doc, key) || []).concat(...results) };
