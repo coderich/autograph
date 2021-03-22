@@ -14,10 +14,10 @@ class Transformer {
   constructor(thunk, options = {}) {
     const { ignoreNull = true, itemize = true } = (options || {});
 
-    return Object.defineProperty((field, val, cmp = (f, v) => thunk(f, v)) => {
+    return Object.defineProperty((field, val, resolver) => {
       if (ignoreNull && val == null) return val;
-      if (ignoreNull && itemize) return map(val, v => cmp(field, v));
-      return cmp(field, val);
+      if (ignoreNull && itemize) return map(val, v => thunk(field, v, resolver));
+      return thunk(field, val, resolver);
     }, 'type', { value: 'transformer' });
   }
 

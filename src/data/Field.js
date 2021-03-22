@@ -9,8 +9,6 @@ module.exports = class extends Field {
     super(model, JSON.parse(JSON.stringify((field.getAST()))));
     this.type = new Type(field);
     this.model = model;
-    this.allSerializers = [...this.getTransformers(), ...this.getSerializers()];
-    this.allDeserializers = [...this.getTransformers(), ...this.getDeserializers()];
   }
 
   cast(value) {
@@ -104,7 +102,7 @@ module.exports = class extends Field {
 
     // Transform
     return transformers.reduce((prev, transformer) => {
-      return transformer(this, prev);
+      return transformer(this, prev, resolver);
     }, this.cast($value));
   }
 
@@ -136,7 +134,7 @@ module.exports = class extends Field {
     const resolvers = [...this.getResolvers()];
 
     return promiseChain(resolvers.map(fn => (chain) => {
-      return Promise.resolve(fn(this, uvl(this.cast(chain.pop()), value)));
+      return Promise.resolve(fn(this, uvl(this.cast(chain.pop()), value), resolver));
     })).then((results) => {
       return uvl(this.cast(results.pop()), value);
     });
