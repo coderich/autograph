@@ -87,11 +87,11 @@ module.exports = (driver = 'mongo', options = {}) => {
 
         // Tricky data stuff
         expect(richard.status).toBe('alive');
-        expect(await richard.$status).toBe('alive');
+        expect(await richard.$status()).toBe('alive');
         expect(richard.state).not.toBeDefined(); // DB key should be stripped
         expect(richard.network).toBe('networkId');
-        expect(await richard.$network).toBe('networkId');
-        expect(await richard.$authored).toEqual([]);
+        expect(await richard.$network()).toBe('networkId');
+        expect(await richard.$authored()).toEqual([]);
       });
 
       test('Book', async () => {
@@ -152,7 +152,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(bookstore2.books.length).toEqual(1);
         expect(bookstore2.building.type).toEqual('business');
         expect(bookstore2.building.description).toEqual('A building');
-        expect(await bookstore2.building.$description).toEqual('A building');
+        expect(await bookstore2.building.$description()).toEqual('A building');
         expect(bookBuilding.description).not.toBeDefined();
       });
 
@@ -767,14 +767,14 @@ module.exports = (driver = 'mongo', options = {}) => {
     describe('$hydrated results', () => {
       test('manual', async () => {
         const person = await resolver.match('Person').id(christie.id).one();
-        expect(person.$authored.name).not.toBeDefined();
+        expect(person.$authored().name).not.toBeDefined();
 
         // Hydrate book
-        const [$book] = await person.$authored;
+        const [$book] = await person.$authored();
         expect($book.name).toBe('Health And Wellness');
 
         // Sanity check that you're able to await repeatedly
-        const [$book2] = await person.$authored;
+        const [$book2] = await person.$authored();
         expect($book2.name).toBe('Health And Wellness');
       });
     });
@@ -829,7 +829,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(art.sections).toMatchObject([{ name: 'section1' }]); // toLowerCase
         expect(art.sections[0].id).toBeDefined();
         expect(art.sections[0].name).toBeDefined();
-        expect(art.sections[0].$name).toBeDefined();
+        expect(art.sections[0].$name()).toBeDefined();
       });
 
       test('push/pull embedded arrays', async () => {
@@ -840,7 +840,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(push.sections.length).toBe(1);
         expect(push.sections[0].id).toBeDefined();
         expect(push.sections[0].name).toEqual('pushed section'); // toLowerCase
-        expect(push.sections[0].$name).toBeDefined();
+        expect(push.sections[0].$name()).toBeDefined();
 
         // Pull
         const pull = await resolver.match('Art').id(art.id).pull('sections', { name: 'pushed section' });
@@ -854,7 +854,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(art).toBeDefined();
         expect(art.sections[0].id).toBeDefined();
         expect(art.sections[0].person).toEqual(christie.id);
-        expect((await art.sections[0].$person).name).toBe('Christie');
+        expect((await art.sections[0].$person()).name).toBe('Christie');
       });
 
       test('update should not clobber unknown attributes', async () => {

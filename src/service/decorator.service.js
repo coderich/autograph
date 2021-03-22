@@ -160,7 +160,13 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
 
     switch (method) {
       case 'get': return resolver.get(context, model, args, true, info);
-      case 'find': return resolver.query(context, model, args, info);
+      case 'find': {
+        return {
+          edges: () => resolver.query(context, model, args, info),
+          pageInfo: () => resolver.query(context, model, args, info),
+          count: () => resolver.count(context, model, args, info),
+        };
+      }
       case 'count': return resolver.count(context, model, args, info);
       case 'create': return resolver.create(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
       case 'update': return resolver.update(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });

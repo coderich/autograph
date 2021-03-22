@@ -21,6 +21,7 @@ module.exports = class ResultSet {
           const $name = `$${name}`;
           const value = doc[key];
 
+          // Field attributes
           prev[name] = {
             get() {
               if (cache.has(name)) return cache.get(name);
@@ -35,45 +36,64 @@ module.exports = class ResultSet {
             enumerable: true,
           };
 
+          // Hydrated field attributes
           prev[`$${name}`] = {
             get() {
-              //
-              if (cache.has($name)) return cache.get($name);
+              return () => {
+                //
+                if (cache.has($name)) return cache.get($name);
 
-              const promise = new Promise((resolve, reject) => {
-                (() => {
-                  const $value = this[name];
+                const promise = new Promise((resolve, reject) => {
+                  (() => {
+                    const $value = this[name];
 
-                  if (field.isScalar() || field.isEmbedded()) return Promise.resolve($value);
+                    if (field.isScalar() || field.isEmbedded()) return Promise.resolve($value);
 
-                  if (field.isArray()) {
-                    if (field.isVirtual()) {
-                      const where = { [field.getVirtualField()]: this.id };
-                      return resolver.match(field.getModelRef()).where(where).many();
+                    if (field.isArray()) {
+                      if (field.isVirtual()) {
+                        const where = { [field.getVirtualField()]: this.id };
+                        return resolver.match(field.getModelRef()).where(where).many();
+                      }
+
+                      // Not a "required" query + strip out nulls
+                      return resolver.match(field.getModelRef()).where({ id: $value }).many();
                     }
 
-                    // Not a "required" query + strip out nulls
-                    return resolver.match(field.getModelRef()).where({ id: $value }).many();
-                  }
+                    if (field.isVirtual()) {
+                      const where = { [field.getVirtualField()]: this.id };
+                      return resolver.match(field.getModelRef()).where(where).one();
+                    }
 
-                  if (field.isVirtual()) {
-                    const where = { [field.getVirtualField()]: this.id };
-                    return resolver.match(field.getModelRef()).where(where).one();
-                  }
-
-                  return resolver.match(field.getModelRef()).id($value).one({ required: field.isRequired() });
-                })().then((results) => {
-                  if (results == null) return field.resolve(resolver, results); // Allow field to determine
-                  return mapPromise(results, result => field.resolve(resolver, result));
-                }).then((resolved) => {
-                  resolve(resolved);
-                }).catch((e) => {
-                  reject(e);
+                    return resolver.match(field.getModelRef()).id($value).one({ required: field.isRequired() });
+                  })().then((results) => {
+                    if (results == null) return field.resolve(resolver, results); // Allow field to determine
+                    return mapPromise(results, result => field.resolve(resolver, result));
+                  }).then((resolved) => {
+                    resolve(resolved);
+                  }).catch((e) => {
+                    reject(e);
+                  });
                 });
-              });
 
-              cache.set($name, promise);
-              return promise;
+                cache.set($name, promise);
+                return promise;
+              };
+            },
+            enumerable: false,
+          };
+
+          // Field count (let's assume it's a Connection Type - meaning dont try with anything else)
+          prev[`$${name}:count`] = {
+            get() {
+              // Counts only care about the where clause
+              return ({ where = {} }) => {
+                if (field.isVirtual()) {
+                  const $where = Object.assign(where, { [field.getVirtualField()]: this.id });
+                  return resolver.match(field.getModelRef()).where($where).count();
+                }
+
+                return resolver.match(field.getModelRef()).where(Object.assign(where, { id: this[name] })).count();
+              };
             },
             enumerable: false,
           };

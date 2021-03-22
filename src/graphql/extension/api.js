@@ -54,6 +54,7 @@ module.exports = (schema) => {
         type ${model.getName()}Connection {
           pageInfo: PageInfo!
           edges: [${model.getName()}Edge]
+          count: Int!
         }
         type ${model.getName()}Edge {
           node: ${model.getName()}
@@ -93,11 +94,24 @@ module.exports = (schema) => {
       // Default field resolvers
       const fieldResolvers = model.getFields().filter(field => field.hasGQLScope('r')).reduce((def, field) => {
         const fieldName = field.getName();
-        if (fieldName === 'id') return Object.assign(def, { id: (root, args, { autograph }) => (autograph.legacyMode ? root.id : root.$id) });
+        const isConnection = field.isConnection();
+
         return Object.assign(def, {
-          [fieldName]: (root) => {
-            const $fieldName = root[`$${fieldName}`] && typeof root[`$${fieldName}`] !== 'function' ? `$${fieldName}` : fieldName; // only $hydrated when set and not a function (Mongoose has $magic functions!)
-            return root[$fieldName];
+          [fieldName]: (root, args, { autograph }) => {
+            if (fieldName === 'id') return autograph.legacyMode ? root.id : root.$id;
+            const $fieldName = `$${fieldName}`;
+            // const $fieldName = root[`$${fieldName}`] && typeof root[`$${fieldName}`] !== 'function' ? `$${fieldName}` : fieldName; // only $hydrated when set and not a function (Mongoose has $magic functions!)
+
+            if (isConnection) {
+              return {
+                args,
+                edges: root[$fieldName], // Thunk to the data/edges
+                pageInfo: root[$fieldName], // You still need the data/edges to get pageInfo!
+                count: root[`${$fieldName}:count`], // Thunk to $$count
+              };
+            }
+
+            return root[$fieldName](args);
           },
         });
       }, {});
@@ -105,8 +119,9 @@ module.exports = (schema) => {
       return Object.assign(prev, {
         [modelName]: fieldResolvers,
         [`${modelName}Connection`]: {
-          edges: root => root.map(node => ({ cursor: get(node, '$$cursor'), node })),
-          pageInfo: root => get(root, '$$pageInfo'),
+          edges: ({ edges, args }) => edges(args).then(rs => rs.map(node => ({ cursor: get(node, '$$cursor'), node }))),
+          pageInfo: ({ pageInfo, args }) => pageInfo(args).then(rs => get(rs, '$$pageInfo')),
+          count: ({ count, args }) => count(args),
         },
       });
     }, {
