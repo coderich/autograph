@@ -111,7 +111,7 @@ module.exports = (schema) => {
               };
             }
 
-            return root.$$isResultSet ? root[$fieldName](args) : root[fieldName];
+            return root.$$isResultSetItem ? root[$fieldName](args) : root[fieldName];
           },
         });
       }, {});

@@ -1,18 +1,26 @@
-Release TODOs:
+This Release:
+  * Pagination hasNextPage hasPreviousPage
+  * Finalize can you paginate without sort? I believe you concluded NO you cannot...
+  * Finalize decision on ResultSet getter/setter (how about adding toObject() to work with the data???)
   * Finalize flags() vs options() - possibly use resolver.match(model, flags)
-  * Update ConnectionTypes to return { count pageInfo edges }
-  * DataLoader handling of queries + caching done properly
-  * Ability to hydrate adhoc results (such as from raw() query)
   * WRITE A TEST THAT SHOWS resolveModelWhereClause (if (where.id) where.id = map(where.id, v => model.idValue(v));)
     - its needed...
-  * Field-level ConnectionType args (where, first, last, etc)
-  * Deep sort (akin to where clause resolution?)
+
+  -------------
+
+Next Release:
+  * Reconsider SystemEvent args
   * Finalize Driver interface - consider moving out of Autograph into new NPM module
+  * Ability to hydrate adhoc results (such as from raw() query)
+  * Deep sort (akin to where clause resolution?)
   * Add query.context() option to override @value etc????
     - OR you could have .update() .create() which would be the equiv to .native()
     - Maybe something like .force()...
   * I think having ResultSet.hydrate() as a method is a good idea... useful when using resoler.raw()
+    - $$save(), $$delete(), $$hydate()
   * .archive() would be useful to softDelete yet still emit delete event
+  * Rearchitect GraphQL AST manipulations
+  * Rearchitect nested subsplice disaster
 
   -------------
 
@@ -23,7 +31,6 @@ Bugs:
 
 Performance:
   * Select as alias/key can be done at the driver level (not require transformation during hydration)
-  * Post-Query hydration needs to be faster
   * Verify that Transformer + Rules are only being called when needed
 
 Next:
@@ -33,7 +40,6 @@ Next:
   * Take a look at all Mongoose options/features (eg. minimize)
   * Neo4j does not know how to generate ids
     - ID Value Strategy (MongoID, String, etc)
-  * How do you handle the hydrate() problem? QueryWorker is hydrating, what about concept of returning ResultSet and letting user hydrate() or populate() from resolver?
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
   ? Possibly rename input type to end with Input (eg. CreatePersonInput)
 
@@ -41,7 +47,6 @@ Enhancements:
   * Lodash Transformers
   * Create person with books at the same time
   * createdAt, updatedAt, counts, onDeletes, references, etc should be controllable
-  * ResultSet can have helper methods (save(), remove(), archive(), etc())
   * Add 'filterBy' as an option for post query filtering (this can alleviate the depth-first where clause problem)
   * Concept of "incomplete" and "what's missing" as part of data retrieval
   * Get a list of references that would be onDelete affected
@@ -53,7 +58,6 @@ Enhancements:
 Todo:
   * MeteorUser _id is a String (not ID). How to handle?
     - How about expicit ID definition?
-  * Currently there is no way to count regular elements of an array (try to count bids)
   * Allow Field and Model to be extended (directive fields)
   * Are you able to flatten fields? (ie. firstName, lastName but save to profile.firstName, profile.lastName in DB)
     - Confirmed that you cannot.
@@ -118,39 +122,3 @@ db.getCollection('network_place').aggregate([
     }
   }
 ]);
-
-QueryPlan {
-  operations: [
-    {
-      model,
-      facets: [
-        {
-          method: 'insertOne|insertMany|updateOne|updateMany|deleteOne|deleteMany|findOne|findMany',
-          ${method}: {
-            query: { fields, where, sort, limit, skip, first, after, last, before },
-            input: {...},
-            doc: {...},
-            pipeline: [...],
-          },
-        }
-      ],
-    },
-  ],
-}
-
-const pipeline = {
-  query: {
-    resolve: {
-      prepare: {
-        select,
-        where,
-        input,
-        sort,
-      },
-      execute: {
-        driver,
-        hydrate,
-      },
-    },
-  },
-};

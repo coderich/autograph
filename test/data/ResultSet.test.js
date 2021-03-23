@@ -35,7 +35,9 @@ describe('ResultSet', () => {
   });
 
   test('Object keys', () => {
-    const RS = new ResultSet(query, data);
-    console.log(Object.keys(RS[0]));
+    const [item] = new ResultSet(query, data);
+    const obj = item.toObject();
+    expect(item).toMatchObject(obj);
+    expect(obj).not.toMatchObject(item); // This is because rs has undefined values!!!
   });
 });

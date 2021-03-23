@@ -12,6 +12,7 @@ module.exports = class ResultSet {
       //
       const cache = new Map();
 
+      // Create and return ResultSetItem
       return Object.defineProperties(
         {},
 
@@ -44,7 +45,7 @@ module.exports = class ResultSet {
                 args.where = args.where || {};
 
                 //
-                // if (cache.has($name)) return cache.get($name);
+                if (cache.has($name)) return cache.get($name);
 
                 const promise = new Promise((resolve, reject) => {
                   (() => {
@@ -124,15 +125,27 @@ module.exports = class ResultSet {
             enumerable: false,
           },
 
-          $$isResultSet: {
+          $$data: {
+            value: data,
+            enumerable: false,
+          },
+
+          $$isResultSetItem: {
             value: true,
             enumerable: false,
           },
 
-          // $$data: {
-          //   get() { return data; },
-          //   enumerable: false,
-          // },
+          toObject: {
+            get() {
+              return () => map(this, obj => Object.entries(obj).reduce((prev, [key, value]) => {
+                if (value === undefined) return prev;
+                prev[key] = value.$$isResultSet ? value.toObject() : value;
+                return prev;
+              }, {}));
+            },
+            enumerable: false,
+            configurable: true,
+          },
         }),
       );
     });
@@ -150,6 +163,21 @@ module.exports = class ResultSet {
           };
         },
         enumerable: false,
+      },
+      $$isResultSet: {
+        value: true,
+        enumerable: false,
+      },
+      toObject: {
+        get() {
+          return () => map(this, doc => Object.entries(doc).reduce((prev, [key, value]) => {
+            if (value === undefined) return prev;
+            prev[key] = value.$$isResultSet ? value.toObject() : value;
+            return prev;
+          }, {}));
+        },
+        enumerable: false,
+        configurable: true,
       },
     });
   }
