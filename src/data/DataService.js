@@ -3,6 +3,43 @@ const Boom = require('../core/Boom');
 const { createSystemEvent } = require('../service/event.service');
 const { isPlainObject, objectContaining, mergeDeep, hashObject } = require('../service/app.service');
 
+exports.paginateResultSet = (rs, first, after, last, before) => {
+  let hasNextPage = false;
+  let hasPreviousPage = false;
+  const limiter = first || last;
+
+  if (limiter) {
+    // First try to take off the "bookends" ($gte | $lte)
+    if (rs.length && rs[0].$$cursor === after) {
+      rs.shift();
+      hasPreviousPage = true;
+    }
+
+    if (rs.length && rs[rs.length - 1].$$cursor === before) {
+      rs.pop();
+      hasNextPage = true;
+    }
+
+    // Next, remove any overage
+    const overage = rs.length - (limiter - 2);
+
+    if (overage > 0) {
+      if (first) {
+        rs.splice(-overage);
+        hasNextPage = true;
+      } else if (last) {
+        rs.splice(0, overage);
+        hasPreviousPage = true;
+      } else {
+        rs.splice(-overage);
+        hasNextPage = true;
+      }
+    }
+  }
+
+  return { hasNextPage, hasPreviousPage };
+};
+
 exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
   const { model } = query.toObject();
   const field = model.getField(key);

@@ -74,27 +74,27 @@ module.exports = class Query {
     return this;
   }
 
-  before(before) {
-    if (this.props.id) throw new Error('Cannot mix before() with id()');
-    this.props.before = JSON.parse(Buffer.from(before, 'base64').toString('ascii'));
-    return this;
-  }
-
-  after(after) {
-    if (this.props.id) throw new Error('Cannot mix after() with id()');
-    this.props.after = JSON.parse(Buffer.from(after, 'base64').toString('ascii'));
-    return this;
-  }
-
   first(first) {
     if (this.props.id || this.props.last) throw new Error('Cannot mix first() with id() or last()');
-    this.props.first = first;
+    this.props.first = first + 2; // Adding 2 for pagination meta info (hasNext hasPrev)
     return this;
   }
 
   last(last) {
     if (this.props.id || this.props.first) throw new Error('Cannot mix last() with id() or first()');
-    this.props.last = last;
+    this.props.last = last + 2; // Adding 2 for pagination meta info (hasNext hasPrev)
+    return this;
+  }
+
+  before(before) {
+    if (this.props.id) throw new Error('Cannot mix before() with id()');
+    this.props.before = before;
+    return this;
+  }
+
+  after(after) {
+    if (this.props.id) throw new Error('Cannot mix after() with id()');
+    this.props.after = after;
     return this;
   }
 
@@ -114,16 +114,7 @@ module.exports = class Query {
   }
 
   merge(query) {
-    Object.entries(query).forEach(([key, value]) => {
-      try {
-        this[key](value);
-      } catch (e) {
-        console.log(key, e.message);
-      }
-    });
-    // Object.assign(this.props, query);
-    // if (select) this.props.select = select;
-    // if (where) Object.assign(this.props.match, where);
+    Object.entries(query).forEach(([key, value]) => { this[key](value); });
     return this;
   }
 
@@ -222,8 +213,8 @@ module.exports = class Query {
       sort: this.props.$sort,
       skip: this.props.skip,
       limit: this.props.limit,
-      before: this.props.before,
-      after: this.props.after,
+      before: this.props.before ? JSON.parse(Buffer.from(this.props.before, 'base64').toString('ascii')) : undefined,
+      after: this.props.after ? JSON.parse(Buffer.from(this.props.after, 'base64').toString('ascii')) : undefined,
       first: this.props.first,
       last: this.props.last,
       options: this.props.options,

@@ -96,7 +96,7 @@ module.exports = class QueryBuilder {
         break;
       }
       default: {
-        throw new Error(`Unknown query command: ${cmd}`);
+        return Promise.reject(new Error(`Unknown query command: ${cmd}`));
       }
     }
 

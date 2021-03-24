@@ -1,9 +1,10 @@
 const { get } = require('lodash');
+const DataService = require('./DataService');
 const { map, ensureArray, keyPaths, mapPromise, toGUID } = require('../service/app.service');
 
 module.exports = class ResultSet {
-  constructor(query, data) {
-    const { resolver, model, sort } = query.toObject();
+  constructor(query, data, adjustForPagination = true) {
+    const { resolver, model, sort, first, after, last, before } = query.toObject();
     const fields = model.getFields().filter(f => f.getName() !== 'id');
 
     const rs = map(data, (doc) => {
@@ -27,7 +28,7 @@ module.exports = class ResultSet {
             get() {
               if (cache.has(name)) return cache.get(name);
               let $value = field.deserialize(query, value);
-              $value = $value != null && field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), $value) : $value;
+              $value = $value != null && field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), $value, false) : $value;
               cache.set(name, $value);
               return $value;
             },
@@ -150,6 +151,10 @@ module.exports = class ResultSet {
       );
     });
 
+    let hasNextPage = false;
+    let hasPreviousPage = false;
+    if (adjustForPagination && rs.length) (({ hasPreviousPage, hasNextPage } = DataService.paginateResultSet(rs, first, after, last, before)));
+
     return Object.defineProperties(rs, {
       $$pageInfo: {
         get() {
@@ -158,8 +163,8 @@ module.exports = class ResultSet {
           return {
             startCursor: get(edges, '0.$$cursor', ''),
             endCursor: get(edges, `${edges.length - 1}.$$cursor`, ''),
-            // hasPreviousPage: hasPreviousPage(results, before, after, first, last),
-            // hasNextPage: hasNextPage(results, before, after, first, last),
+            hasPreviousPage,
+            hasNextPage,
           };
         },
         enumerable: false,
