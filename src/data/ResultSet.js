@@ -140,7 +140,7 @@ module.exports = class ResultSet {
             get() {
               return () => map(this, obj => Object.entries(obj).reduce((prev, [key, value]) => {
                 if (value === undefined) return prev;
-                prev[key] = value.$$isResultSet ? value.toObject() : value;
+                prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
                 return prev;
               }, {}));
             },
@@ -177,7 +177,7 @@ module.exports = class ResultSet {
         get() {
           return () => map(this, doc => Object.entries(doc).reduce((prev, [key, value]) => {
             if (value === undefined) return prev;
-            prev[key] = value.$$isResultSet ? value.toObject() : value;
+            prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
             return prev;
           }, {}));
         },
