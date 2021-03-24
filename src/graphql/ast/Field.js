@@ -139,6 +139,7 @@ module.exports = class Field extends Node {
       where: ${this.getType()}InputWhere
       sortBy: ${this.getType()}InputSort
       limit: Int
+      skip: Int
       first: Int
       after: String
       last: Int

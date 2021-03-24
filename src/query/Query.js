@@ -1,3 +1,4 @@
+const Boom = require('../core/Boom');
 const { unravelObject } = require('../service/app.service');
 
 module.exports = class Query {
@@ -7,22 +8,30 @@ module.exports = class Query {
     this.merge(props);
     this.props.match = this.props.match || {};
     this.props.options = this.props.options || {};
+    this.isClassicPaging = false;
+    this.isCursorPaging = false;
+  }
+
+  propCheck(prop, ...checks) {
+    checks.forEach((check) => {
+      if (this.props[check]) throw Boom.badRequest(`Cannot use "${prop}" while using "${check}"`);
+    });
   }
 
   id(id) {
-    if (this.props.where || this.props.native || this.props.sort || this.props.skip || this.props.limit || this.props.before || this.props.after || this.props.first || this.props.last) throw new Error('Cannot mix id() with where(), native(), sort(), skip(), limit(), before(), after(), first(), or last()');
+    this.propCheck('id', 'where', 'native', 'sort', 'skip', 'limit', 'before', 'after', 'first', 'last');
     this.props.id = id;
     return this.match({ id });
   }
 
   where(where) {
-    if (this.props.id || this.props.native) throw new Error('Cannot mix where() with id() or native()');
+    this.propCheck('where', 'id', 'native');
     this.props.where = unravelObject(where);
     return this.match(where);
   }
 
   native(native) {
-    if (this.props.id || this.props.where) throw new Error('Cannot mix native() with id() or where()');
+    this.propCheck('native', 'id', 'where');
     this.props.native = native;
     return this.match(native);
   }
@@ -48,7 +57,7 @@ module.exports = class Query {
   }
 
   sort(sort) {
-    if (this.props.id) throw new Error('Cannot mix sort() with id()');
+    this.propCheck('sort', 'id');
     this.props.sort = unravelObject(sort);
     return this;
   }
@@ -63,37 +72,49 @@ module.exports = class Query {
   }
 
   skip(skip) {
-    if (this.props.id) throw new Error('Cannot mix skip() with id()');
+    this.propCheck('skip', 'id');
+    if (this.isCursorPaging) throw Boom.badRequest('Cannot use "skip" while using Cursor-Style Pagination');
+    this.isClassicPaging = true;
     this.props.skip = skip;
     return this;
   }
 
   limit(limit) {
-    if (this.props.id) throw new Error('Cannot mix limit() with id()');
+    this.propCheck('limit', 'id');
+    if (this.isCursorPaging) throw Boom.badRequest('Cannot use "limit" while using Cursor-Style Pagination');
+    this.isClassicPaging = true;
     this.props.limit = limit;
     return this;
   }
 
   first(first) {
-    if (this.props.id || this.props.last) throw new Error('Cannot mix first() with id() or last()');
+    this.propCheck('first', 'id', 'last');
+    if (this.isClassicPaging) throw Boom.badRequest('Cannot use "first" while using Classic-Style Pagination');
+    this.isCursorPaging = true;
     this.props.first = first + 2; // Adding 2 for pagination meta info (hasNext hasPrev)
     return this;
   }
 
   last(last) {
-    if (this.props.id || this.props.first) throw new Error('Cannot mix last() with id() or first()');
+    this.propCheck('last', 'id', 'first');
+    if (this.isClassicPaging) throw Boom.badRequest('Cannot use "last" while using Classic-Style Pagination');
+    this.isCursorPaging = true;
     this.props.last = last + 2; // Adding 2 for pagination meta info (hasNext hasPrev)
     return this;
   }
 
   before(before) {
-    if (this.props.id) throw new Error('Cannot mix before() with id()');
+    this.propCheck('before', 'id');
+    if (this.isClassicPaging) throw Boom.badRequest('Cannot use "before" while using Classic-Style Pagination');
+    this.isCursorPaging = true;
     this.props.before = before;
     return this;
   }
 
   after(after) {
-    if (this.props.id) throw new Error('Cannot mix after() with id()');
+    this.propCheck('after', 'id');
+    if (this.isClassicPaging) throw Boom.badRequest('Cannot use "after" while using Classic-Style Pagination');
+    this.isCursorPaging = true;
     this.props.after = after;
     return this;
   }
@@ -203,6 +224,8 @@ module.exports = class Query {
   }
 
   toDriver() {
+    const isSorted = Boolean(Object.keys(this.props.$sort || {}).length);
+
     return {
       isNative: Boolean(this.props.native),
       model: this.props.model.getKey(),
@@ -213,10 +236,10 @@ module.exports = class Query {
       sort: this.props.$sort,
       skip: this.props.skip,
       limit: this.props.limit,
-      before: this.props.before ? JSON.parse(Buffer.from(this.props.before, 'base64').toString('ascii')) : undefined,
-      after: this.props.after ? JSON.parse(Buffer.from(this.props.after, 'base64').toString('ascii')) : undefined,
-      first: this.props.first,
-      last: this.props.last,
+      first: isSorted ? this.props.first : undefined,
+      after: isSorted && this.props.after ? JSON.parse(Buffer.from(this.props.after, 'base64').toString('ascii')) : undefined,
+      last: isSorted ? this.props.last : undefined,
+      before: isSorted && this.props.before ? JSON.parse(Buffer.from(this.props.before, 'base64').toString('ascii')) : undefined,
       options: this.props.options,
       input: this.props.$input,
       flags: this.props.flags,
@@ -226,10 +249,7 @@ module.exports = class Query {
   }
 
   toObject() {
-    return {
-      ...this.props,
-      isNative: Boolean(this.props.native),
-    };
+    return this.props;
   }
 
   getCacheKey() {

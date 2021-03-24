@@ -20,7 +20,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
 
   if (name !== 'Setup') {
     const { method, query } = mixed;
-    const { resolver, model, meta, doc, input, sort, merged, isNative } = query.toObject();
+    const { resolver, model, meta, doc, input, sort, merged, native } = query.toObject();
 
     event = {
       context: resolver.getContext(),
@@ -36,7 +36,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
     };
 
     middleware = new Promise(async (resolve) => {
-      if (!isNative) {
+      if (!native) {
         const $where = await QueryService.resolveWhereClause(query);
         query.match(model.serialize(query, $where, true));
       }

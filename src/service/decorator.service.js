@@ -295,6 +295,7 @@ exports.makeReadAPI = (name, model, parent) => {
         where: ${model.getName()}InputWhere
         sortBy: ${model.getName()}InputSort
         limit: Int
+        skip: Int
         first: Int
         after: String
         last: Int
