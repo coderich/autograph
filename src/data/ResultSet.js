@@ -46,7 +46,7 @@ module.exports = class ResultSet {
                 args.where = args.where || {};
 
                 //
-                if (cache.has($name)) return cache.get($name);
+                // if (cache.has($name)) return cache.get($name);
 
                 const promise = new Promise((resolve, reject) => {
                   (() => {
@@ -73,7 +73,7 @@ module.exports = class ResultSet {
                     return resolver.match(field.getModelRef()).id($value).one({ required: field.isRequired() });
                   })().then((results) => {
                     if (results == null) return field.resolve(query, results); // Allow field to determine
-                    return mapPromise(results, result => field.resolve(query, result));
+                    return mapPromise(results, result => field.resolve(query, result)).then(() => results); // Resolve the inside fields but still return "results"!!!!
                   }).then((resolved) => {
                     resolve(resolved);
                   }).catch((e) => {

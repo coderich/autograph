@@ -3,12 +3,12 @@ const FBDataLoader = require('dataloader');
 const ResultSet = require('./ResultSet');
 const { hashObject } = require('../service/app.service');
 
-let counter = 0;
+// let counter = 0;
 module.exports = class DataLoader extends FBDataLoader {
   constructor() {
     return new FBDataLoader((queries) => {
-      const timeID = `${++counter}DataLoader(${queries.length})[${new Date().getTime()}]`;
-      console.time(timeID);
+      // const timeID = `${++counter}DataLoader(${queries.length})[${new Date().getTime()}]`;
+      // console.time(timeID);
 
       // const queriesByModel = queries.reduce((prev, query, i) => {
       //   const toDriver = query.toDriver();
