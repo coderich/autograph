@@ -124,6 +124,20 @@ module.exports = class extends Model {
     });
   }
 
+  normalize(query, data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); })) {
+    // Transform all the data
+    return map(data, (doc) => {
+      const fields = Object.keys(doc).map(k => this.getField(k)).filter(f => f);
+
+      // Loop through the fields and delegate (renaming keys appropriately)
+      return fields.reduce((prev, field) => {
+        const [key, name] = serdes === 'serialize' ? [field.getKey(), field.getName()] : [field.getName(), field.getKey()];
+        prev[key] = field[serdes](query, doc[name], true);
+        return prev;
+      }, {});
+    });
+  }
+
   validate(query, data) {
     const normalized = this.deserialize(query, data);
 

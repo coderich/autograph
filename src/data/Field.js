@@ -108,7 +108,7 @@ module.exports = class extends Field {
    * Ensures the value of the field is appropriate for the driver
    */
   serialize(query, value, minimal = false) {
-    const modelRef = this.getModelRef();
+    const modelRef = uvl(this.getModelRef(), this.getType() === 'ID' ? this.model : undefined);
     const isEmbedded = this.isEmbedded();
 
     // If embedded, simply delgate
