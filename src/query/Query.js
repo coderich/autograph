@@ -224,12 +224,13 @@ module.exports = class Query {
   }
 
   toDriver() {
+    const { model } = this.props;
     const isSorted = Boolean(Object.keys(this.props.$sort || {}).length);
 
     return {
       isNative: Boolean(this.props.native),
-      model: this.props.model.getKey(),
-      schema: Query.getSchema(this.props.model),
+      model: model.getKey(),
+      schema: Query.getSchema(model),
       method: this.props.method,
       select: this.props.$select,
       where: this.props.match,
@@ -237,9 +238,9 @@ module.exports = class Query {
       skip: this.props.skip,
       limit: this.props.limit,
       first: isSorted ? this.props.first : undefined,
-      after: isSorted && this.props.after ? JSON.parse(Buffer.from(this.props.after, 'base64').toString('ascii')) : undefined,
+      after: isSorted && this.props.after ? model.serialize(this, JSON.parse(Buffer.from(this.props.after, 'base64').toString('ascii')), true) : undefined,
       last: isSorted ? this.props.last : undefined,
-      before: isSorted && this.props.before ? JSON.parse(Buffer.from(this.props.before, 'base64').toString('ascii')) : undefined,
+      before: isSorted && this.props.before ? model.serialize(this, JSON.parse(Buffer.from(this.props.before, 'base64').toString('ascii')), true) : undefined,
       options: this.props.options,
       input: this.props.$input,
       flags: this.props.flags,
