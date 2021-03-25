@@ -1,7 +1,5 @@
-This Release:
-  * Pagination hasNextPage hasPreviousPage
-  * Finalize can you paginate without sort? I believe you concluded NO you cannot...
-  * Finalize decision on ResultSet getter/setter (how about adding toObject() to work with the data???)
+Next Release:
+  * Ability to hydrate adhoc results (such as from raw() query) - removing need for model.serialize()
   * Finalize flags() vs options() - possibly use resolver.match(model, flags)
   * WRITE A TEST THAT SHOWS resolveModelWhereClause (if (where.id) where.id = map(where.id, v => model.idValue(v));)
     - its needed...
@@ -10,9 +8,10 @@ This Release:
 
 Next Release:
   * Reconsider SystemEvent args
-  * Finalize Driver interface - consider moving out of Autograph into new NPM module
-  * Ability to hydrate adhoc results (such as from raw() query)
+    - Perhaps pass an object that you call toObject() on (like query) that gives you normalized/removed keys
+  * Finalize Driver Interface - consider moving out of Autograph into new NPM module
   * Deep sort (akin to where clause resolution?)
+    - You are currently thwarted since key order is not preserved...
   * Add query.context() option to override @value etc????
     - OR you could have .update() .create() which would be the equiv to .native()
     - Maybe something like .force()...
@@ -21,6 +20,7 @@ Next Release:
   * .archive() would be useful to softDelete yet still emit delete event
   * Rearchitect GraphQL AST manipulations
   * Rearchitect nested subsplice disaster
+    - Can this be solved via the new update array api?
 
   -------------
 
@@ -31,13 +31,13 @@ Bugs:
 
 Performance:
   * Select as alias/key can be done at the driver level (not require transformation during hydration)
+    - This is not so easy when it comes to embedded objects (mongo does not support it)
   * Verify that Transformer + Rules are only being called when needed
 
 Next:
   * Incorporate Logger
   * Support @value on Model itself?
   * Framework directive param validation
-  * Take a look at all Mongoose options/features (eg. minimize)
   * Neo4j does not know how to generate ids
     - ID Value Strategy (MongoID, String, etc)
   * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
