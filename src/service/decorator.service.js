@@ -94,7 +94,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           // Get overall document
           const where = { [path]: id };
           const query = new Query({ resolver, model, where, meta });
-          const doc = await autograph.resolver.match(base.getModel()).where(where).done();
+          const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
 
           // Get parent and container within document
@@ -119,7 +119,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           const meta = args.meta || {};
           const query = new Query({ resolver, model, where, meta });
           const input = unrollGuid(autograph, model, args.input || {});
-          const doc = await autograph.resolver.match(base.getModel()).where(where).done();
+          const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
 
           // Get parent and container within document
@@ -138,7 +138,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           const where = { [`${fieldPath}.id`]: id };
           const meta = args.meta || {};
           const query = new Query({ resolver, model, where, meta });
-          const doc = await autograph.resolver.match(base.getModel()).where(where).done();
+          const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel()} Not Found`);
 
           // Get parent and container within document
