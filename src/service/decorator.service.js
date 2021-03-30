@@ -93,22 +93,21 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
 
           // Get overall document
           const where = { [path]: id };
-          const query = new Query({ resolver, model, where, meta });
+          const query = new Query({ resolver: autograph.resolver, model, where, meta });
           const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
 
           // Get parent and container within document
-          const { parent, container } = findParentAndContainerCreate(name, doc, input, model, embeds);
+          const { container } = findParentAndContainerCreate(name, doc, input, model, embeds);
+          model.appendDefaultFields(query, input);
 
-          return model.appendDefaultValues(input).then(($input) => {
-            return createSystemEvent('Mutation', { method: 'create', model, resolver: autograph.resolver, query, input: $input, parent, root: doc }, async () => {
-              let $$input = ensureArray($input.$input || $input);
-              $$input = await Promise.all($$input.map(el => model.appendCreateFields(el, true)));
-              container.push(...$$input);
-              const $update = { [base.getName()]: get(doc, base.getName()) };
-              return base.getModel().update(doc.id, $update, doc, {}).hydrate(autograph.resolver, query).then(($doc) => {
-                return getDeep(doc, fieldPath).pop();
-              });
+          return createSystemEvent('Mutation', { method: 'create', query }, async () => {
+            let $$input = ensureArray(input.$input || input);
+            $$input = await Promise.all($$input.map(el => model.appendCreateFields(el, true)));
+            container.push(...$$input);
+            const $update = { [base.getName()]: get(doc, base.getName()) };
+            return autograph.resolver.match(base.getModel()).id(doc.id).save($update).then(($doc) => {
+              return getDeep(doc, fieldPath).pop();
             });
           });
         }
@@ -117,39 +116,39 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           const id = guidToId(autograph, args.id);
           const where = { [`${fieldPath}.id`]: id };
           const meta = args.meta || {};
-          const query = new Query({ resolver, model, where, meta });
+          const query = new Query({ resolver: autograph.resolver, model, where, meta });
           const input = unrollGuid(autograph, model, args.input || {});
           const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
 
           // Get parent and container within document
-          const { tail, parent, container } = findParentAndContainerUpdate(fieldPath, doc, id, embeds);
+          const { tail, container } = findParentAndContainerUpdate(fieldPath, doc, id, embeds);
 
-          return createSystemEvent('Mutation', { method: 'update', model, resolver: autograph.resolver, query, input, parent, root: doc }, async () => {
+          return createSystemEvent('Mutation', { method: 'update', query }, async () => {
             const $input = await model.appendUpdateFields(input);
             merge(container, $input); // Must mutate object here
             const $update = { [base.getName()]: tail };
             doc[base.getName()] = tail; // Deficiency in how update works; must pass entire doc
-            return base.getModel().update(doc.id, $update, doc, {}).hydrate(autograph.resolver, query).then(() => container);
+            return autograph.resolver.match(base.getModel()).id(doc.id).save($update).then(() => container);
           });
         }
         case 'delete': {
           const id = guidToId(autograph, args.id);
           const where = { [`${fieldPath}.id`]: id };
           const meta = args.meta || {};
-          const query = new Query({ resolver, model, where, meta });
+          const query = new Query({ resolver: autograph.resolver, model, where, meta });
           const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel()} Not Found`);
 
           // Get parent and container within document
           const { tail, parent, container } = findParentAndContainerUpdate(fieldPath, doc, id, embeds);
 
-          return createSystemEvent('Mutation', { method: 'delete', model, resolver: autograph.resolver, query, parent, root: doc }, async () => {
+          return createSystemEvent('Mutation', { method: 'delete', query }, () => {
             const key = fieldPath.split('.').pop();
             remove(parent[key], el => `${el.id}` === `${id}`);
             const $update = { [base.getName()]: tail };
             doc[base.getName()] = tail; // Deficiency in how update works; must pass entire doc
-            return base.getModel().update(doc.id, $update, doc, {}).hydrate(autograph.resolver, query).then(() => container);
+            return autograph.resolver.match(base.getModel()).id(doc.id).save($update).then(() => container);
           });
         }
         default: {
