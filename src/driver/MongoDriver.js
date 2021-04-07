@@ -154,7 +154,7 @@ module.exports = class MongoDriver {
     if (Object.keys($addFields).length) $aggregate.unshift({ $addFields });
 
     // Sort, Skip, Limit documents
-    if (sort && Object.keys(sort).length) $aggregate.push({ $sort: sort });
+    if (sort && Object.keys(sort).length) $aggregate.push({ $sort: toKeyObj(sort) });
     if (skip) $aggregate.push({ $skip: skip });
     if (limit) $aggregate.push({ $limit: limit });
 

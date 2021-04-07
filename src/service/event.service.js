@@ -42,9 +42,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
       }
 
       if (sort) {
-        query.$sort(Object.entries(sort).reduce((prev, [key, value]) => {
-          return Object.assign(prev, { [model.getFieldByName(key).getKey()]: value.toLowerCase() === 'asc' ? 1 : -1 });
-        }, {}));
+        query.$sort(QueryService.resolveSortBy(query));
       }
 
       resolve();
