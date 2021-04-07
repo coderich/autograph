@@ -134,8 +134,11 @@ module.exports = class Query {
     return this;
   }
 
+  /**
+   * Merge unknown attributes into props; hence the check to do a noop
+   */
   merge(query) {
-    Object.entries(query).forEach(([key, value]) => { this[key](value); });
+    Object.entries(query).forEach(([key, value]) => { if (this[key]) this[key](value); }); // Call method only if exists
     return this;
   }
 
