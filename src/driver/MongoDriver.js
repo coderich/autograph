@@ -145,6 +145,17 @@ module.exports = class MongoDriver {
     }, {});
   }
 
+  static getSortToLower(query) {
+    const { schema, sort } = query;
+
+    return Object.entries(schema).reduce((prev, [key, { type }]) => {
+      const value = sort[key];
+      if (value === undefined) return prev;
+      if (type !== 'String') return prev;
+      return Object.assign(prev, { [key]: { $toLower: `$${key}` } });
+    }, {});
+  }
+
   static aggregateQuery(query) {
     const { where: $match, sort, skip, limit } = query;
     const $aggregate = [{ $match }];
@@ -154,14 +165,14 @@ module.exports = class MongoDriver {
     if (Object.keys($addFields).length) $aggregate.unshift({ $addFields });
 
     // Sort, Skip, Limit documents
-    if (sort && Object.keys(sort).length) $aggregate.push({ $sort: toKeyObj(sort) });
+    if (sort && Object.keys(sort).length) $aggregate.push({ $project: MongoDriver.getSortToLower(query) }, { $sort: toKeyObj(sort) });
     if (skip) $aggregate.push({ $skip: skip });
     if (limit) $aggregate.push({ $limit: limit });
 
     // Pagination
     const { after, before, first } = query;
-    if (after) $aggregate.push({ $match: { $or: Object.entries(after).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$gte' : '$lte']: value } }), []) } });
-    if (before) $aggregate.push({ $match: { $or: Object.entries(before).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$lte' : '$gte']: value } }), []) } });
+    if (after) $aggregate.push({ $match: { $or: Object.entries(after).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$gte' : '$lte']: value.toLowerCase() } }), []) } });
+    if (before) $aggregate.push({ $match: { $or: Object.entries(before).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$lte' : '$gte']: value.toLowerCase() } }), []) } });
     if (first) $aggregate.push({ $limit: first });
 
     return $aggregate;
