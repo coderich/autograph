@@ -62,7 +62,14 @@ exports.resolveWhereClause = (query) => {
 exports.resolveSortBy = (query) => {
   const { model, sort = {} } = query.toObject();
   const $sort = model.normalize(query, sort, 'serialize');
-  keyPaths($sort).forEach(path => set($sort, path, get($sort, path, '').toLowerCase() === 'asc' ? 1 : -1));
+
+  // Because normalize casts the value (sometimes to an array) need special handling
+  keyPaths($sort).forEach((path) => {
+    const v = get($sort, path);
+    const val = Array.isArray(v) ? v[0] : v;
+    set($sort, path, val.toLowerCase() === 'asc' ? 1 : -1);
+  });
+
   return $sort;
 };
 
