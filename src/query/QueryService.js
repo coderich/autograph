@@ -62,7 +62,7 @@ exports.resolveWhereClause = (query) => {
 exports.resolveSortBy = (query) => {
   const { model, sort = {} } = query.toObject();
   const $sort = model.normalize(query, sort, 'serialize');
-  keyPaths($sort).forEach(path => set($sort, path, get($sort, path).toLowerCase() === 'asc' ? 1 : -1));
+  keyPaths($sort).forEach(path => set($sort, path, get($sort, path, '').toLowerCase() === 'asc' ? 1 : -1));
   return $sort;
 };
 
