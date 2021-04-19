@@ -124,7 +124,7 @@ module.exports = {
       person: Person
     }
 
-    type PlainJane {
+    type PlainJane @model {
       id: ID!
       name: String
     }

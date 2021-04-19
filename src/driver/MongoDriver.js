@@ -34,7 +34,9 @@ module.exports = class MongoDriver {
   }
 
   findMany(query) {
-    const { model, options, last, flags } = query;
+    const { model, options = {}, last, flags } = query;
+    Object.assign(options, this.config.query || {});
+
     return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), options, flags).then((cursor) => {
       return cursor.toArray().then((results) => {
         if (last) return results.splice(-last);
@@ -43,7 +45,8 @@ module.exports = class MongoDriver {
     });
   }
 
-  count({ model, where, options, flags }) {
+  count({ model, where, options = {}, flags }) {
+    Object.assign(options, this.config.query || {});
     return this.query(model, 'countDocuments', where, options, flags);
   }
 

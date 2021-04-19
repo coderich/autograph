@@ -12,6 +12,7 @@ module.exports = {
     Driver: new Driver('Mongo'),
     uri: 'mongodb://localhost/autograph',
     options: { useNewUrlParser: true, tlsInsecure: true, useUnifiedTopology: true },
+    query: { collation: { locale: 'en', strength: 2 } },
     directives: { version: 4 },
   },
   // neo4jDriver: {

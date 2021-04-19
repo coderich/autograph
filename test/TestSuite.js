@@ -784,11 +784,9 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('get', async () => {
         switch (driver) {
           case 'mongo': {
-            expect(await resolver.match('Person').native({ name: 'richard' }).one()).toBeNull(); // case sensitive
-            expect(await resolver.match('Person').native({ name: 'Christie' }).one()).toBeNull(); // case sensitive
+            expect(await resolver.match('Person').native({ name: 'Christie' }).one()).toMatchObject({ id: christie.id, name: 'Christie', emailAddress: 'christie@gmail.com' }); // case insensitive
             expect(await resolver.match('Person').native({ name: 'christie' }).one()).toMatchObject({ id: christie.id, name: 'Christie', emailAddress: 'christie@gmail.com' });
-            expect(await resolver.match('Person').native({ name: 'richard' }).count()).toBe(0);
-            expect(await resolver.match('Person').native({ name: 'Christie' }).count()).toBe(0);
+            expect(await resolver.match('Person').native({ name: 'Christie' }).count()).toBe(1); // case insensitive
             expect(await resolver.match('Person').native({ name: 'christie' }).count()).toBe(1);
             const count = await resolver.match('Person').native({ name: { $ne: 'chard' } }).count();
             expect(count).toBeGreaterThanOrEqual(1);
@@ -875,6 +873,26 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('where clause with one(required) should throw', async () => {
         await expect(resolver.match('Person').where({ age: 400 }).one({ required: true })).rejects.toThrow();
         await expect(resolver.match('Person').where({ age: 400 }).many({ required: true })).rejects.toThrow();
+      });
+    });
+
+    describe('Case [In]sensitive Sort', () => {
+      test('get', async () => {
+        // Create documents for sorting purpose (no transformation on name)
+        await Promise.all([
+          resolver.match('PlainJane').save({ name: 'boolander' }),
+          resolver.match('PlainJane').save({ name: 'Zoolander' }),
+        ]);
+
+        switch (driver) {
+          case 'mongo': {
+            expect(await resolver.match('PlainJane').where({ name: '*lander' }).sortBy({ name: 'desc' }).many()).toMatchObject([{ name: 'Zoolander' }, { name: 'boolander' }]);
+            break;
+          }
+          default: {
+            break;
+          }
+        }
       });
     });
   });
