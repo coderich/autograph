@@ -49,9 +49,10 @@ module.exports = class extends Model {
    */
   appendCreateFields(input, embed = false) {
     // id, createdAt, updatedAt
+    const timestamp = new Date();
     if (embed && !input.id && this.idKey()) input.id = this.idValue();
-    if (!input.createdAt) input.createdAt = new Date();
-    input.updatedAt = new Date();
+    if (!input.createdAt) input.createdAt = timestamp;
+    input.updatedAt = timestamp;
 
     // Generate embedded default values
     this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
