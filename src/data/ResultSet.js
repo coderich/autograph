@@ -36,6 +36,7 @@ module.exports = class ResultSet {
               cache.set(name, $value);
             },
             enumerable: true,
+            configurable: true, // Allows things like delete
           };
 
           // Hydrated field attributes
@@ -46,7 +47,7 @@ module.exports = class ResultSet {
                 args.where = args.where || {};
 
                 //
-                // if (cache.has($name)) return cache.get($name);
+                if (cache.has($name)) return cache.get($name);
 
                 const promise = new Promise((resolve, reject) => {
                   (() => {
@@ -108,6 +109,7 @@ module.exports = class ResultSet {
         }, {
           id: {
             get() { return doc.id || doc[model.idKey()]; },
+            set(id) { doc.id = id; }, // Embedded array of documents need to set id
             enumerable: true,
           },
 
