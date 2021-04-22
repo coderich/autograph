@@ -11,7 +11,9 @@ module.exports = class MongoDriver {
   }
 
   connect() {
-    return MongoClient.connect(this.config.uri, this.config.options);
+    const { uri, options = {} } = this.config;
+    options.ignoreUndefined = true;
+    return MongoClient.connect(uri, options);
   }
 
   raw(collection) {
