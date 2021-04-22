@@ -545,6 +545,17 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Apartment').id(apartment.id).one()).toMatchObject({ name: apartment.name, building: { year: 1978, tenants: [richard.id, christie.id] } });
       });
 
+      test('Embedded', async () => {
+        const { id, sections } = artsy;
+        sections.push({ name: 'New Section' });
+        expect(await resolver.match('Art').id(id).save({ sections })).toMatchObject({
+          sections: [
+            { id: expect.anything(), name: 'section1' },
+            { id: expect.anything(), name: 'new section' },
+          ],
+        });
+      });
+
       test('Push/Pull', async () => {
         expect(await resolver.match('Book').id(mobyDick.id).push('bids', 2.99, 1.99, 5.55)).toMatchObject({ id: mobyDick.id, name: 'Moby Dick', bids: [2.99, 1.99, 5.55] });
         expect(await resolver.match('Book').id(mobyDick.id).pull('bids', 1.99)).toMatchObject({ id: mobyDick.id, name: 'Moby Dick', bids: [2.99, 5.55] });

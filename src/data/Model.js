@@ -61,9 +61,17 @@ module.exports = class extends Model {
     return input;
   }
 
-  appendUpdateFields(input) {
+  appendUpdateFields(input, embed = false) {
+    // id, updatedAt
+    if (embed && !input.id && this.idKey()) input.id = this.idValue();
     input.updatedAt = new Date();
     this.removeBoundKeys(input);
+
+    // Generate embedded default values
+    this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
+      if (input[field]) map(input[field], v => field.getModelRef().appendUpdateFields(v, field.isArray())); // Only embedded when it's an array (because then we'll ensure ids)
+    });
+
     return input;
   }
 
