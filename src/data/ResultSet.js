@@ -1,6 +1,6 @@
 const { get } = require('lodash');
 const DataService = require('./DataService');
-const { map, ensureArray, keyPaths, mapPromise, toGUID } = require('../service/app.service');
+const { map, ensureArray, keyPaths, mapPromise, toGUID, hashObject } = require('../service/app.service');
 
 module.exports = class ResultSet {
   constructor(query, data, adjustForPagination = true) {
@@ -46,8 +46,9 @@ module.exports = class ResultSet {
                 // Ensure where clause
                 args.where = args.where || {};
 
-                //
-                if (cache.has($name)) return cache.get($name);
+                // Cache
+                const cacheKey = `${$name}-${hashObject(args)}`;
+                if (cache.has(cacheKey)) return cache.get(cacheKey);
 
                 const promise = new Promise((resolve, reject) => {
                   (() => {
@@ -82,7 +83,7 @@ module.exports = class ResultSet {
                   });
                 });
 
-                cache.set($name, promise);
+                cache.set(cacheKey, promise);
                 return promise;
               };
             },
