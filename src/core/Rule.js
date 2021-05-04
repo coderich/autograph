@@ -95,7 +95,11 @@ Rule.factory('deny', (...args) => (f, v) => args.indexOf(v) > -1);
 Rule.factory('range', (min, max) => {
   if (min == null) min = undefined;
   if (max == null) max = undefined;
-  return (f, v) => (Number.isNaN(v) ? v.length < min || v.length > max : v < min || v > max);
+  return (f, v) => {
+    const num = +v; // Coerce to number if possible
+    const test = Number.isNaN(num) ? v.length : num;
+    return test < min || test > max;
+  };
 });
 Rule.factory('email', () => (f, v) => !isEmail(v), { enumerable: true });
 Rule.factory('distinct', () => (f, v) => false, { enumerable: true });
