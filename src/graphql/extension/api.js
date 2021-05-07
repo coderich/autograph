@@ -1,8 +1,11 @@
 const { get } = require('lodash');
+const { Kind } = require('graphql');
 const ServerResolver = require('../../core/ServerResolver');
 const { ucFirst, fromGUID } = require('../../service/app.service');
 const { findGQLModels } = require('../../service/schema.service');
 const { makeCreateAPI, makeReadAPI, makeUpdateAPI, makeDeleteAPI, makeInputSplice, makeQueryResolver, makeMutationResolver } = require('../../service/decorator.service');
+
+const interfaceKinds = [Kind.INTERFACE_TYPE_DEFINITION, Kind.INTERFACE_TYPE_EXTENSION];
 
 const getGQLWhereFields = (model) => {
   return model.getFields().filter((field) => {
@@ -48,7 +51,7 @@ module.exports = (schema) => {
       `),
 
       ...readModels.map(model => `
-        extend type ${model.getName()} {
+        extend ${interfaceKinds.indexOf(model.getKind()) > -1 ? 'interface' : 'type'} ${model.getName()} {
           ${model.getFields().filter(field => field.hasGQLScope('r')).map(field => `${field.getName()}${field.getExtendArgs()}: ${field.getPayloadType()}`)}
         }
         type ${model.getName()}Connection {
