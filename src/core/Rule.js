@@ -100,7 +100,7 @@ Rule.factory('range', (min, max) => {
     const test = Number.isNaN(num) ? v.length : num;
     return test < min || test > max;
   };
-});
+}, { itemize: false });
 Rule.factory('email', () => (f, v) => !isEmail(v), { enumerable: true });
 Rule.factory('distinct', () => (f, v) => false, { enumerable: true });
 

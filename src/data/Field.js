@@ -78,14 +78,14 @@ module.exports = class extends Field {
     const modelRef = this.getModelRef();
     const rules = [...this.getRules()];
 
-    if (modelRef) {
-      if (isPlainObject(ensureArray(value)[0])) return modelRef.validate(query, value); // Model delegation
-      if (!this.isEmbedded()) rules.push(Rule.ensureId());
-    }
+    if (modelRef && !this.isEmbedded()) rules.push(Rule.ensureId());
 
     return Promise.all(rules.map((rule) => {
       return rule(this, value, query);
-    }));
+    })).then((res) => {
+      if (modelRef && isPlainObject(ensureArray(value)[0])) return modelRef.validate(query, value); // Model delegation
+      return res;
+    });
   }
 
   /**
