@@ -30,6 +30,12 @@ module.exports = class Query {
     return this.match(where);
   }
 
+  search(search) {
+    this.propCheck('search', 'id');
+    this.props.search = search;
+    return this;
+  }
+
   native(native) {
     this.propCheck('native', 'id', 'where');
     this.props.native = native;
@@ -237,6 +243,7 @@ module.exports = class Query {
       method: this.props.method,
       select: this.props.$select,
       where: this.props.match,
+      search: this.props.search,
       sort: this.props.$sort,
       skip: this.props.skip,
       limit: this.props.limit,
@@ -261,6 +268,7 @@ module.exports = class Query {
       model: `${this.props.model}`,
       method: this.props.method,
       where: this.props.match,
+      search: this.props.search,
       sort: this.props.sort,
       skip: this.props.skip,
       limit: this.props.limit,

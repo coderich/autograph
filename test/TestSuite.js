@@ -265,6 +265,8 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect((await resolver.match('Book').where({ bids: 5.00 }).many()).sort(sorter)).toMatchObject([{ id: mobyDick.id }, { id: healthBook.id }].sort(sorter));
         expect(await resolver.match('Book').where({ bids: [19.99, '1.99'] }).many()).toMatchObject([{ id: mobyDick.id }]);
         expect(await resolver.match('Book').where({ chapters: chapter1.id }).many()).toMatchObject([{ id: healthBook.id }]);
+        expect(await resolver.match('Book').where({ chapters: [chapter1.id] }).many()).toMatchObject([{ id: healthBook.id }]);
+        expect((await resolver.match('Book').where({ chapters: [chapter1.id, chapter3.id] }).many()).sort(sorter)).toMatchObject([{ id: mobyDick.id }, { id: healthBook.id }]);
       });
 
       test('Chapter', async () => {
