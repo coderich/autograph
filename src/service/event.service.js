@@ -36,7 +36,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
       merged,
     };
 
-    middleware = new Promise(async (resolve) => {
+    middleware = () => new Promise(async (resolve) => {
       if (!native) {
         const $where = await QueryService.resolveWhereClause(query);
         query.match(model.serialize(query, $where, true));
@@ -49,12 +49,12 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
       resolve();
     });
   } else {
-    middleware = Promise.resolve();
+    middleware = () => Promise.resolve();
     event = mixed;
   }
 
   return systemEvent.emit('system', { type: `pre${type}`, data: event }).then(() => {
-    return middleware.then(thunk);
+    return middleware().then(thunk);
   }).then((result) => {
     event.doc = result; // You do actually need this...
     return systemEvent.emit('system', { type: `post${type}`, data: event }).then(() => result);
