@@ -93,11 +93,11 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
 
           // Get overall document
           const where = { [path]: id };
-          const query = new Query({ resolver: autograph.resolver, model, where, meta });
           const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
 
           // Get parent and container within document
+          const query = new Query({ resolver: autograph.resolver, model, input, where, meta });
           const { container } = findParentAndContainerCreate(name, doc, input, model, embeds);
           model.appendDefaultFields(query, input);
 
@@ -116,12 +116,12 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           const id = guidToId(autograph, args.id);
           const where = { [`${fieldPath}.id`]: id };
           const meta = args.meta || {};
-          const query = new Query({ resolver: autograph.resolver, model, where, meta });
           const input = unrollGuid(autograph, model, args.input || {});
           const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
 
           // Get parent and container within document
+          const query = new Query({ resolver: autograph.resolver, model, input, where, meta });
           const { tail, container } = findParentAndContainerUpdate(fieldPath, doc, id, embeds);
 
           return createSystemEvent('Mutation', { method: 'update', query }, async () => {

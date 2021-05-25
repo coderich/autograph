@@ -1,7 +1,7 @@
 {
   "name": "@coderich/autograph",
   "author": "Richard Livolsi (coderich)",
-  "version": "0.7.33",
+  "version": "0.7.34",
   "description": "AutoGraph",
   "keywords": [
     "graphql",
