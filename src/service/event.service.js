@@ -3,9 +3,9 @@ const EventEmitter = require('../core/EventEmitter');
 const { ensureArray, ucFirst } = require('./app.service');
 
 // Event emitters
-const eventEmitter = new EventEmitter();
-const internalEmitter = new EventEmitter();
-const systemEvent = new EventEmitter().on('system', async (event, next) => {
+const eventEmitter = new EventEmitter().setMaxListeners(100);
+const internalEmitter = new EventEmitter().setMaxListeners(100);
+const systemEvent = new EventEmitter().setMaxListeners(100).on('system', async (event, next) => {
   const { type, data } = event;
   await internalEmitter.emit(type, data);
   await eventEmitter.emit(type, data);
