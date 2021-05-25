@@ -140,6 +140,11 @@ module.exports = class Query {
     return this;
   }
 
+  root(root) {
+    this.props.root = root;
+    return this;
+  }
+
   /**
    * Merge unknown attributes into props; hence the check to do a noop
    */

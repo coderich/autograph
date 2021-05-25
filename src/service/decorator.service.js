@@ -97,7 +97,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
 
           // Get parent and container within document
-          const query = new Query({ resolver: autograph.resolver, model, input, where, meta });
+          const query = new Query({ resolver: autograph.resolver, model, input, where, meta, root: doc });
           const { container } = findParentAndContainerCreate(name, doc, input, model, embeds);
           model.appendDefaultFields(query, input);
 
@@ -121,7 +121,7 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
 
           // Get parent and container within document
-          const query = new Query({ resolver: autograph.resolver, model, input, where, meta });
+          const query = new Query({ resolver: autograph.resolver, model, input, where, meta, root: doc });
           const { tail, container } = findParentAndContainerUpdate(fieldPath, doc, id, embeds);
 
           return createSystemEvent('Mutation', { method: 'update', query }, async () => {
@@ -136,11 +136,11 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
           const id = guidToId(autograph, args.id);
           const where = { [`${fieldPath}.id`]: id };
           const meta = args.meta || {};
-          const query = new Query({ resolver: autograph.resolver, model, where, meta });
           const doc = await autograph.resolver.match(base.getModel()).where(where).one();
           if (!doc) throw Boom.notFound(`${base.getModel()} Not Found`);
 
           // Get parent and container within document
+          const query = new Query({ resolver: autograph.resolver, model, where, meta, root: doc });
           const { tail, parent, container } = findParentAndContainerUpdate(fieldPath, doc, id, embeds);
 
           return createSystemEvent('Mutation', { method: 'delete', query }, () => {
