@@ -1,4 +1,4 @@
-const { isEmpty } = require('lodash');
+const { get, isEmpty } = require('lodash');
 const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
 const DataService = require('../data/DataService');
@@ -30,13 +30,13 @@ module.exports = class QueryResolver {
   }
 
   createOne(query) {
-    const { model, input } = query.toObject();
+    const { model, input, flags } = query.toObject();
     model.appendDefaultFields(query, input);
 
     return createSystemEvent('Mutation', { method: 'create', query }, () => {
       const $input = model.serialize(query, model.appendCreateFields(input));
       query.$input($input);
-      return model.validate(query, $input).then(() => this.resolver.resolve(query));
+      return get(flags, 'novalidate') ? this.resolver.resolve(query) : model.validate(query, $input).then(() => this.resolver.resolve(query));
     });
   }
 
@@ -48,7 +48,7 @@ module.exports = class QueryResolver {
   }
 
   updateOne(query) {
-    const { model, match } = query.toObject();
+    const { model, match, flags } = query.toObject();
 
     return this.resolver.match(model).match(match).one({ required: true }).then((doc) => {
       const { input } = query.toObject();
@@ -56,7 +56,7 @@ module.exports = class QueryResolver {
 
       return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(merged) }, async () => {
         const $input = model.serialize(query, model.appendUpdateFields(input), true);
-        await model.validate(query, $input);
+        if (!get(flags, 'novalidate')) await model.validate(query, $input);
         const $doc = mergeDeep(model.serialize(query, doc, true), $input);
         return this.resolver.resolve(query.$doc($doc).$input($input));
       });
