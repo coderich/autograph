@@ -8,8 +8,7 @@ const internalEmitter = new EventEmitter().setMaxListeners(100);
 const systemEvent = new EventEmitter().setMaxListeners(100).on('system', async (event, next) => {
   const { type, data } = event;
   await internalEmitter.emit(type, data);
-  await eventEmitter.emit(type, data);
-  next();
+  next(await eventEmitter.emit(type, data)); // Return result from user-defined middleware
 });
 
 //
@@ -54,7 +53,8 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
     event = mixed;
   }
 
-  return systemEvent.emit('system', { type: `pre${type}`, data: event }).then(() => {
+  return systemEvent.emit('system', { type: `pre${type}`, data: event }).then((result) => {
+    if (result !== undefined) return result; // Allowing middleware to dictate result
     return middleware().then(thunk);
   }).then((result) => {
     event.doc = result; // You do actually need this...
