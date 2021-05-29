@@ -63,7 +63,8 @@ module.exports = (schema) => {
 
       directive @value(
         path: String! # The path to the data
-        merge: Boolean # Should it be merged? (overwrite default)
+        # merge: Boolean # Deep merge the data? (default false - overwrite) [does not even look supported at the moment]
+        passive: Boolean # If value exists leave it alone (default false)
         scope: AutoGraphValueScopeEnum # Where to look for the data (default self)
       ) on OBJECT | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
 

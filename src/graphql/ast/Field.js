@@ -44,17 +44,22 @@ module.exports = class Field extends Node {
     return this.getDirectiveArg('field', 'default');
   }
 
-  resolveBoundValue(query, initialValue = this.getDefaultValue()) {
-    if (!this.hasBoundValue()) return initialValue;
+  resolveBoundValue(query, initialValue) {
+    // If no bound value, return default value
+    const defaultValue = uvl(initialValue, this.getDefaultValue());
+    if (!this.hasBoundValue()) return defaultValue;
 
-    const { scope, path } = this.getDirectiveArgs('value');
+    // Grab @value definition, if passive then check for initialValue
+    const { scope, path, passive = false } = this.getDirectiveArgs('value');
+    if (passive && initialValue !== undefined) return initialValue;
 
+    // Resolve @value
     switch (scope) {
       case 'context': {
         const { resolver } = query.toObject();
         const context = resolver.getContext();
         const value = get(context, path);
-        return (typeof value === 'function') ? value() : value;
+        return uvl((typeof value === 'function') ? value() : value, defaultValue);
       }
       default: return this[path];
     }
