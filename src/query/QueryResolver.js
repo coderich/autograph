@@ -74,9 +74,9 @@ module.exports = class QueryResolver {
   }
 
   deleteOne(query) {
-    const { model, id } = query.toObject();
+    const { model, id, flags } = query.toObject();
 
-    return this.resolver.match(model).id(id).one({ required: true }).then((doc) => {
+    return this.resolver.match(model).id(id).flags(flags).one({ required: true }).then((doc) => {
       return createSystemEvent('Mutation', { method: 'delete', query: query.doc(doc) }, () => {
         return QueryService.resolveReferentialIntegrity(query).then(() => {
           return this.resolver.resolve(query).then(() => doc);
@@ -86,9 +86,9 @@ module.exports = class QueryResolver {
   }
 
   deleteMany(query) {
-    const { model, match, transaction } = query.toObject();
+    const { model, match, transaction, flags } = query.toObject();
 
-    return this.resolver.match(model).where(match).many().then((docs) => {
+    return this.resolver.match(model).where(match).flags(flags).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);
       docs.forEach(doc => txn.match(model).id(doc.id).delete());
       return txn.run();

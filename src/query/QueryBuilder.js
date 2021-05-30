@@ -60,13 +60,13 @@ module.exports = class QueryBuilder {
     switch (cmd) {
       case 'one': case 'many': {
         crud = 'read';
-        flags = args[0] || {};
+        flags = args[0] || flags;
         method = cmd === 'one' ? 'findOne' : 'findMany';
         break;
       }
       case 'first': case 'last': {
         crud = 'read';
-        flags = args[1] || {};
+        flags = args[1] || flags;
         method = cmd;
         break;
       }
@@ -83,7 +83,7 @@ module.exports = class QueryBuilder {
       }
       case 'remove': case 'delete': {
         crud = 'delete';
-        flags = args[0] || {};
+        flags = args[0] || flags;
         if (id) method = 'deleteOne';
         else if (where) method = 'deleteMany';
         else return Promise.reject(new Error('Remove requires an id() or where()'));
@@ -91,7 +91,7 @@ module.exports = class QueryBuilder {
       }
       case 'count': {
         crud = 'read';
-        flags = args[0] || {};
+        flags = args[0] || flags;
         method = 'count';
         break;
       }
