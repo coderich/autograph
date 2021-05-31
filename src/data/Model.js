@@ -66,7 +66,6 @@ module.exports = class extends Model {
     // id, updatedAt
     if (embed && !input.id && this.idKey()) input.id = this.idValue();
     input.updatedAt = new Date();
-    this.removeBoundKeys(input);
 
     // Generate embedded default values
     this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
@@ -87,12 +86,6 @@ module.exports = class extends Model {
     });
 
     return input;
-  }
-
-  removeBoundKeys(data) {
-    this.getBoundValueFields().forEach((field) => {
-      delete data[field.getName()];
-    });
   }
 
   /**
