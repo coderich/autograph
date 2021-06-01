@@ -129,8 +129,8 @@ module.exports = class ResultSet {
             enumerable: false,
           },
 
-          $$query: {
-            value: query,
+          $$model: {
+            value: model,
             enumerable: false,
           },
 
