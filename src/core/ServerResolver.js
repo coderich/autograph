@@ -24,7 +24,7 @@ module.exports = class ServerResolver {
 
     // Query
     this.query = ({ autograph }, model, args, info) => autograph.resolver.match(model).merge(normalizeQuery(args, info)).many();
-    this.count = ({ autograph }, model, args, info) => autograph.resolver.match(model).where(args.where).count();
+    this.count = ({ autograph }, model, args, info) => autograph.resolver.match(model).merge(args).count();
 
     // Mutations
     this.create = ({ autograph }, model, { input, meta }, query) => autograph.resolver.match(model).meta(meta).save(unrollGuid(autograph, model, input));

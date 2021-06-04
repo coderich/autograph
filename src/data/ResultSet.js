@@ -93,14 +93,11 @@ module.exports = class ResultSet {
           // Field count (let's assume it's a Connection Type - meaning dont try with anything else)
           prev[`$${name}:count`] = {
             get() {
-              return ({ where = {} }) => { // Counts only care about the where clause
-                if (field.isVirtual()) {
-                  where[field.getVirtualField()] = this.id;
-                  return resolver.match(field.getModelRef()).where(where).count();
-                }
-
-                where.id = this[name];
-                return resolver.match(field.getModelRef()).where(where).count();
+              return (q = {}) => {
+                q.where = q.where || {};
+                if (field.isVirtual()) q.where[field.getVirtualField()] = this.id;
+                else q.where.id = this[name];
+                return resolver.match(field.getModelRef()).merge(q).count();
               };
             },
             enumerable: false,

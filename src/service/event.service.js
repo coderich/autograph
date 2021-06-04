@@ -19,7 +19,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
 
   if (name !== 'Setup') {
     const { method, query } = mixed;
-    const { resolver, model, meta, doc, id, input, sort, merged, native, root, flags } = query.toObject();
+    const { resolver, model, meta, doc, id, input, sort, merged, native, root } = query.toObject();
 
     event = {
       context: resolver.getContext(),

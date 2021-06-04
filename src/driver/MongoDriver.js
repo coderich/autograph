@@ -47,9 +47,15 @@ module.exports = class MongoDriver {
     });
   }
 
-  count({ model, where, options = {}, flags }) {
+  count(query) {
+    const { model, options = {}, flags } = query;
     Object.assign(options, this.config.query || {});
-    return this.query(model, 'countDocuments', where, options, flags);
+
+    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query, true), options, flags).then((cursor) => {
+      return cursor.next().then((doc) => {
+        return doc ? doc.count : 0;
+      });
+    });
   }
 
   createOne({ model, input, options, flags }) {
@@ -150,7 +156,7 @@ module.exports = class MongoDriver {
     }, {});
   }
 
-  static aggregateQuery(query) {
+  static aggregateQuery(query, count = false) {
     const { where: $match, sort, skip, limit } = query;
     const $aggregate = [{ $match }];
 
@@ -158,16 +164,20 @@ module.exports = class MongoDriver {
     const $addFields = MongoDriver.getAddFields(query);
     if (Object.keys($addFields).length) $aggregate.unshift({ $addFields });
 
-    // Sort, Skip, Limit documents
-    if (sort && Object.keys(sort).length) $aggregate.push({ $sort: toKeyObj(sort) });
-    if (skip) $aggregate.push({ $skip: skip });
-    if (limit) $aggregate.push({ $limit: limit });
+    if (count) {
+      $aggregate.push({ $count: 'count' });
+    } else {
+      // Sort, Skip, Limit documents
+      if (sort && Object.keys(sort).length) $aggregate.push({ $sort: toKeyObj(sort) });
+      if (skip) $aggregate.push({ $skip: skip });
+      if (limit) $aggregate.push({ $limit: limit });
 
-    // Pagination
-    const { after, before, first } = query;
-    if (after) $aggregate.push({ $match: { $or: Object.entries(after).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$gte' : '$lte']: value } }), []) } });
-    if (before) $aggregate.push({ $match: { $or: Object.entries(before).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$lte' : '$gte']: value } }), []) } });
-    if (first) $aggregate.push({ $limit: first });
+      // Pagination
+      const { after, before, first } = query;
+      if (after) $aggregate.push({ $match: { $or: Object.entries(after).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$gte' : '$lte']: value } }), []) } });
+      if (before) $aggregate.push({ $match: { $or: Object.entries(before).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$lte' : '$gte']: value } }), []) } });
+      if (first) $aggregate.push({ $limit: first });
+    }
 
     return $aggregate;
   }
