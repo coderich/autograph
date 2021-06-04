@@ -20,6 +20,7 @@ module.exports = class QueryBuilder {
     this.native = (native) => { this.query.native(native); return this; };
     this.sort = (sort) => { this.query.sort(sort); return this; };
     this.sortBy = (sortBy) => { this.query.sort(sortBy); return this; };
+    this.limit = (limit) => { this.query.limit(limit); return this; };
     this.skip = (skip) => { this.query.skip(skip); return this; };
     this.before = (cursor) => { this.query.before(cursor); return this; };
     this.after = (cursor) => { this.query.after(cursor); return this; };
