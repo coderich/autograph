@@ -18,6 +18,9 @@
     "src/",
     "index.js"
   ],
+  "engines": {
+    "node": ">=14.17.0"
+  },
   "scripts": {
     "start": "APP_ROOT_PATH=$(pwd) node ./test/server",
     "test": "APP_ROOT_PATH=$(pwd) ratchet test",
