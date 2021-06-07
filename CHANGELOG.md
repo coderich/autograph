@@ -1,5 +1,8 @@
 # CHANGELOG
 
+## v0.8.x
+- Engine 14+
+
 ## v0.7.x
 - Complete overhaul of Query to Mongo Driver (pagination, sorting, counts, etc)
 - Removed countModel Queries from the API (now available as `count` property on `Connetion` types)
