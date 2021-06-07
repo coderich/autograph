@@ -1,7 +1,7 @@
 {
   "name": "@coderich/autograph",
   "author": "Richard Livolsi (coderich)",
-  "version": "0.7.44",
+  "version": "0.8.0",
   "description": "AutoGraph",
   "keywords": [
     "graphql",
@@ -49,8 +49,8 @@
     "apollo-server": "^2.16.1",
     "graphql": "^15.5.0",
     "graphql-import": "^1.0.2",
-    "mongodb": "3.6.3",
-    "mongodb-memory-server": "^6.2.2",
+    "mongodb": "3.6.9",
+    "mongodb-memory-server": "^6.9.6",
     "neo4j-driver": "^4.0.0",
     "neodb": "^3.0.0",
     "redis": "^2.8.0",
