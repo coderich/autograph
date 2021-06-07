@@ -126,7 +126,7 @@ module.exports = class extends Model {
     });
   }
 
-  normalize(query, data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); })) {
+  normalize(query, data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); }), keysOnly = false) {
     // Transform all the data
     return map(data, (doc) => {
       const fields = Object.keys(doc).map(k => this.getField(k)).filter(f => f);
@@ -134,7 +134,7 @@ module.exports = class extends Model {
       // Loop through the fields and delegate (renaming keys appropriately)
       return fields.reduce((prev, field) => {
         const [key, name] = serdes === 'serialize' ? [field.getKey(), field.getName()] : [field.getName(), field.getKey()];
-        prev[key] = field[serdes](query, doc[name], true);
+        prev[key] = keysOnly ? doc[name] : field[serdes](query, doc[name], true);
         return prev;
       }, {});
     });
