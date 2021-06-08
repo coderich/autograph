@@ -11,15 +11,15 @@ const typeDefs = `
   type Mutation { noop: String }
   type Subscription { noop: String }
 
+  extend type Person {
+    age: Int
+  }
+
   type Person @model {
     name: String! @field(transform: [toTitleCase, toUpperCase], default: "idk")
     authored: [Book!]
     emailAddress: String!
     status: Mixed
-  }
-
-  extend type Person {
-    age: Int
   }
 
   type Book @model {
