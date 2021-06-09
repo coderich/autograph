@@ -68,7 +68,11 @@ exports.mergeASTArray = (arr) => {
     const match = prev.find(el => !el.deleteFlag && exports.areMergeableASTs(el, curr));
 
     if (match) {
-      const [left, right] = [match, curr].sort((a, b) => (a.kind.indexOf('Extension') > -1 && b.kind.indexOf('Extension') === -1 ? 1 : 0));
+      const [left, right] = [match, curr].sort((a, b) => {
+        if (a.kind.indexOf('Extension') > -1 && b.kind.indexOf('Extension') === -1) return 1;
+        if (b.kind.indexOf('Extension') > -1 && a.kind.indexOf('Extension') === -1) return -1;
+        return 0;
+      });
       exports.mergeASTObject(left, right);
       right.deleteFlag = true;
     }
