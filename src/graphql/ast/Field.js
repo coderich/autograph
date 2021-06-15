@@ -112,6 +112,21 @@ module.exports = class Field extends Node {
     return Boolean(this.getDirectiveArg('field', 'ref'));
   }
 
+  isFKReference() {
+    const modelRef = this.getModelRef();
+    return Boolean(modelRef && !this.isEmbedded());
+  }
+
+  getJoinInfo() {
+    const modelRef = this.getModelRef();
+    if (!modelRef || this.isEmbedded()) return null;
+    const vref = this.getVirtualRef();
+    const to = modelRef.getKey();
+    const by = vref || modelRef.idKey();
+    const from = vref ? this.getModel().idKey() : this.getKey();
+    return { to, by, from };
+  }
+
   isConnection() {
     // Deliberately need to specify this is a connection
     const connection = Boolean(this.getDirectiveArg('field', 'connection'));

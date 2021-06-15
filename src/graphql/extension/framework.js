@@ -56,9 +56,9 @@ module.exports = (schema) => {
       ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
 
       directive @link(
-        to: AutoGraphMixed # The model to link to (default's to modelRef)
-        by: AutoGraphMixed! # The field to match yourself by
-        use: AutoGraphMixed # The value to use (default's to "on's" value); useful for many-to-many relationships
+        to: AutoGraphMixed  # The MODEL to link to (default's to modelRef)
+        by: AutoGraphMixed! # The FIELD to match yourself by
+        use: AutoGraphMixed # The VALUE to use (default's to @link'd value); useful for many-to-many relationships
       ) on FIELD_DEFINITION
 
       directive @value(

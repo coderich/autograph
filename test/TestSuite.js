@@ -611,22 +611,26 @@ module.exports = (driver = 'mongo', options = {}) => {
     });
 
 
-    // describe('Query (sortBy deep)', () => {
-    //   test('sortBy', async () => {
-    //     expect(await resolver.match('Person').sortBy({ authored: { chapters: { name: 'asc' } } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
-    //     expect(await resolver.match('Person').sortBy({ authored: { chapters: { name: 'desc' } } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
-    //     // expect(await resolver.match('Person').sortBy({ authored: { chapters: { countPages: 'asc' } } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
-    //     // expect(await resolver.match('Person').sortBy({ authored: { chapters: { countPages: 'desc' } } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
-    //     // expect(await resolver.match('Chapter').sortBy({ countPages: 'asc', name: 'desc' }).many()).toMatchObject([{ name: 'Chapter1' }, { name: 'Chapter2' }]);
-    //     // expect(await resolver.match('Chapter').sortBy({ countPages: 'desc', name: 'desc' }).many()).toMatchObject([{ name: 'Chapter2' }, { name: 'Chapter1' }]);
+    describe('Query (sortBy deep)', () => {
+      test('sortBy', async () => {
+        expect(await resolver.match('Person').sortBy({ authored: { name: 'asc' } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+        expect(await resolver.match('Person').sortBy({ authored: { name: 'desc' } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        // expect(await resolver.match('Person').sortBy({ authored: { chapters: { name: 'asc' } } }).flags({ debug: true }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+        // expect(await resolver.match('Person').sortBy({ authored: { chapters: { name: 'desc' } } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        // // expect(await resolver.match('Person').sortBy({ authored: { chapters: { countPages: 'asc' } } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        // // expect(await resolver.match('Person').sortBy({ authored: { chapters: { countPages: 'desc' } } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+        // // expect(await resolver.match('Chapter').sortBy({ countPages: 'asc', name: 'desc' }).many()).toMatchObject([{ name: 'Chapter1' }, { name: 'Chapter2' }]);
+        // // expect(await resolver.match('Chapter').sortBy({ countPages: 'desc', name: 'desc' }).many()).toMatchObject([{ name: 'Chapter2' }, { name: 'Chapter1' }]);
 
-    //     // Convenience counterparts
-    //     expect(await resolver.match('Person').sortBy({ 'authored.chapters.name': 'asc' }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
-    //     expect(await resolver.match('Person').sortBy({ 'authored.chapters.name': 'desc' }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
-    //     // expect(await resolver.match('Person').sortBy({ 'authored.chapters.countPages': 'asc' }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
-    //     // expect(await resolver.match('Person').sortBy({ 'authored.chapters.countPages': 'desc' }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
-    //   });
-    // });
+        // Convenience counterparts
+        expect(await resolver.match('Person').sortBy({ 'authored.name': 'asc' }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+        expect(await resolver.match('Person').sortBy({ 'authored.name': 'desc' }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        // expect(await resolver.match('Person').sortBy({ 'authored.chapters.name': 'asc' }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+        // expect(await resolver.match('Person').sortBy({ 'authored.chapters.name': 'desc' }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        // // expect(await resolver.match('Person').sortBy({ 'authored.chapters.countPages': 'asc' }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        // // expect(await resolver.match('Person').sortBy({ 'authored.chapters.countPages': 'desc' }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+      });
+    });
 
 
     // describe('Query (find & sortBy deep)', () => {

@@ -157,7 +157,7 @@ module.exports = class MongoDriver {
   }
 
   static aggregateQuery(query, count = false) {
-    const { where: $match, sort, skip, limit } = query;
+    const { where: $match, sort, skip, limit, joins } = query;
     const $aggregate = [{ $match }];
 
     // Used for $regex matching
@@ -167,6 +167,9 @@ module.exports = class MongoDriver {
     if (count) {
       $aggregate.push({ $count: 'count' });
     } else {
+      // Joins
+      if (joins) $aggregate.push(...joins.map(({ to: from, by: foreignField, from: localField, as }) => ({ $lookup: { from, foreignField, localField, as } })));
+
       // Sort, Skip, Limit documents
       if (sort && Object.keys(sort).length) $aggregate.push({ $sort: toKeyObj(sort) });
       if (skip) $aggregate.push({ $skip: skip });

@@ -5,11 +5,12 @@ module.exports = class Query {
   constructor(props = {}) {
     this.props = {};
     this.timers = {};
-    this.merge(props);
+    this.props.joins = this.props.joins || [];
     this.props.match = this.props.match || {};
     this.props.options = this.props.options || {};
     this.isClassicPaging = false;
     this.isCursorPaging = false;
+    this.merge(props);
   }
 
   propCheck(prop, ...checks) {
@@ -59,6 +60,11 @@ module.exports = class Query {
 
   fields(fields) {
     this.props.select = fields;
+    return this;
+  }
+
+  joins(...joins) {
+    this.props.joins.push(...joins);
     return this;
   }
 
@@ -247,6 +253,7 @@ module.exports = class Query {
       schema: Query.getSchema(model),
       method: this.props.method,
       select: this.props.$select,
+      joins: this.props.joins,
       where: this.props.match,
       search: this.props.search,
       sort: this.props.$sort,

@@ -67,24 +67,21 @@ exports.resolveSortBy = (query) => {
   keyPaths($sort).forEach((path) => {
     const v = get($sort, path);
     const val = Array.isArray(v) ? v[0] : v;
+    const [attr] = path.split('.');
+    const field = model.getField(attr);
+    const join = field.getJoinInfo();
+
+    if (join) {
+      delete $sort[attr];
+      query.joins(Object.assign(join, { as: `_.${field}`, left: true }));
+      path = `_.${path}`;
+    }
+
     set($sort, path, val.toLowerCase() === 'asc' ? 1 : -1);
   });
 
   return $sort;
 };
-
-// exports.resolveSortBy = (query) => {
-//   const { sort = {} } = query.toObject();
-
-//   // Because normalize casts the value (sometimes to an array) need special handling
-//   keyPaths(sort).forEach((path) => {
-//     const v = get(sort, path);
-//     const val = Array.isArray(v) ? v[0] : v;
-//     set(sort, path, val.toLowerCase() === 'asc' ? 1 : -1);
-//   });
-
-//   return sort;
-// };
 
 exports.resolveReferentialIntegrity = (query) => {
   const { id, model, resolver, transaction, flags } = query.toObject();

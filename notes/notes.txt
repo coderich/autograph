@@ -1,4 +1,6 @@
 Next Release:
+  * Where "{site}" does not return data
+  * Allow FK by arbitrary value (ie. workspace.name)
   * Allows input to be data model (not just graphql schema)
   * union types should have input value of ID!
   * Ability to hydrate adhoc results (such as from raw() query) - removing need for model.serialize()
@@ -47,6 +49,7 @@ Next:
 
 Enhancements:
   * Lodash Transformers
+  * Would be nice to have FK by another field (ie. name "live" in order to link workspace)
   * Create person with books at the same time
   * createdAt, updatedAt, counts, onDeletes, references, etc should be controllable
   * Add 'filterBy' as an option for post query filtering (this can alleviate the depth-first where clause problem)
