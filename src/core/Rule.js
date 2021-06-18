@@ -86,7 +86,7 @@ Rule.factory('immutable', () => (f, v, q) => {
   const path = `${f.getModel()}.${f.getName()}`;
   const p = path.substr(path.indexOf('.') + 1);
   const oldVal = get(doc, p);
-  if (crud === 'update' && v !== undefined && `${hashObject(v)}` !== `${hashObject(oldVal)}`) throw Boom.badRequest(`${path} is immutable; cannot be changed once set`);
+  if (crud === 'update' && oldVal !== undefined && v !== undefined && `${hashObject(v)}` !== `${hashObject(oldVal)}`) throw Boom.badRequest(`${path} is immutable; cannot be changed once set`);
   return false;
 }, { enumerable: true });
 
