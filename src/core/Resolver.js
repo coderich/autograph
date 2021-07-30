@@ -1,4 +1,5 @@
 const Model = require('../data/Model');
+const Query = require('../query/Query');
 const ResultSet = require('../data/ResultSet');
 const DataLoader = require('../data/DataLoader');
 const DataTransaction = require('../data/DataTransaction');
@@ -84,5 +85,9 @@ module.exports = class Resolver {
     if (!entity) throw new Error(`${model} is not defined in schema`);
     if (!entity.isEntity()) throw new Error(`${model} is not an entity`);
     return entity;
+  }
+
+  toResultSet(model, data) {
+    return new ResultSet(new Query({ model: this.toModel(model), resolver: this }), data);
   }
 };
