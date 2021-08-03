@@ -167,6 +167,16 @@ module.exports = class MongoDriver {
     if (count) {
       $aggregate.push({ $count: 'count' });
     } else {
+      // This is needed to return FK references as an array in the correct order
+      // http://www.kamsky.org/stupid-tricks-with-mongodb/using-34-aggregation-to-return-documents-in-same-order-as-in-expression
+      // https://jira.mongodb.org/browse/SERVER-7528
+      const idKey = MongoDriver.idKey();
+      const idMatch = $match[idKey];
+      if (typeof idMatch === 'object' && idMatch.$in) {
+        $aggregate.push({ $addFields: { __order: { $indexOfArray: [idMatch.$in, `$${idKey}`] } } });
+        $aggregate.push({ $sort: { __order: 1 } });
+      }
+
       // Joins
       if (joins) $aggregate.push(...joins.map(({ to: from, by: foreignField, from: localField, as }) => ({ $lookup: { from, foreignField, localField, as } })));
 

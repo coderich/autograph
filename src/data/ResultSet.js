@@ -58,7 +58,7 @@ module.exports = class ResultSet {
 
                     if (field.isArray()) {
                       if (field.isVirtual()) {
-                        args.where[[field.getVirtualField()]] = this.id;
+                        args.where[[field.getVirtualField()]] = this.id; // Is where[[field.getVirtualField()]] correct?
                         return resolver.match(field.getModelRef()).merge(args).many();
                       }
 

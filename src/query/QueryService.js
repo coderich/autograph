@@ -17,7 +17,7 @@ const resolveEmbeddedWhere = (ref, key, value) => {
 };
 
 exports.resolveWhereClause = (query) => {
-  const { resolver, model, match: where = {}, flags = {} } = query.toObject();
+  const { resolver, model, match: where = {}, flags = {}, sort = {} } = query.toObject();
 
   // This is needed for where clause (but why!?!)
   if (where.id) where.id = map(where.id, v => model.idValue(v));
@@ -71,6 +71,7 @@ exports.resolveSortBy = (query) => {
     const field = model.getField(attr);
     const join = field.getJoinInfo();
 
+    // If you need to sort by something that's in another FK document
     if (join) {
       delete $sort[attr];
       query.joins(Object.assign(join, { as: `_.${field}`, left: true }));
