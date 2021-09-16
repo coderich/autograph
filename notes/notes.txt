@@ -1,9 +1,6 @@
 Next Release:
-  * Where "{site}" does not return data
   * Allow FK by arbitrary value (ie. workspace.name)
-  * Allows input to be data model (not just graphql schema)
-  * union types should have input value of ID!
-  * Ability to hydrate adhoc results (such as from raw() query) - removing need for model.serialize()
+  * Allow input to be data model (not just graphql schema)
   * Finalize flags() vs options() - possibly use resolver.match(model, flags)
   * WRITE A TEST THAT SHOWS resolveModelWhereClause (if (where.id) where.id = map(where.id, v => model.idValue(v));)
     - its needed...
@@ -19,8 +16,6 @@ Next Release:
   * Add query.context() option to override @value etc????
     - OR you could have .update() .create() which would be the equiv to .native()
     - Maybe something like .force()...
-  * I think having ResultSet.hydrate() as a method is a good idea... useful when using resolver.raw()
-    - $$save(), $$delete(), $$hydate()
   * .archive() would be useful to softDelete yet still emit delete event
   * Rearchitect GraphQL AST manipulations
   * Rearchitect nested subsplice disaster
@@ -32,6 +27,9 @@ Bugs:
   * Nested embedded object in array cannot delete without doing an explicit $pull operation (race condition)
     - Drivers need concept of push and pull
   * MongoDB cannot-create-namespace-in-multi-document-transaction (collection must first be defined)
+  * Fields with alias (keys) as the same name as other fields do not save properly eg:
+      DataPackage.network: Network @field(key: "networkId") # Collides with networkId field
+      DataPackage.networkId: ID # Legacy attribute so it's still needed
 
 Performance:
   * Select as alias/key can be done at the driver level (not require transformation during hydration)

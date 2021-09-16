@@ -13,9 +13,11 @@ const data = Array.from(new Array(2000)).map((el, i) => ({
 }));
 
 describe('ResultSet', () => {
+  let schema, resolver;
+
   beforeAll(async () => {
     // Setup
-    const { schema, resolver } = await setup();
+    ({ schema, resolver } = await setup());
     const model = schema.getModel('Person');
     query = new Query({ resolver, model });
   });
@@ -39,5 +41,29 @@ describe('ResultSet', () => {
     const obj = item.toObject();
     expect(item).toMatchObject(obj);
     expect(obj).not.toMatchObject(item); // This is because rs has undefined values!!!
+  });
+
+  test('Magic mutation $$methods', async () => {
+    // Create some people
+    const [doc1, doc2] = await Promise.all([
+      resolver.match('Person').save({ name: 'temp1', emailAddress: 'temp1@temp.com' }),
+      resolver.match('Person').save({ name: 'temp2', emailAddress: 'temp2@temp.com' }),
+    ]);
+    expect(doc1).toBeDefined();
+    expect(doc2).toBeDefined();
+
+    // Update doc1 and save
+    doc1.name = 'newname1';
+    expect((await doc1.$$save()).name).toBe('Newname1');
+    expect((await resolver.match('Person').id(doc1).one()).name).toBe('Newname1');
+
+    // Leave doc2 alone but save
+    expect((await doc2.$$save()).name).toBe('Temp2');
+    expect((await resolver.match('Person').id(doc2).one()).name).toBe('Temp2');
+
+    // Delete both docs
+    await Promise.all([doc1.$$delete(), doc2.$$remove()]);
+    expect((await resolver.match('Person').id(doc1.id).one())).toBeNull();
+    expect((await resolver.match('Person').id(doc2.id).one())).toBeNull();
   });
 });

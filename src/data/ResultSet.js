@@ -141,6 +141,21 @@ module.exports = class ResultSet {
             enumerable: false,
           },
 
+          $$save: {
+            get() { return () => resolver.match(model).id(this.id).save(this); },
+            enumerable: false,
+          },
+
+          $$remove: {
+            get() { return () => resolver.match(model).id(this.id).remove(); },
+            enumerable: false,
+          },
+
+          $$delete: {
+            get() { return () => resolver.match(model).id(this.id).delete(); },
+            enumerable: false,
+          },
+
           toObject: {
             get() {
               return () => map(this, obj => Object.entries(obj).reduce((prev, [key, value]) => {

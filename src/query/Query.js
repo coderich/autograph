@@ -210,6 +210,7 @@ module.exports = class Query {
   }
 
   input(input = {}) { // Allows .save(/* empty */);
+    // delete input.id; // We do not want to allow changing id via input
     this.props.input = input;
     return this;
   }

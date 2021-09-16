@@ -533,6 +533,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Person').id(richard.id).save({ name: 'richard' })).toMatchObject({ id: richard.id, name: 'Richard' });
         expect(await resolver.match('Person').id(richard.id).save({ status: 'active' })).toMatchObject({ id: richard.id, name: 'Richard', status: 'active' });
         expect(await resolver.match('Person').id(richard.id).save({ status: null })).toMatchObject({ id: richard.id, name: 'Richard', status: null });
+        expect(await resolver.match('Person').id(richard.id).save({ id: `${richard.id}` })).toMatchObject({ id: richard.id, name: 'Richard', status: null });
       });
 
       test('Book', async () => {
