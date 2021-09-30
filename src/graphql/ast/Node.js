@@ -32,7 +32,6 @@ module.exports = class Node {
 
   getName() {
     return this.name;
-    // return get(this.ast, 'name.value');
   }
 
   getValue(ast = this.ast) {

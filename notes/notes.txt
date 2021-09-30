@@ -1,4 +1,5 @@
 Next Release:
+  * Would be nice to query in mode where none of the @value stuff is used (migration scripts etc)
   * Allow FK by arbitrary value (ie. workspace.name)
   * Allow input to be data model (not just graphql schema)
   * Finalize flags() vs options() - possibly use resolver.match(model, flags)

@@ -57,6 +57,12 @@ describe('ResultSet', () => {
     expect((await doc1.$$save()).name).toBe('Newname1');
     expect((await resolver.match('Person').id(doc1).one()).name).toBe('Newname1');
 
+    // Update via a query
+    const doc3 = await resolver.match('Person').id(doc1).one();
+    doc3.name = 'newname2';
+    expect((await doc3.$$save()).name).toBe('Newname2');
+    expect((await resolver.match('Person').id(doc3).one()).name).toBe('Newname2');
+
     // Leave doc2 alone but save
     expect((await doc2.$$save()).name).toBe('Temp2');
     expect((await resolver.match('Person').id(doc2).one()).name).toBe('Temp2');
