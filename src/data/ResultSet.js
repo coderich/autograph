@@ -142,7 +142,7 @@ module.exports = class ResultSet {
           },
 
           $$save: {
-            get() { return () => resolver.match(model).id(this.id).save(this); },
+            get() { return input => resolver.match(model).id(this.id).save({ ...this, ...input }); },
             enumerable: false,
           },
 
