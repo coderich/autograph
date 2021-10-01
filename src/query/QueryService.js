@@ -17,7 +17,7 @@ const resolveEmbeddedWhere = (ref, key, value) => {
 };
 
 exports.resolveWhereClause = (query) => {
-  const { resolver, model, match: where = {}, flags = {}, sort = {} } = query.toObject();
+  const { resolver, model, match: where = {}, flags = {} } = query.toObject();
 
   // This is needed for where clause (but why!?!)
   if (where.id) where.id = map(where.id, v => model.idValue(v));

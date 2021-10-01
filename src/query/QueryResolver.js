@@ -103,10 +103,10 @@ module.exports = class QueryResolver {
 
   pushMany(query) {
     const { args } = query.toObject();
-    const { model, match, transaction } = query.toObject();
+    const { model, match, transaction, flags } = query.toObject();
     const [key, ...values] = args;
 
-    return this.resolver.match(model).match(match).many().then((docs) => {
+    return this.resolver.match(model).match(match).flags(flags).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);
       docs.forEach(doc => txn.match(model).id(doc.id).push(key, ...values));
       return txn.run();
@@ -120,10 +120,10 @@ module.exports = class QueryResolver {
   }
 
   pullMany(query) {
-    const { model, match, transaction, args } = query.toObject();
+    const { model, match, transaction, args, flags } = query.toObject();
     const [key, ...values] = args;
 
-    return this.resolver.match(model).match(match).many().then((docs) => {
+    return this.resolver.match(model).match(match).flags(flags).many().then((docs) => {
       const txn = this.resolver.transaction(transaction);
       docs.forEach(doc => txn.match(model).id(doc.id).pull(key, ...values));
       return txn.run();
@@ -131,10 +131,10 @@ module.exports = class QueryResolver {
   }
 
   splice(query) {
-    const { model, match, args } = query.toObject();
+    const { model, match, args, flags } = query.toObject();
     const [key, from, to] = args;
 
-    return this.resolver.match(model).match(match).one({ required: true }).then(async (doc) => {
+    return this.resolver.match(model).match(match).flags(flags).one({ required: true }).then(async (doc) => {
       const data = await DataService.spliceEmbeddedArray(query, doc, key, from, to);
       const merged = mergeDeep(doc, data);
 
