@@ -58,7 +58,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
     return middleware().then(thunk);
   }).then((result) => {
     event.doc = result; // You do actually need this...
-    return systemEvent.emit('system', { type: `post${type}`, data: event }).then(() => result);
+    return systemEvent.emit('system', { type: `post${type}`, data: event }).then(finalResult => finalResult || result);
   });
 };
 exports.eventEmitter = eventEmitter;

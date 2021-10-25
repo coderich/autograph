@@ -69,7 +69,7 @@ module.exports = class Model extends Node {
   }
 
   getScalarFields() {
-    return this.getFields().filter(field => field.isScalar());
+    return this.getFields().filter(field => field.isBasicType());
   }
 
   getArrayFields() {
