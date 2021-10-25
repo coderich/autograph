@@ -8,7 +8,6 @@ module.exports = class extends Field {
   constructor(model, field) {
     super(model, JSON.parse(JSON.stringify((field.getAST()))));
     this.type = new Type(field);
-    this.deserializes = this.getDeserializers();
     this.model = model;
   }
 
@@ -97,7 +96,7 @@ module.exports = class extends Field {
     const $value = serdes === 'serialize' ? this.resolveBoundValue(query, value) : uvl(value, this.getDefaultValue());
 
     // Determine transformers
-    const transformers = [...(serdes === 'serialize' ? this.getSerializers() : this.deserializes), ...this.getTransformers()];
+    const transformers = [...(serdes === 'serialize' ? this.getSerializers() : this.getDeserializers()), ...this.getTransformers()];
 
     // Transform
     return transformers.reduce((prev, transformer) => {
