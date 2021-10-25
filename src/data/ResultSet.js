@@ -14,9 +14,7 @@ module.exports = class ResultSet {
       const cache = new Map();
 
       // Create and return ResultSetItem
-      return Object.defineProperties(
-        {},
-
+      return Object.defineProperties({},
         fields.reduce((prev, field) => {
           const key = field.getKey();
           const name = field.getName();
@@ -56,23 +54,25 @@ module.exports = class ResultSet {
 
                     if (field.isScalar() || field.isEmbedded()) return Promise.resolve($value);
 
+                    const modelRef = field.getModelRef();
+
                     if (field.isArray()) {
                       if (field.isVirtual()) {
                         args.where[[field.getVirtualField()]] = this.id; // Is where[[field.getVirtualField()]] correct?
-                        return resolver.match(field.getModelRef()).merge(args).many();
+                        return resolver.match(modelRef).merge(args).many();
                       }
 
                       // Not a "required" query + strip out nulls
                       args.where.id = $value;
-                      return resolver.match(field.getModelRef()).merge(args).many();
+                      return resolver.match(modelRef).merge(args).many();
                     }
 
                     if (field.isVirtual()) {
                       args.where[[field.getVirtualField()]] = this.id;
-                      return resolver.match(field.getModelRef()).merge(args).one();
+                      return resolver.match(modelRef).merge(args).one();
                     }
 
-                    return resolver.match(field.getModelRef()).id($value).one({ required: field.isRequired() });
+                    return resolver.match(modelRef).id($value).one({ required: field.isRequired() });
                   })().then((results) => {
                     if (results == null) return field.resolve(query, results); // Allow field to determine
                     return mapPromise(results, result => field.resolve(query, result)).then(() => results); // Resolve the inside fields but still return "results"!!!!
