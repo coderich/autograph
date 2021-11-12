@@ -58,9 +58,14 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
     return middleware().then(thunk);
   }).then((result) => {
     event.doc = result; // You do actually need this...
+    if (name === 'Mutation') return systemEvent.emit('system', { type: 'preSave', data: event }).then(finalResult => finalResult || result);
+    return Promise.resolve(result);
+  }).then((result) => {
+    event.doc = result; // You do actually need this...
     return systemEvent.emit('system', { type: `post${type}`, data: event }).then(finalResult => finalResult || result);
   });
 };
+
 exports.eventEmitter = eventEmitter;
 exports.internalEmitter = internalEmitter;
 
