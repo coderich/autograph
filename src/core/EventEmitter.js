@@ -18,7 +18,7 @@ module.exports = class extends EventEmitter {
       });
     })).then((results) => {
       if (event === 'preMutation') return this.emit('validate', data, results);
-      const target = event === 'validation' ? prev : results;
+      const target = event === 'validate' ? prev : results;
       return target.find(r => r !== undefined); // There can be only one (result)
     });
   }
