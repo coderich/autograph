@@ -1,81 +1,41 @@
-// const { flatten } = require('lodash');
 const FBDataLoader = require('dataloader');
 const ResultSet = require('./ResultSet');
+const Query = require('../query/Query');
 const { hashObject } = require('../service/app.service');
 
 // let counter = 0;
 module.exports = class DataLoader extends FBDataLoader {
-  constructor() {
+  constructor(resolver, model) {
+    const idKey = model.idKey();
+    const driver = model.getDriver();
+
     return new FBDataLoader((queries) => {
-      // const timeID = `${++counter}DataLoader(${queries.length})[${new Date().getTime()}]`;
-      // console.time(timeID);
+      // The idea is to group the "findOne by id" queries together to make 1 query instead
+      const { findOneByIdQueries, allOtherQueries } = queries.reduce((prev, query, i) => {
+        const { id, method } = query.toObject();
+        const key = method === 'findOne' && id ? 'findOneByIdQueries' : 'allOtherQueries';
+        prev[key].push({ id, query, i });
+        return prev;
+      }, { findOneByIdQueries: [], allOtherQueries: [] });
 
-      // const queriesByModel = queries.reduce((prev, query, i) => {
-      //   const toDriver = query.toDriver();
-      //   const { model, method } = query.toObject();
-      //   const key = model.idKey();
-      //   prev[model] = (prev[model] || { query, model, key, get: {}, find: [] });
-      //   toDriver.$index = i;
+      // Aggregate ids
+      const ids = Array.from(new Set(findOneByIdQueries.map(el => el.id)));
+      const batchQuery = new Query({ resolver, model, method: 'findMany', where: { [idKey]: ids } });
 
-      //   if (method === 'findOne' && Object.prototype.hasOwnProperty.call(toDriver.where, key) && !Array.isArray(toDriver.where[key])) {
-      //     const { [key]: id, ...rest } = toDriver.where;
-      //     const hash = hashObject(rest);
-      //     prev[model].get[hash] = prev[model].get[hash] || [];
-      //     prev[model].get[hash].push(toDriver);
-      //     return prev;
-      //   }
-
-      //   prev[model].find.push(toDriver);
-      //   return prev;
-      // }, {});
-
-      // return new Promise((resolve, reject) => {
-      //   const results = [];
-
-      //   Promise.all(Object.values(queriesByModel).map(({ query, model, key, get, find }) => {
-      //     return Promise.all(flatten([
-      //       ...find.map(q => model.getDriver().resolve(q)),
-      //       ...Object.values(get).map((set) => {
-      //         const ids = [...new Set(set.map(({ where }) => where[key]))];
-      //         const toDriver = { ...set[0] };
-      //         toDriver.method = 'findMany';
-      //         toDriver.where[key] = ids;
-      //         return model.getDriver().resolve(toDriver).then(data => (typeof data === 'object' ? new ResultSet(query, data) : data));
-      //         // return model.getDriver().resolve(toDriver);
-      //       }),
-      //     ]));
-      //   })).then((resultsByModel) => {
-      //     console.timeEnd(timeID);
-      //     resultsByModel.forEach((modelResults, i) => {
-      //       const { key, get, find } = Object.values(queriesByModel)[i];
-
-      //       modelResults.splice(0, find.length).forEach((result, j) => (results[find[j].$index] = result));
-
-      //       Object.values(get).forEach((set) => {
-      //         const bundle = modelResults.shift();
-
-      //         set.forEach(({ where, $index }) => {
-      //           const id = where[key];
-      //           results[$index] = bundle.find(res => `${res[key]}` === `${id}`) || null;
-      //         });
-      //         // modelResults.splice(0, set.length).forEach((result, j) => (results[set[j].$index] = result));
-      //       });
-
-      //       return results;
-      //     });
-      //   });
-      // });
-
-      return Promise.all(queries.map((query) => {
-        const { model } = query.toObject();
-        return model.getDriver().resolve(query.toDriver()).then((data) => {
-          return (data != null && typeof data === 'object' ? new ResultSet(query, data) : data);
-        });
-      })).then((results) => {
-        // console.timeEnd(timeID);
-        // console.log(new Date().getTime());
-        return results;
+      return Promise.all([
+        driver.resolve(batchQuery.toDriver()).then(results => findOneByIdQueries.map(({ query, id, i }) => ({ i, query, data: results.find(r => `${r[idKey]}` === `${id}`) || null }))),
+        Promise.all(allOtherQueries.map(({ query, i }) => driver.resolve(query.toDriver()).then(data => ({ data, query, i })))),
+      ]).then((results) => {
+        const sorted = results.flat().sort((a, b) => a.i - b.i);
+        console.log(queries.length, sorted.length);
+        return sorted.map(({ query, data }) => (data != null && typeof data === 'object' ? new ResultSet(query, data) : data));
       });
+
+      // return Promise.all(queries.map((query) => {
+      //   return driver.resolve(query.toDriver()).then((data) => {
+      //     return (data != null && typeof data === 'object' ? new ResultSet(query, data) : data);
+      //   });
+      // }));
     }, {
       // cache: false,
       // maxBatchSize: 50,

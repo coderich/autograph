@@ -7,14 +7,14 @@ const QueryBuilder = require('../query/QueryBuilder');
 
 module.exports = class Resolver {
   constructor(schema, context = {}) {
+    const models = schema.getModels();
     this.schema = schema;
     this.context = context;
-    this.loader = new DataLoader();
+    this.loaders = models.reduce((prev, model) => prev.set(model, new DataLoader(this, model)), new WeakMap());
 
     // DataLoader Proxy Methods
-    this.clear = key => this.loader.clear(key);
-    this.clearAll = () => this.loader.clearAll();
-    this.prime = (key, value) => this.loader.prime(key, value);
+    this.clear = model => this.loaders.get(model).clearAll();
+    this.clearAll = () => models.forEach(model => this.loaders.get(model).clearAll());
 
     //
     this.getSchema = () => this.schema;
@@ -55,15 +55,15 @@ module.exports = class Resolver {
     switch (crud) {
       case 'create': case 'update': case 'delete': {
         return model.getDriver().resolve(query.toDriver()).then((data) => {
-          this.clearAll();
+          this.clear(model);
           return new ResultSet(query, data);
         });
       }
       default: {
-        const key = model.idKey();
-        const { where } = query.toDriver();
-        if (Object.prototype.hasOwnProperty.call(where, key) && where[key] == null) return Promise.resolve(null);
-        return this.loader.load(query);
+        // const key = model.idKey();
+        // const { where } = query.toDriver();
+        // if (Object.prototype.hasOwnProperty.call(where, key) && where[key] == null) return Promise.resolve(null);
+        return this.loaders.get(model).load(query);
       }
     }
   }
