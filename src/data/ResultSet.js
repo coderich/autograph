@@ -13,162 +13,317 @@ module.exports = class ResultSet {
       //
       const cache = new Map();
 
-      // Create and return ResultSetItem
-      return Object.defineProperties({},
-        fields.reduce((prev, field) => {
-          const key = field.getKey();
-          const name = field.getName();
-          const $name = `$${name}`;
-          const value = doc[key];
+      // // Base definition all results have
+      // const definition = {
+      //   id: {
+      //     get() { return doc.id || doc[model.idKey()]; },
+      //     set(id) { doc.id = id; }, // Embedded array of documents need to set id
+      //     enumerable: true,
+      //   },
 
-          // Field attributes
-          prev[name] = {
-            get() {
-              if (cache.has(name)) return cache.get(name);
-              let $value = field.deserialize(query, value);
-              $value = $value != null && field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), $value, false) : $value;
-              cache.set(name, $value);
-              return $value;
-            },
-            set($value) {
-              cache.set(name, $value);
-            },
-            enumerable: true,
-            configurable: true, // Allows things like delete
-          };
+      //   $id: {
+      //     get() { return toGUID(model.getName(), this.id); },
+      //     enumerable: false,
+      //   },
 
-          // Hydrated field attributes
-          prev[`$${name}`] = {
-            get() {
-              return (args = {}) => {
-                // Ensure where clause
-                args.where = args.where || {};
+      //   $$cursor: {
+      //     get() {
+      //       const sortPaths = keyPaths(sort);
+      //       const sortValues = sortPaths.reduce((prv, path) => Object.assign(prv, { [path]: get(this, path) }), {});
+      //       const sortJSON = JSON.stringify(sortValues);
+      //       return Buffer.from(sortJSON).toString('base64');
+      //     },
+      //     enumerable: false,
+      //   },
 
-                // Cache
-                const cacheKey = `${$name}-${hashObject(args)}`;
-                if (cache.has(cacheKey)) return cache.get(cacheKey);
+      //   $$model: {
+      //     value: model,
+      //     enumerable: false,
+      //   },
 
-                const promise = new Promise((resolve, reject) => {
-                  (() => {
-                    const $value = this[name];
+      //   $$data: {
+      //     value: data,
+      //     enumerable: false,
+      //   },
 
-                    if (field.isScalar() || field.isEmbedded()) return Promise.resolve($value);
+      //   $$isResultSetItem: {
+      //     value: true,
+      //     enumerable: false,
+      //   },
 
-                    const modelRef = field.getModelRef();
+      //   $$save: {
+      //     get() { return input => resolver.match(model).id(this.id).save({ ...this, ...input }); },
+      //     enumerable: false,
+      //   },
 
-                    if (field.isArray()) {
-                      if (field.isVirtual()) {
-                        args.where[[field.getVirtualField()]] = this.id; // Is where[[field.getVirtualField()]] correct?
-                        return resolver.match(modelRef).merge(args).many();
-                      }
+      //   $$remove: {
+      //     get() { return () => resolver.match(model).id(this.id).remove(); },
+      //     enumerable: false,
+      //   },
 
-                      // Not a "required" query + strip out nulls
-                      args.where.id = $value;
+      //   $$delete: {
+      //     get() { return () => resolver.match(model).id(this.id).delete(); },
+      //     enumerable: false,
+      //   },
+
+      //   toObject: {
+      //     get() {
+      //       return () => map(this, obj => Object.entries(obj).reduce((prev, [key, value]) => {
+      //         if (value === undefined) return prev;
+      //         prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
+      //         return prev;
+      //       }, {}));
+      //     },
+      //     enumerable: false,
+      //     configurable: true,
+      //   },
+      // };
+
+      // fields.forEach((field) => {
+      //   const key = field.getKey();
+      //   const name = field.getName();
+      //   const $name = `$${name}`;
+      //   const value = doc[key];
+
+      //   // Field attributes
+      //   definition[name] = {
+      //     get() {
+      //       if (cache.has(name)) return cache.get(name);
+      //       let $value = field.deserialize(query, value);
+      //       $value = $value != null && field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), $value, false) : $value;
+      //       cache.set(name, $value);
+      //       return $value;
+      //     },
+      //     set($value) {
+      //       cache.set(name, $value);
+      //     },
+      //     enumerable: true,
+      //     configurable: true, // Allows things like delete
+      //   };
+
+      //   // Hydrated field attributes
+      //   definition[`$${name}`] = {
+      //     get() {
+      //       return (args = {}) => {
+      //         // Ensure where clause
+      //         args.where = args.where || {};
+
+      //         // Cache
+      //         const cacheKey = `${$name}-${hashObject(args)}`;
+      //         if (cache.has(cacheKey)) return cache.get(cacheKey);
+
+      //         const promise = new Promise((resolve, reject) => {
+      //           (() => {
+      //             const $value = this[name];
+
+      //             if (field.isScalar() || field.isEmbedded()) return Promise.resolve($value);
+
+      //             const modelRef = field.getModelRef();
+
+      //             if (field.isArray()) {
+      //               if (field.isVirtual()) {
+      //                 args.where[[field.getVirtualField()]] = this.id; // Is where[[field.getVirtualField()]] correct?
+      //                 return resolver.match(modelRef).merge(args).many();
+      //               }
+
+      //               // Not a "required" query + strip out nulls
+      //               args.where.id = $value;
+      //               return resolver.match(modelRef).merge(args).many();
+      //             }
+
+      //             if (field.isVirtual()) {
+      //               args.where[[field.getVirtualField()]] = this.id;
+      //               return resolver.match(modelRef).merge(args).one();
+      //             }
+
+      //             return resolver.match(modelRef).id($value).one({ required: field.isRequired() });
+      //           })().then((results) => {
+      //             if (results == null) return field.resolve(query, results); // Allow field to determine
+      //             return mapPromise(results, result => field.resolve(query, result)).then(() => results); // Resolve the inside fields but still return "results"!!!!
+      //           }).then((resolved) => {
+      //             resolve(resolved);
+      //           }).catch((e) => {
+      //             reject(e);
+      //           });
+      //         });
+
+      //         cache.set(cacheKey, promise);
+      //         return promise;
+      //       };
+      //     },
+      //     enumerable: false,
+      //   };
+
+      //   // Field count (let's assume it's a Connection Type - meaning dont try with anything else)
+      //   definition[`$${name}:count`] = {
+      //     get() {
+      //       return (q = {}) => {
+      //         q.where = q.where || {};
+      //         if (field.isVirtual()) q.where[field.getVirtualField()] = this.id;
+      //         else q.where.id = this[name];
+      //         return resolver.match(field.getModelRef()).merge(q).count();
+      //       };
+      //     },
+      //     enumerable: false,
+      //   };
+      // });
+
+      const definition = fields.reduce((prev, field) => {
+        const key = field.getKey();
+        const name = field.getName();
+        const $name = `$${name}`;
+        const value = doc[key];
+
+        // Field attributes
+        prev[name] = {
+          get() {
+            if (cache.has(name)) return cache.get(name);
+            let $value = field.deserialize(query, value);
+            $value = $value != null && field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), $value, false) : $value;
+            cache.set(name, $value);
+            return $value;
+          },
+          set($value) {
+            cache.set(name, $value);
+          },
+          enumerable: true,
+          configurable: true, // Allows things like delete
+        };
+
+        // Hydrated field attributes
+        prev[`$${name}`] = {
+          get() {
+            return (args = {}) => {
+              // Ensure where clause
+              args.where = args.where || {};
+
+              // Cache
+              const cacheKey = `${$name}-${hashObject(args)}`;
+              if (cache.has(cacheKey)) return cache.get(cacheKey);
+
+              const promise = new Promise((resolve, reject) => {
+                (() => {
+                  const $value = this[name];
+
+                  if (field.isScalar() || field.isEmbedded()) return Promise.resolve($value);
+
+                  const modelRef = field.getModelRef();
+
+                  if (field.isArray()) {
+                    if (field.isVirtual()) {
+                      args.where[[field.getVirtualField()]] = this.id; // Is where[[field.getVirtualField()]] correct?
                       return resolver.match(modelRef).merge(args).many();
                     }
 
-                    if (field.isVirtual()) {
-                      args.where[[field.getVirtualField()]] = this.id;
-                      return resolver.match(modelRef).merge(args).one();
-                    }
+                    // Not a "required" query + strip out nulls
+                    args.where.id = $value;
+                    return resolver.match(modelRef).merge(args).many();
+                  }
 
-                    return resolver.match(modelRef).id($value).one({ required: field.isRequired() });
-                  })().then((results) => {
-                    if (results == null) return field.resolve(query, results); // Allow field to determine
-                    return mapPromise(results, result => field.resolve(query, result)).then(() => results); // Resolve the inside fields but still return "results"!!!!
-                  }).then((resolved) => {
-                    resolve(resolved);
-                  }).catch((e) => {
-                    reject(e);
-                  });
+                  if (field.isVirtual()) {
+                    args.where[[field.getVirtualField()]] = this.id;
+                    return resolver.match(modelRef).merge(args).one();
+                  }
+
+                  return resolver.match(modelRef).id($value).one({ required: field.isRequired() });
+                })().then((results) => {
+                  if (results == null) return field.resolve(query, results); // Allow field to determine
+                  return mapPromise(results, result => field.resolve(query, result)).then(() => results); // Resolve the inside fields but still return "results"!!!!
+                }).then((resolved) => {
+                  resolve(resolved);
+                }).catch((e) => {
+                  reject(e);
                 });
+              });
 
-                cache.set(cacheKey, promise);
-                return promise;
-              };
-            },
-            enumerable: false,
-          };
-
-          // Field count (let's assume it's a Connection Type - meaning dont try with anything else)
-          prev[`$${name}:count`] = {
-            get() {
-              return (q = {}) => {
-                q.where = q.where || {};
-                if (field.isVirtual()) q.where[field.getVirtualField()] = this.id;
-                else q.where.id = this[name];
-                return resolver.match(field.getModelRef()).merge(q).count();
-              };
-            },
-            enumerable: false,
-          };
-
-          return prev;
-        }, {
-          id: {
-            get() { return doc.id || doc[model.idKey()]; },
-            set(id) { doc.id = id; }, // Embedded array of documents need to set id
-            enumerable: true,
+              cache.set(cacheKey, promise);
+              return promise;
+            };
           },
+          enumerable: false,
+        };
 
-          $id: {
-            get() { return toGUID(model.getName(), this.id); },
-            enumerable: false,
+        // Field count (let's assume it's a Connection Type - meaning dont try with anything else)
+        prev[`$${name}:count`] = {
+          get() {
+            return (q = {}) => {
+              q.where = q.where || {};
+              if (field.isVirtual()) q.where[field.getVirtualField()] = this.id;
+              else q.where.id = this[name];
+              return resolver.match(field.getModelRef()).merge(q).count();
+            };
           },
+          enumerable: false,
+        };
 
-          $$cursor: {
-            get() {
-              const sortPaths = keyPaths(sort);
-              const sortValues = sortPaths.reduce((prv, path) => Object.assign(prv, { [path]: get(this, path) }), {});
-              const sortJSON = JSON.stringify(sortValues);
-              return Buffer.from(sortJSON).toString('base64');
-            },
-            enumerable: false,
-          },
+        return prev;
+      }, {
+        id: {
+          get() { return doc.id || doc[model.idKey()]; },
+          set(id) { doc.id = id; }, // Embedded array of documents need to set id
+          enumerable: true,
+        },
 
-          $$model: {
-            value: model,
-            enumerable: false,
-          },
+        $id: {
+          get() { return toGUID(model.getName(), this.id); },
+          enumerable: false,
+        },
 
-          $$data: {
-            value: data,
-            enumerable: false,
+        $$cursor: {
+          get() {
+            const sortPaths = keyPaths(sort);
+            const sortValues = sortPaths.reduce((prv, path) => Object.assign(prv, { [path]: get(this, path) }), {});
+            const sortJSON = JSON.stringify(sortValues);
+            return Buffer.from(sortJSON).toString('base64');
           },
+          enumerable: false,
+        },
 
-          $$isResultSetItem: {
-            value: true,
-            enumerable: false,
-          },
+        $$model: {
+          value: model,
+          enumerable: false,
+        },
 
-          $$save: {
-            get() { return input => resolver.match(model).id(this.id).save({ ...this, ...input }); },
-            enumerable: false,
-          },
+        $$data: {
+          value: data,
+          enumerable: false,
+        },
 
-          $$remove: {
-            get() { return () => resolver.match(model).id(this.id).remove(); },
-            enumerable: false,
-          },
+        $$isResultSetItem: {
+          value: true,
+          enumerable: false,
+        },
 
-          $$delete: {
-            get() { return () => resolver.match(model).id(this.id).delete(); },
-            enumerable: false,
-          },
+        $$save: {
+          get() { return input => resolver.match(model).id(this.id).save({ ...this, ...input }); },
+          enumerable: false,
+        },
 
-          toObject: {
-            get() {
-              return () => map(this, obj => Object.entries(obj).reduce((prev, [key, value]) => {
-                if (value === undefined) return prev;
-                prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
-                return prev;
-              }, {}));
-            },
-            enumerable: false,
-            configurable: true,
+        $$remove: {
+          get() { return () => resolver.match(model).id(this.id).remove(); },
+          enumerable: false,
+        },
+
+        $$delete: {
+          get() { return () => resolver.match(model).id(this.id).delete(); },
+          enumerable: false,
+        },
+
+        toObject: {
+          get() {
+            return () => map(this, obj => Object.entries(obj).reduce((prev, [key, value]) => {
+              if (value === undefined) return prev;
+              prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
+              return prev;
+            }, {}));
           },
-        }),
-      );
+          enumerable: false,
+          configurable: true,
+        },
+      });
+
+      // Create and return ResultSetItem
+      return Object.defineProperties({}, definition);
     });
 
     let hasNextPage = false;

@@ -13,7 +13,7 @@ module.exports = class QueryBuilder {
     this.query = new Query({ model, resolver });
 
     // Chainable commands
-    this.id = (id) => { this.query.id(Object.hasOwnProperty.call(id, 'id') ? id.id : id); return this; };
+    this.id = (id) => { this.query.id(id); return this; };
     this.select = (select) => { this.query.select(select); return this; };
     this.where = (where) => { this.query.where(where); return this; };
     this.match = (match) => { this.query.match(match); return this; };

@@ -278,7 +278,7 @@ module.exports = class Query {
 
   getCacheKey() {
     return {
-      model: `${this.props.model}`,
+      // model: `${this.props.model}`,
       method: this.props.method,
       where: this.props.match,
       search: this.props.search,

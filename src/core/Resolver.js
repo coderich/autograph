@@ -60,9 +60,12 @@ module.exports = class Resolver {
         });
       }
       default: {
-        // const key = model.idKey();
-        // const { where } = query.toDriver();
-        // if (Object.prototype.hasOwnProperty.call(where, key) && where[key] == null) return Promise.resolve(null);
+        // This is needed in SF tests...
+        const key = model.idKey();
+        const { where } = query.toDriver();
+        if (Object.prototype.hasOwnProperty.call(where, key) && where[key] == null) return Promise.resolve(null);
+
+        //
         return this.loaders.get(model).load(query);
       }
     }

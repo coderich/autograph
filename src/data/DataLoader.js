@@ -19,15 +19,14 @@ module.exports = class DataLoader extends FBDataLoader {
       }, { findOneByIdQueries: [], allOtherQueries: [] });
 
       // Aggregate ids
-      const ids = Array.from(new Set(findOneByIdQueries.map(el => el.id)));
-      const batchQuery = new Query({ resolver, model, method: 'findMany', where: { [idKey]: ids } });
+      const ids = Array.from(new Set(findOneByIdQueries.map(el => `${el.id}`)));
+      const batchQuery = new Query({ resolver, model, method: 'findMany', crud: 'read' });
+      const batchWhere = model.transform(batchQuery, { id: ids }, 'serialize', true);
+      const promises = [Promise.all(allOtherQueries.map(({ query, i }) => driver.resolve(query.toDriver()).then(data => ({ data, query, i }))))];
+      if (ids.length) promises.push(driver.resolve(batchQuery.where(batchWhere).toDriver()).then(results => findOneByIdQueries.map(({ query, id, i }) => ({ i, query, data: results.find(r => `${r[idKey]}` === `${id}`) || null }))));
 
-      return Promise.all([
-        driver.resolve(batchQuery.toDriver()).then(results => findOneByIdQueries.map(({ query, id, i }) => ({ i, query, data: results.find(r => `${r[idKey]}` === `${id}`) || null }))),
-        Promise.all(allOtherQueries.map(({ query, i }) => driver.resolve(query.toDriver()).then(data => ({ data, query, i })))),
-      ]).then((results) => {
-        const sorted = results.flat().sort((a, b) => a.i - b.i);
-        console.log(queries.length, sorted.length);
+      return Promise.all(promises).then((results) => {
+        const sorted = results.flat().filter(Boolean).sort((a, b) => a.i - b.i);
         return sorted.map(({ query, data }) => (data != null && typeof data === 'object' ? new ResultSet(query, data) : data));
       });
 
@@ -37,8 +36,7 @@ module.exports = class DataLoader extends FBDataLoader {
       //   });
       // }));
     }, {
-      // cache: false,
-      // maxBatchSize: 50,
+      cache: true,
       cacheKeyFn: query => hashObject(query.getCacheKey()),
     });
   }
