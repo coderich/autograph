@@ -13,14 +13,80 @@ module.exports = class ResultSet {
       //
       const cache = new Map();
 
-      const definition = fields.reduce((prev, field) => {
+      // Base definition all results have
+      const definition = {
+        id: {
+          get() { return doc.id || doc[model.idKey()]; },
+          set(id) { doc.id = id; }, // Embedded array of documents need to set id
+          enumerable: true,
+        },
+
+        $id: {
+          get() { return toGUID(model.getName(), this.id); },
+          enumerable: false,
+        },
+
+        $$cursor: {
+          get() {
+            const sortPaths = keyPaths(sort);
+            const sortValues = sortPaths.reduce((prv, path) => Object.assign(prv, { [path]: get(this, path) }), {});
+            const sortJSON = JSON.stringify(sortValues);
+            return Buffer.from(sortJSON).toString('base64');
+          },
+          enumerable: false,
+        },
+
+        $$model: {
+          value: model,
+          enumerable: false,
+        },
+
+        $$data: {
+          value: data,
+          enumerable: false,
+        },
+
+        $$isResultSetItem: {
+          value: true,
+          enumerable: false,
+        },
+
+        $$save: {
+          get() { return input => resolver.match(model).id(this.id).save({ ...this, ...input }); },
+          enumerable: false,
+        },
+
+        $$remove: {
+          get() { return () => resolver.match(model).id(this.id).remove(); },
+          enumerable: false,
+        },
+
+        $$delete: {
+          get() { return () => resolver.match(model).id(this.id).delete(); },
+          enumerable: false,
+        },
+
+        toObject: {
+          get() {
+            return () => map(this, obj => Object.entries(obj).reduce((prev, [key, value]) => {
+              if (value === undefined) return prev;
+              prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
+              return prev;
+            }, {}));
+          },
+          enumerable: false,
+          configurable: true,
+        },
+      };
+
+      fields.forEach((field) => {
         const key = field.getKey();
         const name = field.getName();
         const $name = `$${name}`;
         const value = doc[key];
 
         // Field attributes
-        prev[name] = {
+        definition[name] = {
           get() {
             if (cache.has(name)) return cache.get(name);
             let $value = field.deserialize(query, value);
@@ -36,7 +102,7 @@ module.exports = class ResultSet {
         };
 
         // Hydrated field attributes
-        prev[`$${name}`] = {
+        definition[`$${name}`] = {
           get() {
             return (args = {}) => {
               // Ensure where clause
@@ -89,7 +155,7 @@ module.exports = class ResultSet {
         };
 
         // Field count (let's assume it's a Connection Type - meaning dont try with anything else)
-        prev[`$${name}:count`] = {
+        definition[`$${name}:count`] = {
           get() {
             return (q = {}) => {
               q.where = q.where || {};
@@ -100,66 +166,6 @@ module.exports = class ResultSet {
           },
           enumerable: false,
         };
-
-        return prev;
-      }, {
-        id: {
-          get() { return doc.id || doc[model.idKey()]; },
-          set(id) { doc.id = id; }, // Embedded array of documents need to set id
-          enumerable: true,
-        },
-
-        $id: {
-          get() { return toGUID(model.getName(), this.id); },
-          enumerable: false,
-        },
-
-        $$cursor: {
-          get() {
-            const sortPaths = keyPaths(sort);
-            const sortValues = sortPaths.reduce((prv, path) => Object.assign(prv, { [path]: get(this, path) }), {});
-            const sortJSON = JSON.stringify(sortValues);
-            return Buffer.from(sortJSON).toString('base64');
-          },
-          enumerable: false,
-        },
-
-        $$model: {
-          value: model,
-          enumerable: false,
-        },
-
-        $$isResultSetItem: {
-          value: true,
-          enumerable: false,
-        },
-
-        $$save: {
-          get() { return input => resolver.match(model).id(this.id).save({ ...this, ...input }); },
-          enumerable: false,
-        },
-
-        $$remove: {
-          get() { return () => resolver.match(model).id(this.id).remove(); },
-          enumerable: false,
-        },
-
-        $$delete: {
-          get() { return () => resolver.match(model).id(this.id).delete(); },
-          enumerable: false,
-        },
-
-        toObject: {
-          get() {
-            return () => map(this, obj => Object.entries(obj).reduce((prev, [key, value]) => {
-              if (value === undefined) return prev;
-              prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
-              return prev;
-            }, {}));
-          },
-          enumerable: false,
-          configurable: true,
-        },
       });
 
       // Create and return ResultSetItem

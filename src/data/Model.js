@@ -115,7 +115,7 @@ module.exports = class extends Model {
     // Transform all the data
     return map(data, (doc) => {
       // We want the appendFields + those in the data, deduped
-      const fields = [...new Set(appendFields.concat(Object.keys(doc).map(k => this.getField(k))))].filter(f => f);
+      const fields = [...new Set(appendFields.concat(Object.keys(doc).map(k => this.getField(k))))].filter(Boolean);
 
       // Loop through the fields and delegate (renaming keys appropriately)
       return fields.reduce((prev, field) => {
@@ -129,7 +129,7 @@ module.exports = class extends Model {
   normalize(query, data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); }), keysOnly = false) {
     // Transform all the data
     return map(data, (doc) => {
-      const fields = Object.keys(doc).map(k => this.getField(k)).filter(f => f);
+      const fields = Object.keys(doc).map(k => this.getField(k)).filter(Boolean);
 
       // Loop through the fields and delegate (renaming keys appropriately)
       return fields.reduce((prev, field) => {
@@ -149,5 +149,15 @@ module.exports = class extends Model {
         return field.validate(query, obj[field.getName()]);
       })));
     }));
+  }
+
+  tform(query, data) {
+    return map(data, (doc) => {
+      return Object.keys(doc).map(k => this.getField(k)).filter(Boolean).reduce((prev, curr) => {
+        const key = curr.getName();
+        const value = doc[key];
+        return Object.assign(prev, { [key]: curr.tform(query, value) });
+      }, {});
+    });
   }
 };

@@ -137,4 +137,14 @@ module.exports = class extends Field {
       return uvl(this.cast(results.pop()), value);
     });
   }
+
+  tform(query, value) {
+    // Determine transformers
+    const transformers = this.getTransformers();
+
+    // Transform
+    return transformers.reduce((prev, transformer) => {
+      return transformer(this, prev, query);
+    }, this.cast(value));
+  }
 };

@@ -10,43 +10,56 @@ module.exports = class ResultSet {
     const rs = map(data, (doc) => {
       if (doc == null || typeof doc !== 'object') return doc;
 
-      //
       const cache = new Map();
 
-      const definition = fields.reduce((prev, field) => {
+      const validKeys = [];
+
+      const definition = {
+        get id() { return doc.id || doc[model.idKey()]; },
+        get $id() { return toGUID(model.getName(), this.id); },
+        get $$data() { return data; },
+        get $$model() { return model; },
+        get $$isResultSetItem() { return true; },
+        get $$save() { return input => resolver.match(model).id(this.id).save({ ...this, ...input }); },
+        get $$remove() { return () => resolver.match(model).id(this.id).remove(); },
+        get $$delete() { return () => resolver.match(model).id(this.id).delete(); },
+        get $$cursor() {
+          return () => {
+            const sortPaths = keyPaths(sort);
+            const sortValues = sortPaths.reduce((prv, path) => Object.assign(prv, { [path]: get(this, path) }), {});
+            const sortJSON = JSON.stringify(sortValues);
+            return Buffer.from(sortJSON).toString('base64');
+          };
+        },
+        get toObject() {
+          return () => validKeys.reduce((prev, key) => Object.assign(prev, { [key]: this[key] }), {});
+        },
+      };
+
+      fields.forEach((field) => {
         const key = field.getKey();
         const name = field.getName();
         const $name = `$${name}`;
         const value = doc[key];
+        validKeys.push(name);
 
         // Field attributes
-        prev[name] = {
-          get() {
-            if (cache.has(name)) return cache.get(name);
+        Object.assign(definition, {
+          get [name]() {
             let $value = field.deserialize(query, value);
             $value = $value != null && field.isEmbedded() ? new ResultSet(query.model(field.getModelRef()), $value, false) : $value;
-            cache.set(name, $value);
             return $value;
           },
-          set($value) {
-            cache.set(name, $value);
-          },
-          enumerable: true,
-          configurable: true, // Allows things like delete
-        };
+        });
 
         // Hydrated field attributes
-        prev[`$${name}`] = {
-          get() {
+        Object.assign(definition, {
+          get [$name]() {
             return (args = {}) => {
               // Ensure where clause
               args.where = args.where || {};
 
-              // Cache
-              const cacheKey = `${$name}-${hashObject(args)}`;
-              if (cache.has(cacheKey)) return cache.get(cacheKey);
-
-              const promise = new Promise((resolve, reject) => {
+              return new Promise((resolve, reject) => {
                 (() => {
                   const $value = this[name];
 
@@ -80,17 +93,13 @@ module.exports = class ResultSet {
                   reject(e);
                 });
               });
-
-              cache.set(cacheKey, promise);
-              return promise;
             };
           },
-          enumerable: false,
-        };
+        });
 
         // Field count (let's assume it's a Connection Type - meaning dont try with anything else)
-        prev[`$${name}:count`] = {
-          get() {
+        Object.assign(definition, {
+          get [`${$name}:count`]() {
             return (q = {}) => {
               q.where = q.where || {};
               if (field.isVirtual()) q.where[field.getVirtualField()] = this.id;
@@ -98,72 +107,45 @@ module.exports = class ResultSet {
               return resolver.match(field.getModelRef()).merge(q).count();
             };
           },
-          enumerable: false,
-        };
-
-        return prev;
-      }, {
-        id: {
-          get() { return doc.id || doc[model.idKey()]; },
-          set(id) { doc.id = id; }, // Embedded array of documents need to set id
-          enumerable: true,
-        },
-
-        $id: {
-          get() { return toGUID(model.getName(), this.id); },
-          enumerable: false,
-        },
-
-        $$cursor: {
-          get() {
-            const sortPaths = keyPaths(sort);
-            const sortValues = sortPaths.reduce((prv, path) => Object.assign(prv, { [path]: get(this, path) }), {});
-            const sortJSON = JSON.stringify(sortValues);
-            return Buffer.from(sortJSON).toString('base64');
-          },
-          enumerable: false,
-        },
-
-        $$model: {
-          value: model,
-          enumerable: false,
-        },
-
-        $$isResultSetItem: {
-          value: true,
-          enumerable: false,
-        },
-
-        $$save: {
-          get() { return input => resolver.match(model).id(this.id).save({ ...this, ...input }); },
-          enumerable: false,
-        },
-
-        $$remove: {
-          get() { return () => resolver.match(model).id(this.id).remove(); },
-          enumerable: false,
-        },
-
-        $$delete: {
-          get() { return () => resolver.match(model).id(this.id).delete(); },
-          enumerable: false,
-        },
-
-        toObject: {
-          get() {
-            return () => map(this, obj => Object.entries(obj).reduce((prev, [key, value]) => {
-              if (value === undefined) return prev;
-              prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
-              return prev;
-            }, {}));
-          },
-          enumerable: false,
-          configurable: true,
-        },
+        });
       });
 
       // Create and return ResultSetItem
-      return Object.defineProperties({}, definition);
+      const idk = new Proxy(definition, {
+        get(target, prop, rec) {
+          if (cache.has(prop)) return cache.get(prop);
+          const value = Reflect.get(target, prop, rec);
+          if (typeof value === 'function') return value.bind(target);
+          cache.set(prop, value);
+          return value;
+        },
+        set(target, prop, value) {
+          cache.set(prop, value);
+          return true;
+        },
+        ownKeys() {
+          return validKeys;
+        },
+        getOwnPropertyDescriptor(target, prop) {
+          if (validKeys.indexOf(prop) === -1) {
+            return {
+              writable: true,
+              enumerable: true,
+              configurable: true,
+            };
+          }
+
+          return {
+            writable: false,
+            enumerable: false,
+            configurable: false,
+          };
+        },
+      });
+
+      // console.log(idk);
+      // // console.log(idk.toObject());
+      return idk;
     });
 
     let hasNextPage = false;

@@ -7,14 +7,10 @@ const QueryBuilder = require('../query/QueryBuilder');
 
 module.exports = class Resolver {
   constructor(schema, context = {}) {
-    const models = schema.getModels();
+    this.models = schema.getModels();
     this.schema = schema;
     this.context = context;
-    this.loaders = models.reduce((prev, model) => prev.set(model, new DataLoader(this, model)), new WeakMap());
-
-    // DataLoader Proxy Methods
-    this.clear = model => this.loaders.get(model).clearAll();
-    this.clearAll = () => models.forEach(model => this.loaders.get(model).clearAll());
+    this.loaders = this.models.reduce((prev, model) => prev.set(model, new DataLoader(this, model)), new WeakMap());
 
     //
     this.getSchema = () => this.schema;
@@ -92,5 +88,16 @@ module.exports = class Resolver {
 
   toResultSet(model, data) {
     return new ResultSet(new Query({ model: this.toModel(model), resolver: this }), data);
+  }
+
+  // DataLoader Proxy Methods
+  clear(model) {
+    this.loaders.get(this.toModel(model)).clearAll();
+    return this;
+  }
+
+  clearAll() {
+    this.models.forEach(model => this.clear(model));
+    return this;
   }
 };
