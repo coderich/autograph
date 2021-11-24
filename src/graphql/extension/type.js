@@ -23,6 +23,8 @@ module.exports = (schema) => {
     }).concat(`
       interface Node { id: ID! }
       enum SortOrderEnum { asc desc }
+      enum SubscriptionCrudEnum { create update delete } # Not going to support "read"
+      enum SubscriptionWhenEnum { anytime preEvent postEvent }
     `),
   });
 };

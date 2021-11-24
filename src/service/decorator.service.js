@@ -343,6 +343,19 @@ exports.makeDeleteAPI = (name, model, parent) => {
   return gql;
 };
 
+exports.makeSubscriptionAPI = (name, model, parent) => {
+  let gql = '';
+
+  if (model.hasGQLScope('s')) {
+    gql += `${name} (
+      on: [SubscriptionCrudEnum!]! = [create, update, delete]
+      filter: ${name}SubscriptionInputFilter
+    ): ${name}SubscriptionPayload!`;
+  }
+
+  return gql;
+};
+
 // Resolvers
 exports.makeQueryResolver = (name, model, resolver, embeds = []) => {
   const obj = {};

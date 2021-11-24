@@ -265,9 +265,9 @@ module.exports = class Node {
     switch (this.nodeType) {
       case 'model': {
         if (!this.isMarkedModel()) return '';
-        return nvl(uvl(this.getDirectiveArg('model', 'gqlScope'), 'crud'), '');
+        return nvl(uvl(this.getDirectiveArg('model', 'gqlScope'), 'cruds'), '');
       }
-      case 'field': return nvl(uvl(this.getDirectiveArg('field', 'gqlScope'), 'crud'), '');
+      case 'field': return nvl(uvl(this.getDirectiveArg('field', 'gqlScope'), 'cruds'), '');
       default: return '';
     }
   }

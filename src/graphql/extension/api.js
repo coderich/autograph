@@ -3,7 +3,7 @@ const { Kind } = require('graphql');
 const ServerResolver = require('../../core/ServerResolver');
 const { ucFirst, fromGUID } = require('../../service/app.service');
 const { findGQLModels } = require('../../service/schema.service');
-const { makeCreateAPI, makeReadAPI, makeUpdateAPI, makeDeleteAPI, makeInputSplice, makeQueryResolver, makeMutationResolver } = require('../../service/decorator.service');
+const { makeCreateAPI, makeReadAPI, makeUpdateAPI, makeDeleteAPI, makeSubscriptionAPI, makeInputSplice, makeQueryResolver, makeMutationResolver } = require('../../service/decorator.service');
 
 const interfaceKinds = [Kind.INTERFACE_TYPE_DEFINITION, Kind.INTERFACE_TYPE_EXTENSION];
 
@@ -20,6 +20,7 @@ const getGQLWhereFields = (model) => {
 module.exports = (schema) => {
   const resolver = new ServerResolver();
   const allModels = schema.getModels();
+  const entityModels = schema.getEntityModels();
   const markedModels = schema.getMarkedModels();
   const createModels = findGQLModels('c', markedModels, allModels);
   const readModels = findGQLModels('r', markedModels, allModels);
@@ -55,14 +56,40 @@ module.exports = (schema) => {
         extend ${interfaceKinds.indexOf(model.getKind()) > -1 ? 'interface' : 'type'} ${model.getName()} {
           ${model.getFields().filter(field => field.hasGQLScope('r')).map(field => `${field.getName()}${field.getExtendArgs()}: ${field.getPayloadType()}`)}
         }
+
         type ${model.getName()}Connection {
           pageInfo: PageInfo!
           edges: [${model.getName()}Edge]
           count: Int!
         }
+
         type ${model.getName()}Edge {
           node: ${model.getName()}
           cursor: String!
+        }
+      `),
+
+      ...entityModels.map(model => `
+        input ${model.getName()}SubscriptionInputWhere {
+          ${getGQLWhereFields(model).filter(field => field.isBasicType() || field.isEmbedded()).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'AutoGraphMixed'}`)}
+        }
+
+        type ${model.getName()}SubscriptionPayloadEventData {
+          ${getGQLWhereFields(model).filter(field => field.isBasicType() || field.isEmbedded()).map(field => `${field.getName()}: ${field.getGQLType()}`)}
+        }
+
+        type ${model.getName()}SubscriptionPayloadEvent {
+          crud: SubscriptionCrudEnum!
+          data: ${model.getName()}SubscriptionPayloadEventData!
+        }
+
+        type ${model.getName()}SubscriptionPayload {
+          event: ${model.getName()}SubscriptionPayloadEvent
+        }
+
+        input ${model.getName()}SubscriptionInputFilter {
+          when: SubscriptionWhenEnum! = anytime
+          where: ${model.getName()}SubscriptionInputWhere! = {}
         }
       `),
 
@@ -82,14 +109,19 @@ module.exports = (schema) => {
 
       `type Query {
         node(id: ID!): Node
-        ${schema.getEntityModels().map(model => makeReadAPI(model.getName(), model))}
+        ${entityModels.map(model => makeReadAPI(model.getName(), model))}
       }`,
 
       `type Mutation {
         _noop: String
-        ${schema.getEntityModels().map(model => makeCreateAPI(model.getName(), model))}
-        ${schema.getEntityModels().map(model => makeUpdateAPI(model.getName(), model))}
-        ${schema.getEntityModels().map(model => makeDeleteAPI(model.getName(), model))}
+        ${entityModels.map(model => makeCreateAPI(model.getName(), model))}
+        ${entityModels.map(model => makeUpdateAPI(model.getName(), model))}
+        ${entityModels.map(model => makeDeleteAPI(model.getName(), model))}
+      }`,
+
+      `type Subscription {
+        _noop: String
+        ${entityModels.map(model => makeSubscriptionAPI(model.getName(), model))}
       }`,
     ]),
     resolvers: readModels.reduce((prev, model) => {
@@ -130,10 +162,10 @@ module.exports = (schema) => {
       });
     }, {
       Node: {
-        __resolveType: (root, args, context, info) => root.__typename || fromGUID(root.$id)[0],
+        __resolveType: (root, args, context, info) => root.__typename || fromGUID(root.$id)[0], // eslint-disable-line no-underscore-dangle
       },
 
-      Query: schema.getEntityModels().reduce((prev, model) => {
+      Query: entityModels.reduce((prev, model) => {
         return Object.assign(prev, makeQueryResolver(model.getName(), model, resolver));
       }, {
         node: (root, args, context, info) => {
@@ -144,7 +176,7 @@ module.exports = (schema) => {
         },
       }),
 
-      Mutation: schema.getEntityModels().reduce((prev, model) => {
+      Mutation: entityModels.reduce((prev, model) => {
         return Object.assign(prev, makeMutationResolver(model.getName(), model, resolver));
       }, {}),
     }),

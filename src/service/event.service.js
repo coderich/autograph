@@ -19,13 +19,14 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
 
   if (name !== 'Setup') {
     const { method, query } = mixed;
-    const { resolver, model, meta, doc, id, input, sort, merged, native, root } = query.toObject();
+    const { resolver, model, meta, doc, id, input, sort, merged, native, root, crud } = query.toObject();
 
     event = {
       context: resolver.getContext(),
       key: `${method}${model}`,
       resolver,
       method,
+      crud,
       model,
       meta,
       id,
@@ -57,7 +58,8 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
     if (result !== undefined) return result; // Allowing middleware to dictate result
     return middleware().then(thunk);
   }).then((result) => {
-    event.doc = result; // You do actually need this...
+    // event.doc = result; // You do actually need this...
+    event.result = result;
     return systemEvent.emit('system', { type: `post${type}`, data: event }).then(finalResult => finalResult || result);
   });
 };
