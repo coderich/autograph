@@ -9,7 +9,7 @@ module.exports = (schema) => {
       const createdAt = model.getDirectiveArg('model', 'createdAt', 'createdAt');
       const updatedAt = model.getDirectiveArg('model', 'updatedAt', 'updatedAt');
 
-      if (model.getKind() === 'ObjectTypeDefinition') {
+      if (model.getKind() === 'ObjectTypeDefinition' && (id || createdAt || updatedAt)) {
         return `
           extend type ${modelName} ${id ? 'implements Node' : ''} {
             ${id ? `id: ID! @field(key: "${id}", gqlScope: r)` : ''}
