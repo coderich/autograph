@@ -69,13 +69,25 @@ module.exports = (schema) => {
         }
       `),
 
-      ...entityModels.map(model => `
+      ...entityModels.filter(model => model.hasGQLScope('s')).map(model => `
         input ${model.getName()}SubscriptionInputWhere {
           ${getGQLWhereFields(model).filter(field => field.isBasicType() || field.isEmbedded()).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'AutoGraphMixed'}`)}
         }
 
         type ${model.getName()}SubscriptionPayloadEventData {
           ${getGQLWhereFields(model).filter(field => field.isBasicType() || field.isEmbedded()).map(field => `${field.getName()}: ${field.getGQLType()}`)}
+        }
+
+        interface ${model.getName()}SubscriptionQuery {
+          ${model.getFields().filter(field => field.hasGQLScope('r')).map(field => `${field.getName()}: ${field.getPayloadType()}`)}
+        }
+
+        type ${model.getName()}Create implements ${model.getName()}SubscriptionQuery {
+          ${model.getFields().filter(field => field.hasGQLScope('r')).map(field => `${field.getName()}: ${field.getPayloadType()}`)}
+        }
+
+        type ${model.getName()}Update implements ${model.getName()}SubscriptionQuery {
+          ${model.getFields().filter(field => field.hasGQLScope('r')).map(field => `${field.getName()}: ${field.getPayloadType()}`)}
         }
 
         type ${model.getName()}SubscriptionPayloadEvent {
@@ -85,10 +97,11 @@ module.exports = (schema) => {
 
         type ${model.getName()}SubscriptionPayload {
           event: ${model.getName()}SubscriptionPayloadEvent
+          query: ${model.getName()}SubscriptionQuery
         }
 
         input ${model.getName()}SubscriptionInputFilter {
-          when: SubscriptionWhenEnum! = anytime
+          when: [SubscriptionWhenEnum!]! = [preEvent, postEvent]
           where: ${model.getName()}SubscriptionInputWhere! = {}
         }
       `),
@@ -110,6 +123,8 @@ module.exports = (schema) => {
       `type Query {
         node(id: ID!): Node
         ${entityModels.map(model => makeReadAPI(model.getName(), model))}
+        ${entityModels.map(model => makeReadAPI(`${model.getName()}Create`, model))}
+        ${entityModels.map(model => makeReadAPI(`${model.getName()}Update`, model))}
       }`,
 
       `type Mutation {
@@ -151,6 +166,15 @@ module.exports = (schema) => {
           },
         });
       }, {});
+
+      if (model.isEntity() && model.hasGQLScope('s')) {
+        prev[`${model.getName()}SubscriptionQuery`] = {
+          __resolveType: root => root.__typename, // eslint-disable-line no-underscore-dangle
+          ...fieldResolvers,
+        };
+        prev[`${model.getName()}Create`] = fieldResolvers;
+        prev[`${model.getName()}Update`] = fieldResolvers;
+      }
 
       return Object.assign(prev, {
         [modelName]: fieldResolvers,
