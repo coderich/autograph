@@ -13,11 +13,11 @@ const systemEvent = new EventEmitter().setMaxListeners(100).on('system', async (
 
 //
 exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
-  let event;
-  let middleware;
+  let event = mixed;
+  let middleware = () => Promise.resolve();
   const type = ucFirst(name);
 
-  if (name !== 'Setup') {
+  if (name !== 'Setup' && name !== 'Response') {
     const { method, query } = mixed;
     const { resolver, model, meta, doc, id, input, sort, merged, native, root, crud } = query.toObject();
 
@@ -49,18 +49,18 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
 
       resolve();
     });
-  } else {
-    middleware = () => Promise.resolve();
-    event = mixed;
   }
 
   return systemEvent.emit('system', { type: `pre${type}`, data: event }).then((result) => {
     if (result !== undefined) return result; // Allowing middleware to dictate result
     return middleware().then(thunk);
   }).then((result) => {
-    // event.doc = result; // You do actually need this...
     event.result = result;
-    return systemEvent.emit('system', { type: `post${type}`, data: event }).then(finalResult => finalResult || result);
+    return systemEvent.emit('system', { type: `post${type}`, data: event }).then((postResult = result) => postResult);
+  }).then((result) => {
+    if (name === 'Response') return result;
+    event.result = result;
+    return exports.createSystemEvent('Response', event, (finalResult = result) => finalResult);
   });
 };
 
