@@ -10,7 +10,7 @@ module.exports = class Resolver {
     this.models = schema.getModels();
     this.schema = schema;
     this.context = context;
-    this.loaders = this.models.reduce((prev, model) => prev.set(model, new DataLoader(this, model)), new WeakMap());
+    this.loaders = this.models.reduce((prev, model) => prev.set(`${model}`, new DataLoader(this, model)), new Map());
 
     //
     this.getSchema = () => this.schema;
@@ -62,7 +62,7 @@ module.exports = class Resolver {
         if (Object.prototype.hasOwnProperty.call(where, key) && where[key] == null) return Promise.resolve(null);
 
         //
-        return this.loaders.get(model).load(query);
+        return this.loaders.get(`${model}`).load(query);
       }
     }
   }
@@ -92,7 +92,7 @@ module.exports = class Resolver {
 
   // DataLoader Proxy Methods
   clear(model) {
-    this.loaders.get(this.toModel(model)).clearAll();
+    this.loaders.get(`${model}`).clearAll();
     return this;
   }
 
