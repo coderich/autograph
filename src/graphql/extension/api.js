@@ -70,12 +70,27 @@ module.exports = (schema) => {
       `),
 
       ...entityModels.filter(model => model.hasGQLScope('s')).map(model => `
+        input ${model.getName()}SubscriptionInputFilter {
+          when: [SubscriptionWhenEnum!]! = [preEvent, postEvent]
+          where: ${model.getName()}SubscriptionInputWhere! = {}
+        }
+
         input ${model.getName()}SubscriptionInputWhere {
-          ${getGQLWhereFields(model).filter(field => field.isBasicType() || field.isEmbedded()).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputWhere` : 'AutoGraphMixed'}`)}
+          ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getModelRef() && !field.isFKReference() ? `${ucFirst(field.getDataRef())}InputWhere` : 'AutoGraphMixed'}`)}
+        }
+
+        type ${model.getName()}SubscriptionPayload {
+          event: ${model.getName()}SubscriptionPayloadEvent
+          query: ${model.getName()}SubscriptionQuery
+        }
+
+        type ${model.getName()}SubscriptionPayloadEvent {
+          crud: SubscriptionCrudEnum!
+          data: ${model.getName()}SubscriptionPayloadEventData!
         }
 
         type ${model.getName()}SubscriptionPayloadEventData {
-          ${getGQLWhereFields(model).filter(field => field.isBasicType() || field.isEmbedded()).map(field => `${field.getName()}: ${field.getGQLType()}`)}
+          ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.isFKReference() ? 'ID' : field.getGQLType()}`)}
         }
 
         interface ${model.getName()}SubscriptionQuery {
@@ -88,21 +103,6 @@ module.exports = (schema) => {
 
         type ${model.getName()}Update implements ${model.getName()}SubscriptionQuery {
           ${model.getFields().filter(field => field.hasGQLScope('r')).map(field => `${field.getName()}: ${field.getPayloadType()}`)}
-        }
-
-        type ${model.getName()}SubscriptionPayloadEvent {
-          crud: SubscriptionCrudEnum!
-          data: ${model.getName()}SubscriptionPayloadEventData!
-        }
-
-        type ${model.getName()}SubscriptionPayload {
-          event: ${model.getName()}SubscriptionPayloadEvent
-          query: ${model.getName()}SubscriptionQuery
-        }
-
-        input ${model.getName()}SubscriptionInputFilter {
-          when: [SubscriptionWhenEnum!]! = [preEvent, postEvent]
-          where: ${model.getName()}SubscriptionInputWhere! = {}
         }
       `),
 
