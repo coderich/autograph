@@ -106,12 +106,12 @@ module.exports = class Schema extends Node {
     return this.schema.context;
   }
 
-  loadDir(dir) {
+  loadDir(dir, options) {
     // Typedefs
-    const typeDefs = Glob.sync(`${dir}/**/*.{gql,graphql}`).map(file => loadFile(file)).join('\n\n');
+    const typeDefs = Glob.sync(`${dir}/**/*.{gql,graphql}`, options).map(file => loadFile(file)).join('\n\n');
 
     // Possibly full schema definitions
-    const schema = Glob.sync(`${dir}/**/*.js`).map(file => reqFile(file)).reduce((prev, data) => {
+    const schema = Glob.sync(`${dir}/**/*.js`, options).map(file => reqFile(file)).reduce((prev, data) => {
       return Merge(prev, data);
     }, {
       typeDefs: typeDefs.length ? typeDefs : undefined,

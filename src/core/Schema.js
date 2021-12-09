@@ -50,8 +50,8 @@ module.exports = class extends Schema {
     this.modelsByKey = this.models.reduce((prev, model) => Object.assign(prev, { [model.getKey()]: model }), {});
   }
 
-  loadDir(dir) {
-    super.loadDir(dir);
+  loadDir(dir, options) {
+    super.loadDir(dir, options);
     this.createModels();
     return this;
   }
