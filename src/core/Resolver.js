@@ -58,8 +58,8 @@ module.exports = class Resolver {
       default: {
         // This is needed in SF tests...
         const key = model.idKey();
-        const { where } = query.toDriver();
-        if (Object.prototype.hasOwnProperty.call(where, key) && where[key] == null) return Promise.resolve(null);
+        const { where, method } = query.toDriver();
+        if (Object.prototype.hasOwnProperty.call(where, key) && where[key] == null) return Promise.resolve(method === 'findMany' ? [] : null);
 
         //
         return this.loaders.get(`${model}`).load(query);

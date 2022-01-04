@@ -245,6 +245,10 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Person').where({ id: richard.id }).one()).toMatchObject({ id: richard.id, name: 'Richard' });
         expect(await resolver.match('Person').where({ id: `${richard.id}` }).many()).toMatchObject([{ id: richard.id, name: 'Richard' }]);
         expect(await resolver.match('Person').where({ id: `${richard.id}` }).one()).toMatchObject({ id: richard.id, name: 'Richard' });
+        expect(await resolver.match('Person').where({ name: 'absolutelyNoone' }).many()).toEqual([]);
+        expect(await resolver.match('Person').where({ name: undefined }).many()).toEqual([]);
+        expect(await resolver.match('Person').where({ id: undefined }).many()).toEqual([]);
+        expect(await resolver.match('Person').where({ id: undefined, name: 'absolutelyNoone' }).many()).toEqual([]);
       });
 
       test('Book', async () => {
