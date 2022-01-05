@@ -3,6 +3,7 @@
 ## v0.9.x
 - Subscriptions API
 - postMutation no longer mutates "doc" and adds "result"
+- Added onDelete defer option
 
 ## v0.8.x
 - Engine 14+

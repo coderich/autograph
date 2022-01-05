@@ -111,6 +111,11 @@ exports.resolveReferentialIntegrity = (query) => {
             txn.match(ref).where($where).flags(flags).count().then(count => (count ? reject(new Error('Restricted')) : count));
             break;
           }
+          case 'defer': {
+            // Defer to the embedded object
+            // Marks the field as an onDelete candidate otherwise it (and the embedded object) will get skipped
+            break;
+          }
           default: throw new Error(`Unknown onDelete operator: '${op}'`);
         }
       });

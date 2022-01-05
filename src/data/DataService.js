@@ -79,6 +79,18 @@ exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
 
   // Pull
   if (from) {
+    // key.split('.').reduce((prev, segment, i, arr) => {
+    //   if (prev == null) return prev;
+
+    //   return map(prev, (data) => {
+    //     const $data = data[segment];
+    //     if (i < (arr.length - 1)) return $data;
+    //     remove($data, el => ($from || from).find(val => objectContaining(el, val)));
+    //     return $data;
+    //   });
+    // }, doc);
+
+    // return doc;
     const data = { [key]: get(doc, key) || [] };
     remove(data[key], el => $from.find(val => objectContaining(el, val)));
     return data;

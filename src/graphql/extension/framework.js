@@ -11,7 +11,7 @@ module.exports = (schema) => {
       enum AutoGraphTransformEnum  { ${Object.keys(Transformer.getInstances()).join(' ')} }
       enum AutoGraphAuthzEnum { private protected public }
       enum AutoGraphValueScopeEnum { self context }
-      enum AutoGraphOnDeleteEnum { cascade nullify restrict }
+      enum AutoGraphOnDeleteEnum { cascade nullify restrict defer }
       enum AutoGraphIndexEnum { unique }
 
       directive @model(
