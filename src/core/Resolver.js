@@ -4,6 +4,7 @@ const ResultSet = require('../data/ResultSet');
 const DataLoader = require('../data/DataLoader');
 const DataTransaction = require('../data/DataTransaction');
 const QueryBuilder = require('../query/QueryBuilder');
+const { createSystemEvent } = require('../service/event.service');
 
 module.exports = class Resolver {
   constructor(schema, context = {}) {
@@ -36,6 +37,31 @@ module.exports = class Resolver {
    */
   raw(model) {
     return this.toModelEntity(model).raw();
+    // const entity = this.toModelEntity(model);
+    // const driver = entity.raw();
+    // if (!method) return driver;
+
+    // const resolver = this;
+    // const crud = ['get', 'find', 'count'].indexOf(method) > -1 ? 'read' : method;
+    // const query = new Query({ model: entity, resolver, crud });
+
+    // return new Proxy(driver, {
+    //   get(target, prop, rec) {
+    //     const value = Reflect.get(target, prop, rec);
+
+    //     if (typeof value === 'function') {
+    //       return (...args) => {
+    //         return value.bind(target)(...args).then((result) => {
+    //           const doc = resolver.toResultSet(model, result);
+    //           createSystemEvent('Response', { method, query: query.doc(doc) });
+    //           return result;
+    //         });
+    //       };
+    //     }
+
+    //     return value;
+    //   },
+    // });
   }
 
   /**
@@ -86,8 +112,22 @@ module.exports = class Resolver {
     return entity;
   }
 
-  toResultSet(model, data) {
-    return new ResultSet(new Query({ model: this.toModel(model), resolver: this }), data);
+  toResultSet(model, data, method) {
+    const crud = ['get', 'find', 'count'].indexOf(method) > -1 ? 'read' : method;
+    const query = new Query({ model: this.toModel(model), resolver: this, crud });
+    const result = new ResultSet(query, data);
+    return createSystemEvent('Response', {
+      model,
+      crud,
+      method,
+      result,
+      doc: result,
+      merged: result,
+      resolver: this,
+      key: `${method}${model}`,
+      context: this.getContext(),
+      query: query.doc(result).merged(result),
+    }, () => result);
   }
 
   // DataLoader Proxy Methods
