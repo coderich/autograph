@@ -130,17 +130,33 @@ module.exports = class QueryResolver {
     });
   }
 
+  spliceOne(query) {
+    const { args } = query.toObject();
+    const [key, ...values] = args;
+    return this.splice(query.args([key, ...values]));
+  }
+
+  spliceMany(query) {
+    const { model, match, transaction, args, flags } = query.toObject();
+    const [key, ...values] = args;
+
+    return this.resolver.match(model).match(match).flags(flags).many().then((docs) => {
+      const txn = this.resolver.transaction(transaction);
+      docs.forEach(doc => txn.match(model).id(doc.id).splice(key, ...values));
+      return txn.run();
+    });
+  }
+
   splice(query) {
     const { model, match, args, flags } = query.toObject();
     const [key, from, to] = args;
 
     return this.resolver.match(model).match(match).flags(flags).one({ required: true }).then(async (doc) => {
-      const data = await DataService.spliceEmbeddedArray(query, doc, key, from, to);
-      const merged = mergeDeep(doc, data);
+      await DataService.spliceEmbeddedArray(query, doc, key, from, to);
 
-      return createSystemEvent('Mutation', { method: 'splice', query: query.doc(doc).input(data).merged(merged) }, async () => {
-        await model.validate(query, data);
-        const $doc = mergeDeep(model.serialize(query, doc, true), model.serialize(query, data, true));
+      return createSystemEvent('Mutation', { method: 'splice', query: query.doc(doc).merged(doc) }, async () => {
+        await model.validate(query, doc);
+        const $doc = model.serialize(query, doc, true);
         return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc));
       });
     });

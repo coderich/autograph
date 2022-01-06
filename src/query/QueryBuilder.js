@@ -78,7 +78,7 @@ module.exports = class QueryBuilder {
         break;
       }
       case 'push': case 'pull': case 'splice': {
-        crud = 'update'; // Your logics wants this to be a simple "update". Sub documents systemEvents will emit either "create" or "udpate"
+        crud = 'update'; // Your logic wants this to be a simple "update". Sub documents systemEvents will emit either "create" or "udpate"
         method = id ? `${cmd}One` : `${cmd}Many`;
         break;
       }

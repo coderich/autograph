@@ -1,7 +1,6 @@
-const { get, remove } = require('lodash');
+const { remove } = require('lodash');
 const Boom = require('../core/Boom');
-const { createSystemEvent } = require('../service/event.service');
-const { isPlainObject, objectContaining, mergeDeep, hashObject } = require('../service/app.service');
+const { isPlainObject, objectContaining, mergeDeep, map } = require('../service/app.service');
 
 exports.paginateResultSet = (rs, first, after, last, before) => {
   let hasNextPage = false;
@@ -38,80 +37,61 @@ exports.paginateResultSet = (rs, first, after, last, before) => {
   return { hasNextPage, hasPreviousPage };
 };
 
-exports.spliceEmbeddedArray = async (query, doc, key, from, to) => {
+/**
+ * @param from <Array>
+ * @param to <Array>
+ */
+exports.spliceEmbeddedArray = (query, doc, key, from, to) => {
   const { model } = query.toObject();
   const field = model.getField(key);
+  const modelRef = field.getModelRef();
+  const op = from && to ? 'edit' : (from ? 'pull' : 'push'); // eslint-disable-line no-nested-ternary
+  const promises = [];
+
+  // Can only splice arrays
   if (!field || !field.isArray()) return Promise.reject(Boom.badRequest(`Cannot splice field '${key}'`));
 
-  const modelRef = field.getModelRef();
-  const $from = model.deserialize(query, { [key]: from })[key];
-  let $to = model.deserialize(query, { [key]: to })[key];
+  // We have to deserialize because this normalizes the data (casting etc)
+  let $to = model.deserialize(query, { [key]: to })[key] || to;
+  const $from = model.deserialize(query, { [key]: from })[key] || from;
 
-  // Edit
-  if (from && to) {
-    const arr = get(doc, key) || [];
-    if ($from.length > 1 && $to.length === 1) $to = Array.from($from).fill($to[0]);
+  // If it's embedded we need to append default/create fields for insertion
+  if ($to && field.isEmbedded()) $to = $to.map(el => modelRef.appendDefaultFields(query, modelRef.appendCreateFields(el, true)));
 
-    const edits = arr.map((el) => {
-      return $from.reduce((prev, val, i) => {
-        if (objectContaining(el, val)) return isPlainObject(prev) ? mergeDeep(prev, $to[i]) : $to[i];
-        return prev;
-      }, el);
-    });
+  // Convenience so the user does not have to explicity type out the same value over and over to replace
+  if ($from && $from.length > 1 && $to && $to.length === 1) $to = Array.from($from).fill($to[0]);
 
-    if (field.isEmbedded()) {
-      return Promise.all(edits.map((edit, i) => {
-        if (hashObject(edit) !== hashObject(arr[i])) {
-          return createSystemEvent('Mutation', { method: 'update', query: query.clone().model(modelRef).input(edit).doc(doc) }, () => {
-            edit = modelRef.appendDefaultFields(query, modelRef.appendCreateFields(edit, true));
-            return modelRef.validate(query, edit).then(() => edit);
+  // Traverse the document till we find the segment to modify (in place)
+  return key.split('.').reduce((prev, segment, i, arr) => {
+    if (prev == null) return prev;
+
+    return map(prev, (data) => {
+      if (i < (arr.length - 1)) return data[segment]; // We have not found the target segment yet
+      data[segment] = data[segment] || []; // Ensuring target segment is an array
+
+      switch (op) {
+        case 'edit': {
+          data[segment].forEach((el, j) => {
+            $from.forEach((val, k) => {
+              if (objectContaining(el, val)) data[segment][j] = isPlainObject(el) ? mergeDeep(el, $to[k]) : $to[k];
+            });
           });
+          break;
         }
+        case 'push': {
+          data[segment].push(...$to);
+          break;
+        }
+        case 'pull': {
+          remove(data[segment], el => $from.find(val => objectContaining(el, val)));
+          break;
+        }
+        default: {
+          break;
+        }
+      }
 
-        return Promise.resolve(edit);
-      })).then((results) => {
-        return { [key]: mergeDeep(edits, results) };
-      });
-    }
-
-    return { [key]: edits };
-  }
-
-  // Pull
-  if (from) {
-    // key.split('.').reduce((prev, segment, i, arr) => {
-    //   if (prev == null) return prev;
-
-    //   return map(prev, (data) => {
-    //     const $data = data[segment];
-    //     if (i < (arr.length - 1)) return $data;
-    //     remove($data, el => ($from || from).find(val => objectContaining(el, val)));
-    //     return $data;
-    //   });
-    // }, doc);
-
-    // return doc;
-    const data = { [key]: get(doc, key) || [] };
-    remove(data[key], el => $from.find(val => objectContaining(el, val)));
-    return data;
-  }
-
-  // Push
-  if (to) {
-    if (field.isEmbedded()) {
-      return Promise.all($to.map((input) => {
-        return createSystemEvent('Mutation', { method: 'create', query: query.clone().model(modelRef).input(input).doc(doc) }, () => {
-          input = modelRef.appendDefaultFields(query, modelRef.appendCreateFields(input, true));
-          return modelRef.validate(query, input).then(() => input);
-        });
-      })).then((results) => {
-        return { [key]: (get(doc, key) || []).concat(...results) };
-      });
-    }
-
-    return { [key]: (get(doc, key) || []).concat($to) };
-  }
-
-  // Should never get here
-  return Promise.reject(new Error('Invalid spliceEmbeddedArray'));
+      return Promise.all(promises);
+    });
+  }, doc);
 };
