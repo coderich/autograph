@@ -90,7 +90,7 @@ module.exports = (schema) => {
         }
 
         type ${model.getName()}SubscriptionPayloadEventData {
-          ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.isFKReference() ? 'ID' : field.getGQLType()}`)}
+          ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getSubscriptionType()}`)}
         }
 
         interface ${model.getName()}SubscriptionQuery {

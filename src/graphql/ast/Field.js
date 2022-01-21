@@ -175,4 +175,9 @@ module.exports = class Field extends Node {
     type = this.isArray() ? `[${type}${this.isArrayElementRequired() ? '!' : ''}]` : type;
     return `${type}${req}`;
   }
+
+  getSubscriptionType() {
+    if (this.isFKReference()) return this.isArray() ? '[ID]' : 'ID';
+    return this.getGQLType();
+  }
 };
