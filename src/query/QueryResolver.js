@@ -154,7 +154,7 @@ module.exports = class QueryResolver {
     return this.resolver.match(model).match(match).flags(flags).one({ required: true }).then(async (doc) => {
       await DataService.spliceEmbeddedArray(query, doc, key, from, to);
 
-      return createSystemEvent('Mutation', { method: 'splice', query: query.doc(doc).merged(doc) }, async () => {
+      return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(doc) }, async () => {
         await model.validate(query, doc);
         const $doc = model.serialize(query, doc, true);
         return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc));
