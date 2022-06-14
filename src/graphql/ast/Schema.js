@@ -7,8 +7,8 @@ const { validateSchema, makeExecutableSchema, mergeASTSchema, mergeASTArray } = 
 const Node = require('./Node');
 const Model = require('./Model');
 
-const loadFile = file => FS.readFileSync(Path.resolve(file), 'utf8');
-const reqFile = file => require(Path.resolve(file)); // eslint-disable-line global-require,import/no-dynamic-require
+const loadFile = file => FS.readFileSync(file, 'utf8');
+const reqFile = file => require(file); // eslint-disable-line global-require,import/no-dynamic-require
 
 module.exports = class Schema extends Node {
   constructor(schema) {

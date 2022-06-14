@@ -16,6 +16,10 @@ module.exports = class MongoDriver {
     return MongoClient.connect(uri, options);
   }
 
+  disconnect() {
+    return this.connection.then(client => client.close());
+  }
+
   raw(collection) {
     return proxyPromise(this.connection.then(client => client.db().collection(collection)));
   }

@@ -71,6 +71,10 @@ module.exports = class Resolver {
     return new DataTransaction(this, parentTxn);
   }
 
+  disconnect(model) {
+    return this.toModelEntity(model).getDriver().disconnect();
+  }
+
   resolve(query) {
     const { model, crud } = query.toObject();
 
