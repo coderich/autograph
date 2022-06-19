@@ -56,6 +56,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
     return middleware().then(thunk);
   }).then((result) => {
     event.result = result;
+    if (event.crud === 'create') event.doc = event.query.toObject().doc;
     return systemEvent.emit('system', { type: `post${type}`, data: event }).then((postResult = result) => postResult);
   }).then((result) => {
     if (name === 'Response') return result;

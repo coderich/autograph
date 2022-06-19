@@ -1,6 +1,5 @@
 const FS = require('fs');
 const Glob = require('glob');
-const Path = require('path');
 const Merge = require('deepmerge');
 const { nvl, uvl } = require('../../service/app.service');
 const { validateSchema, makeExecutableSchema, mergeASTSchema, mergeASTArray } = require('../../service/graphql.service');

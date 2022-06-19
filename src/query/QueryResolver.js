@@ -36,7 +36,11 @@ module.exports = class QueryResolver {
     return createSystemEvent('Mutation', { method: 'create', query }, () => {
       const $input = model.serialize(query, model.appendCreateFields(input));
       query.$input($input);
-      return get(flags, 'novalidate') ? this.resolver.resolve(query) : model.validate(query, $input).then(() => this.resolver.resolve(query));
+      const promise = get(flags, 'novalidate') ? this.resolver.resolve(query) : model.validate(query, $input).then(() => this.resolver.resolve(query));
+      return promise.then((doc) => {
+        query.doc(doc);
+        return doc;
+      });
     });
   }
 
