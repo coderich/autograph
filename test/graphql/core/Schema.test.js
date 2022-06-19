@@ -7,7 +7,15 @@ describe('Schema', () => {
 
   test('appendSchemaFromDirectory', () => {
     schema.appendSchemaFromDirectory(modulePath);
-    schema.makeExecutableSchema();
-    expect(schema).toBeDefined();
+    expect(Object.keys(schema.models).sort()).toEqual(['Person', 'Book'].sort());
+    expect(Object.keys(schema.models.Person.fields).sort()).toEqual(['name', 'authored', 'emailAddress', 'status', 'age'].sort());
+    expect(Object.keys(schema.models.Book.fields).sort()).toEqual(['name', 'price', 'author', 'bestSeller', 'bids'].sort());
+  });
+
+  test('appendSchemaFromDirectory', () => {
+    schema.appendSchemaFromDirectory(modulePath);
+    expect(Object.keys(schema.models).sort()).toEqual(['Person', 'Book'].sort());
+    expect(Object.keys(schema.models.Person.fields).sort()).toEqual(['name', 'authored', 'emailAddress', 'status', 'age'].sort());
+    expect(Object.keys(schema.models.Book.fields).sort()).toEqual(['name', 'price', 'author', 'bestSeller', 'bids'].sort());
   });
 });

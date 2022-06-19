@@ -54,9 +54,6 @@
     "redis": "^2.8.0",
     "redis-mock": "^0.47.0"
   },
-  "peerDependencies": {
-    "graphql": ">15"
-  },
   "repository": {
     "type": "git",
     "url": "git@github.com:coderich/autograph.git"
