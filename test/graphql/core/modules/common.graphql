@@ -1,0 +1,5 @@
+scalar Mixed
+enum Gender { male female }
+directive @model(scope: Mixed) on OBJECT
+directive @field(transform: [Mixed] enforce: Mixed onDelete: Mixed, default: Mixed) on FIELD_DEFINITION
+input SomeInput { id: ID! name: String! }

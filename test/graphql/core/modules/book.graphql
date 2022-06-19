@@ -1,0 +1,7 @@
+type Book @model {
+  name: String!
+  price: Float!
+  author: Person!
+  bestSeller: Boolean @field(default: false)
+  bids: [Float]
+}

@@ -1,0 +1,10 @@
+extend type Person {
+  age: Int
+}
+
+type Person @model {
+  name: String! @field(transform: [toTitleCase, toUpperCase], default: "idk")
+  authored: [Book!]
+  emailAddress: String!
+  status: Mixed
+}
