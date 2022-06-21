@@ -23,7 +23,7 @@ const deleteKeys = (obj, keys) => {
 };
 
 module.exports = class Schema {
-  constructor(schema, context) {
+  constructor(schema) {
     this.models = [];
     this.scalars = [];
     this.inputs = [];
@@ -101,8 +101,9 @@ module.exports = class Schema {
     }), ['loc']).filter(Boolean).flat();
 
     // Now we're ready to merge the schema
-    const { resolvers, schemaDirectives } = schema;
+    const { context, resolvers, schemaDirectives } = schema;
     if (definitions.length) this.schema.typeDefs = mergeASTArray(this.schema.typeDefs.concat(definitions));
+    if (context) this.schema.context = Merge(this.schema.context, context);
     if (resolvers) this.schema.resolvers = Merge(this.schema.resolvers, resolvers);
     if (schemaDirectives) this.schema.schemaDirectives = Merge(this.schema.schemaDirectives, schemaDirectives);
 
@@ -183,12 +184,13 @@ module.exports = class Schema {
   }
 
   getContext() {
-    return this.context;
+    console.log('get context', this.schema.context);
+    return this.schema.context;
   }
 
-  mergeContext(context) {
-    this.context = Merge(this.context, context);
-  }
+  // mergeContext(context) {
+  //   this.schema.context = Merge(this.context, context);
+  // }
 
   toObject() {
     return this.schema;
