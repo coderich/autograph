@@ -30,6 +30,7 @@
     "ratchet": "ratchet"
   },
   "dependencies": {
+    "@graphql-tools/schema": "^8.3.14",
     "@hapi/boom": "^9.1.0",
     "axios": "^0.21.4",
     "dataloader": "^2.0.0",
@@ -53,6 +54,9 @@
     "neodb": "^3.0.0",
     "redis": "^2.8.0",
     "redis-mock": "^0.47.0"
+  },
+  "peerDependencies": {
+    "graphql": ">15"
   },
   "repository": {
     "type": "git",
