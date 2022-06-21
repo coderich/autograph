@@ -4,7 +4,7 @@ extend type Person {
 
 type Person @model {
   name: String! @field(transform: [toTitleCase, toUpperCase], default: "idk")
-  authored: [Book!]
+  authored: [Book!] @field(connection: true)
   emailAddress: String!
   status: Mixed
 }

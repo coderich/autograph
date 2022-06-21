@@ -1,7 +1,6 @@
-type Book @model {
+type Book @model(createdAt: null, updatedAt: null) {
   name: String!
   price: Float!
   author: Person!
   bestSeller: Boolean @field(default: false)
-  bids: [Float]
 }

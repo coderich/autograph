@@ -1,0 +1,6 @@
+scalar Mixed
+enum Gender { male female }
+input SomeInput { id: ID! name: String! }
+type Query { noop: String }
+type Mutation { noop: String }
+type Subscription { noop: String }
