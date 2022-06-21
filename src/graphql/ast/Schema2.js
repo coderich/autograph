@@ -1,9 +1,9 @@
 const FS = require('fs');
 const Glob = require('glob');
 const Merge = require('deepmerge');
-const { Kind, print, parse, visit } = require('graphql');
+const { Kind, print, parse, visit, validate } = require('graphql');
 const { makeExecutableSchema } = require('@graphql-tools/schema');
-const { mergeASTArray } = require('../../service/graphql.service');
+const { mergeASTArray, validateSchema } = require('../../service/graphql.service');
 const frameworkExt = require('../extension/framework');
 const typeExt = require('../extension/type');
 const apiExt = require('../extension/api');
@@ -104,7 +104,8 @@ module.exports = class Schema {
     const { context, resolvers, schemaDirectives } = schema;
     if (definitions.length) this.schema.typeDefs = mergeASTArray(this.schema.typeDefs.concat(definitions));
     if (context) this.schema.context = Merge(this.schema.context, context);
-    if (resolvers) this.schema.resolvers = Merge(this.schema.resolvers, resolvers);
+    // if (resolvers) this.schema.resolvers = Merge(this.schema.resolvers, resolvers);
+    if (resolvers) this.schema.resolvers = Merge(resolvers, this.schema.resolvers);
     if (schemaDirectives) this.schema.schemaDirectives = Merge(this.schema.schemaDirectives, schemaDirectives);
 
     // Chaining
@@ -127,6 +128,16 @@ module.exports = class Schema {
         })).then(() => resolve(files)).catch(e => reject(e));
       });
     });
+  }
+
+  decorate() {
+    this.initialize();
+    this.mergeSchema(frameworkExt(this), true);
+    this.mergeSchema(typeExt(this));
+    this.initialize();
+    this.mergeSchema(apiExt(this));
+    this.finalize();
+    return this;
   }
 
   /**
@@ -166,17 +177,14 @@ module.exports = class Schema {
       },
     });
 
+
+    validateSchema(this.schema);
+
     return this;
   }
 
-  decorate() {
-    this.initialize();
-    this.mergeSchema(frameworkExt(this), true);
-    this.mergeSchema(typeExt(this));
-    this.initialize();
-    this.mergeSchema(apiExt(this));
-    this.finalize();
-    return this;
+  validate(executableSchema) {
+    validate(executableSchema);
   }
 
   makeExecutableSchema() {
@@ -184,13 +192,8 @@ module.exports = class Schema {
   }
 
   getContext() {
-    console.log('get context', this.schema.context);
     return this.schema.context;
   }
-
-  // mergeContext(context) {
-  //   this.schema.context = Merge(this.context, context);
-  // }
 
   toObject() {
     return this.schema;
