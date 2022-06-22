@@ -12,6 +12,10 @@ module.exports = class Model extends Node {
     this.key = uvl(this.getDirectiveArg('model', 'key'), this.getName());
   }
 
+  idKey() {
+    return this.getDirectiveArg('model', 'id', '_id');
+  }
+
   getSchema() {
     return this.schema;
   }

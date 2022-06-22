@@ -1,9 +1,9 @@
 const FS = require('fs');
 const Glob = require('glob');
 const Merge = require('deepmerge');
-const { Kind, print, parse, visit, validate } = require('graphql');
-const { makeExecutableSchema } = require('@graphql-tools/schema');
-const { mergeASTArray, validateSchema } = require('../../service/graphql.service');
+const { Kind, print, parse, visit } = require('graphql');
+const { mergeASTArray, makeExecutableSchema } = require('../../service/graphql.service');
+const { deleteKeys } = require('../../service/app.service');
 const frameworkExt = require('../extension/framework');
 const typeExt = require('../extension/type');
 const apiExt = require('../extension/api');
@@ -16,19 +16,13 @@ const inputKinds = [Kind.INPUT_OBJECT_TYPE_DEFINITION, Kind.INPUT_OBJECT_TYPE_EX
 const scalarKinds = [Kind.SCALAR_TYPE_DEFINITION, Kind.SCALAR_TYPE_EXTENSION];
 const enumKinds = [Kind.ENUM_TYPE_DEFINITION, Kind.ENUM_TYPE_EXTENSION];
 
-const deleteKeys = (obj, keys) => {
-  if (Array.isArray(obj)) obj.map(item => deleteKeys(item, keys));
-  else if (obj === Object(obj)) { keys.forEach(key => delete obj[key]); Object.values(obj).forEach(v => deleteKeys(v, keys)); }
-  return obj;
-};
-
 module.exports = class Schema {
   constructor(schema) {
     this.models = [];
     this.scalars = [];
     this.inputs = [];
     this.enums = [];
-    this.schema = { context: {}, typeDefs: [], resolvers: {}, schemaDirectives: {} };
+    this.schema = { typeDefs: [], context: {}, resolvers: {}, schemaDirectives: {} };
     if (schema) this.mergeSchema(schema);
   }
 
@@ -84,29 +78,37 @@ module.exports = class Schema {
 
   /**
    * Synchronously merge a schema
+   *
+   * We have to be careful NOT to merge things that aren't schemas into one another. A bug was found
+   * where mergeSchemaFromFiles(...) grabs much more than schemas (in order to execute their contents)
+   * and things like typeDefs we're getting appended to it.
+   *
+   * @param schema
+   * @param options
    */
-  mergeSchema(schema, flag) {
-    // Normalize schema into the shape { typeDefs, resolvers, schemaDirectives }
+  mergeSchema(schema, options = {}) {
+    // Normalize schema into the shape { typeDefs, context, resolvers, schemaDirectives }
     if (typeof schema === 'string') schema = { typeDefs: [schema] };
     else if (schema.typeDefs && !Array.isArray(schema.typeDefs)) schema.typeDefs = [schema.typeDefs];
 
     // For typeDefs we really want the AST Object Definition so that we can intelligently merge it
-    const definitions = deleteKeys((schema.typeDefs || []).map((td) => {
-      try {
-        const ast = typeof td === 'object' ? td : parse(td);
-        return ast.definitions;
-      } catch (e) {
-        return null;
-      }
-    }), ['loc']).filter(Boolean).flat();
+    if (schema.typeDefs && schema.typeDefs.length) {
+      schema.typeDefs = deleteKeys((schema.typeDefs || []).map((td) => {
+        try {
+          const ast = typeof td === 'object' ? td : parse(td);
+          return ast.definitions;
+        } catch (e) {
+          return null;
+        }
+      }), ['loc']).filter(Boolean).flat();
+    }
 
     // Now we're ready to merge the schema
-    const { context, resolvers, schemaDirectives } = schema;
-    if (definitions.length) this.schema.typeDefs = mergeASTArray(this.schema.typeDefs.concat(definitions));
-    if (context) this.schema.context = Merge(this.schema.context, context);
-    // if (resolvers) this.schema.resolvers = Merge(this.schema.resolvers, resolvers);
-    if (resolvers) this.schema.resolvers = Merge(resolvers, this.schema.resolvers);
-    if (schemaDirectives) this.schema.schemaDirectives = Merge(this.schema.schemaDirectives, schemaDirectives);
+    const [left, right] = options.passive ? [schema, this.schema] : [this.schema, schema];
+    if (schema.typeDefs && schema.typeDefs.length) this.schema.typeDefs = mergeASTArray(left.typeDefs.concat(right.typeDefs));
+    if (schema.context) this.schema.context = Merge(left.context, right.context);
+    if (schema.resolvers) this.schema.resolvers = Merge(left.resolvers, right.resolvers);
+    if (schema.schemaDirectives) this.schema.schemaDirectives = Merge(left.schemaDirectives, right.schemaDirectives);
 
     // Chaining
     return this;
@@ -124,24 +126,26 @@ module.exports = class Schema {
           return new Promise((res) => {
             if (file.endsWith('.js')) res(require(file)); // eslint-disable-line global-require,import/no-dynamic-require
             else res(FS.readFileSync(file, 'utf8'));
-          }).then(schema => this.mergeSchema(schema));
-        })).then(() => resolve(files)).catch(e => reject(e));
+          }).then(schema => this.mergeSchema(schema, options));
+        })).then(() => resolve(this)).catch(e => reject(e));
       });
     });
   }
 
   decorate() {
     this.initialize();
-    this.mergeSchema(frameworkExt(this), true);
+    this.mergeSchema(frameworkExt(this));
     this.mergeSchema(typeExt(this));
     this.initialize();
-    this.mergeSchema(apiExt(this));
+    this.mergeSchema(apiExt(this), { passive: true });
     this.finalize();
     return this;
   }
 
   /**
-   *
+   * This should be called at some point after defining base schema(s).
+   * Here we initialize our data models representation of the AST Schema.
+   * Extensions use this data model to dynamically create schemas that will also be merged.
    */
   initialize() {
     this.models.length = 0;
@@ -169,7 +173,7 @@ module.exports = class Schema {
   }
 
   finalize() {
-    this.schema.typeDefs = visit(this.schema.typeDefs, {
+    const definitions = visit(this.schema.typeDefs, {
       [Kind.FIELD_DEFINITION]: (node) => {
         const scope = new Node(node, 'field').getDirectiveArg('field', 'gqlScope', 'crud');
         if (scope === null || scope.indexOf('r') === -1) return null; // Delete node
@@ -177,15 +181,13 @@ module.exports = class Schema {
       },
     });
 
-
-    validateSchema(this.schema);
-
+    this.schema.typeDefs = { kind: Kind.DOCUMENT, definitions };
     return this;
   }
 
-  validate(executableSchema) {
-    validate(executableSchema);
-  }
+  // validate(executableSchema) {
+  //   validate(executableSchema);
+  // }
 
   makeExecutableSchema() {
     return makeExecutableSchema(this.schema);

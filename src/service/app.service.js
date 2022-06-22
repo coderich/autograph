@@ -69,6 +69,12 @@ exports.renameObjectKey = (obj, oldKey, newKey) => {
   }
 };
 
+exports.deleteKeys = (obj, keys) => {
+  if (Array.isArray(obj)) obj.map(item => exports.deleteKeys(item, keys));
+  else if (obj === Object(obj)) { keys.forEach(key => delete obj[key]); Object.values(obj).forEach(v => exports.deleteKeys(v, keys)); }
+  return obj;
+};
+
 exports.getDeep = (obj, path, defaultValue) => {
   const [prop, ...rest] = path.split('.');
   const normalize = data => (Array.isArray(data) ? _.flatten(data) : data);

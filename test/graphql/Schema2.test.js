@@ -7,12 +7,8 @@ describe('Schema', () => {
     const schema = new Schema();
     const modulePath = Path.join(__dirname, 'modules');
 
-    // Purposely do it twice to test merging duplicates
-    await schema.mergeSchemaFromFiles(`${modulePath}/**/*.{js,gql,graphql}`);
-    // schema.mergeSchemaFromDirectory(modulePath).prepare();
-
     //
-    schema.decorate();
+    await schema.mergeSchemaFromFiles(`${modulePath}/**/*.{js,gql,graphql}`).then(s => s.decorate());
     const [Person, Book] = [schema.getModel('Person'), schema.getModel('Book')];
     const [personFields, bookFields] = [Object.values(Person.getFields()), Object.values(Book.getFields())];
     expect(personFields.map(f => f.toString())).toEqual(['name', 'authored', 'emailAddress', 'status', 'age', 'id', 'createdAt', 'updatedAt']);
