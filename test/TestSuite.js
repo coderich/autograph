@@ -61,7 +61,7 @@ module.exports = (driver = 'mongo', options = {}) => {
       // Create core classes
       const schema = new Schema(gql, stores);
       if (schema.getServerApiSchema) schema.getServerApiSchema();
-      else await schema.decorate();
+      else schema.decorate();
       resolver = new Resolver(schema, { network: { id: 'networkId' } });
       await schema.setup();
 
