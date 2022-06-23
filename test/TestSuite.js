@@ -3,7 +3,7 @@
 const { set } = require('lodash');
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { timeout } = require('../src/service/app.service');
-const Schema = require('../src/core/Schema');
+const Schema = require('../src/core/SchemaDecorator');
 const Resolver = require('../src/core/Resolver');
 const gql = require('./fixtures/schema');
 const stores = require('./stores');
@@ -60,8 +60,8 @@ module.exports = (driver = 'mongo', options = {}) => {
 
       // Create core classes
       const schema = new Schema(gql, stores);
-      schema.getServerApiSchema();
-      schema.makeExecutableSchema();
+      if (schema.getServerApiSchema) schema.getServerApiSchema();
+      else await schema.decorate();
       resolver = new Resolver(schema, { network: { id: 'networkId' } });
       await schema.setup();
 
