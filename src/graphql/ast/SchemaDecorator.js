@@ -96,8 +96,8 @@ module.exports = class SchemaDecorator extends TypeDefApi {
    */
   decorate() {
     this.initialize();
-    this.mergeSchema(frameworkExt(this));
-    this.mergeSchema(typeExt(this));
+    this.mergeSchema(frameworkExt(this), { passive: true });
+    this.mergeSchema(typeExt(this), { passive: true });
     this.initialize();
     this.mergeSchema(apiExt(this), { passive: true });
     this.finalize();
