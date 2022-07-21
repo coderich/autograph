@@ -35,6 +35,9 @@ module.exports = class SchemaDecorator extends TypeDefApi {
    * Synchronously merge a schema
    */
   mergeSchema(schema, options = {}) {
+    // Ensure this is a schema of sorts otherwise skip it
+    if (typeof schema !== 'string' && ['context', 'typeDefs', 'resolvers', 'schemaDirectives'].every(key => !schema[key])) return this;
+
     // Here we want to normalize the schema into the shape { context, typeDefs, resolvers, schemaDirectives }
     // We do NOT want to modify the schema object because that may cause unwanted side-effects.
     const normalizedSchema = { ...schema };

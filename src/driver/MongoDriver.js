@@ -1,6 +1,6 @@
 const { get, has } = require('lodash');
 const { MongoClient, ObjectID } = require('mongodb');
-const { proxyDeep, toKeyObj, globToRegex, proxyPromise, isScalarDataType, promiseRetry } = require('../service/app.service');
+const { proxyDeep, toKeyObj, globToRegex, proxyPromise, isScalarDataType, promiseRetry, unravelObject, keyPathLeafs } = require('../service/app.service');
 
 module.exports = class MongoDriver {
   constructor(config, schema) {
@@ -36,19 +36,29 @@ module.exports = class MongoDriver {
   }
 
   findOne(query) {
-    return this.findMany(Object.assign(query, { first: 1 })).then(docs => docs[0]);
+    // return this.findMany(Object.assign(query, { first: 1 })).then(docs => docs[0]);
+
+    return this.findMany(Object.assign(query, { first: 1 })).then((stream) => {
+      return new Promise((resolve, reject) => {
+        stream.on('data', resolve);
+        stream.on('error', reject);
+        stream.on('end', resolve);
+      });
+    });
   }
 
   findMany(query) {
     const { model, options = {}, last, flags } = query;
     Object.assign(options, this.config.query || {});
 
-    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), options, flags).then((cursor) => {
-      return cursor.toArray().then((results) => {
-        if (last) return results.splice(-last);
-        return results;
-      });
-    });
+    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), options, flags).then(cursor => cursor.stream());
+
+    // return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), options, flags).then((cursor) => {
+    //   return cursor.toArray().then((results) => {
+    //     if (last) return results.splice(-last);
+    //     return results;
+    //   });
+    // });
   }
 
   count(query) {
@@ -160,8 +170,26 @@ module.exports = class MongoDriver {
     }, {});
   }
 
+  static getProjectFields(parentSchema, currentSchema = { _id: 0, id: '$_id' }, isEmbedded, isEmbeddedArray) {
+    return Object.entries(parentSchema).reduce((project, [key, value]) => {
+      const { alias, schema: subSchema, isArray } = value;
+      const $key = isEmbedded && isEmbeddedArray ? `$$embedded.${key}` : `$${key}`;
+
+      if (subSchema) {
+        const $project = MongoDriver.getProjectFields(subSchema, {}, true, isArray);
+        Object.assign(project, { [alias]: isArray ? { $map: { input: $key, as: 'embedded', in: $project } } : $project });
+      } else if (isEmbedded) {
+        Object.assign(project, { [alias]: $key });
+      } else {
+        Object.assign(project, { [alias]: key === alias ? 1 : $key });
+      }
+
+      return project;
+    }, currentSchema);
+  }
+
   static aggregateQuery(query, count = false) {
-    const { where: $match, sort, skip, limit, joins } = query;
+    const { where: $match, sort, skip, limit, joins, schema } = query;
     const $aggregate = [{ $match }];
 
     // Used for $regex matching
@@ -194,6 +222,11 @@ module.exports = class MongoDriver {
       if (after) $aggregate.push({ $match: { $or: Object.entries(after).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$gte' : '$lte']: value } }), []) } });
       if (before) $aggregate.push({ $match: { $or: Object.entries(before).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$lte' : '$gte']: value } }), []) } });
       if (first) $aggregate.push({ $limit: first });
+
+      // Projection
+      const $project = MongoDriver.getProjectFields(schema);
+      console.log(JSON.stringify($project, null, 2));
+      $aggregate.push({ $project });
     }
 
     return $aggregate;

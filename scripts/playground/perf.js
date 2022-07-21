@@ -29,7 +29,7 @@ arr.forEach((curr) => {
 });
 console.timeEnd('forEach');
 
-const defineProperties = props.reduce((prev, prop) => Object.assign(prev, { [prop]: { value: prop } }), {});
+const defineProperties = props.reduce((prev, prop) => Object.assign(prev, { [prop]: { value: prop, enumerable: false } }), {});
 
 console.time('defineProperties');
 arr.forEach((el) => {
@@ -42,9 +42,9 @@ arr.forEach((el) => {
   const idk = new Proxy(props, {
     ownKeys: () => props.keys(),
   });
+  console.log(Object.keys(idk));
 });
 console.timeEnd('proxy');
-
 
 console.time('ResultSet');
 arr.forEach((el) => {

@@ -1,3 +1,6 @@
+New Bugs:
+  * ResultSet always defines 'id' as a getter/setter and that can throw off code that treats it as an object with keys
+
 Next Release:
   * Would be nice to query in mode where none of the @value stuff is used (migration scripts etc)
   * Allow FK by arbitrary value (ie. workspace.name)

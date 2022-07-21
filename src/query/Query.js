@@ -293,19 +293,19 @@ module.exports = class Query {
     };
   }
 
-  static getSchema(model, name = false) {
+  static getSchema(model) {
     return model.getSelectFields().reduce((prev, field) => {
-      const key = name ? field.getName() : field.getKey();
-      // const modelRef = field.getModelRef();
-      // const isEmbedded = field.isEmbedded();
+      const key = field.getKey();
+      const isEmbedded = field.isEmbedded();
 
       return Object.assign(prev, {
         [key]: {
+          key,
           field,
-          alias: name ? field.getKey() : field.getName(),
+          alias: field.getName(),
           type: field.getDataType(),
           isArray: field.isArray(),
-          // schema: isEmbedded ? Query.getSchema(modelRef, name) : null,
+          schema: isEmbedded ? Query.getSchema(field.getModelRef()) : null,
         },
       });
     }, {});
