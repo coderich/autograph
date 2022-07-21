@@ -1,0 +1,28 @@
+type Person @model(meta: "PersonInputMeta") {
+  age: Int @field(key: "my_age")
+  name: String! @field(deserialize: toTitleCase, serialize: toLowerCase)
+  emailAddress: String! @field(key: "email_address", enforce: email)
+  status: String @field(key: "state")
+  # state: String @field(key: "address_state")
+  telephone: String @field(default: "###-###-####")
+  network: String @value(scope: context, path: "network.id")
+  manipulate: String @field(resolve: slowRoll)
+}
+
+type Site @model {
+  name: String! @field(key: "site_name")
+  buildings: [SiteBuilding] @field(key: "site_buildings")
+  defaultBuilding: SiteBuilding
+  tags: [String]
+}
+
+type SiteBuilding {
+  name: String! @field(key: "building_name")
+  floors: [BuildingFloor] @field(key: "building_floors")
+  tags: [String]
+}
+
+type BuildingFloor {
+  name: String! @field(key: "floor_name")
+  tags: [String]
+}

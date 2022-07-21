@@ -147,6 +147,8 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(bookstore1.id).toBeDefined();
         expect(bookstore1.books.length).toEqual(3);
         expect(bookstore1.building.type).toEqual('business');
+        expect(bookstore1.building.year).toEqual(1990);
+        expect(bookstore1.building.tenants).toEqual([christie.id]);
         expect(bookstore1.building.description).toEqual('A building from the bloom');
         expect(bookstore2.id).toBeDefined();
         expect(bookstore2.books.length).toEqual(1);
@@ -217,7 +219,7 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
 
       test('BookStore', async () => {
-        expect(await resolver.match('BookStore').id(bookstore1.id).one()).toMatchObject({ id: bookstore1.id, name: 'Best Books Ever', books: [mobyDick.id, mobyDick.id, healthBook.id], building: expect.objectContaining(bookBuilding) });
+        expect(await resolver.match('BookStore').id(bookstore1.id).flags({ debug: true }).one()).toMatchObject({ id: bookstore1.id, name: 'Best Books Ever', books: [mobyDick.id, mobyDick.id, healthBook.id], building: expect.objectContaining(bookBuilding) });
         expect(await resolver.match('BookStore').id(bookstore2.id).one()).toMatchObject({ id: bookstore2.id, name: 'New Books', books: [mobyDick.id], building: expect.objectContaining(bookBuilding) });
       });
 

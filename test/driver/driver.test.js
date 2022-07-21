@@ -3,7 +3,7 @@ const { MongoClient } = require('mongodb');
 const MongoDriver = require('../../src/driver/MongoDriver');
 const Schema = require('../../src/core/SchemaDecorator');
 const Resolver = require('../../src/core/Resolver');
-const gql = require('../fixtures/schema');
+const typeDefs = require('../fixtures/driver.graphql');
 const stores = require('../stores');
 
 describe('MongoDriver', () => {
@@ -22,7 +22,7 @@ describe('MongoDriver', () => {
     const db = mongoClient.db();
 
     // Create core classes
-    const schema = new Schema(gql, stores).decorate();
+    const schema = new Schema({ typeDefs }, stores).decorate();
     resolver = new Resolver(schema, { network: { id: 'networkId' } });
     driver = new MongoDriver({ uri: stores.default.uri });
     await schema.setup();
@@ -32,6 +32,7 @@ describe('MongoDriver', () => {
     site = await db.collection('Site').insertOne({
       site_name: 'site1',
       tags: ['tag1', 'tag2', 'tag3'],
+      defaultBuilding: { building_name: 'default', building_floors: [{ floor_name: 'def1' }, { floor_name: 'def2' }], tags: ['t1', 't2'] },
       site_buildings: [
         { building_name: 'building1', building_floors: [{ floor_name: 'floor1' }, { floor_name: 'floor2' }], tags: ['tag1', 'tag2'] },
         { building_name: 'building2', building_floors: [{ floor_name: 'floor3' }, { floor_name: 'floor4' }] },
@@ -40,10 +41,10 @@ describe('MongoDriver', () => {
     }).then(r => r.ops[0]);
   });
 
-  // test('fixtures', () => {
-  //   expect(person).toBeTruthy();
-  //   expect(site).toBeTruthy();
-  // });
+  test('fixtures', () => {
+    expect(person).toBeTruthy();
+    expect(site).toBeTruthy();
+  });
 
   test('findOne (person)', async () => {
     const toMatchObject = {
@@ -55,30 +56,40 @@ describe('MongoDriver', () => {
       network: 'networkId',
     };
 
-    // // Driver
-    // const builder = resolver.match('Person').id(person._id); // eslint-disable-line
-    // const data = await driver.findOne(builder.query.toDriver());
-    // expect(data).toMatchObject(toMatchObject);
+    // Driver
+    const query = resolver.match('Person').query.match({ _id: person._id }); // eslint-disable-line
+    const data = await driver.findOne(query.toDriver());
+    expect(data).toMatchObject(toMatchObject);
 
     // Resolver
     const res = await resolver.match('Person').id(person._id).one(); // eslint-disable-line
-    // const res = await resolver.match('Person').many(); // eslint-disable-line
-    console.log(JSON.stringify(res, null, 2));
     expect(res).toMatchObject(toMatchObject);
   });
 
-  // test('findOne (site)', async () => {
-  //   const builder = resolver.match('Site').id(site._id); // eslint-disable-line
-  //   const data = await driver.findOne(builder.query.toDriver());
-  //   expect(data).toMatchObject({
-  //     id: expect.anything(),
-  //     name: 'site1',
-  //     tags: ['tag1', 'tag2', 'tag3'],
-  //     buildings: [
-  //       { name: 'building1', floors: [{ name: 'floor1' }, { name: 'floor2' }], tags: ['tag1', 'tag2'] },
-  //       { name: 'building2', floors: [{ name: 'floor3' }, { name: 'floor4' }] },
-  //       { name: 'building3', floors: [{ name: 'floor5' }, { name: 'floor6', tags: ['tag3', 'tag4'] }] },
-  //     ],
-  //   });
-  // });
+  test('findOne (site)', async () => {
+    const toMatchObject = {
+      id: expect.anything(),
+      name: 'site1',
+      tags: ['tag1', 'tag2', 'tag3'],
+      defaultBuilding: {
+        name: 'default',
+        tags: ['t1', 't2'],
+        floors: [{ name: 'def1' }, { name: 'def2' }],
+      },
+      buildings: [
+        { name: 'building1', floors: [{ name: 'floor1' }, { name: 'floor2' }], tags: ['tag1', 'tag2'] },
+        { name: 'building2', floors: [{ name: 'floor3' }, { name: 'floor4' }] },
+        { name: 'building3', floors: [{ name: 'floor5' }, { name: 'floor6', tags: ['tag3', 'tag4'] }] },
+      ],
+    };
+
+    // Driver
+    const query = resolver.match('Site').query.match({ _id: site._id }); // eslint-disable-line
+    const data = await driver.findOne(query.toDriver());
+    expect(data).toMatchObject(toMatchObject);
+
+    // Resolver
+    const res = await resolver.match('Site').id(site._id).one(); // eslint-disable-line
+    expect(res).toMatchObject(toMatchObject);
+  });
 });

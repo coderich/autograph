@@ -10,10 +10,9 @@ module.exports = class ResultSetItem {
     const { resolver, model, sort } = query.toObject();
 
     const definition = fields.reduce((prev, field) => {
-      const key = field.getKey();
       const name = field.getName();
       const $name = `$${name}`;
-      const value = doc[key];
+      const value = doc[name];
 
       // Field attributes
       prev[name] = {

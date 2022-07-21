@@ -128,22 +128,5 @@ module.exports = {
       id: ID!
       name: String
     }
-
-    type Site @model {
-      name: String! @field(key: "site_name")
-      buildings: [SiteBuilding] @field(key: "site_buildings")
-      tags: [String]
-    }
-
-    type SiteBuilding {
-      name: String! @field(key: "building_name")
-      floors: [BuildingFloor] @field(key: "building_floors")
-      tags: [String]
-    }
-
-    type BuildingFloor {
-      name: String! @field(key: "floor_name")
-      tags: [String]
-    }
   `,
 };

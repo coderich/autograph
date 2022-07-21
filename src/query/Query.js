@@ -301,7 +301,7 @@ module.exports = class Query {
       return Object.assign(prev, {
         [key]: {
           key,
-          field,
+          // field,
           alias: field.getName(),
           type: field.getDataType(),
           isArray: field.isArray(),

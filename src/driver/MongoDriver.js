@@ -36,8 +36,6 @@ module.exports = class MongoDriver {
   }
 
   findOne(query) {
-    // return this.findMany(Object.assign(query, { first: 1 })).then(docs => docs[0]);
-
     return this.findMany(Object.assign(query, { first: 1 })).then((stream) => {
       return new Promise((resolve, reject) => {
         stream.on('data', resolve);
@@ -170,13 +168,13 @@ module.exports = class MongoDriver {
     }, {});
   }
 
-  static getProjectFields(parentSchema, currentSchema = { _id: 0, id: '$_id' }, isEmbedded, isEmbeddedArray) {
+  static getProjectFields(parentSchema, currentSchema = { _id: 0, id: '$_id' }, isEmbedded, isEmbeddedArray, path = []) {
     return Object.entries(parentSchema).reduce((project, [key, value]) => {
       const { alias, schema: subSchema, isArray } = value;
-      const $key = isEmbedded && isEmbeddedArray ? `$$embedded.${key}` : `$${key}`;
+      const $key = isEmbedded && isEmbeddedArray ? `$$embedded.${key}` : `$${path.concat(key).join('.')}`;
 
       if (subSchema) {
-        const $project = MongoDriver.getProjectFields(subSchema, {}, true, isArray);
+        const $project = MongoDriver.getProjectFields(subSchema, {}, true, isArray, path.concat(key));
         Object.assign(project, { [alias]: isArray ? { $map: { input: $key, as: 'embedded', in: $project } } : $project });
       } else if (isEmbedded) {
         Object.assign(project, { [alias]: $key });
@@ -189,7 +187,7 @@ module.exports = class MongoDriver {
   }
 
   static aggregateQuery(query, count = false) {
-    const { where: $match, sort, skip, limit, joins, schema } = query;
+    const { where: $match, sort, skip, limit, joins, schema, flags = {} } = query;
     const $aggregate = [{ $match }];
 
     // Used for $regex matching
@@ -225,9 +223,10 @@ module.exports = class MongoDriver {
 
       // Projection
       const $project = MongoDriver.getProjectFields(schema);
-      console.log(JSON.stringify($project, null, 2));
       $aggregate.push({ $project });
     }
+
+    if (flags.debug) console.log(JSON.stringify($aggregate, null, 2));
 
     return $aggregate;
   }
