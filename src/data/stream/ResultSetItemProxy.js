@@ -154,18 +154,6 @@ module.exports = class ResultSetItem {
         get() { return () => resolver.match(model).id(this.id).delete(); },
         enumerable: false,
       },
-
-      toObject: {
-        get() {
-          return () => map(this, obj => Object.entries(obj).reduce((prev, [key, value]) => {
-            if (value === undefined) return prev;
-            prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
-            return prev;
-          }, {}));
-        },
-        enumerable: false,
-        configurable: true,
-      },
     });
 
     return Object.defineProperties(proxy, definition);
