@@ -52,7 +52,7 @@
     "mongodb-memory-server": "^6.9.6",
     "neo4j-driver": "^4.0.0",
     "neodb": "^3.0.0",
-    "redis": "^2.8.0",
+    "redis": "^3.1.1",
     "redis-mock": "^0.47.0"
   },
   "peerDependencies": {
