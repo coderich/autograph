@@ -3,39 +3,49 @@ const ResultSet = require('./ResultSet');
 const { map, keyPaths, mapPromise, toGUID, hashObject } = require('../../service/app.service');
 
 module.exports = class ResultSetItem {
-  constructor(query, doc, fields) {
+  constructor(query, doc) {
     if (doc == null) return doc;
 
     const cache = new Map();
     const { resolver, model, sort } = query.toObject();
+    const fields = model.getFields().filter(f => f.getName() !== 'id');
 
-    const definition = fields.reduce((prev, field) => {
-      const key = field.getKey();
-      const name = field.getName();
-      const $name = `$${name}`;
-      const value = doc[key];
+    const proxy = new Proxy(doc, {
+      get(target, prop, rec) {
+        const value = Reflect.get(target, prop, rec);
+        if (typeof value === 'function') return value.bind(target);
 
-      // Field attributes
-      prev[name] = {
-        get() {
-          if (cache.has(name)) return cache.get(name);
+        if (cache.has(prop)) return cache.get(prop);
+
+        const field = fields.find(f => `${f}` === prop);
+
+        if (field) {
           let $value = field.deserialize(query, value);
 
           if ($value != null && field.isEmbedded()) {
-            const newModel = field.getModelRef();
-            const newQuery = query.model(newModel);
-            const newFields = newModel.getFields().filter(f => f.getName() !== 'id');
-            $value = new ResultSet(newQuery, map($value, v => new ResultSetItem(newQuery, v, newFields)), false);
+            const newQuery = query.model(field.getModelRef());
+            $value = new ResultSet(newQuery, map($value, v => new ResultSetItem(newQuery, v)), false);
           }
-          cache.set(name, $value);
+
+          cache.set(prop, $value);
           return $value;
-        },
-        set($value) {
-          cache.set(name, $value);
-        },
-        enumerable: true,
-        configurable: true, // Allows things like delete
-      };
+        }
+
+        return value;
+      },
+      set(target, prop, value, receiver) {
+        cache.set(prop, value);
+        return Reflect.set(target, prop, value);
+      },
+      deleteProperty(target, prop) {
+        cache.delete(prop);
+        return Reflect.delete(target, prop);
+      },
+    });
+
+    const definition = fields.reduce((prev, field) => {
+      const name = field.getName();
+      const $name = `$${name}`;
 
       // Hydrated field attributes
       prev[`$${name}`] = {
@@ -105,12 +115,6 @@ module.exports = class ResultSetItem {
 
       return prev;
     }, {
-      id: {
-        get() { return doc.id || doc[model.idKey()]; },
-        set(id) { doc.id = id; }, // Embedded array of documents need to set id
-        enumerable: true,
-      },
-
       $id: {
         get() { return toGUID(model.getName(), this.id); },
         enumerable: false,
@@ -164,23 +168,6 @@ module.exports = class ResultSetItem {
       },
     });
 
-    return new Proxy(doc, {
-      ownKeys() {
-        return ['good'];
-      },
-      get(target, prop, rec) {
-        const value = Reflect.get(target, prop, rec);
-        if (typeof value === 'function') return value.bind(target);
-        if (definition[prop]) return definition[prop].get();
-        return value;
-      },
-      set(obj, prop, value) {
-        if (definition[prop]) definition[prop].set(value);
-        return Reflect.set(obj, prop, value);
-      },
-    });
-
-    // // Create and return ResultSetItem
-    // return Object.defineProperties(this, definition);
+    return Object.defineProperties(proxy, definition);
   }
 };

@@ -3,11 +3,12 @@ const ResultSet = require('./ResultSet');
 const { map, keyPaths, mapPromise, toGUID, hashObject } = require('../../service/app.service');
 
 module.exports = class ResultSetItem {
-  constructor(query, doc, fields) {
+  constructor(query, doc) {
     if (doc == null) return doc;
 
     const cache = new Map();
     const { resolver, model, sort } = query.toObject();
+    const fields = model.getFields().filter(f => f.getName() !== 'id');
 
     const definition = fields.reduce((prev, field) => {
       const name = field.getName();

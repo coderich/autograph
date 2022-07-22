@@ -46,50 +46,61 @@ describe('MongoDriver', () => {
     expect(site).toBeTruthy();
   });
 
-  test('findOne (person)', async () => {
-    const toMatchObject = {
-      id: expect.anything(),
-      age: 40,
-      name: 'Richard',
-      status: 'alive',
-      emailAddress: 'rich@coderich.com',
-      network: 'networkId',
-    };
+  describe('find', () => {
+    test('findOne (person)', async () => {
+      const toMatchObject = {
+        id: expect.anything(),
+        age: 40,
+        name: 'Richard',
+        status: 'alive',
+        emailAddress: 'rich@coderich.com',
+        network: 'networkId',
+      };
 
-    // Driver
-    const query = resolver.match('Person').query.match({ _id: person._id }); // eslint-disable-line
-    const data = await driver.findOne(query.toDriver());
-    expect(data).toMatchObject(toMatchObject);
+      // Driver
+      const query = resolver.match('Person').query.match({ _id: person._id }); // eslint-disable-line
+      const data = await driver.findOne(query.toDriver());
+      expect(data).toMatchObject(toMatchObject);
 
-    // Resolver
-    const res = await resolver.match('Person').id(person._id).one(); // eslint-disable-line
-    expect(res).toMatchObject(toMatchObject);
+      // Resolver
+      const res = await resolver.match('Person').id(person._id).one(); // eslint-disable-line
+      expect(res).toMatchObject(toMatchObject);
+    });
+
+    test('findOne (site)', async () => {
+      const toMatchObject = {
+        id: expect.anything(),
+        name: 'site1',
+        tags: ['tag1', 'tag2', 'tag3'],
+        defaultBuilding: {
+          name: 'default',
+          tags: ['t1', 't2'],
+          floors: [{ name: 'def1' }, { name: 'def2' }],
+        },
+        buildings: [
+          { name: 'building1', floors: [{ name: 'floor1' }, { name: 'floor2' }], tags: ['tag1', 'tag2'] },
+          { name: 'building2', floors: [{ name: 'floor3' }, { name: 'floor4' }] },
+          { name: 'building3', floors: [{ name: 'floor5' }, { name: 'floor6', tags: ['tag3', 'tag4'] }] },
+        ],
+      };
+
+      // Driver
+      const query = resolver.match('Site').query.match({ _id: site._id }); // eslint-disable-line
+      const data = await driver.findOne(query.toDriver());
+      expect(data).toMatchObject(toMatchObject);
+
+      // Resolver
+      const res = await resolver.match('Site').id(site._id).one(); // eslint-disable-line
+      expect(res).toMatchObject(toMatchObject);
+    });
   });
 
-  test('findOne (site)', async () => {
-    const toMatchObject = {
-      id: expect.anything(),
-      name: 'site1',
-      tags: ['tag1', 'tag2', 'tag3'],
-      defaultBuilding: {
-        name: 'default',
-        tags: ['t1', 't2'],
-        floors: [{ name: 'def1' }, { name: 'def2' }],
-      },
-      buildings: [
-        { name: 'building1', floors: [{ name: 'floor1' }, { name: 'floor2' }], tags: ['tag1', 'tag2'] },
-        { name: 'building2', floors: [{ name: 'floor3' }, { name: 'floor4' }] },
-        { name: 'building3', floors: [{ name: 'floor5' }, { name: 'floor6', tags: ['tag3', 'tag4'] }] },
-      ],
-    };
-
-    // Driver
-    const query = resolver.match('Site').query.match({ _id: site._id }); // eslint-disable-line
-    const data = await driver.findOne(query.toDriver());
-    expect(data).toMatchObject(toMatchObject);
-
-    // Resolver
-    const res = await resolver.match('Site').id(site._id).one(); // eslint-disable-line
-    expect(res).toMatchObject(toMatchObject);
+  describe('create', () => {
+    test('person', async () => {
+      const newPerson = await resolver.match('Person').save({ name: 'suzy', age: 30, emailAddress: 'thesuz@gmail.com' });
+      expect(newPerson).toMatchObject({ id: expect.anything(), name: 'Suzy', age: 30 });
+      expect(newPerson.$name).toBeDefined();
+      expect(newPerson.$$save).toBeDefined();
+    });
   });
 });

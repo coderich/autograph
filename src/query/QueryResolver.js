@@ -174,7 +174,7 @@ module.exports = class QueryResolver {
     return this.findMany(query.method('findMany'));
   }
 
-  async resolve() {
+  resolve() {
     const { model, method, flags } = this.query.toObject();
 
     return this[method](this.query).then((data) => {

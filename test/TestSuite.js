@@ -219,7 +219,7 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
 
       test('BookStore', async () => {
-        expect(await resolver.match('BookStore').id(bookstore1.id).flags({ debug: true }).one()).toMatchObject({ id: bookstore1.id, name: 'Best Books Ever', books: [mobyDick.id, mobyDick.id, healthBook.id], building: expect.objectContaining(bookBuilding) });
+        expect(await resolver.match('BookStore').id(bookstore1.id).one()).toMatchObject({ id: bookstore1.id, name: 'Best Books Ever', books: [mobyDick.id, mobyDick.id, healthBook.id], building: expect.objectContaining(bookBuilding) });
         expect(await resolver.match('BookStore').id(bookstore2.id).one()).toMatchObject({ id: bookstore2.id, name: 'New Books', books: [mobyDick.id], building: expect.objectContaining(bookBuilding) });
       });
 
@@ -664,6 +664,9 @@ module.exports = (driver = 'mongo', options = {}) => {
         // push
         await resolver.match('Art').save({ name: 'Art1' }, { name: 'Art2' });
         await resolver.match('Art').where({}).push('bids', 69.99, '109.99');
+
+        // const idk = await resolver.match('Art').many();
+        // console.log(idk);
         expect(await resolver.match('Art').many()).toMatchObject([{ bids: [69.99, 109.99] }, { bids: [69.99, 109.99] }]);
         // pull
         await resolver.match('Art').where({}).pull('bids', '69.99');

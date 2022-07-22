@@ -251,7 +251,7 @@ module.exports = class Query {
     return {
       isNative: Boolean(this.props.native),
       model: model.getKey(),
-      schema: Query.getSchema(model),
+      shape: model.getShape(),
       method: this.props.method,
       select: this.props.$select,
       joins: this.props.joins,
@@ -291,23 +291,5 @@ module.exports = class Query {
       last: this.props.last,
       options: this.props.options,
     };
-  }
-
-  static getSchema(model) {
-    return model.getSelectFields().reduce((prev, field) => {
-      const key = field.getKey();
-      const isEmbedded = field.isEmbedded();
-
-      return Object.assign(prev, {
-        [key]: {
-          key,
-          // field,
-          alias: field.getName(),
-          type: field.getDataType(),
-          isArray: field.isArray(),
-          schema: isEmbedded ? Query.getSchema(field.getModelRef()) : null,
-        },
-      });
-    }, {});
   }
 };

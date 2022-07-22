@@ -38,7 +38,7 @@ module.exports = class DataLoader extends FBDataLoader {
         });
       }));
     }, {
-      cache: true,
+      cache: false,
       cacheKeyFn: query => hashObject(query.getCacheKey()),
     });
   }

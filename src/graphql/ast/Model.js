@@ -1,6 +1,6 @@
 const Node = require('./Node');
 const Field = require('./Field');
-const { uvl } = require('../../service/app.service');
+const { map, uvl } = require('../../service/app.service');
 
 module.exports = class Model extends Node {
   constructor(schema, ast) {
@@ -26,6 +26,25 @@ module.exports = class Model extends Node {
 
   getKey() {
     return this.key;
+  }
+
+  getShape(serdes = 'deserialize') {
+    return this.getSelectFields().map((field) => {
+      const [from, to] = serdes === 'serialize' ? [field.getName(), field.getKey()] : [field.getKey(), field.getName()];
+      return { from, to, type: field.getDataType(), isArray: field.isArray(), shape: field.isEmbedded() ? field.getModelRef().getShape() : null };
+    });
+  }
+
+  toShape(serdes, data, shape) {
+    shape = shape || this.getShape(serdes);
+
+    return map(data, (doc) => {
+      return shape.reduce((prev, { from, to, shape: subShape }) => {
+        const value = doc[from];
+        if (value === undefined) return prev;
+        return Object.assign(prev, { [to]: subShape ? this.toShape(serdes, value, subShape) : value });
+      }, {});
+    });
   }
 
   getField(path = '') {

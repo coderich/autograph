@@ -1,11 +1,10 @@
 const { get, has } = require('lodash');
 const { MongoClient, ObjectID } = require('mongodb');
-const { proxyDeep, toKeyObj, globToRegex, proxyPromise, isScalarDataType, promiseRetry, unravelObject, keyPathLeafs } = require('../service/app.service');
+const { proxyDeep, toKeyObj, globToRegex, proxyPromise, isScalarDataType, promiseRetry } = require('../service/app.service');
 
 module.exports = class MongoDriver {
-  constructor(config, schema) {
+  constructor(config) {
     this.config = config;
-    this.schema = schema;
     this.connection = this.connect();
     this.getDirectives = () => get(config, 'directives', {});
   }
@@ -25,7 +24,7 @@ module.exports = class MongoDriver {
   }
 
   query(collection, method, ...args) {
-    if (has(args[args.length - 1], 'debug')) console.log(collection, method, JSON.stringify(args));
+    if (has(args[args.length - 1], 'debug')) console.log(collection, method, JSON.stringify(args, null, 2));
     return this.raw(collection)[method](...args);
   }
 
@@ -156,38 +155,38 @@ module.exports = class MongoDriver {
   }
 
   static getAddFields(query) {
-    const { schema, where } = query;
+    const { shape, where } = query;
 
-    return Object.entries(schema).reduce((prev, [key, { type }]) => {
-      const value = where[key];
+    return shape.reduce((prev, { from, type }) => {
+      const value = where[from];
       if (value === undefined) return prev;
       if (!isScalarDataType(type)) return prev;
       const stype = String((type === 'Float' || type === 'Int' ? 'Number' : type)).toLowerCase();
       if (String(typeof value) === `${stype}`) return prev;
-      return Object.assign(prev, { [key]: { $toString: `$${key}` } });
+      return Object.assign(prev, { [from]: { $toString: `$${from}` } });
     }, {});
   }
 
-  static getProjectFields(parentSchema, currentSchema = { _id: 0, id: '$_id' }, isEmbedded, isEmbeddedArray, path = []) {
-    return Object.entries(parentSchema).reduce((project, [key, value]) => {
-      const { alias, schema: subSchema, isArray } = value;
-      const $key = isEmbedded && isEmbeddedArray ? `$$embedded.${key}` : `$${path.concat(key).join('.')}`;
+  static getProjectFields(parentShape, currentShape = { _id: 0, id: '$_id' }, isEmbedded, isEmbeddedArray, path = []) {
+    return parentShape.reduce((project, value) => {
+      const { from, to, shape: subShape, isArray } = value;
+      const $key = isEmbedded && isEmbeddedArray ? `$$embedded.${from}` : `$${path.concat(from).join('.')}`;
 
-      if (subSchema) {
-        const $project = MongoDriver.getProjectFields(subSchema, {}, true, isArray, path.concat(key));
-        Object.assign(project, { [alias]: isArray ? { $map: { input: $key, as: 'embedded', in: $project } } : $project });
+      if (subShape) {
+        const $project = MongoDriver.getProjectFields(subShape, {}, true, isArray, path.concat(from));
+        Object.assign(project, { [to]: isArray ? { $map: { input: $key, as: 'embedded', in: $project } } : $project });
       } else if (isEmbedded) {
-        Object.assign(project, { [alias]: $key });
+        Object.assign(project, { [to]: $key });
       } else {
-        Object.assign(project, { [alias]: key === alias ? 1 : $key });
+        Object.assign(project, { [to]: from === to ? 1 : $key });
       }
 
       return project;
-    }, currentSchema);
+    }, currentShape);
   }
 
   static aggregateQuery(query, count = false) {
-    const { where: $match, sort, skip, limit, joins, schema, flags = {} } = query;
+    const { where: $match, sort, skip, limit, joins, shape } = query;
     const $aggregate = [{ $match }];
 
     // Used for $regex matching
@@ -222,11 +221,9 @@ module.exports = class MongoDriver {
       if (first) $aggregate.push({ $limit: first });
 
       // Projection
-      const $project = MongoDriver.getProjectFields(schema);
+      const $project = MongoDriver.getProjectFields(shape);
       $aggregate.push({ $project });
     }
-
-    if (flags.debug) console.log(JSON.stringify($aggregate, null, 2));
 
     return $aggregate;
   }
