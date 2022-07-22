@@ -11,7 +11,7 @@ module.exports = class MongoDriver {
 
   connect() {
     const { uri, options = {} } = this.config;
-    options.ignoreUndefined = true;
+    options.ignoreUndefined = false;
     return MongoClient.connect(uri, options);
   }
 
@@ -25,6 +25,7 @@ module.exports = class MongoDriver {
 
   query(collection, method, ...args) {
     if (has(args[args.length - 1], 'debug')) console.log(collection, method, JSON.stringify(args, null, 2));
+    if (method === 'aggregate') args.splice(2);
     return this.raw(collection)[method](...args);
   }
 
@@ -45,17 +46,12 @@ module.exports = class MongoDriver {
   }
 
   findMany(query) {
-    const { model, options = {}, last, flags } = query;
+    const { model, options = {}, flags } = query;
     Object.assign(options, this.config.query || {});
 
-    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), options, flags).then(cursor => cursor.stream());
-
-    // return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), options, flags).then((cursor) => {
-    //   return cursor.toArray().then((results) => {
-    //     if (last) return results.splice(-last);
-    //     return results;
-    //   });
-    // });
+    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), options, flags).then((cursor) => {
+      return cursor.stream();
+    });
   }
 
   count(query) {
@@ -70,7 +66,7 @@ module.exports = class MongoDriver {
   }
 
   createOne({ model, input, options, flags }) {
-    return this.query(model, 'insertOne', input, options, flags).then(result => Object.assign(input, { _id: result.insertedId }));
+    return this.query(model, 'insertOne', input, options, flags).then(result => Object.assign(input, { id: result.insertedId }));
   }
 
   updateOne({ model, where, $doc, options, flags }) {
@@ -83,7 +79,7 @@ module.exports = class MongoDriver {
   }
 
   deleteOne({ model, where, options, flags }) {
-    return this.query(model, 'deleteOne', where, options, flags);
+    return this.query(model, 'deleteOne', where, options, flags).then(() => true);
   }
 
   dropModel(model) {
@@ -186,7 +182,7 @@ module.exports = class MongoDriver {
   }
 
   static aggregateQuery(query, count = false) {
-    const { where: $match, sort, skip, limit, joins, shape } = query;
+    const { where: $match, sort = {}, skip, limit, joins, shape, after, before, first } = query;
     const $aggregate = [{ $match }];
 
     // Used for $regex matching
@@ -215,7 +211,6 @@ module.exports = class MongoDriver {
       if (limit) $aggregate.push({ $limit: limit });
 
       // Pagination
-      const { after, before, first } = query;
       if (after) $aggregate.push({ $match: { $or: Object.entries(after).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$gte' : '$lte']: value } }), []) } });
       if (before) $aggregate.push({ $match: { $or: Object.entries(before).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$lte' : '$gte']: value } }), []) } });
       if (first) $aggregate.push({ $limit: first });

@@ -126,6 +126,9 @@ module.exports = class extends Model {
     });
   }
 
+  /**
+   * Normalizes data by renaming keys and serdes on field values (unless keysOnly)
+   */
   normalize(query, data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); }), keysOnly = false) {
     // Transform all the data
     return map(data, (doc) => {
@@ -140,6 +143,25 @@ module.exports = class extends Model {
     });
   }
 
+  getShape(serdes = 'deserialize') {
+    return this.getSelectFields().map((field) => {
+      const [from, to] = serdes === 'serialize' ? [field.getName(), field.getKey()] : [field.getKey(), field.getName()];
+      return { from, to, type: field.getDataType(), isArray: field.isArray(), shape: field.isEmbedded() ? field.getModelRef().getShape(serdes) : null };
+    });
+  }
+
+  shape(data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); }), shape) {
+    shape = shape || this.getShape(serdes);
+
+    return map(data, (doc) => {
+      return shape.reduce((prev, { from, to, shape: subShape }) => {
+        const value = doc[from];
+        if (value === undefined) return prev;
+        return Object.assign(prev, { [to]: subShape ? this.shape(value, serdes, subShape) : value });
+      }, {});
+    });
+  }
+
   validate(query, data) {
     const normalized = this.deserialize(query, data);
 
@@ -149,15 +171,5 @@ module.exports = class extends Model {
         return field.validate(query, obj[field.getName()]);
       })));
     }));
-  }
-
-  tform(query, data) {
-    return map(data, (doc) => {
-      return Object.keys(doc).map(k => this.getField(k)).filter(Boolean).reduce((prev, curr) => {
-        const key = curr.getName();
-        const value = doc[key];
-        return Object.assign(prev, { [key]: curr.tform(query, value) });
-      }, {});
-    });
   }
 };

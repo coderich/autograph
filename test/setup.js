@@ -7,9 +7,8 @@ const stores = require('./stores');
 
 module.exports = async (context = {}) => {
   jest.setTimeout(10000);
-  const mongoServer = new MongoMemoryReplSet({ replSet: { storageEngine: 'wiredTiger' } });
-  await mongoServer.waitUntilRunning();
-  const uri = await mongoServer.getUri();
+  const mongoServer = await MongoMemoryReplSet.create({ replSet: { storageEngine: 'wiredTiger' } });
+  const uri = mongoServer.getUri();
   stores.default.uri = uri;
   const schema = new Schema(gqlSchema, stores);
   schema.getServerApiSchema();

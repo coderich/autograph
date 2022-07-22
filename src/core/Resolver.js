@@ -1,13 +1,11 @@
 const Model = require('../data/Model');
 const Query = require('../query/Query');
 const ResultSet = require('../data/ResultSet');
-const ResultSetStream = require('../data/stream/ResultSet');
-const ResultSetItem = require('../data/stream/ResultSetItemProxy');
+const DataHydrator = require('../data/stream/DataHydrator');
 const DataLoader = require('../data/DataLoader');
 const DataTransaction = require('../data/DataTransaction');
 const QueryBuilder = require('../query/QueryBuilder');
 const { createSystemEvent } = require('../service/event.service');
-const { map } = require('../service/app.service');
 
 module.exports = class Resolver {
   constructor(schema, context = {}) {
@@ -85,9 +83,8 @@ module.exports = class Resolver {
       case 'create': case 'update': case 'delete': {
         return model.getDriver().resolve(query.toDriver()).then((data) => {
           this.clear(model);
-          data = model.toShape('deserialize', data);
-          return new ResultSetStream(query, map(data, d => new ResultSetItem(query, d)));
-          // return crud === 'create' ? new ResultSetStream(query, map(data, d => new ResultSetItem(query, d))) : new ResultSet(query, data);
+          data = model.shape(data, 'deserialize');
+          return new DataHydrator(query, data);
         });
       }
       default: {

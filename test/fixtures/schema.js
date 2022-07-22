@@ -26,7 +26,7 @@ module.exports = {
       emailAddress: String! @field(key: "email_address", enforce: email)
       friends: [Person] @field(transform: dedupe, enforce: selfless, onDelete: cascade, connection: true)
       status: String @field(key: "state")
-      # state: String @field(key: "address_state")
+      state: String @field(key: "address_state")
       telephone: String @field(default: "###-###-####")
       network: String @value(scope: context, path: "network.id")
       manipulate: String @field(resolve: slowRoll)

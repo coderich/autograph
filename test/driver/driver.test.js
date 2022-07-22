@@ -13,9 +13,8 @@ describe('MongoDriver', () => {
     jest.setTimeout(10000);
 
     // Start Mongo Server
-    const mongoServer = new MongoMemoryReplSet({ replSet: { storageEngine: 'wiredTiger' } });
-    await mongoServer.waitUntilRunning();
-    stores.default.uri = await mongoServer.getUri();
+    const mongoServer = await MongoMemoryReplSet.create({ replSet: { storageEngine: 'wiredTiger' } });
+    stores.default.uri = mongoServer.getUri();
 
     // Create mongo client
     const mongoClient = await new MongoClient(stores.default.uri).connect();
@@ -28,8 +27,10 @@ describe('MongoDriver', () => {
     await schema.setup();
 
     // Fixtures
-    person = await db.collection('Person').insertOne({ my_age: 40, name: 'Richard', state: 'alive', email_address: 'rich@coderich.com', network: 'networkId' }).then(r => r.ops[0]);
-    site = await db.collection('Site').insertOne({
+    const personObj = { my_age: 40, name: 'Richard', state: 'alive', email_address: 'rich@coderich.com', network: 'networkId' };
+    person = await db.collection('Person').insertOne(personObj).then(r => Object.assign(personObj, { _id: r.insertedId }));
+
+    const siteObj = {
       site_name: 'site1',
       tags: ['tag1', 'tag2', 'tag3'],
       defaultBuilding: { building_name: 'default', building_floors: [{ floor_name: 'def1' }, { floor_name: 'def2' }], tags: ['t1', 't2'] },
@@ -38,7 +39,8 @@ describe('MongoDriver', () => {
         { building_name: 'building2', building_floors: [{ floor_name: 'floor3' }, { floor_name: 'floor4' }] },
         { building_name: 'building3', building_floors: [{ floor_name: 'floor5' }, { floor_name: 'floor6', tags: ['tag3', 'tag4'] }] },
       ],
-    }).then(r => r.ops[0]);
+    };
+    site = await db.collection('Site').insertOne(siteObj).then(r => Object.assign(siteObj, { _id: r.insertedId }));
   });
 
   test('fixtures', () => {

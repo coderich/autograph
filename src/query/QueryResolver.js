@@ -33,14 +33,13 @@ module.exports = class QueryResolver {
     const { model, input, flags } = query.toObject();
     model.appendDefaultFields(query, input);
 
-    return createSystemEvent('Mutation', { method: 'create', query }, () => {
+    return createSystemEvent('Mutation', { method: 'create', query }, async () => {
       const $input = model.serialize(query, model.appendCreateFields(input));
       query.$input($input);
-      const promise = get(flags, 'novalidate') ? this.resolver.resolve(query) : model.validate(query, $input).then(() => this.resolver.resolve(query));
-      return promise.then((doc) => {
-        query.doc(doc);
-        return doc;
-      });
+      if (!get(flags, 'novalidate')) await model.validate(query, $input);
+      const doc = await this.resolver.resolve(query);
+      query.doc(doc);
+      return doc;
     });
   }
 
