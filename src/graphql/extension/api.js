@@ -3,7 +3,7 @@ const { Kind } = require('graphql');
 const ServerResolver = require('../../core/ServerResolver');
 const { ucFirst, fromGUID } = require('../../service/app.service');
 const { findGQLModels } = require('../../service/schema.service');
-const { makeCreateAPI, makeReadAPI, makeUpdateAPI, makeDeleteAPI, makeSubscriptionAPI, makeInputSplice, makeQueryResolver, makeMutationResolver } = require('../../service/decorator.service');
+const { makeCreateAPI, makeReadAPI, makeUpdateAPI, makeDeleteAPI, makeSubscriptionAPI, makeQueryResolver, makeMutationResolver } = require('../../service/decorator.service');
 
 const interfaceKinds = [Kind.INTERFACE_TYPE_DEFINITION, Kind.INTERFACE_TYPE_EXTENSION];
 
@@ -25,8 +25,6 @@ module.exports = (schema) => {
   const createModels = findGQLModels('c', markedModels, allModels);
   const readModels = findGQLModels('r', markedModels, allModels);
   const updateModels = findGQLModels('u', markedModels, allModels);
-  const deleteModels = findGQLModels('d', markedModels, allModels);
-  const spliceModels = [...new Set([...createModels, ...updateModels, ...deleteModels])];
 
   return ({
     typeDefs: [
@@ -40,7 +38,6 @@ module.exports = (schema) => {
         input ${model.getName()}InputUpdate {
           ${model.getFields().filter(field => field.hasGQLScope('u') && !field.isVirtual()).map(field => `${field.getName()}: ${field.getGQLType('InputUpdate')}`)}
         }
-        # ${makeInputSplice(model)}
       `),
 
       ...readModels.map(model => `
@@ -104,13 +101,6 @@ module.exports = (schema) => {
         type ${model.getName()}Update implements ${model.getName()}SubscriptionQuery {
           ${model.getFields().filter(field => field.hasGQLScope('r')).map(field => `${field.getName()}: ${field.getPayloadType()}`)}
         }
-      `),
-
-      ...spliceModels.map(model => `
-        #input ${model.getName()}InputSplice {
-        #  with: ${model}InputWhere
-        #  put: ${model}InputUpdate
-        #}
       `),
     ].concat([
       `type PageInfo {

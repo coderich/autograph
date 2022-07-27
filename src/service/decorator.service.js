@@ -175,34 +175,6 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
   };
 };
 
-exports.makeInputSplice = (model, embed = false) => {
-  let gql = '';
-  const fields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd') && field.isSpliceable());
-
-  if (fields.length) {
-    gql += fields.map((field) => {
-      const embedded = field.isEmbedded() ? exports.makeInputSplice(field.getModelRef(), true) : '';
-
-      return `
-        ${embedded}
-        input ${model.getName()}${ucFirst(field.getName())}InputSplice {
-          with: ${field.getGQLType('InputWhere', { splice: true })}
-          put: ${field.getGQLType('InputUpdate', { splice: true })}
-          ${embedded.length ? `splice: ${field.getModelRef().getName()}InputSplice` : ''}
-        }
-      `;
-    }).join('\n\n');
-
-    gql += `
-      input ${model.getName()}InputSplice {
-        ${fields.map(field => `${field.getName()}: ${model.getName()}${ucFirst(field.getName())}InputSplice`)}
-      }
-    `;
-  }
-
-  return gql;
-};
-
 // APIs
 exports.makeCreateAPI = (name, model, parent) => {
   let gql = '';
@@ -241,14 +213,12 @@ exports.makeUpdateAPI = (name, model, parent) => {
   let gql = '';
 
   if (model.hasGQLScope('u')) {
-    const spliceFields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd') && field.isSpliceable());
     const meta = model.getMeta() ? `meta: ${model.getMeta()}` : '';
 
     gql += `
       update${name}(
         id: ID!
         input: ${model.getName()}InputUpdate
-        # ${!spliceFields.length ? '' : `splice: ${model.getName()}InputSplice`}
         ${meta}
       ): ${model.getName()}!
     `;
