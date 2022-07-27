@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.10.x
+- Removed model.tform() method
+- Removed embedApi directive and embedded API GQL
+
 ## v0.9.x
 - Subscriptions API
 - postMutation no longer mutates "doc" and adds "result"

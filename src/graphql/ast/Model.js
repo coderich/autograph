@@ -1,6 +1,6 @@
 const Node = require('./Node');
 const Field = require('./Field');
-const { map, uvl } = require('../../service/app.service');
+const { uvl } = require('../../service/app.service');
 
 module.exports = class Model extends Node {
   constructor(schema, ast) {

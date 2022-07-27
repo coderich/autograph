@@ -175,73 +175,6 @@ const resolveQuery = (method, name, resolver, model, embeds = []) => {
   };
 };
 
-const makeEmbeddedAPI = (model, method, parent) => {
-  let gql = '';
-  const modelName = model.getName();
-  const fields = model.getEmbeddedFields().filter(field => field !== parent && field.isEmbeddedApi());
-
-  if (fields.length) {
-    fields.forEach((field) => {
-      const modelRef = field.getModelRef();
-      const fieldName = ucFirst(field.isArray() ? field.getName().replace(/s$/, '') : field.getName());
-      const name = `${modelName}${fieldName}`;
-
-      switch (method) {
-        case 'create': {
-          if (field.hasFieldScope('c')) gql += exports.makeCreateAPI(name, modelRef, field);
-          break;
-        }
-        case 'read': {
-          if (field.hasFieldScope('r')) gql += exports.makeReadAPI(name, modelRef, field);
-          break;
-        }
-        case 'update': {
-          if (field.hasFieldScope('u')) gql += exports.makeUpdateAPI(name, modelRef, field);
-          break;
-        }
-        case 'delete': {
-          if (field.hasFieldScope('d')) gql += exports.makeDeleteAPI(name, modelRef, field);
-          break;
-        }
-        default: {
-          throw new Error(`Unknown method '${method}'`);
-        }
-      }
-    });
-  }
-
-  return gql;
-};
-
-const makeEmbeddedResolver = (model, resolver, type, embeds = []) => {
-  const obj = {};
-
-  const modelName = model.getName();
-  const fields = model.getEmbeddedFields().filter(field => embeds.indexOf(field) === -1 && field.isEmbeddedApi());
-
-  fields.forEach((field) => {
-    const modelRef = field.getModelRef();
-    const fieldName = ucFirst(field.isArray() ? field.getName().replace(/s$/, '') : field.getName());
-    const name = `${modelName}${fieldName}`;
-
-    switch (type) {
-      case 'query': {
-        Object.assign(obj, exports.makeQueryResolver(name, modelRef, resolver, embeds.concat(field)));
-        break;
-      }
-      case 'mutation': {
-        Object.assign(obj, exports.makeMutationResolver(name, modelRef, resolver, embeds.concat(field)));
-        break;
-      }
-      default: {
-        throw new Error(`Unknown type '${type}'`);
-      }
-    }
-  });
-
-  return obj;
-};
-
 exports.makeInputSplice = (model, embed = false) => {
   let gql = '';
   const fields = model.getArrayFields().filter(field => field.hasGQLScope('c', 'u', 'd') && field.isSpliceable());
@@ -279,8 +212,6 @@ exports.makeCreateAPI = (name, model, parent) => {
     gql += `create${name}(input: ${model.getName()}InputCreate! ${meta}): ${model.getName()}!`;
   }
 
-  gql += makeEmbeddedAPI(model, 'create', parent);
-
   return gql;
 };
 
@@ -303,8 +234,6 @@ exports.makeReadAPI = (name, model, parent) => {
     `;
   }
 
-  gql += makeEmbeddedAPI(model, 'read', parent);
-
   return gql;
 };
 
@@ -325,8 +254,6 @@ exports.makeUpdateAPI = (name, model, parent) => {
     `;
   }
 
-  gql += makeEmbeddedAPI(model, 'update', parent);
-
   return gql;
 };
 
@@ -337,8 +264,6 @@ exports.makeDeleteAPI = (name, model, parent) => {
     const meta = model.getMeta() ? `meta: ${model.getMeta()}` : '';
     gql += `delete${name}(id: ID! ${meta}): ${model.getName()}!`;
   }
-
-  gql += makeEmbeddedAPI(model, 'delete', parent);
 
   return gql;
 };
@@ -366,7 +291,7 @@ exports.makeQueryResolver = (name, model, resolver, embeds = []) => {
     obj[`find${name}`] = resolveQuery('find', name, resolver, model, embeds);
   }
 
-  return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'query', embeds));
+  return obj;
 };
 
 exports.makeMutationResolver = (name, model, resolver, embeds = []) => {
@@ -377,5 +302,5 @@ exports.makeMutationResolver = (name, model, resolver, embeds = []) => {
   if ((!field || field.hasFieldScope('u')) && model.hasGQLScope('u')) obj[`update${name}`] = resolveQuery('update', name, resolver, model, embeds);
   if ((!field || field.hasFieldScope('d')) && model.hasGQLScope('d')) obj[`delete${name}`] = resolveQuery('delete', name, resolver, model, embeds);
 
-  return Object.assign(obj, makeEmbeddedResolver(model, resolver, 'mutation', embeds));
+  return obj;
 };

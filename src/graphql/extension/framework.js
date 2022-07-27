@@ -40,7 +40,6 @@ module.exports = (schema) => {
         fieldScope: AutoGraphMixed # Dictate how a FIELD may use me
         persist: Boolean # Persist this field (default true)
         default: AutoGraphMixed # Define a default value
-        embedApi: Boolean # Should we also create an embedded API from this (default false)
         connection: Boolean # Treat this field as a connection type (default false - rolling this out slowly)
 
         noRepeat: Boolean

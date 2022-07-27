@@ -209,13 +209,6 @@ module.exports = class Node {
   }
 
   /**
-   * Is this API embedded in another document
-   */
-  isEmbeddedApi() {
-    return this.isEmbedded() && Boolean(this.getDirectiveArg('field', 'embedApi'));
-  }
-
-  /**
    * Can the field be changed after it's set
    */
   isImmutable() {

@@ -1,6 +1,6 @@
 const Query = require('./Query');
 const QueryResolver = require('./QueryResolver');
-const { unravelObject } = require('../service/app.service');
+const { toKeyObj, unravelObject } = require('../service/app.service');
 
 /*
 * QueryBuilder
@@ -14,7 +14,8 @@ module.exports = class QueryBuilder {
 
     // Chainable commands
     this.id = (id) => { this.query.id(id); return this; };
-    this.select = (select) => { this.query.select(select); return this; };
+    // this.select = (select) => { this.query.select(select); return this; };
+    this.select = (select) => { this.query.select(Object.entries(toKeyObj(select)).reduce((prev, [key, value]) => Object.assign(prev, { [key.replace(/edges.node./g, '')]: !!value }), {})); return this; };
     this.where = (where) => { this.query.where(where); return this; };
     this.match = (match) => { this.query.match(match); return this; };
     this.native = (native) => { this.query.native(native); return this; };
