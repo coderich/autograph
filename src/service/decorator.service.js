@@ -1,175 +1,22 @@
-const { get, set, remove, merge } = require('lodash');
 const GraphqlFields = require('graphql-fields');
-const Boom = require('../core/Boom');
-const Query = require('../query/Query');
-const { createSystemEvent } = require('./event.service');
-const { guidToId, unrollGuid, ucFirst, getDeep, ensureArray, objectContaining } = require('./app.service');
 
-const findParentField = (name, embed, model) => {
-  const schema = model.getSchema();
-  const fieldName = ucFirst(embed.isArray() ? embed.getName().replace(/s$/, '') : embed.getName());
-  const parentModelName = name.substr(0, name.lastIndexOf(fieldName));
-  const parentModel = schema.getModel(parentModelName);
-  const field = model.getFields().find(f => f.getType() === parentModelName) || parentModel.getFields().find(f => f.getType() === model.getName());
-  if (!field) throw Boom.badData(`Unable to locate parent field: '${model.getName()} -> ${parentModelName}'`);
-  return field;
-};
-
-const findParentAndContainerCreate = (name, doc, input, model, embeds) => {
-  let parent = doc;
-
-  const container = embeds.reduce((prev, embed, i) => {
-    // If further nested; must find the correct container
-    if (i > 0) {
-      const subField = findParentField(name, embed, model);
-      prev = prev.find(el => `${el.id}` === `${input[subField]}`);
-    }
-
-    parent = prev;
-    return getDeep(prev, embed.getName());
-  }, doc);
-
-  return { parent, container };
-};
-
-const findParentAndContainerUpdate = (fieldPath, doc, id, embeds) => {
-  const data = embeds.map((embed, i, arr) => getDeep(doc, arr.slice(0, i + 1).join('.')));
-  const [tail, prev = tail, head = prev] = [data[0], data[data.length - 2], data[data.length - 1]];
-  const container = head.find(el => `${id}` === `${el.id}`);
-  const parent = head === prev ? doc : prev.find(p => p[fieldPath.split('.').pop()].find(el => `${id}` === `${el.id}`));
-  return { tail, parent, container };
-};
-
-const resolveQuery = (method, name, resolver, model, embeds = []) => {
-  const [base] = embeds;
-  const curr = embeds[embeds.length - 1];
-  const fieldPath = embeds.map(field => field.getName()).join('.');
-
+const resolveQuery = (method, name, resolver, model) => {
   return async (root, args, context, info) => {
-    const { autograph } = context;
-
-    // Embedded document handler
-    if (fieldPath.length) {
-      switch (method) {
-        case 'get': {
-          // Readjust the where clause
-          const where = get(args, 'where', {});
-          set(where, `${fieldPath}.id`, args.id);
-          set(args, 'where', where);
-
-          return resolver.query(context, base.getModel(), args, info).then(([result]) => {
-            const arr = ensureArray(getDeep(result, fieldPath, []));
-            return arr.find(el => `${el.id}` === `${args.id}`);
-          });
-        }
-        case 'find': {
-          // Readjust the where clause
-          const where = get(args, 'where', {});
-          const $where = set({}, `${fieldPath}`, where);
-          set(args, 'where', $where);
-
-          return resolver.query(context, base.getModel(), args, info).then((results) => {
-            const arr = results.map(result => ensureArray(getDeep(result, fieldPath, []))).flat();
-            return arr.filter(el => objectContaining(el, where));
-          });
-        }
-        case 'count': {
-          // Readjust the where clause
-          const where = get(args, 'where', {});
-          const $where = set({}, `${fieldPath}`, where);
-          set(args, 'where', $where);
-
-          return resolver.query(context, base.getModel(), args, info).then((results) => {
-            const arr = results.map(result => ensureArray(getDeep(result, fieldPath, []))).flat();
-            return arr.filter(el => objectContaining(el, where)).length;
-          });
-        }
-        case 'create': {
-          const field = findParentField(name, curr, model);
-          const path = fieldPath.split('.').slice(0, -1).concat('id').join('.');
-          const input = unrollGuid(autograph, model, args.input);
-          const meta = args.meta || {};
-          const id = guidToId(autograph, get(input, field.getName()));
-
-          // Get overall document
-          const where = { [path]: id };
-          const doc = await autograph.resolver.match(base.getModel()).where(where).one();
-          if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
-
-          // Get parent and container within document
-          const query = new Query({ resolver: autograph.resolver, model, input, where, meta, root: doc });
-          const { container } = findParentAndContainerCreate(name, doc, input, model, embeds);
-          model.appendDefaultFields(query, input);
-
-          return createSystemEvent('Mutation', { method: 'create', query }, async () => {
-            let $$input = ensureArray(input.$input || input);
-            $$input = await Promise.all($$input.map(el => model.appendCreateFields(el, true)));
-            container.push(...$$input);
-            const $update = { [base.getName()]: get(doc, base.getName()) };
-            return autograph.resolver.match(base.getModel()).id(doc.id).flags({ novalidate: true }).save($update).then(($doc) => {
-              return getDeep(doc, fieldPath).pop();
-            });
-          });
-        }
-        case 'update': {
-          // Get overall document
-          const id = guidToId(autograph, args.id);
-          const where = { [`${fieldPath}.id`]: id };
-          const meta = args.meta || {};
-          const input = unrollGuid(autograph, model, args.input || {});
-          const doc = await autograph.resolver.match(base.getModel()).where(where).one();
-          if (!doc) throw Boom.notFound(`${base.getModel().getName()} Not Found`);
-
-          // Get parent and container within document
-          const query = new Query({ resolver: autograph.resolver, model, input, where, meta, root: doc });
-          const { tail, container } = findParentAndContainerUpdate(fieldPath, doc, id, embeds);
-
-          return createSystemEvent('Mutation', { method: 'update', query }, async () => {
-            const $input = await model.appendUpdateFields(input);
-            merge(container, $input); // Must mutate object here
-            const $update = { [base.getName()]: tail };
-            doc[base.getName()] = tail; // Deficiency in how update works; must pass entire doc
-            return autograph.resolver.match(base.getModel()).id(doc.id).flags({ novalidate: true }).save($update).then(() => container);
-          });
-        }
-        case 'delete': {
-          const id = guidToId(autograph, args.id);
-          const where = { [`${fieldPath}.id`]: id };
-          const meta = args.meta || {};
-          const doc = await autograph.resolver.match(base.getModel()).where(where).one();
-          if (!doc) throw Boom.notFound(`${base.getModel()} Not Found`);
-
-          // Get parent and container within document
-          const query = new Query({ resolver: autograph.resolver, model, where, meta, root: doc });
-          const { tail, parent, container } = findParentAndContainerUpdate(fieldPath, doc, id, embeds);
-
-          return createSystemEvent('Mutation', { method: 'delete', query }, () => {
-            const key = fieldPath.split('.').pop();
-            remove(parent[key], el => `${el.id}` === `${id}`);
-            const $update = { [base.getName()]: tail };
-            doc[base.getName()] = tail; // Deficiency in how update works; must pass entire doc
-            return autograph.resolver.match(base.getModel()).id(doc.id).flags({ novalidate: true }).save($update).then(() => container);
-          });
-        }
-        default: {
-          return null;
-        }
-      }
-    }
+    const queryInfo = { fields: GraphqlFields(info, {}, { processArguments: true }) };
 
     switch (method) {
-      case 'get': return resolver.get(context, model, args, true, info);
+      case 'get': return resolver.get(context, model, args, true, queryInfo);
       case 'find': {
         return {
-          edges: () => resolver.query(context, model, args, info),
-          pageInfo: () => resolver.query(context, model, args, info),
-          count: () => resolver.count(context, model, args, info),
+          edges: () => resolver.query(context, model, args, queryInfo),
+          pageInfo: () => resolver.query(context, model, args, queryInfo),
+          count: () => resolver.count(context, model, args, queryInfo),
         };
       }
-      case 'count': return resolver.count(context, model, args, info);
-      case 'create': return resolver.create(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
-      case 'update': return resolver.update(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
-      case 'delete': return resolver.delete(context, model, args, { fields: GraphqlFields(info, {}, { processArguments: true }) });
+      case 'count': return resolver.count(context, model, args, queryInfo);
+      case 'create': return resolver.create(context, model, args, queryInfo);
+      case 'update': return resolver.update(context, model, args, queryInfo);
+      case 'delete': return resolver.delete(context, model, args, queryInfo);
       default: return null;
     }
   };
@@ -214,14 +61,7 @@ exports.makeUpdateAPI = (name, model, parent) => {
 
   if (model.hasGQLScope('u')) {
     const meta = model.getMeta() ? `meta: ${model.getMeta()}` : '';
-
-    gql += `
-      update${name}(
-        id: ID!
-        input: ${model.getName()}InputUpdate
-        ${meta}
-      ): ${model.getName()}!
-    `;
+    gql += `update${name}(id: ID! input: ${model.getName()}InputUpdate ${meta}): ${model.getName()}!`;
   }
 
   return gql;
@@ -252,25 +92,23 @@ exports.makeSubscriptionAPI = (name, model, parent) => {
 };
 
 // Resolvers
-exports.makeQueryResolver = (name, model, resolver, embeds = []) => {
+exports.makeQueryResolver = (name, model, resolver) => {
   const obj = {};
-  const [field] = embeds.slice(-1);
 
-  if ((!field || field.hasFieldScope('r')) && model.hasGQLScope('r')) {
-    obj[`get${name}`] = resolveQuery('get', name, resolver, model, embeds);
-    obj[`find${name}`] = resolveQuery('find', name, resolver, model, embeds);
+  if (model.hasGQLScope('r')) {
+    obj[`get${name}`] = resolveQuery('get', name, resolver, model);
+    obj[`find${name}`] = resolveQuery('find', name, resolver, model);
   }
 
   return obj;
 };
 
-exports.makeMutationResolver = (name, model, resolver, embeds = []) => {
+exports.makeMutationResolver = (name, model, resolver) => {
   const obj = {};
-  const [field] = embeds.slice(-1);
 
-  if ((!field || field.hasFieldScope('c')) && model.hasGQLScope('c')) obj[`create${name}`] = resolveQuery('create', name, resolver, model, embeds);
-  if ((!field || field.hasFieldScope('u')) && model.hasGQLScope('u')) obj[`update${name}`] = resolveQuery('update', name, resolver, model, embeds);
-  if ((!field || field.hasFieldScope('d')) && model.hasGQLScope('d')) obj[`delete${name}`] = resolveQuery('delete', name, resolver, model, embeds);
+  if (model.hasGQLScope('c')) obj[`create${name}`] = resolveQuery('create', name, resolver, model);
+  if (model.hasGQLScope('u')) obj[`update${name}`] = resolveQuery('update', name, resolver, model);
+  if (model.hasGQLScope('d')) obj[`delete${name}`] = resolveQuery('delete', name, resolver, model);
 
   return obj;
 };
