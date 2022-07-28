@@ -1,7 +1,7 @@
 const { get } = require('lodash');
 const { Kind, parse, print } = require('graphql');
 const { validate } = require('graphql/validation');
-const { makeExecutableSchema } = require('graphql-tools');
+const { makeExecutableSchema } = require('@graphql-tools/schema');
 
 //
 const mergePairs = [

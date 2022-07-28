@@ -23,7 +23,7 @@
   },
   "scripts": {
     "start": "APP_ROOT_PATH=$(pwd) node ./test/server",
-    "test": "APP_ROOT_PATH=$(pwd) ratchet test --logHeapUsage",
+    "test": "APP_ROOT_PATH=$(pwd) ratchet test --forceExit",
     "test:debug": "APP_ROOT_PATH=$(pwd) node --inspect-brk ./node_modules/jest/bin/jest.js --watch --runInBand --logHeapUsage",
     "lint": "APP_ROOT_PATH=$(pwd) ratchet lint",
     "inspect": "APP_ROOT_PATH=$(pwd) node --expose-gc --inspect=9222 ./src/server",
@@ -38,7 +38,6 @@
     "fill-range": "^7.0.1",
     "glob": "^7.1.6",
     "graphql-fields": "^2.0.3",
-    "graphql-tools": "^7.0.5",
     "lodash": "^4.17.21",
     "mongodb": "^4.8.0",
     "object-hash": "^2.0.1",
@@ -47,7 +46,7 @@
     "validator": "^12.2.0"
   },
   "devDependencies": {
-    "@coderich/ratchet": "^1.5.4",
+    "@coderich/ratchet": "^1.5.7",
     "graphql": "^15.5.0",
     "mongodb-memory-server": "^8.7.2",
     "neo4j-driver": "^4.0.0",

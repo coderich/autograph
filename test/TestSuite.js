@@ -711,7 +711,7 @@ module.exports = (driver = 'mongo', options = {}) => {
           await expect(txn1.exec()).rejects.toThrow();
         });
 
-        test('single-txn (read & write)', async (done) => {
+        test('single-txn (read & write)', async () => {
           const txn = resolver.transaction();
           txn.match('Person').save({ name: 'write1', emailAddress: 'write1@gmail.com' });
           txn.match('Person').id(richard.id).one();
@@ -720,31 +720,31 @@ module.exports = (driver = 'mongo', options = {}) => {
           expect(person1.name).toBe('Write1');
           expect(richie.name).toBe('Richard');
           expect(person2.name).toBe('Write2');
-          txn.rollback().then(() => done());
+          await txn.rollback();
         });
       });
 
       describe('Transactions (manual-with-auto)', () => {
-        test('multi-txn (duplicate key with rollback)', async (done) => {
+        test('multi-txn (duplicate key with rollback)', async () => {
           const txn1 = resolver.transaction();
           const txn2 = resolver.transaction();
           txn1.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
           txn2.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
 
-          txn1.exec().then((results) => {
+          await txn1.exec().then((results) => {
             const [[person1, person2]] = results;
             expect(person1.name).toBe('Person10');
             expect(person2.name).toBe('Person11');
-            txn1.rollback();
+            return txn1.rollback();
           });
 
           await timeout(100);
 
-          txn2.exec().then(async (results) => {
+          await txn2.exec().then((results) => {
             const [[person1, person2]] = results;
             expect(person1.name).toBe('Person10');
             expect(person2.name).toBe('Person11');
-            txn2.rollback().then(() => done());
+            return txn2.rollback();
           });
         });
 

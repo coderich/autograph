@@ -47,19 +47,14 @@ module.exports = (schema) => {
         input ${model.getName()}InputSort {
           ${getGQLWhereFields(model).map(field => `${field.getName()}: ${field.getModelRef() ? `${ucFirst(field.getDataRef())}InputSort` : 'SortOrderEnum'}`)}
         }
-      `),
-
-      ...readModels.map(model => `
         extend ${interfaceKinds.indexOf(model.getKind()) > -1 ? 'interface' : 'type'} ${model.getName()} {
           ${model.getFields().filter(field => field.hasGQLScope('r')).map(field => `${field.getName()}${field.getExtendArgs()}: ${field.getPayloadType()}`)}
         }
-
         type ${model.getName()}Connection {
           pageInfo: PageInfo!
           edges: [${model.getName()}Edge]
           count: Int!
         }
-
         type ${model.getName()}Edge {
           node: ${model.getName()}
           cursor: String!

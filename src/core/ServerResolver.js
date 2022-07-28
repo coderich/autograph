@@ -2,7 +2,7 @@ const { unrollGuid, guidToId } = require('../service/app.service');
 
 module.exports = class ServerResolver {
   constructor() {
-    // Query
+    // Queries
     this.get = ({ autograph }, model, { id: guid }, required = false, query) => autograph.resolver.match(model).id(guidToId(autograph, guid)).select(query.fields).one({ required });
     this.query = ({ autograph }, model, args, query) => autograph.resolver.match(model).select(query.fields).merge(args).many();
     this.count = ({ autograph }, model, args, query) => autograph.resolver.match(model).merge(args).count();

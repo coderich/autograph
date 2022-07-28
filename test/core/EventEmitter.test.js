@@ -2,7 +2,7 @@ const EventEmitter = require('../../src/core/EventEmitter');
 const { timeout } = require('../../src/service/app.service');
 
 describe('EventEmitter', () => {
-  test('Async all calls made', async (done) => {
+  test('Async all calls made', async () => {
     const em = new EventEmitter();
 
     const cb1 = jest.fn(async (data, next) => {
@@ -21,6 +21,5 @@ describe('EventEmitter', () => {
     await em.emit('hello', 'world');
     expect(cb1).toHaveBeenCalledTimes(2);
     expect(cb2).toHaveBeenCalledTimes(1);
-    done();
   });
 });

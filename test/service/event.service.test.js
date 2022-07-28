@@ -13,7 +13,7 @@ describe('EventService', () => {
     query = new Query({ model, resolver });
   });
 
-  test('createSystemEvent', async (done) => {
+  test('createSystemEvent', async () => {
     const cb1 = jest.fn(async (data, next) => {
       await timeout(500);
       next();
@@ -27,10 +27,9 @@ describe('EventService', () => {
     await createSystemEvent('test', { query });
     expect(cb1).toHaveBeenCalledTimes(2);
     expect(cb2).toHaveBeenCalledTimes(1);
-    done();
   });
 
-  test('createSystemEvent order of events', async (done) => {
+  test('createSystemEvent order of events', (done) => {
     let count = 0;
 
     eventEmitter.on('preMutation', () => {

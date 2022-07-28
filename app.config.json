@@ -1,6 +1,7 @@
 {
   "lib": {
     "jest": {
+      "testTimeout": 30000,
       "setupFilesAfterEnv": ["<rootDir>/test/jest.env.js"]
     }
   }
