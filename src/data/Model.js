@@ -172,4 +172,14 @@ module.exports = class extends Model {
       })));
     }));
   }
+
+  tform(query, data) {
+    return map(data, (doc) => {
+      return Object.keys(doc).map(k => this.getField(k)).filter(Boolean).reduce((prev, curr) => {
+        const key = curr.getName();
+        const value = doc[key];
+        return Object.assign(prev, { [key]: curr.tform(query, value) });
+      }, {});
+    });
+  }
 };
