@@ -24,8 +24,7 @@ module.exports = class ResultSetItem {
           if ($value != null && field.isEmbedded()) {
             const newModel = field.getModelRef();
             const newQuery = query.model(newModel);
-            const newFields = newModel.getFields().filter(f => f.getName() !== 'id');
-            $value = new ResultSet(newQuery, map($value, v => new ResultSetItem(newQuery, v, newFields)), false);
+            $value = new ResultSet(newQuery, map($value, v => new ResultSetItem(newQuery, v)), false);
           }
           cache.set(name, $value);
           return $value;
@@ -149,6 +148,17 @@ module.exports = class ResultSetItem {
       $$delete: {
         get() { return () => resolver.match(model).id(this.id).delete(); },
         enumerable: false,
+      },
+      toObject: {
+        get() {
+          return () => map(this, obj => Object.entries(obj).reduce((prev, [key, value]) => {
+            if (value === undefined) return prev;
+            prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
+            return prev;
+          }, {}));
+        },
+        enumerable: false,
+        configurable: true,
       },
     });
 

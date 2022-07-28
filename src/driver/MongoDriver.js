@@ -1,3 +1,4 @@
+const Util = require('util');
 const { get, has } = require('lodash');
 const { MongoClient, ObjectID } = require('mongodb');
 const { proxyDeep, toKeyObj, globToRegex, proxyPromise, isScalarDataType, promiseRetry } = require('../service/app.service');
@@ -24,7 +25,7 @@ module.exports = class MongoDriver {
   }
 
   query(collection, method, ...args) {
-    if (has(args[args.length - 1], 'debug')) console.log(collection, method, JSON.stringify(args, null, 2));
+    if (has(args[args.length - 1], 'debug')) console.log(collection, method, Util.inspect(args, { depth: null, showHidden: false, colors: true }));
     if (method === 'aggregate') args.splice(2);
     return this.raw(collection)[method](...args);
   }
@@ -220,6 +221,7 @@ module.exports = class MongoDriver {
       $aggregate.push({ $project });
     }
 
+    // console.log(Util.inspect($aggregate, { depth: null, showHidden: false, colors: true }));
     return $aggregate;
   }
 };

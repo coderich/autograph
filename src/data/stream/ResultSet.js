@@ -1,6 +1,6 @@
 const { get } = require('lodash');
 const DataService = require('../DataService');
-const { ensureArray } = require('../../service/app.service');
+const { map, ensureArray } = require('../../service/app.service');
 
 module.exports = class ResultSet {
   constructor(query, data, adjustForPagination = true) {
@@ -28,6 +28,17 @@ module.exports = class ResultSet {
       $$isResultSet: {
         value: true,
         enumerable: false,
+      },
+      toObject: {
+        get() {
+          return () => map(this, doc => Object.entries(doc).reduce((prev, [key, value]) => {
+            if (value === undefined) return prev;
+            prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
+            return prev;
+          }, {}));
+        },
+        enumerable: false,
+        configurable: true,
       },
     });
   }

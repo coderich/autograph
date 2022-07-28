@@ -1,7 +1,6 @@
-const { get } = require('lodash');
 const Stream = require('stream');
 const ResultSet = require('./ResultSet');
-const ResultSetItem = require('./ResultSetItemProxy');
+const ResultSetItem = require('./ResultSetItem');
 const { promiseChain, mapPromise, toKeyObj } = require('../../service/app.service');
 
 module.exports = class DataHydrator {
@@ -12,17 +11,17 @@ module.exports = class DataHydrator {
   }
 
   static stream(query, stream, select) {
-    const promises = [];
+    const results = [];
 
     return new Promise((resolve, reject) => {
       stream.on('data', (data) => {
-        promises.push(DataHydrator.hydrate(query, data, select));
+        results.push(DataHydrator.hydrate(query, data, select));
       });
 
       stream.on('error', reject);
 
       stream.on('end', () => {
-        Promise.all(promises).then(results => resolve(new ResultSet(query, results)));
+        resolve(new ResultSet(query, results));
       });
     });
   }
@@ -32,27 +31,28 @@ module.exports = class DataHydrator {
   }
 
   static hydrate(query, data, select) {
+    const item = new ResultSetItem(query, data);
+
+    // Async (behind the scenes) hydration
+    // Promise.resolve().then(() => {
     const loopArray = Array.from(new Array(Math.max(0, ...Object.keys(select).map(key => key.split('.').length))));
 
-    return new Promise((resolve, reject) => {
-      const item = new ResultSetItem(query, data);
+    Object.keys(select).forEach((path) => {
+      const arrPath = path.split('.');
 
-      return Promise.all(Object.keys(select).map((path) => {
-        const arrPath = path.split('.');
+      loopArray.forEach((el, depth) => {
+        const arr = arrPath.slice(0, depth);
+        const $arr = arr.map(ele => `$${ele}`);
+        const key = arr[depth];
 
-        return Promise.all(loopArray.map((el, depth) => {
-          const arr = arrPath.slice(0, depth);
-          const $arr = arr.map(ele => `$${ele}`);
-          const key = arr[depth];
-
-          // id has special handling
-          if (!key || key === 'id') return Promise.resolve();
-
-          // Resolve all other attributes
-          get(item, arr.join('.'));
-          return promiseChain($arr.map($prop => chain => (chain.pop() || item)[$prop]()));
-        }));
-      })).then(() => resolve(item)).catch(e => reject(e));
+        // id has special handling
+        if (key && key !== 'id') {
+          promiseChain($arr.map($prop => chain => (chain.pop() || item)[$prop]()));
+        }
+      });
     });
+    // });
+
+    return item;
   }
 };
