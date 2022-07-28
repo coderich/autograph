@@ -22,8 +22,6 @@ Next Release:
     - Maybe something like .force()...
   * .archive() would be useful to softDelete yet still emit delete event
   * Rearchitect GraphQL AST manipulations
-  * Rearchitect nested subsplice disaster
-    - Can this be solved via the new update array api?
 
   -------------
 
@@ -36,8 +34,6 @@ Bugs:
       DataPackage.networkId: ID # Legacy attribute so it's still needed
 
 Performance:
-  * Select as alias/key can be done at the driver level (not require transformation during hydration)
-    - This is not so easy when it comes to embedded objects (mongo does not support it)
   * Verify that Transformer + Rules are only being called when needed
 
 Next:
