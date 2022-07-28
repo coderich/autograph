@@ -3,6 +3,7 @@
 ## v0.10.x
 - Removed model.tform() method
 - Removed embedApi directive and embedded API GQL
+- Hydrating fields apriori
 
 ## v0.9.x
 - Subscriptions API
