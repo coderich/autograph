@@ -1,3 +1,4 @@
+const { isEmpty } = require('lodash');
 const Model = require('../data/Model');
 const Query = require('../query/Query');
 const ResultSet = require('../data/ResultSet');
@@ -89,7 +90,7 @@ module.exports = class Resolver {
         // This is needed in SF tests...
         const key = model.idKey();
         const { where, method } = query.toDriver();
-        if (Object.prototype.hasOwnProperty.call(where, key) && where[key] == null) return Promise.resolve(method === 'findMany' ? [] : null);
+        if (Object.prototype.hasOwnProperty.call(where, key) && isEmpty(where[key])) return Promise.resolve(method === 'findMany' ? [] : null);
 
         //
         return this.loaders.get(`${model}`).load(query);
