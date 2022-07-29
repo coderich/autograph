@@ -148,15 +148,15 @@ module.exports = class MongoDriver {
   }
 
   static getAddFields(query) {
-    const { schema, where } = query;
+    const { shape, where } = query;
 
-    return Object.entries(schema).reduce((prev, [key, { type }]) => {
-      const value = where[key];
+    return shape.reduce((prev, { from, type }) => {
+      const value = where[from];
       if (value === undefined) return prev;
       if (!isScalarDataType(type)) return prev;
       const stype = String((type === 'Float' || type === 'Int' ? 'Number' : type)).toLowerCase();
       if (String(typeof value) === `${stype}`) return prev;
-      return Object.assign(prev, { [key]: { $toString: `$${key}` } });
+      return Object.assign(prev, { [from]: { $toString: `$${from}` } });
     }, {});
   }
 

@@ -160,4 +160,24 @@ module.exports = class extends Model {
       }, {});
     });
   }
+
+  getShape(serdes = 'deserialize', recursive = true) {
+    return this.getSelectFields().map((field) => {
+      const [from, to] = serdes === 'serialize' ? [field.getName(), field.getKey()] : [field.getKey(), field.getName()];
+      const shape = recursive && field.isEmbedded() ? field.getModelRef().getShape(serdes, recursive) : null;
+      return { from, to, type: field.getDataType(), isArray: field.isArray(), shape };
+    });
+  }
+
+  shape(data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); }), shape) {
+    shape = shape || this.getShape(serdes);
+
+    return map(data, (doc) => {
+      return shape.reduce((prev, { from, to, shape: subShape }) => {
+        const value = doc[from];
+        if (value === undefined) return prev;
+        return Object.assign(prev, { [to]: subShape ? this.shape(value, serdes, subShape) : value });
+      }, {});
+    });
+  }
 };
