@@ -90,7 +90,7 @@ exports.map = (mixed, fn) => {
   if (mixed == null) return mixed;
   const isArray = Array.isArray(mixed);
   const arr = isArray ? mixed : [mixed];
-  const results = arr.map(el => fn(el));
+  const results = arr.map((...args) => fn(...args));
   return isArray ? results : results[0];
 };
 
