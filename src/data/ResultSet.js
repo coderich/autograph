@@ -20,8 +20,9 @@ module.exports = class ResultSet {
         const $name = `$${name}`;
         const value = doc[key];
 
-        // Field attributes
+        // Deserialized field attributes
         prev[name] = {
+          // value,
           get() {
             if (cache.has(name)) return cache.get(name);
             let $value = field.deserialize(query, value);
@@ -36,8 +37,9 @@ module.exports = class ResultSet {
           configurable: true, // Allows things like delete
         };
 
-        // Hydrated field attributes
-        prev[`$${name}`] = {
+        // Fully deserialized, hydrated, and resolved field attributes
+        prev[$name] = {
+          // value: () => value,
           get() {
             return (args = {}) => {
               // Ensure where clause
@@ -90,7 +92,7 @@ module.exports = class ResultSet {
         };
 
         // Field count (let's assume it's a Connection Type - meaning dont try with anything else)
-        prev[`$${name}:count`] = {
+        prev[`${$name}:count`] = {
           get() {
             return (q = {}) => {
               q.where = q.where || {};
