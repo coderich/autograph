@@ -5,11 +5,12 @@ const { ucFirst } = require('../../src/service/app.service');
 
 let query;
 
-const data = Array.from(new Array(2000)).map((el, i) => ({
+const data = Array.from(new Array(6000)).map((el, i) => ({
   my_age: `my_age${i}`,
   name: `name${i}`,
   state: `state${i}`,
   telephone: `telephone${i}`,
+  artwork: [{ name: 'art1', sections: [{ name: 'section1' }] }, { name: 'art2', sections: [{ name: 'section2' }] }, { name: 'art3', sections: [{ name: 'section3' }] }],
 }));
 
 describe('ResultSet', () => {
@@ -24,13 +25,13 @@ describe('ResultSet', () => {
 
   test('speed test', () => {
     let start = new Date().getTime();
-    const t1 = data.map(({ my_age: age, name, state, telephone }) => ({ age, name: ucFirst(name), state, telephone }));
+    const t1 = data.map(({ my_age: age, name, state, telephone, artwork }) => ({ age, name: ucFirst(name), state, telephone, artwork }));
     let stop = new Date().getTime();
     console.log(stop - start);
 
     start = new Date().getTime();
     const RS = new ResultSet(query, data);
-    const t2 = RS.map(({ age, name, status, telephone }) => ({ age, name, state: status, telephone }));
+    const t2 = RS.map(({ age, name, status, telephone, artwork }) => ({ age, name, state: status, telephone, artwork }));
     stop = new Date().getTime();
     console.log(stop - start);
     expect(t1).toMatchObject(t2);
@@ -58,7 +59,7 @@ describe('ResultSet', () => {
     expect((await resolver.match('Person').id(doc1.id).one()).name).toBe('Newname1');
 
     // Update via a query
-    const doc3 = await resolver.match('Person').id(doc1).one();
+    const doc3 = await resolver.match('Person').id(doc1.id).one();
     expect((await doc3.$$save({ name: 'newname2' })).name).toBe('Newname2');
     expect((await resolver.match('Person').id(doc3.id).one()).name).toBe('Newname2');
 

@@ -30,6 +30,7 @@ module.exports = {
       telephone: String @field(default: "###-###-####")
       network: String @value(scope: context, path: "network.id")
       manipulate: String @field(resolve: slowRoll)
+      artwork: [Art!]
     }
 
     type Book
