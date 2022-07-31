@@ -5,6 +5,7 @@ const { map, ensureArray, keyPaths, mapPromise, toGUID, hashObject } = require('
 module.exports = class ResultSet {
   constructor(query, data, adjustForPagination = true) {
     if (data == null) return data;
+
     const { resolver, model, sort, first, after, last, before } = query.toObject();
     const fields = model.getFields().filter(f => f.getName() !== 'id');
 

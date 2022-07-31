@@ -2,7 +2,7 @@ const { get } = require('lodash');
 const DataService = require('./DataService');
 const { map, ensureArray, keyPaths, mapPromise, toGUID, hashObject } = require('../service/app.service');
 
-const modelCache = new Map();
+const modelCache = new WeakMap();
 
 module.exports = class ResultSet {
   constructor(query, data, adjustForPagination = true) {
@@ -10,14 +10,9 @@ module.exports = class ResultSet {
 
     const { resolver, model, sort, first, after, last, before } = query.toObject();
 
-    if (!modelCache.has(`${model}`)) {
-      const fields = model.getFields().filter(f => f.getName() !== 'id');
-      const fieldDefs = fields.map(field => ({ field, key: field.getKey(), name: field.getName() }));
-      const template = ResultSet.makeModelTemplate(model, fieldDefs);
-      modelCache.set(`${model}`, { template, fieldDefs });
-    }
+    ResultSet.ensureModelCache(model);
 
-    const { template, fieldDefs } = modelCache.get(`${model}`);
+    const { template, fieldDefs } = modelCache.get(model);
 
     const rs = map(data, (doc) => {
       if (doc == null || typeof doc !== 'object') return doc;
@@ -31,25 +26,25 @@ module.exports = class ResultSet {
             query,
             sort,
           },
+          enumerable: false,
         },
       });
 
-      const obj = new Proxy(instance, {
+      return new Proxy(instance, {
         ownKeys(target) {
           return Reflect.ownKeys(target).concat('id', fieldDefs.map(d => d.name));
         },
         getOwnPropertyDescriptor(target, prop) {
-          if (prop === 'id' || fieldDefs.find(el => el.name === prop)) {
-            return {
-              enumerable: true,
-              configurable: true,
-            };
-          }
-          return Reflect.getOwnPropertyDescriptor(target, prop);
+          return (prop === 'id' || fieldDefs.find(el => el.name === prop)) ? { enumerable: true, configurable: true } : Reflect.getOwnPropertyDescriptor(target, prop);
+        },
+        getPrototypeOf() {
+          return { $$services: instance.$$services };
+        },
+        deleteProperty(target, prop) {
+          const { key = prop } = fieldDefs.find(d => d.name === prop);
+          delete instance.$$services.data[key];
         },
       });
-
-      return obj;
     });
 
     let hasNextPage = false;
@@ -75,18 +70,48 @@ module.exports = class ResultSet {
         enumerable: false,
       },
       toObject: {
-        value: () => map(rs, el => el.toObject()),
+        get() {
+          // return () => map(rs, el => el.toObject());
+          return () => map(this, doc => Object.entries(doc).reduce((prev, [key, value]) => {
+            if (value === undefined) return prev;
+            prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
+            return prev;
+          }, {}));
+        },
         enumerable: false,
         configurable: true,
       },
     });
   }
 
-  static makeModelTemplate(model, fieldDefs) {
-    const obj = {};
+  static ensureModelCache(model) {
+    if (!modelCache.has(model)) {
+      const fields = model.getFields().filter(f => f.getName() !== 'id');
 
+      const fieldDefs = fields.map(field => ({
+        field,
+        key: field.getKey(),
+        name: field.getName(),
+        isArray: field.isArray(),
+        isScalar: field.isScalar(),
+        isVirtual: field.isVirtual(),
+        isRequired: field.isRequired(),
+        isEmbedded: field.isEmbedded(),
+        modelRef: field.getModelRef(),
+        virtualField: field.getVirtualField(),
+        // deserialize: field.deserialize.bind(field),
+        // fieldResolve: field.resolve.bind(field),
+      }));
+
+      const template = ResultSet.makeModelTemplate(model, fieldDefs);
+
+      modelCache.set(model, { template, fieldDefs });
+    }
+  }
+
+  static makeModelTemplate(model, fieldDefs) {
     const definition = fieldDefs.reduce((prev, fieldDef) => {
-      const { field, key, name } = fieldDef;
+      const { field, key, name, isArray, isScalar, isVirtual, isRequired, isEmbedded, modelRef, virtualField } = fieldDef;
       const $name = `$${name}`;
 
       // Deserialized field attributes
@@ -94,7 +119,9 @@ module.exports = class ResultSet {
         get() {
           if (this.$$services.cache.has(name)) return this.$$services.cache.get(name);
           let $value = field.deserialize(this.$$services.query, this.$$services.data[key]);
-          $value = $value != null && field.isEmbedded() ? new ResultSet(this.$$services.query.model(field.getModelRef()), $value, false) : $value;
+          if ($value != null && isEmbedded) {
+            $value = new ResultSet(this.$$services.query.model(modelRef), $value, false);
+          }
           this.$$services.cache.set(name, $value);
           return $value;
         },
@@ -120,13 +147,11 @@ module.exports = class ResultSet {
               (() => {
                 const $value = this[name];
 
-                if (field.isScalar() || field.isEmbedded()) return Promise.resolve($value);
+                if (isScalar || isEmbedded) return Promise.resolve($value);
 
-                const modelRef = field.getModelRef();
-
-                if (field.isArray()) {
-                  if (field.isVirtual()) {
-                    args.where[[field.getVirtualField()]] = this.id; // Is where[[field.getVirtualField()]] correct?
+                if (isArray) {
+                  if (isVirtual) {
+                    args.where[[virtualField]] = this.id; // Is where[[virtualField]] correct?
                     return this.$$services.resolver.match(modelRef).merge(args).many();
                   }
 
@@ -135,12 +160,12 @@ module.exports = class ResultSet {
                   return this.$$services.resolver.match(modelRef).merge(args).many();
                 }
 
-                if (field.isVirtual()) {
-                  args.where[[field.getVirtualField()]] = this.id;
+                if (isVirtual) {
+                  args.where[[virtualField]] = this.id;
                   return this.$$services.resolver.match(modelRef).merge(args).one();
                 }
 
-                return this.$$services.resolver.match(modelRef).id($value).one({ required: field.isRequired() });
+                return this.$$services.resolver.match(modelRef).id($value).one({ required: isRequired });
               })().then((results) => {
                 if (results == null) return field.resolve(this.$$services.query, results); // Allow field to determine
                 return mapPromise(results, result => field.resolve(this.$$services.query, result)).then(() => results); // Resolve the inside fields but still return "results"!!!!
@@ -163,9 +188,9 @@ module.exports = class ResultSet {
         get() {
           return (q = {}) => {
             q.where = q.where || {};
-            if (field.isVirtual()) q.where[field.getVirtualField()] = this.id;
+            if (isVirtual) q.where[virtualField] = this.id;
             else q.where.id = this[name];
-            return this.$$services.resolver.match(field.getModelRef()).merge(q).count();
+            return this.$$services.resolver.match(modelRef).merge(q).count();
           };
         },
         enumerable: false,
@@ -191,6 +216,7 @@ module.exports = class ResultSet {
           const sortJSON = JSON.stringify(sortValues);
           return Buffer.from(sortJSON).toString('base64');
         },
+        enumerable: false,
       },
 
       $$model: {
@@ -204,11 +230,7 @@ module.exports = class ResultSet {
       },
 
       $$save: {
-        get() {
-          return (input) => {
-            return this.$$services.resolver.match(model).id(this.id).save({ ...this, ...input });
-          };
-        },
+        get() { return input => this.$$services.resolver.match(model).id(this.id).save({ ...this, ...input }); },
         enumerable: false,
       },
 
@@ -224,11 +246,16 @@ module.exports = class ResultSet {
 
       toObject: {
         get() {
-          return () => map(this.$$services.data, doc => Object.keys(doc).reduce((prev, key) => {
-            const fieldDef = fieldDefs.find(def => def.key === key);
-            const value = this[fieldDef.name];
+          // return () => map(this.$$services.data, doc => Object.keys(doc).reduce((prev, key) => {
+          //   const fieldDef = fieldDefs.find(def => def.key === key);
+          //   const value = fieldDef ? this[fieldDef.name] : undefined;
+          //   if (value === undefined) return prev;
+          //   prev[fieldDef.name] = get(value, '$$isResultSet') ? value.toObject() : value;
+          //   return prev;
+          // }, {}));
+          return () => map(this, obj => Object.entries(obj).reduce((prev, [key, value]) => {
             if (value === undefined) return prev;
-            prev[fieldDef.name] = get(value, '$$isResultSet') ? value.toObject() : value;
+            prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
             return prev;
           }, {}));
         },
@@ -237,6 +264,7 @@ module.exports = class ResultSet {
       },
     });
 
-    return Object.defineProperties(obj, definition);
+    // return Object.defineProperties({}, definition);
+    return Object.create(null, definition);
   }
 };

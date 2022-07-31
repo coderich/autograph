@@ -59,7 +59,7 @@ describe('ResultSet', () => {
     expect((await resolver.match('Person').id(doc1.id).one()).name).toBe('Newname1');
 
     // Update via a query
-    const doc3 = await resolver.match('Person').id(doc1.id).one();
+    const doc3 = await resolver.match('Person').id(doc1).one();
     expect((await doc3.$$save({ name: 'newname2' })).name).toBe('Newname2');
     expect((await resolver.match('Person').id(doc3.id).one()).name).toBe('Newname2');
 
