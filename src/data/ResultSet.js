@@ -42,6 +42,7 @@ module.exports = class ResultSet {
         },
         deleteProperty(target, prop) {
           const { key = prop } = fieldDefs.find(d => d.name === prop);
+          delete instance[prop];
           delete instance.$$services.data[key];
         },
       });
@@ -71,7 +72,6 @@ module.exports = class ResultSet {
       },
       toObject: {
         get() {
-          // return () => map(rs, el => el.toObject());
           return () => map(this, doc => Object.entries(doc).reduce((prev, [key, value]) => {
             if (value === undefined) return prev;
             prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
@@ -246,13 +246,6 @@ module.exports = class ResultSet {
 
       toObject: {
         get() {
-          // return () => map(this.$$services.data, doc => Object.keys(doc).reduce((prev, key) => {
-          //   const fieldDef = fieldDefs.find(def => def.key === key);
-          //   const value = fieldDef ? this[fieldDef.name] : undefined;
-          //   if (value === undefined) return prev;
-          //   prev[fieldDef.name] = get(value, '$$isResultSet') ? value.toObject() : value;
-          //   return prev;
-          // }, {}));
           return () => map(this, obj => Object.entries(obj).reduce((prev, [key, value]) => {
             if (value === undefined) return prev;
             prev[key] = get(value, '$$isResultSet') ? value.toObject() : value;
