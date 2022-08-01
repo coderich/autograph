@@ -101,6 +101,7 @@ module.exports = class ResultSet {
         virtualField: field.getVirtualField(),
         // deserialize: field.deserialize.bind(field),
         // fieldResolve: field.resolve.bind(field),
+        get useDefaultResolver() { return Boolean((this.isScalar || this.isEmbedded) && !field.getResolvers().length); },
       }));
 
       const template = ResultSet.makeModelTemplate(model, fieldDefs);
@@ -111,7 +112,7 @@ module.exports = class ResultSet {
 
   static makeModelTemplate(model, fieldDefs) {
     const definition = fieldDefs.reduce((prev, fieldDef) => {
-      const { field, key, name, isArray, isScalar, isVirtual, isRequired, isEmbedded, modelRef, virtualField } = fieldDef;
+      const { field, key, name, isArray, isScalar, isVirtual, isRequired, isEmbedded, modelRef, virtualField, useDefaultResolver } = fieldDef;
       const $name = `$${name}`;
 
       // Deserialized field attributes
@@ -136,48 +137,43 @@ module.exports = class ResultSet {
       prev[$name] = {
         get() {
           return (args = {}) => {
-            // Ensure where clause
-            args.where = args.where || {};
+            // Grab deserialized value
+            const $value = this[name];
 
-            // Cache
-            const cacheKey = `${$name}-${hashObject(args)}`;
-            if (this.$$services.cache.has(cacheKey)) return this.$$services.cache.get(cacheKey);
+            // Default resolver return immediately!
+            if (useDefaultResolver) return $value;
 
-            const promise = new Promise((resolve, reject) => {
-              (() => {
-                const $value = this[name];
+            // There are FIELD resolvers to run
+            return new Promise((resolve, reject) => {
+              return new Promise((res) => {
+                // Scalars and Embeds do not need DB lookup
+                if (isScalar || isEmbedded) return res($value);
 
-                if (isScalar || isEmbedded) return Promise.resolve($value);
+                // Ensure where clause for DB lookup
+                args.where = args.where || {};
 
                 if (isArray) {
                   if (isVirtual) {
                     args.where[[virtualField]] = this.id; // Is where[[virtualField]] correct?
-                    return this.$$services.resolver.match(modelRef).merge(args).many();
+                    return res(this.$$services.resolver.match(modelRef).merge(args).many());
                   }
 
                   // Not a "required" query + strip out nulls
                   args.where.id = $value;
-                  return this.$$services.resolver.match(modelRef).merge(args).many();
+                  return res(this.$$services.resolver.match(modelRef).merge(args).many());
                 }
 
                 if (isVirtual) {
                   args.where[[virtualField]] = this.id;
-                  return this.$$services.resolver.match(modelRef).merge(args).one();
+                  return res(this.$$services.resolver.match(modelRef).merge(args).one());
                 }
 
-                return this.$$services.resolver.match(modelRef).id($value).one({ required: isRequired });
-              })().then((results) => {
+                return res(this.$$services.resolver.match(modelRef).id($value).one({ required: isRequired }));
+              }).then((results) => {
                 if (results == null) return field.resolve(this.$$services.query, results); // Allow field to determine
                 return mapPromise(results, result => field.resolve(this.$$services.query, result)).then(() => results); // Resolve the inside fields but still return "results"!!!!
-              }).then((resolved) => {
-                resolve(resolved);
-              }).catch((e) => {
-                reject(e);
-              });
+              }).then(resolve).catch(reject);
             });
-
-            this.$$services.cache.set(cacheKey, promise);
-            return promise;
           };
         },
         enumerable: false,

@@ -1,7 +1,7 @@
 const setup = require('../setup');
 const Query = require('../../src/query/Query');
 const ResultSet = require('../../src/data/ResultSet');
-const { ucFirst } = require('../../src/service/app.service');
+const { ucFirst, resolveDataObject } = require('../../src/service/app.service');
 
 let query;
 
@@ -10,7 +10,7 @@ const data = Array.from(new Array(6000)).map((el, i) => ({
   name: `name${i}`,
   state: `state${i}`,
   telephone: `telephone${i}`,
-  artwork: [{ name: 'art1', sections: [{ name: 'section1' }] }, { name: 'art2', sections: [{ name: 'section2' }] }, { name: 'art3', sections: [{ name: 'section3' }] }],
+  sections: [{ name: 'SECTION1' }, { name: 'SecTioN2' }, { name: 'Section3' }],
 }));
 
 describe('ResultSet', () => {
@@ -23,15 +23,18 @@ describe('ResultSet', () => {
     query = new Query({ resolver, model });
   });
 
-  test('speed test', () => {
+  test('speed test', async () => {
     let start = new Date().getTime();
-    const t1 = data.map(({ my_age: age, name, state, telephone, artwork }) => ({ age, name: ucFirst(name), state, telephone, artwork }));
+    // const t1 = data.map(({ my_age: age, name, state, telephone, sections }) => ({ age, name: ucFirst(name), state, telephone, sections: sections.map(s => Object.assign(s, { name: s.name.toLowerCase() })) }));
+    const t1 = data.map(({ my_age: age, name, state, telephone }) => ({ age, name: ucFirst(name), state, telephone }));
     let stop = new Date().getTime();
     console.log(stop - start);
 
     start = new Date().getTime();
     const RS = new ResultSet(query, data);
-    const t2 = RS.map(({ age, name, status, telephone, artwork }) => ({ age, name, state: status, telephone, artwork }));
+    // const t2 = RS.map(({ age, name, status, telephone }) => ({ age, name, state: status, telephone }));
+    // const t2 = RS.map(({ $age, $name, $status, $telephone }) => ({ age: $age(), name: $name(), state: $status(), telephone: $telephone() }));
+    const t2 = await Promise.all(RS.map(({ $age, $name, $status, $telephone }) => resolveDataObject({ age: $age(), name: $name(), state: $status(), telephone: $telephone() })));
     stop = new Date().getTime();
     console.log(stop - start);
     expect(t1).toMatchObject(t2);

@@ -266,3 +266,14 @@ exports.proxyDeep = (obj, handler, proxyMap = new WeakMap(), path = '') => {
 
   return finalProxy;
 };
+
+exports.resolveDataObject = (obj) => {
+  return Promise.all(Object.keys(obj).map(async (key) => {
+    const value = await obj[key];
+    return { key, value };
+  })).then((results) => {
+    return results.reduce((prev, { key, value }) => {
+      return Object.assign(prev, { [key]: value });
+    }, {});
+  });
+};
