@@ -1,6 +1,6 @@
 const { get } = require('lodash');
 const DataService = require('./DataService');
-const { map, ensureArray, keyPaths, mapPromise, toGUID, hashObject } = require('../service/app.service');
+const { map, ensureArray, keyPaths, mapPromise, toGUID } = require('../service/app.service');
 
 const modelCache = new WeakMap();
 
@@ -120,9 +120,7 @@ module.exports = class ResultSet {
         get() {
           if (this.$$services.cache.has(name)) return this.$$services.cache.get(name);
           let $value = field.deserialize(this.$$services.query, this.$$services.data[key]);
-          if ($value != null && isEmbedded) {
-            $value = new ResultSet(this.$$services.query.model(modelRef), $value, false);
-          }
+          if ($value != null && isEmbedded) $value = new ResultSet(this.$$services.query.model(modelRef), $value, false);
           this.$$services.cache.set(name, $value);
           return $value;
         },
