@@ -1,3 +1,4 @@
+const Util = require('util');
 const { get, has } = require('lodash');
 const { MongoClient, ObjectID } = require('mongodb');
 const { proxyDeep, toKeyObj, globToRegex, proxyPromise, isScalarDataType, promiseRetry } = require('../service/app.service');
@@ -25,7 +26,7 @@ module.exports = class MongoDriver {
   }
 
   query(collection, method, ...args) {
-    if (has(args[args.length - 1], 'debug')) console.log(collection, method, JSON.stringify(args));
+    if (has(args[args.length - 1], 'debug')) console.log(collection, method, Util.inspect(args, { depth: null, showHidden: false, colors: true }));
     return this.raw(collection)[method](...args);
   }
 
