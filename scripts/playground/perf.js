@@ -52,4 +52,6 @@ arr.forEach((el) => {
 });
 console.timeEnd('ResultSet');
 
+// const val = (() => Promise.resolve('1000'))();
+// console.log(val === '1000');
 process.exit(0);

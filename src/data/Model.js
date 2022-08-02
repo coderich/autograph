@@ -168,7 +168,7 @@ module.exports = class extends Model {
     return this.getSelectFields().map((field) => {
       const [from, to] = serdes === 'serialize' ? [field.getName(), field.getKey()] : [field.getKey(), field.getName()];
       const shape = recursive && field.isEmbedded() ? field.getModelRef().getShape(serdes, recursive) : null;
-      return { from, to, type: field.getDataType(), isArray: field.isArray(), shape };
+      return { from, to, type: field.getType(), isArray: field.isArray(), shape };
     });
   }
 
