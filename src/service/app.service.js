@@ -277,3 +277,20 @@ exports.resolveDataObject = (obj) => {
     }, {});
   });
 };
+
+exports.shapeObject = (shape, obj, context, root) => {
+  return exports.map(obj, (doc) => {
+    root = root || doc;
+
+    return shape.reduce((prev, { from, to, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
+      let value = doc[from];
+      if (value === undefined) value = defaultValue; // Default value
+      if (value == null) return prev; // Nothing to do
+      if (isArray && !Array.isArray(value)) value = [value]; // Ensure Array
+      if (!subShape) value = exports.map(value, v => exports.castCmp(type, v)); // Cast
+      value = transformers.reduce((val, t) => t({ root, doc, value, context }), value); // Transformers
+      prev[to] = subShape ? exports.shapeObject(subShape, value, context, root) : value; // Rename key & assign value
+      return prev;
+    }, {});
+  });
+};

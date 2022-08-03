@@ -167,9 +167,6 @@ module.exports = class ResultSet {
                 }
 
                 return res(this.$$services.resolver.match(modelRef).id($value).one({ required: isRequired }));
-              }).then((results) => {
-                if (results == null) return field.resolve(this.$$services.query, results); // Allow field to determine
-                return mapPromise(results, result => field.resolve(this.$$services.query, result)).then(() => results); // Resolve the inside fields but still return "results"!!!!
               }).then(resolve).catch(reject);
             });
           };

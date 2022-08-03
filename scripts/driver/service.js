@@ -16,16 +16,18 @@ exports.getProjectFields = (parentShape, currentShape = { _id: 0, id: '$_id' }, 
   }, currentShape);
 };
 
-exports.shapeObject = (shape, obj) => {
+exports.shapeObject = (shape, obj, context, root) => {
   return exports.map(obj, (doc) => {
-    return shape.reduce((prev, { from, to, type, isArray, defaultValue, transformers: [], shape: subShape }) => {
+    root = root || doc;
+
+    return shape.reduce((prev, { from, to, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
       let value = doc[from];
       if (value === undefined) value = defaultValue; // Default value
       if (value == null) return prev; // Nothing to do
       if (isArray && !Array.isArray(value)) value = [value]; // Ensure Array
       if (!subShape) value = exports.map(value, v => exports.castCmp(type, v)); // Cast
-      value = transformers.reduce((prev, t) => t(null, prev), value); // Transformers
-      prev[to] = subShape ? exports.shapeObject(subShape, value) : value; // Rename key & assign value
+      value = transformers.reduce((val, t) => t({ root, doc, value, context }), value); // Transformers
+      prev[to] = subShape ? exports.shapeObject(subShape, value, context, root) : value; // Rename key & assign value
       return prev;
     }, {});
   });

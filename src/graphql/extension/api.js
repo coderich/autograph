@@ -10,7 +10,6 @@ const interfaceKinds = [Kind.INTERFACE_TYPE_DEFINITION, Kind.INTERFACE_TYPE_EXTE
 const getGQLWhereFields = (model) => {
   return model.getFields().filter((field) => {
     if (!field.hasGQLScope('r')) return false;
-    if (field.hasBoundValue() && !field.getDirectiveArg('value', 'passive')) return false;
     const modelRef = field.getModelRef();
     if (modelRef && !modelRef.isEmbedded() && !modelRef.isEntity()) return false;
     return true;

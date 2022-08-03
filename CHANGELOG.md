@@ -1,9 +1,10 @@
 # CHANGELOG
 
 ## v0.10.x
-- Removed model.tform() method
+- Removed Model.tform()
 - Removed embedApi directive and embedded API GQL
-- Hydrating fields apriori
+- Removed resolve directive transformer concept
+- Removed @value directive
 
 ## v0.9.x
 - Subscriptions API

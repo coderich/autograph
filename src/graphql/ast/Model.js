@@ -92,10 +92,6 @@ module.exports = class Model extends Node {
     return this.getFields().filter(field => field.isDefaulted());
   }
 
-  getBoundValueFields() {
-    return this.getFields().filter(field => field.hasBoundValue());
-  }
-
   getDataRefFields() {
     return this.getFields().filter(field => Boolean(field.getDataRef()));
   }

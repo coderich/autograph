@@ -107,7 +107,7 @@ module.exports = class extends Model {
    */
   transform(query, data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); })(), minimal = false) {
     // Serialize always gets the bound values
-    const appendFields = (serdes === 'serialize' ? [...this.getBoundValueFields()] : []);
+    const appendFields = [];
 
     // Certain cases do not want custom serdes or defaults
     if (!minimal) appendFields.push(...this[`get${ucFirst(serdes)}Fields`](), ...this.getDefaultFields());
@@ -168,7 +168,8 @@ module.exports = class extends Model {
     return this.getSelectFields().map((field) => {
       const [from, to] = serdes === 'serialize' ? [field.getName(), field.getKey()] : [field.getKey(), field.getName()];
       const shape = recursive && field.isEmbedded() ? field.getModelRef().getShape(serdes, recursive) : null;
-      return { from, to, type: field.getType(), isArray: field.isArray(), shape };
+      const transformers = (serdes === 'serialize' ? field.getSerializers() : field.getDeserializers).concat(field.getTransformers());
+      return { from, to, type: field.getType(), isArray: field.isArray(), defaultValue: field.getDefaultValue(), transformers, shape };
     });
   }
 

@@ -10,6 +10,7 @@ const [method = 'Array', useProject = false] = process.argv.slice(2);
   const client = await Mongo.connect();
   const cursor = await Mongo.getCursor(client, args);
   const data = await Hydrator[`from${method}`](cursor, args);
+  console.log(data[1010].designation);
   await Mongo.disconnect();
   process.exit(0);
 })();

@@ -49,10 +49,7 @@ module.exports = class MongoDriver {
   findMany(query) {
     const { model, options = {}, flags } = query;
     Object.assign(options, this.config.query || {});
-
-    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), options, flags).then((cursor) => {
-      return cursor.stream();
-    });
+    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), options, flags).then(cursor => cursor.stream());
   }
 
   count(query) {
@@ -183,7 +180,7 @@ module.exports = class MongoDriver {
   }
 
   static aggregateQuery(query, count = false) {
-    const { where: $match, sort = {}, skip, limit, joins, shape, after, before, first } = query;
+    const { where: $match, sort = {}, skip, limit, joins, after, before, first } = query;
     const $aggregate = [{ $match }];
 
     // Used for $regex matching
@@ -216,12 +213,11 @@ module.exports = class MongoDriver {
       if (before) $aggregate.push({ $match: { $or: Object.entries(before).reduce((prev, [key, value]) => prev.concat({ [key]: { [sort[key] === 1 ? '$lte' : '$gte']: value } }), []) } });
       if (first) $aggregate.push({ $limit: first });
 
-      // Projection
-      const $project = MongoDriver.getProjectFields(shape);
-      $aggregate.push({ $project });
+      // // Projection
+      // const $project = MongoDriver.getProjectFields(shape);
+      // $aggregate.push({ $project });
     }
 
-    // console.log(Util.inspect($aggregate, { depth: null, showHidden: false, colors: true }));
     return $aggregate;
   }
 };

@@ -63,17 +63,6 @@ module.exports = class extends Field {
     return transformers.concat(this.type.getDeserializers());
   }
 
-  getResolvers() {
-    const resolvers = [];
-
-    Object.entries(this.getDirectiveArgs('field', {})).forEach(([key, value]) => {
-      if (!Array.isArray(value)) value = [value];
-      if (key === 'resolve') resolvers.push(...value.map(t => Transformer.getInstances()[t]));
-    });
-
-    return resolvers.concat(this.type.getResolvers());
-  }
-
   validate(query, value) {
     const modelRef = this.getModelRef();
     const rules = [...this.getRules()];
@@ -122,20 +111,6 @@ module.exports = class extends Field {
 
   deserialize(query, value) {
     return this.transform(query, value, 'deserialize');
-  }
-
-  /**
-   * Applies any user-defined @field(resolve: [...methods]) in series
-   * This is ONLY run when resolving a value via the $<name> attribute
-   */
-  resolve(query, value) {
-    const resolvers = [...this.getResolvers()];
-
-    return promiseChain(resolvers.map(fn => (chain) => {
-      return Promise.resolve(fn(this, uvl(this.cast(chain.pop()), value), query));
-    })).then((results) => {
-      return uvl(this.cast(results.pop()), value);
-    });
   }
 
   tform(query, value) {

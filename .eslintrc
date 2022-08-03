@@ -2,7 +2,7 @@
   "env" : {"jest":true},
   "extends": "airbnb",
   "rules": {
-    "arrow-body-style": ["warn", "as-needed"],
+    "arrow-body-style": ["off"],
     "arrow-parens": ["warn", "as-needed", { "requireForBlockBody": true }],
     "max-classes-per-file": 0,
     "max-len": 0,

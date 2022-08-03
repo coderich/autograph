@@ -41,14 +41,12 @@ module.exports = (schema) => {
         persist: Boolean # Persist this field (default true)
         default: AutoGraphMixed # Define a default value
         connection: Boolean # Treat this field as a connection type (default false - rolling this out slowly)
+        onDelete: AutoGraphOnDeleteEnum # onDelete behavior
 
         noRepeat: Boolean
-
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
-        onDelete: AutoGraphOnDeleteEnum
 
-        enforce: [AutoGraphEnforceEnum!] #
-        resolve: [AutoGraphTransformEnum!] # Transforms when resolving
+        enforce: [AutoGraphEnforceEnum!]
         transform: [AutoGraphTransformEnum!] # Transforms when serialize + deserialize
         serialize: [AutoGraphTransformEnum!] # Transforms when serialize
         deserialize: [AutoGraphTransformEnum!] # Transforms when deserialize
@@ -59,13 +57,6 @@ module.exports = (schema) => {
         by: AutoGraphMixed! # The FIELD to match yourself by
         use: AutoGraphMixed # The VALUE to use (default's to @link'd value); useful for many-to-many relationships
       ) on FIELD_DEFINITION
-
-      directive @value(
-        path: String! # The path to the data
-        # merge: Boolean # Deep merge the data? (default false - overwrite) [does not even look supported at the moment]
-        passive: Boolean # If value exists leave it alone (default false)
-        scope: AutoGraphValueScopeEnum # Where to look for the data (default self)
-      ) on OBJECT | FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
 
       directive @index(
         name: String
