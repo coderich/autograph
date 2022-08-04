@@ -49,7 +49,6 @@ module.exports = (schema) => {
         onDelete: AutoGraphOnDeleteEnum
 
         enforce: [AutoGraphEnforceEnum!] #
-        resolve: [AutoGraphTransformEnum!] # Transforms when resolving
         transform: [AutoGraphTransformEnum!] # Transforms when serialize + deserialize
         serialize: [AutoGraphTransformEnum!] # Transforms when serialize
         deserialize: [AutoGraphTransformEnum!] # Transforms when deserialize

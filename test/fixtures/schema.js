@@ -1,14 +1,10 @@
 const Rule = require('../../src/core/Rule');
-const Transformer = require('../../src/core/Transformer');
-const { timeout } = require('../../src/service/app.service');
 
 Rule.extend('bookName', Rule.deny('The Bible'));
 Rule.extend('bookPrice', Rule.range(0, 100));
 Rule.extend('artComment', Rule.allow('yay', 'great', 'boo'));
 Rule.extend('colors', Rule.allow('blue', 'red', 'green', 'purple'));
 Rule.extend('buildingType', Rule.allow('home', 'office', 'business'));
-
-Transformer.factory('slowRoll', () => (f, v) => timeout(300).then(() => 5), { ignoreNull: false, enumerable: true });
 
 module.exports = {
   typeDefs: `
@@ -29,7 +25,7 @@ module.exports = {
       # state: String @field(key: "address_state")
       telephone: String @field(default: "###-###-####")
       network: String @value(scope: context, path: "network.id")
-      manipulate: String @field(resolve: slowRoll)
+      manipulate: String
       sections: [Section!]
     }
 

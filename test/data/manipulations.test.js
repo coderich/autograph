@@ -25,7 +25,6 @@ describe('DataManipulations', () => {
     expect(person).toBeTruthy();
     expect(person.name).toEqual('Name');
     expect(person.$manipulate).toBeDefined();
-    expect(await person.$manipulate()).toBe('5');
-    // expect(person.telephone).toEqual('###-###-####');
+    expect(person.telephone).toEqual('###-###-####');
   });
 });

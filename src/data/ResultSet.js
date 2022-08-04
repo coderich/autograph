@@ -101,7 +101,7 @@ module.exports = class ResultSet {
         virtualField: field.getVirtualField(),
         // deserialize: field.deserialize.bind(field),
         // fieldResolve: field.resolve.bind(field),
-        get useDefaultResolver() { return Boolean((this.isScalar || this.isEmbedded) && !field.getResolvers().length); },
+        get useDefaultResolver() { return Boolean(this.isScalar || this.isEmbedded); },
       }));
 
       const template = ResultSet.makeModelTemplate(model, fieldDefs);
@@ -141,37 +141,26 @@ module.exports = class ResultSet {
             // Default resolver return immediately!
             if (useDefaultResolver) return $value;
 
-            // There are FIELD resolvers to run
-            return new Promise((resolve, reject) => {
-              return new Promise((res) => {
-                // Scalars and Embeds do not need DB lookup
-                if (isScalar || isEmbedded) return res($value);
+            // Ensure where clause for DB lookup
+            args.where = args.where || {};
 
-                // Ensure where clause for DB lookup
-                args.where = args.where || {};
+            if (isArray) {
+              if (isVirtual) {
+                args.where[[virtualField]] = this.id; // Is where[[virtualField]] correct?
+                return this.$$services.resolver.match(modelRef).merge(args).many();
+              }
 
-                if (isArray) {
-                  if (isVirtual) {
-                    args.where[[virtualField]] = this.id; // Is where[[virtualField]] correct?
-                    return res(this.$$services.resolver.match(modelRef).merge(args).many());
-                  }
+              // Not a "required" query + strip out nulls
+              args.where.id = $value;
+              return this.$$services.resolver.match(modelRef).merge(args).many();
+            }
 
-                  // Not a "required" query + strip out nulls
-                  args.where.id = $value;
-                  return res(this.$$services.resolver.match(modelRef).merge(args).many());
-                }
+            if (isVirtual) {
+              args.where[[virtualField]] = this.id;
+              return this.$$services.resolver.match(modelRef).merge(args).one();
+            }
 
-                if (isVirtual) {
-                  args.where[[virtualField]] = this.id;
-                  return res(this.$$services.resolver.match(modelRef).merge(args).one());
-                }
-
-                return res(this.$$services.resolver.match(modelRef).id($value).one({ required: isRequired }));
-              }).then((results) => {
-                if (results == null) return field.resolve(this.$$services.query, results); // Allow field to determine
-                return mapPromise(results, result => field.resolve(this.$$services.query, result)).then(() => results); // Resolve the inside fields but still return "results"!!!!
-              }).then(resolve).catch(reject);
-            });
+            return this.$$services.resolver.match(modelRef).id($value).one({ required: isRequired });
           };
         },
         enumerable: false,
