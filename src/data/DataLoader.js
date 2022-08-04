@@ -1,4 +1,5 @@
 const FBDataLoader = require('dataloader');
+const { hydrateResults } = require('../service/app.service');
 const DataStream = require('./DataStream');
 // const Query = require('../query/Query');
 
@@ -9,6 +10,7 @@ module.exports = class DataLoader extends FBDataLoader {
   constructor(resolver, model) {
     // const idKey = model.idKey();
     const driver = model.getDriver();
+    // const context = resolver.getContext();
 
     return new FBDataLoader((queries) => {
       // // The idea is to group the "findOne by id" queries together to make 1 query instead
@@ -33,7 +35,8 @@ module.exports = class DataLoader extends FBDataLoader {
 
       return Promise.all(queries.map((query) => {
         return driver.resolve(query.toDriver()).then((data) => {
-          return new DataStream(model, data, resolver.getContext());
+          return hydrateResults(model, data, resolver.getContext());
+          // return new DataStream(model, data, resolver.getContext());
         });
       }));
     }, {

@@ -30,7 +30,7 @@ module.exports = (schema) => {
       ) on OBJECT | INTERFACE
 
       directive @field(
-        id: Boolean # Cast to idValue (default false)
+        id: String # Specify the ModelRef this field FK References
         key: String # Specify db key
         persist: Boolean # Persist this field (default true)
         default: AutoGraphMixed # Define a default value

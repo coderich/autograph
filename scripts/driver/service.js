@@ -22,16 +22,14 @@ exports.shapeObject = (shape, obj, context, root) => {
 
     return shape.reduce((prev, { from, to, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
       let value = doc[from];
-      if (value === undefined) value = defaultValue; // Default value
+      value = transformers.reduce((val, t) => t({ root, doc, value: val, context }), value); // Transformers
       if (value == null) return prev; // Nothing to do
-      if (isArray && !Array.isArray(value)) value = [value]; // Ensure Array
-      if (!subShape) value = exports.map(value, v => exports.castCmp(type, v)); // Cast
-      value = transformers.reduce((val, t) => t({ root, doc, value, context }), value); // Transformers
       prev[to] = subShape ? exports.shapeObject(subShape, value, context, root) : value; // Rename key & assign value
       return prev;
     }, {});
   });
 };
+
 
 exports.map = (mixed, fn) => {
   if (mixed == null) return mixed;

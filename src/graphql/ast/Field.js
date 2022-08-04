@@ -54,7 +54,8 @@ module.exports = class Field extends Node {
   }
 
   getModelRef() {
-    return this.schema.getModel(this.getType());
+    const refType = this.getDirectiveArg('field', 'id', this.getType());
+    return this.schema.getModel(refType);
   }
 
   getFieldRef() {
@@ -67,6 +68,10 @@ module.exports = class Field extends Node {
   getVirtualField() {
     const model = this.getModelRef();
     return model ? model.getField(this.getVirtualRef()) : null;
+  }
+
+  getIdModel() {
+    return this.getModelRef() || this.getModel();
   }
 
   resolveField() {
@@ -97,9 +102,13 @@ module.exports = class Field extends Node {
   }
 
   isIdField() {
+    return this.isPrimaryKeyId() || this.isFKReference();
+  }
+
+  isPrimaryKeyId() {
     const key = this.getKey();
     const idKey = this.getModel().idKey();
-    return key === idKey || Boolean(this.getDirectiveArg('field', 'id'));
+    return key === idKey;
   }
 
   getJoinInfo() {

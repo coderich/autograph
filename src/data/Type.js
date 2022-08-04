@@ -31,7 +31,7 @@ module.exports = class extends Type {
   getStructures() {
     const enumType = this.field.getEnumRef();
     const scalarType = this.field.getScalarRef();
-    const structures = { rules: [], instructs: [], restructs: [], destructs: [], constructs: [], serializers: [], deserializers: [], transformers: [] };
+    const structures = { rules: [], instructs: [], restructs: [], destructs: [], constructs: [], $serializers: [], serializers: [], $deserializers: [], deserializers: [], transformers: [] };
 
     if (enumType) structures.rules.push(Rule.allow(...enumType.getValue()));
     if (!scalarType) return structures;

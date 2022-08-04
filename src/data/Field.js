@@ -13,9 +13,10 @@ module.exports = class extends Field {
 
   getStructures() {
     const structures = this.type.getStructures();
-    if (this.isIdField()) structures.serializers.push(({ value }) => (value != null ? value : this.model.idValue(value)));
     if (this.getModelRef() && !this.isEmbedded()) structures.rules.push(Rule.ensureId());
     if (this.isRequired() && this.isPersistable() && !this.isVirtual()) structures.rules.push(Rule.required());
+    if (this.isPrimaryKeyId()) structures.serializers.push(({ value }) => (value != null ? value : this.model.idValue(value)));
+    if (this.isIdField()) structures.$serializers.push(({ value }) => (value ? this.getIdModel().idValue(value) : value));
 
     return Object.entries(this.getDirectiveArgs('field', {})).reduce((prev, [key, value]) => {
       if (!Array.isArray(value)) value = [value];
