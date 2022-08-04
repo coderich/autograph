@@ -35,10 +35,7 @@ exports.resolveWhereClause = (query) => {
     }
 
     if (modelRef && !field.isEmbedded()) {
-      const ids = Promise.all(ensureArray(value).map(v => (isPlainObject(v) ? resolver.match(modelRef).where(v).many({ ...flags, debug: true }).then(docs => docs.map(doc => doc.id)) : Promise.resolve(v)))).then(results => uniq(flattenDeep(results)));
-      ids.then((res) => {
-        console.log('resolved', res);
-      });
+      const ids = Promise.all(ensureArray(value).map(v => (isPlainObject(v) ? resolver.match(modelRef).where(v).many(flags).then(docs => docs.map(doc => doc.id)) : Promise.resolve(v)))).then(results => uniq(flattenDeep(results)));
       return Object.assign(prev, { [key]: ids });
     }
 

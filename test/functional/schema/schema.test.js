@@ -54,16 +54,16 @@ describe('FNSchema', () => {
     expect(artModel).toBeDefined();
 
     // Shape
-    const shape = artModel.getShape();
+    const shape = artModel.getShape('create');
     expect(shape).toEqual(expect.arrayContaining([
-      expect.objectContaining({ from: '_id' }),
+      expect.objectContaining({ from: 'id' }),
       expect.objectContaining({ from: 'name' }),
       expect.objectContaining({ from: 'bids' }),
       expect.objectContaining({ from: 'comments' }),
       expect.objectContaining({
         from: 'sections',
         shape: expect.arrayContaining([
-          expect.objectContaining({ from: '_id' }),
+          expect.objectContaining({ from: 'id' }),
           expect.objectContaining({ from: 'name' }),
           expect.objectContaining({ from: 'person' }),
           expect.objectContaining({ from: 'description' }),
@@ -72,10 +72,11 @@ describe('FNSchema', () => {
     ]));
 
     // Shape Object
-    const obj = shapeObject(shape, {
-      name: 'art1',
-      sections: [{ name: 'section1' }],
+    const obj = shapeObject(shape, { name: 'art1', sections: [{ name: 'section1' }] });
+    expect(obj).toMatchObject({
+      _id: expect.anything(),
+      name: 'Art1',
+      sections: [{ _id: expect.anything(), name: 'section1' }],
     });
-    console.log(obj);
   });
 });

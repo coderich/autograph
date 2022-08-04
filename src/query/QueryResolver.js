@@ -39,8 +39,6 @@ module.exports = class QueryResolver {
       const $input = shapeObject(shape, input, this.context);
       // const $input = model.serialize(query, model.appendCreateFields(input));
       query.$input($input);
-      console.log(input);
-      console.log($input);
       if (!get(flags, 'novalidate')) await model.validate(query, $input);
       const doc = await this.resolver.resolve(query);
       query.doc(doc);
@@ -61,12 +59,15 @@ module.exports = class QueryResolver {
     return this.resolver.match(model).match(match).one({ required: true }).then((doc) => {
       const { input } = query.toObject();
       const merged = mergeDeep(doc, input);
+      const shape = model.getShape('update');
 
       return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(merged) }, async () => {
-        const $input = model.serialize(query, model.appendUpdateFields(input), true);
+        const $input = shapeObject(shape, merged, this.context);
+        // const $input = model.serialize(query, model.appendUpdateFields(input), true);
         if (!get(flags, 'novalidate')) await model.validate(query, $input);
-        const $doc = mergeDeep(model.serialize(query, doc, true), $input);
-        return this.resolver.resolve(query.$doc($doc).$input($input));
+        // const $doc = mergeDeep(model.serialize(query, doc, true), $input);
+        // const $doc = mergeDeep(shapeObject(shape, doc, this.context), $input);
+        return this.resolver.resolve(query.$doc($input).$input($input));
       });
     });
   }

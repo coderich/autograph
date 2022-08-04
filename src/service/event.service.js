@@ -40,7 +40,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
 
     middleware = () => new Promise(async (resolve) => {
       if (!native) {
-        const shape = model.getShape('read', 'where');
+        const shape = model.getShape('create', 'where');
         const $where = await QueryService.resolveWhereClause(query);
         const $$where = shapeObject(shape, $where, context);
         // const $$where = model.serialize(query, $where, true);

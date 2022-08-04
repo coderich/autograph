@@ -14,6 +14,7 @@ module.exports = async (context = {}) => {
   schema.decorate();
   const resolver = new Resolver(schema, context);
   context.autograph = { resolver };
+  context.network = { id: 'network' };
   const graphql = new GraphQL(schema, resolver);
   return { graphql, schema, resolver, uri };
 };

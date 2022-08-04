@@ -13,7 +13,7 @@ describe('QueryService', () => {
     // Fixtures
     person1 = await resolver.match('Person').save({ name: 'person1', emailAddress: 'person1@gmail.com' });
     person2 = await resolver.match('Person').save({ name: 'person2', emailAddress: 'person2@gmail.com' });
-    await resolver.match('Person').id(person1.id).save({ friends: [person2.id] });
+    const updatedPerson = await resolver.match('Person').id(person1.id).save({ friends: [person2.id] });
     book1 = await resolver.match('Book').save({ name: 'book1', price: 9.99, author: person1.id });
     book2 = await resolver.match('Book').save({ name: 'book2', price: 99.99, author: person2.id });
     chapter1 = await resolver.match('Chapter').save({ name: 'chapter1', book: book1.id });
@@ -48,11 +48,11 @@ describe('QueryService', () => {
       expect(await resolveWhereClause(new Query({ resolver, model }).where({ author: person1.id }))).toEqual({ author: person1.id });
       expect(await resolveWhereClause(new Query({ resolver, model }).where({ author: `${person1.id}` }))).toEqual({ author: `${person1.id}` });
       expect(await resolveWhereClause(new Query({ resolver, model }).where({ author: { name: 'person1' } }))).toEqual({ author: person1.id });
-      // expect(await resolveWhereClause(new Query({ resolver, model }).where({ author: { name: ['person', 'person1'] } }))).toEqual({ author: person1.id });
-      // expect(await resolveWhereClause(new Query({ resolver, model }).where({ author: [{ name: 'person' }, { name: 'person1' }] }))).toEqual({ author: person1.id });
-      // expect(await resolveWhereClause(new Query({ resolver, model }).where({ author: [{ name: 'person' }, person1.id] }))).toEqual({ author: person1.id });
-      // expect(await resolveWhereClause(new Query({ resolver, model }).where({ author: { authored: { name: '*' } } }))).toEqual({ author: [person1.id, person2.id] });
-      // expect(await resolveWhereClause(new Query({ resolver, model }).where({ chapters: [{ name: 'chapter' }, chapter1.id] }))).toEqual({ id: book1.id });
+      expect(await resolveWhereClause(new Query({ resolver, model }).where({ author: { name: ['person', 'person1'] } }))).toEqual({ author: person1.id });
+      expect(await resolveWhereClause(new Query({ resolver, model }).where({ author: [{ name: 'person' }, { name: 'person1' }] }))).toEqual({ author: person1.id });
+      expect(await resolveWhereClause(new Query({ resolver, model }).where({ author: [{ name: 'person' }, person1.id] }))).toEqual({ author: person1.id });
+      expect(await resolveWhereClause(new Query({ resolver, model }).where({ author: { authored: { name: '*' } } }))).toEqual({ author: [person1.id, person2.id] });
+      expect(await resolveWhereClause(new Query({ resolver, model }).where({ chapters: [{ name: 'chapter' }, chapter1.id] }))).toEqual({ id: book1.id });
     });
   });
 });

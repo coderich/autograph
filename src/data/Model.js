@@ -1,6 +1,6 @@
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
-const { map, ucFirst, ensureArray } = require('../service/app.service');
+const { map, ucFirst, castCmp, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Model {
   constructor(schema, model, driver) {
@@ -157,16 +157,19 @@ module.exports = class extends Model {
     const fields = serdes === 'deserialize' ? this.getSelectFields() : this.getPersistableFields();
     const crudMap = { create: ['constructs'], update: ['restructs'], delete: ['destructs'] };
     const crudKeys = crudMap[crud] || [];
-    const targetMap = { doc: ['instructs', ...crudKeys, `${serdes}rs`, 'transformers'], where: ['instructs'] };
+    const targetMap = { doc: ['defaultValue', 'ensureArrayValue', 'castValue', 'instructs', ...crudKeys, `${serdes}rs`, 'transformers'], where: ['instructs'] };
     const structureKeys = targetMap[target] || [];
 
     return fields.map((field) => {
       const structures = field.getStructures();
-      const defaultValue = target === 'doc' ? field.getDefaultValue() : undefined;
-      const [from, to] = serdes === 'serialize' ? [field.getName(), field.getKey()] : [field.getKey(), field.getName()];
+      const [key, name, type, isArray] = [field.getKey(), field.getName(), field.getType(), field.isArray()];
       const shape = field.isEmbedded() ? field.getModelRef().getShape(crud, target) : null;
+      const [from, to] = serdes === 'serialize' ? [name, key] : [key, name];
+      structures.defaultValue = ({ value }) => (value === undefined && target === 'doc' ? field.getDefaultValue() : value);
+      structures.ensureArrayValue = ({ value }) => (value != null && isArray && !Array.isArray(value) ? [value] : value);
+      structures.castValue = ({ value }) => (value != null && !shape ? map(value, v => castCmp(type, v)) : value);
       const transformers = structureKeys.reduce((prev, struct) => prev.concat(structures[struct]), []);
-      return { from, to, type: field.getType(), isArray: field.isArray(), defaultValue, transformers, shape };
+      return { from, to, type, isArray, transformers, shape };
     });
   }
 };
