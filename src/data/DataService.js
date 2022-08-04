@@ -41,60 +41,60 @@ exports.paginateResultSet = (rs, first, after, last, before) => {
  * @param from <Array>
  * @param to <Array>
  */
-exports.spliceEmbeddedArray = (query, doc, key, from, to) => {
-  const { model } = query.toObject();
-  const field = model.getField(key);
-  const modelRef = field.getModelRef();
-  const op = from && to ? 'edit' : (from ? 'pull' : 'push'); // eslint-disable-line no-nested-ternary
-  const promises = [];
+// exports.spliceEmbeddedArray = (query, doc, key, from, to) => {
+//   const { model } = query.toObject();
+//   const field = model.getField(key);
+//   const modelRef = field.getModelRef();
+//   const op = from && to ? 'edit' : (from ? 'pull' : 'push'); // eslint-disable-line no-nested-ternary
+//   const promises = [];
 
-  // Can only splice arrays
-  if (!field || !field.isArray()) return Promise.reject(Boom.badRequest(`Cannot splice field '${key}'`));
+//   // Can only splice arrays
+//   if (!field || !field.isArray()) return Promise.reject(Boom.badRequest(`Cannot splice field '${key}'`));
 
-  // We have to deserialize because this normalizes the data (casting etc)
-  let $to = model.deserialize(query, { [key]: to })[key] || to;
-  const $from = model.deserialize(query, { [key]: from })[key] || from;
+//   // We have to deserialize because this normalizes the data (casting etc)
+//   let $to = model.deserialize(query, { [key]: to })[key] || to;
+//   const $from = model.deserialize(query, { [key]: from })[key] || from;
 
-  // If it's embedded we need to append default/create fields for insertion
-  if ($to && field.isEmbedded()) $to = $to.map(el => modelRef.appendDefaultFields(query, modelRef.appendCreateFields(el, true)));
+//   // If it's embedded we need to append default/create fields for insertion
+//   if ($to && field.isEmbedded()) $to = $to.map(el => modelRef.appendDefaultFields(query, modelRef.appendCreateFields(el, true)));
 
-  // Convenience so the user does not have to explicity type out the same value over and over to replace
-  if ($from && $from.length > 1 && $to && $to.length === 1) $to = Array.from($from).fill($to[0]);
+//   // Convenience so the user does not have to explicity type out the same value over and over to replace
+//   if ($from && $from.length > 1 && $to && $to.length === 1) $to = Array.from($from).fill($to[0]);
 
-  // Traverse the document till we find the segment to modify (in place)
-  return key.split('.').reduce((prev, segment, i, arr) => {
-    if (prev == null) return prev;
+//   // Traverse the document till we find the segment to modify (in place)
+//   return key.split('.').reduce((prev, segment, i, arr) => {
+//     if (prev == null) return prev;
 
-    return map(prev, (data) => {
-      if (i < (arr.length - 1)) return data[segment]; // We have not found the target segment yet
-      data[segment] = data[segment] || []; // Ensuring target segment is an array
+//     return map(prev, (data) => {
+//       if (i < (arr.length - 1)) return data[segment]; // We have not found the target segment yet
+//       data[segment] = data[segment] || []; // Ensuring target segment is an array
 
-      switch (op) {
-        case 'edit': {
-          data[segment].forEach((el, j) => {
-            $from.forEach((val, k) => {
-              if (objectContaining(el, val)) data[segment][j] = isPlainObject(el) ? mergeDeep(el, $to[k]) : $to[k];
-            });
-          });
-          break;
-        }
-        case 'push': {
-          data[segment].push(...$to);
-          break;
-        }
-        case 'pull': {
-          remove(data[segment], el => $from.find(val => objectContaining(el, val)));
-          break;
-        }
-        default: {
-          break;
-        }
-      }
+//       switch (op) {
+//         case 'edit': {
+//           data[segment].forEach((el, j) => {
+//             $from.forEach((val, k) => {
+//               if (objectContaining(el, val)) data[segment][j] = isPlainObject(el) ? mergeDeep(el, $to[k]) : $to[k];
+//             });
+//           });
+//           break;
+//         }
+//         case 'push': {
+//           data[segment].push(...$to);
+//           break;
+//         }
+//         case 'pull': {
+//           remove(data[segment], el => $from.find(val => objectContaining(el, val)));
+//           break;
+//         }
+//         default: {
+//           break;
+//         }
+//       }
 
-      return Promise.all(promises);
-    });
-  }, doc);
-};
+//       return Promise.all(promises);
+//     });
+//   }, doc);
+// };
 
 exports.spliceEmbeddedArray = (array, from, to) => {
   const op = from && to ? 'edit' : (from ? 'pull' : 'push'); // eslint-disable-line no-nested-ternary
@@ -125,5 +125,4 @@ exports.spliceEmbeddedArray = (array, from, to) => {
   }
 
   return array;
-  // if ($from && $from.length > 1 && $to && $to.length === 1) $to = Array.from($from).fill($to[0]);
 };
