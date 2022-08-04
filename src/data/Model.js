@@ -157,14 +157,15 @@ module.exports = class extends Model {
     const fields = serdes === 'deserialize' ? this.getSelectFields() : this.getPersistableFields();
     const crudMap = { create: ['constructs'], update: ['restructs'], delete: ['destructs'] };
     const crudKeys = crudMap[crud] || [];
-    const targetMap = { doc: ['defaultValue', 'ensureArrayValue', 'castValue', 'instructs', ...crudKeys, `${serdes}rs`, 'transformers'], where: ['instructs'] };
+    const targetMap = { doc: ['defaultValue', 'ensureArrayValue', 'castValue', 'instructs', ...crudKeys, `${serdes}rs`, 'transformers'], where: ['ensureArrayValue', 'idValue', 'instructs'] };
     const structureKeys = targetMap[target] || [];
 
     return fields.map((field) => {
       const structures = field.getStructures();
-      const [key, name, type, isArray] = [field.getKey(), field.getName(), field.getType(), field.isArray()];
+      const [key, name, type, isArray, isIdField] = [field.getKey(), field.getName(), field.getType(), field.isArray(), field.isIdField()];
       const shape = field.isEmbedded() ? field.getModelRef().getShape(crud, target) : null;
       const [from, to] = serdes === 'serialize' ? [name, key] : [key, name];
+      structures.idValue = ({ value }) => (value && isIdField ? field.getModel().idValue(value) : value);
       structures.defaultValue = ({ value }) => (value === undefined && target === 'doc' ? field.getDefaultValue() : value);
       structures.ensureArrayValue = ({ value }) => (value != null && isArray && !Array.isArray(value) ? [value] : value);
       structures.castValue = ({ value }) => (value != null && !shape ? map(value, v => castCmp(type, v)) : value);

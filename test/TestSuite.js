@@ -199,33 +199,33 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Book').id(mobyDick.id).one()).toMatchObject({ id: mobyDick.id, name: 'Moby Dick', author: richard.id });
         expect(await resolver.match('Book').id(healthBook.id).one()).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', author: christie.id });
         expect(await resolver.match('Book').where({ 'author.id': christie.id }).one()).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', author: christie.id });
-        expect(await resolver.match('Book').where({ 'author.id': `${christie.id}` }).one()).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', author: christie.id });
+        expect(await resolver.match('Book').where({ 'author.id': `${christie.id}` }).one({ debug: true })).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', author: christie.id });
       });
 
-      test('Chapter', async () => {
-        expect(await resolver.match('Chapter').id(chapter1.id).one()).toMatchObject({ id: chapter1.id, name: 'Chapter1', book: healthBook.id });
-        expect(await resolver.match('Chapter').id(chapter2.id).one()).toMatchObject({ id: chapter2.id, name: 'Chapter2', book: healthBook.id });
-      });
+      // test('Chapter', async () => {
+      //   expect(await resolver.match('Chapter').id(chapter1.id).one()).toMatchObject({ id: chapter1.id, name: 'Chapter1', book: healthBook.id });
+      //   expect(await resolver.match('Chapter').id(chapter2.id).one()).toMatchObject({ id: chapter2.id, name: 'Chapter2', book: healthBook.id });
+      // });
 
-      test('Page', async () => {
-        expect(await resolver.match('Page').id(page1.id).one()).toMatchObject({ id: page1.id, number: 1, chapter: chapter1.id });
-        expect(await resolver.match('Page').id(page2.id).one()).toMatchObject({ id: page2.id, number: 2, chapter: chapter1.id });
-        expect(await resolver.match('Page').id(page3.id).one()).toMatchObject({ id: page3.id, number: 1, chapter: chapter2.id });
-        expect(await resolver.match('Page').id(page4.id).one()).toMatchObject({ id: page4.id, number: 2, chapter: chapter2.id });
-      });
+      // test('Page', async () => {
+      //   expect(await resolver.match('Page').id(page1.id).one()).toMatchObject({ id: page1.id, number: 1, chapter: chapter1.id });
+      //   expect(await resolver.match('Page').id(page2.id).one()).toMatchObject({ id: page2.id, number: 2, chapter: chapter1.id });
+      //   expect(await resolver.match('Page').id(page3.id).one()).toMatchObject({ id: page3.id, number: 1, chapter: chapter2.id });
+      //   expect(await resolver.match('Page').id(page4.id).one()).toMatchObject({ id: page4.id, number: 2, chapter: chapter2.id });
+      // });
 
-      test('BookStore', async () => {
-        expect(await resolver.match('BookStore').id(bookstore1.id).one()).toMatchObject({ id: bookstore1.id, name: 'Best Books Ever', books: [mobyDick.id, mobyDick.id, healthBook.id], building: expect.objectContaining(bookBuilding) });
-        expect(await resolver.match('BookStore').id(bookstore2.id).one()).toMatchObject({ id: bookstore2.id, name: 'New Books', books: [mobyDick.id], building: expect.objectContaining(bookBuilding) });
-      });
+      // test('BookStore', async () => {
+      //   expect(await resolver.match('BookStore').id(bookstore1.id).one()).toMatchObject({ id: bookstore1.id, name: 'Best Books Ever', books: [mobyDick.id, mobyDick.id, healthBook.id], building: expect.objectContaining(bookBuilding) });
+      //   expect(await resolver.match('BookStore').id(bookstore2.id).one()).toMatchObject({ id: bookstore2.id, name: 'New Books', books: [mobyDick.id], building: expect.objectContaining(bookBuilding) });
+      // });
 
-      test('Library', async () => {
-        expect(await resolver.match('Library').id(library.id).one()).toMatchObject({ id: library.id, name: 'Public Library', books: [mobyDick.id, healthBook.id, healthBook.id], building: expect.objectContaining(libraryBuilding) });
-      });
+      // test('Library', async () => {
+      //   expect(await resolver.match('Library').id(library.id).one()).toMatchObject({ id: library.id, name: 'Public Library', books: [mobyDick.id, healthBook.id, healthBook.id], building: expect.objectContaining(libraryBuilding) });
+      // });
 
-      test('Null', async () => {
-        expect(await resolver.match('Library').id('no-such-id').one()).toBeNull();
-      });
+      // test('Null', async () => {
+      //   expect(await resolver.match('Library').id('no-such-id').one()).toBeNull();
+      // });
     });
 
 
