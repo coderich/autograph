@@ -328,8 +328,8 @@ module.exports = (driver = 'mongo', options = {}) => {
         });
 
         test('Art', async () => {
-          // expect(await resolver.match('Art').where({ sections: { id: artsy.sections[0].id } }).one({ debug: true })).toMatchObject(artsy);
-          expect(await resolver.match('Art').where({ 'sections.id': artsy.sections[0].id }).one({ debug: true })).toMatchObject(artsy);
+          expect(await resolver.match('Art').where({ sections: { id: artsy.sections[0].id } }).one()).toMatchObject(artsy);
+          expect(await resolver.match('Art').where({ 'sections.id': artsy.sections[0].id }).one()).toMatchObject(artsy);
         });
       }
 
@@ -339,49 +339,49 @@ module.exports = (driver = 'mongo', options = {}) => {
     });
 
 
-    // describe('Count (find)', () => {
-    //   test('Person', async () => {
-    //     expect(await resolver.match('Person').count()).toBe(2);
-    //     expect(await resolver.match('Person').where({ name: 'richard' }).count()).toBe(1);
-    //     expect(await resolver.match('Person').where({ name: 'Christie' }).count()).toBe(1);
-    //   });
+    describe('Count (find)', () => {
+      test('Person', async () => {
+        expect(await resolver.match('Person').count()).toBe(2);
+        // expect(await resolver.match('Person').where({ name: 'richard' }).count()).toBe(1);
+        // expect(await resolver.match('Person').where({ name: 'Christie' }).count()).toBe(1);
+      });
 
-    //   test('Book', async () => {
-    //     expect(await resolver.match('Book').count()).toBe(2);
-    //     expect(await resolver.match('Book').where({ author: richard.id }).count()).toBe(1);
-    //     expect(await resolver.match('Book').where({ price: 9.99 }).count()).toBe(1);
-    //     expect(await resolver.match('Book').where({ price: '9.99' }).count()).toBe(1);
-    //     expect(await resolver.match('Book').where({ author: christie.id }).count()).toBe(1);
-    //   });
+      // test('Book', async () => {
+      //   expect(await resolver.match('Book').count()).toBe(2);
+      //   expect(await resolver.match('Book').where({ author: richard.id }).count()).toBe(1);
+      //   expect(await resolver.match('Book').where({ price: 9.99 }).count()).toBe(1);
+      //   expect(await resolver.match('Book').where({ price: '9.99' }).count()).toBe(1);
+      //   expect(await resolver.match('Book').where({ author: christie.id }).count()).toBe(1);
+      // });
 
-    //   test('Chapter', async () => {
-    //     expect(await resolver.match('Chapter').count()).toBe(3);
-    //     expect(await resolver.match('Chapter').where({ name: 'cHAPter1' }).count()).toBe(1);
-    //     expect(await resolver.match('Chapter').where({ name: 'cHAPteR2' }).count()).toBe(1);
-    //     expect(await resolver.match('Chapter').where({ name: 'cHAPteR3' }).count()).toBe(0);
-    //     expect(await resolver.match('Chapter').where({ book: mobyDick.id }).count()).toBe(1);
-    //     expect(await resolver.match('Chapter').where({ book: 'some-odd-id' }).count()).toEqual(0);
-    //     expect(await resolver.match('Chapter').where({ book: healthBook.id }).count()).toBe(2);
-    //   });
+      // test('Chapter', async () => {
+      //   expect(await resolver.match('Chapter').count()).toBe(3);
+      //   expect(await resolver.match('Chapter').where({ name: 'cHAPter1' }).count()).toBe(1);
+      //   expect(await resolver.match('Chapter').where({ name: 'cHAPteR2' }).count()).toBe(1);
+      //   expect(await resolver.match('Chapter').where({ name: 'cHAPteR3' }).count()).toBe(0);
+      //   expect(await resolver.match('Chapter').where({ book: mobyDick.id }).count()).toBe(1);
+      //   expect(await resolver.match('Chapter').where({ book: 'some-odd-id' }).count()).toEqual(0);
+      //   expect(await resolver.match('Chapter').where({ book: healthBook.id }).count()).toBe(2);
+      // });
 
-    //   test('Page', async () => {
-    //     expect(await resolver.match('Page').count()).toBe(6);
-    //     expect(await resolver.match('Page').where({ chapter: chapter1.id }).count()).toBe(2);
-    //     expect(await resolver.match('Page').where({ chapter: chapter2.id }).count()).toBe(3);
-    //     expect(await resolver.match('Page').where({ number: 1 }).count()).toBe(3);
-    //     expect(await resolver.match('Page').where({ number: '2' }).count()).toBe(2);
-    //   });
+      // test('Page', async () => {
+      //   expect(await resolver.match('Page').count()).toBe(6);
+      //   expect(await resolver.match('Page').where({ chapter: chapter1.id }).count()).toBe(2);
+      //   expect(await resolver.match('Page').where({ chapter: chapter2.id }).count()).toBe(3);
+      //   expect(await resolver.match('Page').where({ number: 1 }).count()).toBe(3);
+      //   expect(await resolver.match('Page').where({ number: '2' }).count()).toBe(2);
+      // });
 
-    //   test('BookStore', async () => {
-    //     expect(await resolver.match('BookStore').count()).toBe(2);
-    //     expect(await resolver.match('BookStore').where({ books: [mobyDick.id] }).count()).toBe(2);
-    //     expect(await resolver.match('BookStore').where({ name: 'new books' }).count()).toBe(1);
-    //   });
+      // test('BookStore', async () => {
+      //   expect(await resolver.match('BookStore').count()).toBe(2);
+      //   expect(await resolver.match('BookStore').where({ books: [mobyDick.id] }).count()).toBe(2);
+      //   expect(await resolver.match('BookStore').where({ name: 'new books' }).count()).toBe(1);
+      // });
 
-    //   test('Library', async () => {
-    //     expect(await resolver.match('Library').count()).toBe(1);
-    //   });
-    // });
+      // test('Library', async () => {
+      //   expect(await resolver.match('Library').count()).toBe(1);
+      // });
+    });
 
 
     // describe('Data Validation', () => {

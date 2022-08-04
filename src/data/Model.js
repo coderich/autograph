@@ -160,17 +160,16 @@ module.exports = class extends Model {
 
     const targetMap = {
       doc: ['defaultValue', 'ensureArrayValue', 'castValue', 'instructs', ...crudKeys, `$${serdes}rs`, `${serdes}rs`, 'transformers'],
-      where: ['ensureArrayValue', `$${serdes}rs`, 'instructs'],
+      where: [`$${serdes}rs`, 'instructs'],
     };
 
     const structureKeys = targetMap[target] || [];
 
     return fields.map((field) => {
       const structures = field.getStructures();
-      const [key, name, type, isArray, isIdField] = [field.getKey(), field.getName(), field.getType(), field.isArray(), field.isIdField()];
+      const [key, name, type, isArray] = [field.getKey(), field.getName(), field.getType(), field.isArray(), field.isIdField()];
       const shape = field.isEmbedded() ? field.getModelRef().getShape(crud, target) : null;
       const [from, to] = serdes === 'serialize' ? [name, key] : [key, name];
-      // structures.idValue = ({ value }) => (value && isIdField ? field.getIdModel().idValue(value) : value);
       structures.defaultValue = ({ value }) => (value === undefined && target === 'doc' ? field.getDefaultValue() : value);
       structures.ensureArrayValue = ({ value }) => (value != null && isArray && !Array.isArray(value) ? [value] : value);
       structures.castValue = ({ value }) => (value != null && !shape ? map(value, v => castCmp(type, v)) : value);

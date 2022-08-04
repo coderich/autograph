@@ -158,7 +158,7 @@ module.exports = class MongoDriver {
       if (!isScalarDataType(type)) return prev;
 
       // Do regex conversion
-      if (isArray) value = value.$in;
+      if (isArray) value = value.$in || value; // Where clause does not always use $in
       if (!ensureArray(value).some(el => el instanceof RegExp)) return prev;
       const conversion = isArray ? { $map: { input: `$${from}`, as: 'el', in: { $toString: '$$el' } } } : { $toString: `$${from}` };
       return Object.assign(prev, { [from]: conversion });
