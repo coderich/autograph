@@ -3,12 +3,13 @@ const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
 const DataService = require('../data/DataService');
 const { createSystemEvent } = require('../service/event.service');
-const { mergeDeep } = require('../service/app.service');
+const { mergeDeep, shapeObject } = require('../service/app.service');
 
 module.exports = class QueryResolver {
   constructor(query) {
     this.query = query;
     this.resolver = query.toObject().resolver;
+    this.context = this.resolver.getContext();
   }
 
   findOne(query) {
@@ -31,11 +32,15 @@ module.exports = class QueryResolver {
 
   createOne(query) {
     const { model, input, flags } = query.toObject();
-    model.appendDefaultFields(query, input);
+    const shape = model.getShape('create');
+    // model.appendDefaultFields(query, input);
 
     return createSystemEvent('Mutation', { method: 'create', query }, async () => {
-      const $input = model.serialize(query, model.appendCreateFields(input));
+      const $input = shapeObject(shape, input, this.context);
+      // const $input = model.serialize(query, model.appendCreateFields(input));
       query.$input($input);
+      console.log(input);
+      console.log($input);
       if (!get(flags, 'novalidate')) await model.validate(query, $input);
       const doc = await this.resolver.resolve(query);
       query.doc(doc);

@@ -77,7 +77,7 @@ module.exports = class extends Model {
 
   appendDefaultFields(query, input) {
     this.getDefaultedFields().filter(field => field.isPersistable()).forEach((field) => {
-      input[field] = field.resolveBoundValue(query, input[field]);
+      // input[field] = field.resolveBoundValue(query, input[field]);
     });
 
     // Generate embedded default values
@@ -144,44 +144,29 @@ module.exports = class extends Model {
   }
 
   validate(query, data) {
-    const normalized = this.deserialize(query, data);
-
     return Promise.all(this.getFields().map((field) => {
-      return Promise.all(ensureArray(map(normalized, (obj) => {
+      return Promise.all(ensureArray(map(data, (obj) => {
         if (obj == null) return Promise.resolve();
-        return field.validate(query, obj[field.getName()]);
+        return field.validate(query, obj[field.getKey()]);
       })));
     }));
   }
 
-  tform(query, data) {
-    return map(data, (doc) => {
-      return Object.keys(doc).map(k => this.getField(k)).filter(Boolean).reduce((prev, curr) => {
-        const key = curr.getName();
-        const value = doc[key];
-        return Object.assign(prev, { [key]: curr.tform(query, value) });
-      }, {});
-    });
-  }
+  getShape(crud = 'read', target = 'doc') {
+    const serdes = crud === 'read' ? 'deserialize' : 'serialize';
+    const fields = serdes === 'deserialize' ? this.getSelectFields() : this.getPersistableFields();
+    const crudMap = { create: ['constructs'], update: ['restructs'], delete: ['destructs'] };
+    const crudKeys = crudMap[crud] || [];
+    const targetMap = { doc: ['instructs', ...crudKeys, `${serdes}rs`, 'transformers'], where: ['instructs'] };
+    const structureKeys = targetMap[target] || [];
 
-  getShape(serdes = 'deserialize', recursive = true) {
-    return this.getSelectFields().map((field) => {
+    return fields.map((field) => {
+      const structures = field.getStructures();
+      const defaultValue = target === 'doc' ? field.getDefaultValue() : undefined;
       const [from, to] = serdes === 'serialize' ? [field.getName(), field.getKey()] : [field.getKey(), field.getName()];
-      const shape = recursive && field.isEmbedded() ? field.getModelRef().getShape(serdes, recursive) : null;
-      const transformers = (serdes === 'serialize' ? field.getSerializers() : field.getDeserializers).concat(field.getTransformers());
-      return { from, to, type: field.getType(), isArray: field.isArray(), defaultValue: field.getDefaultValue(), transformers, shape };
-    });
-  }
-
-  shape(data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); }), shape) {
-    shape = shape || this.getShape(serdes);
-
-    return map(data, (doc) => {
-      return shape.reduce((prev, { from, to, shape: subShape }) => {
-        const value = doc[from];
-        if (value === undefined) return prev;
-        return Object.assign(prev, { [to]: subShape ? this.shape(value, serdes, subShape) : value });
-      }, {});
+      const shape = field.isEmbedded() ? field.getModelRef().getShape(crud, target) : null;
+      const transformers = structureKeys.reduce((prev, struct) => prev.concat(structures[struct]), []);
+      return { from, to, type: field.getType(), isArray: field.isArray(), defaultValue, transformers, shape };
     });
   }
 };

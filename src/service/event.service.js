@@ -1,6 +1,6 @@
 const QueryService = require('../query/QueryService');
 const EventEmitter = require('../core/EventEmitter');
-const { ensureArray, ucFirst } = require('./app.service');
+const { ensureArray, ucFirst, shapeObject } = require('./app.service');
 
 // Event emitters
 const eventEmitter = new EventEmitter().setMaxListeners(100);
@@ -20,11 +20,12 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
   if (name !== 'Setup' && name !== 'Response') {
     const { method, query } = mixed;
     const { resolver, model, meta, doc, id, input, sort, merged, native, root, crud } = query.toObject();
+    const context = resolver.getContext();
 
     event = {
-      context: resolver.getContext(),
       key: `${method}${model}`,
       resolver,
+      context,
       method,
       crud,
       model,
@@ -39,8 +40,12 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
 
     middleware = () => new Promise(async (resolve) => {
       if (!native) {
+        const shape = model.getShape('read', 'where');
         const $where = await QueryService.resolveWhereClause(query);
-        query.match(model.serialize(query, $where, true));
+        const $$where = shapeObject(shape, $where, context);
+        // const $$where = model.serialize(query, $where, true);
+        // query.match($$where);
+        query.match($$where);
       }
 
       if (sort) {

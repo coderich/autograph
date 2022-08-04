@@ -10,46 +10,49 @@ module.exports = (schema) => {
       enum AutoGraphEnforceEnum { ${Object.keys(Rule.getInstances()).join(' ')} }
       enum AutoGraphTransformEnum  { ${Object.keys(Transformer.getInstances()).join(' ')} }
       enum AutoGraphAuthzEnum { private protected public }
-      enum AutoGraphValueScopeEnum { self context }
       enum AutoGraphOnDeleteEnum { cascade nullify restrict defer }
       enum AutoGraphIndexEnum { unique }
 
       directive @model(
-        key: String # Specify it's key during transit
+        id: String # Specify db key (default "id")
+        key: String # Specify db key
+        createdAt: String # Specify db key (default "createdAt")
+        updatedAt: String # Specify db key (default "updatedAt")
+        meta: AutoGraphMixed # Custom input "meta" field for mutations
+        embed: Boolean # Mark this an embedded model (default false)
+        persist: Boolean # Persist this model (default true)
         gqlScope: AutoGraphMixed # Dictate how GraphQL API behaves
         dalScope: AutoGraphMixed # Dictate how the DAL behaves
         fieldScope: AutoGraphMixed # Dictate how a FIELD may use me
-        meta: AutoGraphMixed # Custom input 'meta' field for mutations
-        embed: Boolean # Mark this an embedded model (default false)
-        persist: Boolean # Persist this model (default true)
         driver: AutoGraphDriver # External data driver
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
         namespace: String # Logical grouping of models that can be globbed (useful for authz)
-
-        # Override auto-gen
-        id: String
-        createdAt: String
-        updatedAt: String
       ) on OBJECT | INTERFACE
 
       directive @field(
-        key: String # Specify it's key during transit
+        id: Boolean # Cast to idValue (default false)
+        key: String # Specify db key
+        persist: Boolean # Persist this field (default true)
+        default: AutoGraphMixed # Define a default value
         ref: AutoGraphMixed # Specify the modelRef field's name (overrides isEmbedded)
         gqlScope: AutoGraphMixed # Dictate how GraphQL API behaves
         dalScope: AutoGraphMixed # Dictate how the DAL behaves
         fieldScope: AutoGraphMixed # Dictate how a FIELD may use me
-        persist: Boolean # Persist this field (default true)
-        default: AutoGraphMixed # Define a default value
         connection: Boolean # Treat this field as a connection type (default false - rolling this out slowly)
         onDelete: AutoGraphOnDeleteEnum # onDelete behavior
 
         noRepeat: Boolean
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
+        enforce: [AutoGraphEnforceEnum!] # Rules to enforce
 
-        enforce: [AutoGraphEnforceEnum!]
-        transform: [AutoGraphTransformEnum!] # Transforms when serialize + deserialize
-        serialize: [AutoGraphTransformEnum!] # Transforms when serialize
-        deserialize: [AutoGraphTransformEnum!] # Transforms when deserialize
+        # Structure
+        instruct: [AutoGraphTransformEnum!]
+        destruct: [AutoGraphTransformEnum!]
+        restruct: [AutoGraphTransformEnum!]
+        construct: [AutoGraphTransformEnum!]
+        serialize: [AutoGraphTransformEnum!]
+        deserialize: [AutoGraphTransformEnum!]
+        transform: [AutoGraphTransformEnum!]
       ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
 
       directive @link(

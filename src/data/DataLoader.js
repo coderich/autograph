@@ -1,6 +1,5 @@
 const FBDataLoader = require('dataloader');
-const DataHydrator = require('./stream/DataHydrator');
-// const ResultSet = require('./ResultSet');
+const DataStream = require('./DataStream');
 // const Query = require('../query/Query');
 
 const { hashObject } = require('../service/app.service');
@@ -34,11 +33,11 @@ module.exports = class DataLoader extends FBDataLoader {
 
       return Promise.all(queries.map((query) => {
         return driver.resolve(query.toDriver()).then((data) => {
-          return (data != null && typeof data === 'object' ? new DataHydrator(query, data) : data);
+          return new DataStream(model, data, resolver.getContext());
         });
       }));
     }, {
-      cache: false,
+      cache: true,
       cacheKeyFn: query => hashObject(query.getCacheKey()),
     });
   }

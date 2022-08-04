@@ -8,7 +8,7 @@ Rule.extend('artComment', Rule.allow('yay', 'great', 'boo'));
 Rule.extend('colors', Rule.allow('blue', 'red', 'green', 'purple'));
 Rule.extend('buildingType', Rule.allow('home', 'office', 'business'));
 
-Transformer.factory('slowRoll', () => (f, v) => timeout(300).then(() => 5), { ignoreNull: false, enumerable: true });
+Transformer.factory('networkID', () => ({ context }) => context.network.id, { ignoreNull: false, enumerable: true });
 
 module.exports = {
   typeDefs: `
@@ -28,8 +28,8 @@ module.exports = {
       status: String @field(key: "state")
       state: String @field(key: "address_state")
       telephone: String @field(default: "###-###-####")
-      network: String @value(scope: context, path: "network.id")
-      manipulate: String @field(resolve: slowRoll)
+      network: String @field(instruct: networkID)
+      manipulate: String
       sections: [Section!]
     }
 

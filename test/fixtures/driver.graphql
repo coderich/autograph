@@ -5,8 +5,8 @@ type Person @model(meta: "PersonInputMeta") {
   status: String @field(key: "state")
   # state: String @field(key: "address_state")
   telephone: String @field(default: "###-###-####")
-  network: String @value(scope: context, path: "network.id")
-  manipulate: String @field(resolve: slowRoll)
+  network: String # @value(scope: context, path: "network.id")
+  manipulate: String
 }
 
 type Site @model {

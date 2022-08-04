@@ -80,7 +80,7 @@ module.exports = class Field extends Node {
   }
 
   isDefaulted() {
-    return Boolean(this.hasBoundValue() || this.getDefaultValue() != null);
+    return Boolean(this.getDefaultValue() != null);
   }
 
   isRequired() {
@@ -94,6 +94,12 @@ module.exports = class Field extends Node {
   isFKReference() {
     const modelRef = this.getModelRef();
     return Boolean(modelRef && !this.isEmbedded());
+  }
+
+  isIdField() {
+    const key = this.getKey();
+    const idKey = this.getModel().idKey();
+    return key === idKey || Boolean(this.getDirectiveArg('field', 'id'));
   }
 
   getJoinInfo() {

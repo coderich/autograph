@@ -1,4 +1,4 @@
-const Schema = require('../../src/graphql/ast/Schema');
+const Schema = require('../../src/graphql/ast/SchemaDecorator');
 const complexSchema = require('../fixtures/complex.graphql');
 
 const typeDefs = `
@@ -61,7 +61,7 @@ const extendDef = `
 
 describe('Documents', () => {
   test('foundation', () => {
-    const schema = new Schema({ typeDefs });
+    const schema = new Schema({ typeDefs }).initialize();
     expect(schema).toBeDefined();
 
     const validate = () => {
@@ -99,8 +99,8 @@ describe('Documents', () => {
   });
 
   test('extendSchema', () => {
-    const schema = new Schema({ typeDefs, resolvers });
-    schema.extend({
+    const schema = new Schema({ typeDefs, resolvers }).initialize();
+    schema.mergeSchema({
       typeDefs: extendDef,
       resolvers: {
         Book: {
@@ -110,7 +110,7 @@ describe('Documents', () => {
           name: () => 'Great Person',
         },
       },
-    });
+    }).initialize();
 
     const validate = () => {
       expect(schema.getModelNames()).toEqual(['Person', 'Book', 'Building']);

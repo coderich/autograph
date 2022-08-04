@@ -7,7 +7,7 @@ const typeDefs = require('../fixtures/driver.graphql');
 const stores = require('../stores');
 
 describe('MongoDriver', () => {
-  let driver, resolver, person, site;
+  let resolver, person, site;
 
   beforeAll(async () => {
     jest.setTimeout(10000);
@@ -59,11 +59,6 @@ describe('MongoDriver', () => {
         network: 'networkId',
       };
 
-      // Driver
-      const query = resolver.match('Person').query.match({ _id: person._id }); // eslint-disable-line
-      const data = await driver.findOne(query.toDriver());
-      expect(data).toMatchObject(toMatchObject);
-
       // Resolver
       const res = await resolver.match('Person').id(person._id).one(); // eslint-disable-line
       expect(res).toMatchObject(toMatchObject);
@@ -86,11 +81,6 @@ describe('MongoDriver', () => {
         ],
       };
 
-      // Driver
-      const query = resolver.match('Site').query.match({ _id: site._id }); // eslint-disable-line
-      const data = await driver.findOne(query.toDriver());
-      expect(data).toMatchObject(toMatchObject);
-
       // Resolver
       const res = await resolver.match('Site').id(site._id).one(); // eslint-disable-line
       expect(res).toMatchObject(toMatchObject);
@@ -101,8 +91,6 @@ describe('MongoDriver', () => {
     test('person', async () => {
       const newPerson = await resolver.match('Person').save({ name: 'suzy', age: 30, emailAddress: 'thesuz@gmail.com' });
       expect(newPerson).toMatchObject({ id: expect.anything(), name: 'Suzy', age: 30 });
-      expect(newPerson.$name).toBeDefined();
-      expect(newPerson.$$save).toBeDefined();
     });
   });
 });

@@ -1,12 +1,15 @@
-const ASTSchema = require('../../../src/graphql/ast/Schema');
-const CoreSchema = require('../../../src/core/Schema');
+const { cloneDeep } = require('lodash');
+const { shapeObject } = require('../../../src/service/app.service');
+const ASTSchema = require('../../../src/graphql/ast/SchemaDecorator');
+const CoreSchema = require('../../../src/core/SchemaDecorator');
+const schemaJS = require('./../../fixtures/schema');
 const baseGraphql = require('./base.graphql');
 const stores = require('../../stores');
 
 const validate = (schema) => {
   // Models
   const models = schema.getModels();
-  expect(models.map(m => m.getName())).toEqual(expect.arrayContaining(['Person', 'Book']));
+  expect(models.map(m => m.getName())).toEqual(expect.arrayContaining(['Person', 'Book', 'User']));
 
   // Fields
   const [Person, Book] = models;
@@ -28,20 +31,51 @@ const validate = (schema) => {
 
 describe('FNSchema', () => {
   test('AST Base', () => {
-    const schema = new ASTSchema({ typeDefs: baseGraphql });
+    const schema = new ASTSchema({ typeDefs: cloneDeep(baseGraphql) }).initialize();
     validate(schema);
     expect(schema.makeExecutableSchema()).toBeDefined();
     validate(schema);
   });
 
   test('Core Base', () => {
-    const schema = new CoreSchema({ typeDefs: baseGraphql }, stores);
+    const schema = new CoreSchema({ typeDefs: cloneDeep(baseGraphql) }, stores).initialize();
     validate(schema);
     expect(schema.makeExecutableSchema()).toBeDefined();
     validate(schema);
-    expect(schema.getServerApiSchema()).toBeDefined();
+    expect(schema.decorate()).toBeDefined();
     expect(schema.getModel('Person').getField('_id').getName()).toBe('id');
     expect(schema.getModel('Person').getField('status').getRules().length).toBe(1);
     expect(schema.getModel('User').getField('gender').getRules().length).toBe(1);
+  });
+
+  test('getShape', () => {
+    const schema = new CoreSchema(schemaJS, stores).decorate();
+    const artModel = schema.getModel('Art');
+    expect(artModel).toBeDefined();
+
+    // Shape
+    const shape = artModel.getShape();
+    expect(shape).toEqual(expect.arrayContaining([
+      expect.objectContaining({ from: '_id' }),
+      expect.objectContaining({ from: 'name' }),
+      expect.objectContaining({ from: 'bids' }),
+      expect.objectContaining({ from: 'comments' }),
+      expect.objectContaining({
+        from: 'sections',
+        shape: expect.arrayContaining([
+          expect.objectContaining({ from: '_id' }),
+          expect.objectContaining({ from: 'name' }),
+          expect.objectContaining({ from: 'person' }),
+          expect.objectContaining({ from: 'description' }),
+        ]),
+      }),
+    ]));
+
+    // Shape Object
+    const obj = shapeObject(shape, {
+      name: 'art1',
+      sections: [{ name: 'section1' }],
+    });
+    console.log(obj);
   });
 });
