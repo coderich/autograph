@@ -1,6 +1,5 @@
 const FBDataLoader = require('dataloader');
 const { hydrateResults } = require('../service/app.service');
-const DataStream = require('./DataStream');
 // const Query = require('../query/Query');
 
 const { hashObject } = require('../service/app.service');
@@ -36,7 +35,6 @@ module.exports = class DataLoader extends FBDataLoader {
       return Promise.all(queries.map((query) => {
         return driver.resolve(query.toDriver()).then((data) => {
           return hydrateResults(model, data, resolver.getContext());
-          // return new DataStream(model, data, resolver.getContext());
         });
       }));
     }, {

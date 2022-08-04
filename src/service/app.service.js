@@ -294,7 +294,8 @@ exports.shapeObject = (shape, obj, context, root) => {
 };
 
 exports.hydrateResults = (model, stream, context) => {
-  if (stream == null) return stream;
+  // We only hydrate objects
+  if (stream == null || typeof stream !== 'object') return stream;
 
   // If we're not a stream we return the shape
   const shape = model.getShape();

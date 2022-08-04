@@ -1,6 +1,6 @@
 const { remove } = require('lodash');
 const Boom = require('../core/Boom');
-const { isPlainObject, objectContaining, mergeDeep, map } = require('../service/app.service');
+const { isPlainObject, objectContaining, mergeDeep, map, ensureArray } = require('../service/app.service');
 
 exports.paginateResultSet = (rs, first, after, last, before) => {
   let hasNextPage = false;
@@ -94,4 +94,36 @@ exports.spliceEmbeddedArray = (query, doc, key, from, to) => {
       return Promise.all(promises);
     });
   }, doc);
+};
+
+exports.spliceEmbeddedArray = (array, from, to) => {
+  const op = from && to ? 'edit' : (from ? 'pull' : 'push'); // eslint-disable-line no-nested-ternary
+
+  // Convenience so the user does not have to explicity type out the same value over and over to replace
+  if (from && from.length > 1 && to && to.length === 1) to = Array.from(from).fill(to[0]);
+
+  switch (op) {
+    case 'edit': {
+      ensureArray(from).forEach((f, i) => {
+        const t = ensureArray(to)[i];
+        const indexes = array.map((el, j) => (el == f ? j : -1)).filter(index => index !== -1);
+        indexes.forEach(index => (array[index] = t));
+      });
+      break;
+    }
+    case 'push': {
+      array.push(...to);
+      break;
+    }
+    case 'pull': {
+      remove(array, el => from.find(val => el == val));
+      break;
+    }
+    default: {
+      break;
+    }
+  }
+
+  return array;
+  // if ($from && $from.length > 1 && $to && $to.length === 1) $to = Array.from($from).fill($to[0]);
 };

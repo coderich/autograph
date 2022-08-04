@@ -1,4 +1,4 @@
-const { get, isEmpty } = require('lodash');
+const { get, set, isEmpty } = require('lodash');
 const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
 const DataService = require('../data/DataService');
@@ -160,12 +160,20 @@ module.exports = class QueryResolver {
     const { model, match, args, flags } = query.toObject();
     const [key, from, to] = args;
 
+    // Can only splice arrays
+    const field = model.getField(key);
+    const isArray = field.isArray();
+    if (!isArray) throw Boom.badRequest(`Cannot splice field '${model}.${field}'`);
+
     return this.resolver.match(model).match(match).flags(flags).one({ required: true }).then(async (doc) => {
-      await DataService.spliceEmbeddedArray(query, doc, key, from, to);
+      const array = get(doc, key) || [];
+      set(doc, key, DataService.spliceEmbeddedArray(array, from, to));
 
       return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(doc) }, async () => {
+        const shape = model.getShape('update');
         await model.validate(query, doc);
-        const $doc = model.serialize(query, doc, true);
+        // const $doc = model.serialize(query, doc, true);
+        const $doc = shapeObject(shape, doc, this.context);
         return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc));
       });
     });
