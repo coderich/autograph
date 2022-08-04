@@ -2,7 +2,7 @@ const Type = require('./Type');
 const Field = require('../graphql/ast/Field');
 const Rule = require('../core/Rule');
 const Transformer = require('../core/Transformer');
-const { map, uvl, isPlainObject, ensureArray, promiseChain } = require('../service/app.service');
+const { map, uvl, isPlainObject, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Field {
   constructor(model, field) {

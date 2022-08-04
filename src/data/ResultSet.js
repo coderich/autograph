@@ -1,6 +1,6 @@
 const { get } = require('lodash');
 const DataService = require('./DataService');
-const { map, ensureArray, keyPaths, mapPromise, toGUID } = require('../service/app.service');
+const { map, ensureArray, keyPaths, toGUID } = require('../service/app.service');
 
 const modelCache = new WeakMap();
 
@@ -112,7 +112,7 @@ module.exports = class ResultSet {
 
   static makeModelTemplate(model, fieldDefs) {
     const definition = fieldDefs.reduce((prev, fieldDef) => {
-      const { field, key, name, isArray, isScalar, isVirtual, isRequired, isEmbedded, modelRef, virtualField, useDefaultResolver } = fieldDef;
+      const { field, key, name, isArray, isVirtual, isRequired, isEmbedded, modelRef, virtualField, useDefaultResolver } = fieldDef;
       const $name = `$${name}`;
 
       // Deserialized field attributes
