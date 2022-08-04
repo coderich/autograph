@@ -1,16 +1,14 @@
 const Model = require('../data/Model');
-const Query = require('../query/Query');
 const DataLoader = require('../data/DataLoader');
 const DataTransaction = require('../data/DataTransaction');
 const QueryBuilder = require('../query/QueryBuilder');
-const { createSystemEvent } = require('../service/event.service');
 const { shapeObject } = require('../service/app.service');
 
 module.exports = class Resolver {
   constructor(schema, context = {}) {
-    this.models = schema.getModels();
     this.schema = schema;
     this.context = context;
+    this.models = schema.getModels();
     this.loaders = this.models.reduce((prev, model) => prev.set(`${model}`, new DataLoader(this, model)), new Map());
 
     //
@@ -73,8 +71,7 @@ module.exports = class Resolver {
   }
 
   toModel(model) {
-    const $model = model instanceof Model ? model : this.schema.getModel(model);
-    return $model;
+    return model instanceof Model ? model : this.schema.getModel(model);
   }
 
   toModelMarked(model) {

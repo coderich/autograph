@@ -1,5 +1,5 @@
 const FBDataLoader = require('dataloader');
-const DataService = require('./DataService');
+const { paginateResultSet } = require('./DataService');
 const { hydrateResults } = require('../service/app.service');
 // const Query = require('../query/Query');
 
@@ -36,10 +36,9 @@ module.exports = class DataLoader extends FBDataLoader {
       return Promise.all(queries.map((query) => {
         return driver.resolve(query.toDriver()).then((data) => {
           if (data == null || typeof data !== 'object') return data; // We only hydrate objects
-          // return hydrateResults(model, data, resolver.getContext());
+
           return hydrateResults(model, data, resolver.getContext()).then((results) => {
-            const { first, after, last, before } = query.toObject();
-            return DataService.paginateResultSet(results, first, after, last, before);
+            return results.length ? paginateResultSet(results, query).rs : results;
           });
         });
       }));

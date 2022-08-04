@@ -294,12 +294,9 @@ exports.shapeObject = (shape, obj, context, root) => {
 };
 
 exports.hydrateResults = (model, stream, context) => {
-  // We only hydrate objects
-  if (stream == null || typeof stream !== 'object') return stream;
-
   // If we're not a stream we return the shape
   const shape = model.getShape();
-  if (!(stream instanceof Stream)) return exports.shapeObject(shape, stream, context);
+  if (!(stream instanceof Stream)) return Promise.resolve(exports.shapeObject(shape, stream, context));
 
   // Stream API
   const results = [];

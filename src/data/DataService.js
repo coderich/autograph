@@ -1,40 +1,65 @@
-const { remove } = require('lodash');
+const { get, remove } = require('lodash');
 const Boom = require('../core/Boom');
-const { isPlainObject, objectContaining, mergeDeep, map, ensureArray } = require('../service/app.service');
+const { isPlainObject, objectContaining, mergeDeep, map, ensureArray, keyPaths } = require('../service/app.service');
 
-exports.paginateResultSet = (rs, first, after, last, before) => {
+exports.paginateResultSet = (rs, query) => {
+  const { first, after, last, before, sort } = query.toObject();
+  const $rs = exports.toResultSet(rs, sort);
+
   let hasNextPage = false;
   let hasPreviousPage = false;
+
   const limiter = first || last;
 
   // First try to take off the "bookends" ($gte | $lte)
-  if (rs.length && rs[0].$$cursor === after) {
+  if (after) console.log($rs[0].$$cursor, after);
+  if ($rs.length && $rs[0].$$cursor === after) {
     rs.shift();
+    $rs.shift();
     hasPreviousPage = true;
   }
 
-  if (rs.length && rs[rs.length - 1].$$cursor === before) {
+  if (after) console.log($rs[$rs.length - 1].$$cursor, after);
+  if ($rs.length && $rs[$rs.length - 1].$$cursor === before) {
     rs.pop();
+    $rs.pop();
     hasNextPage = true;
   }
 
   // Next, remove any overage
-  const overage = rs.length - (limiter - 2);
+  const overage = $rs.length - (limiter - 2);
+  if (after) console.log('overage', overage);
 
   if (overage > 0) {
     if (first) {
       rs.splice(-overage);
+      $rs.splice(-overage);
       hasNextPage = true;
     } else if (last) {
       rs.splice(0, overage);
+      $rs.splice(0, overage);
       hasPreviousPage = true;
     } else {
       rs.splice(-overage);
+      $rs.splice(-overage);
       hasNextPage = true;
     }
   }
 
-  return { hasNextPage, hasPreviousPage };
+  return { rs, hasNextPage, hasPreviousPage };
+};
+
+exports.toResultSet = (results, sort) => {
+  return results.map((doc) => {
+    return {
+      get $$cursor() {
+        const sortPaths = keyPaths(sort);
+        const sortValues = sortPaths.reduce((prv, path) => Object.assign(prv, { [path]: get(doc, path) }), {});
+        const sortJSON = JSON.stringify(sortValues);
+        return Buffer.from(sortJSON).toString('base64');
+      },
+    };
+  });
 };
 
 /**
