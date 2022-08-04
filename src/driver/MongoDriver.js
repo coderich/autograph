@@ -1,7 +1,7 @@
 const Util = require('util');
 const { get, has } = require('lodash');
 const { MongoClient, ObjectID } = require('mongodb');
-const { proxyDeep, toKeyObj, globToRegex, proxyPromise, isScalarDataType, promiseRetry } = require('../service/app.service');
+const { map, ensureArray, proxyDeep, toKeyObj, globToRegex, proxyPromise, isScalarDataType, promiseRetry } = require('../service/app.service');
 
 module.exports = class MongoDriver {
   constructor(config) {
@@ -140,10 +140,10 @@ module.exports = class MongoDriver {
     return proxyDeep(toKeyObj(where), {
       get(target, prop, rec) {
         const value = Reflect.get(target, prop, rec);
-        if (Array.isArray(value)) return { $in: value };
         if (typeof value === 'function') return value.bind(target);
-        if (typeof value === 'string') { return globToRegex(value, { nocase: true, regex: true }); }
-        return value;
+        const $value = map(value, v => (typeof v === 'string' ? globToRegex(v, { nocase: true, regex: true }) : v));
+        if (Array.isArray($value)) return { $in: $value };
+        return $value;
       },
     }).toObject();
   }
@@ -151,13 +151,17 @@ module.exports = class MongoDriver {
   static getAddFields(query) {
     const { shape, where } = query;
 
-    return shape.reduce((prev, { from, type }) => {
-      const value = where[from];
+    return shape.reduce((prev, { from, type, isArray }) => {
+      // Basic checks to see if worth converting for regex
+      let value = where[from];
       if (value === undefined) return prev;
       if (!isScalarDataType(type)) return prev;
-      const stype = String((type === 'Float' || type === 'Int' ? 'Number' : type)).toLowerCase();
-      if (String(typeof value) === `${stype}`) return prev;
-      return Object.assign(prev, { [from]: { $toString: `$${from}` } });
+
+      // Do regex conversion
+      if (isArray) value = value.$in;
+      if (!ensureArray(value).some(el => el instanceof RegExp)) return prev;
+      const conversion = isArray ? { $map: { input: `$${from}`, as: 'el', in: { $toString: '$$el' } } } : { $toString: `$${from}` };
+      return Object.assign(prev, { [from]: conversion });
     }, {});
   }
 
