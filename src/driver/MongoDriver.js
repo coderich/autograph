@@ -58,7 +58,7 @@ module.exports = class MongoDriver {
 
     return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query, true), options, flags).then((cursor) => {
       return cursor.next().then((doc) => {
-        return doc ? doc.count : 0;
+        return get(doc, 'count', 0);
       });
     });
   }

@@ -87,12 +87,19 @@ module.exports = class Resolver {
         });
       }
       default: {
-        // This is needed in SF tests...
         const key = model.idKey();
         const { where, method } = query.toDriver();
-        if (Object.prototype.hasOwnProperty.call(where, key) && isEmpty(where[key])) return Promise.resolve(method === 'findMany' ? [] : null);
 
-        //
+        // This check is to avoid making a db call for no reason
+        if (Object.prototype.hasOwnProperty.call(where, key) && isEmpty(where[key])) {
+          switch (method) {
+            case 'count': return Promise.resolve(0);
+            case 'findMany': return Promise.resolve([]);
+            default: return Promise.resolve(null);
+          }
+        }
+
+        // DB call
         return this.loaders.get(`${model}`).load(query);
       }
     }
