@@ -100,10 +100,6 @@ module.exports = class Model extends Node {
     return this.getFields().filter(field => Boolean(field.getModelRef()));
   }
 
-  // getDataRefFields() {
-  //   return this.fields.filter(field => Boolean(field.getDataRef() && !field.isEmbedded()));
-  // }
-
   getEmbeddedFields() {
     return this.getFields().filter(field => field.isEmbedded());
   }
@@ -122,14 +118,6 @@ module.exports = class Model extends Node {
 
   getPersistableFields() {
     return this.getFields().filter(field => field.isPersistable());
-  }
-
-  getSerializeFields() {
-    return this.getFields().filter(field => field.getSerializers().length);
-  }
-
-  getDeserializeFields() {
-    return this.getFields().filter(field => field.getDeserializers().length);
   }
 
   // Misc

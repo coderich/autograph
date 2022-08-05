@@ -142,14 +142,6 @@ exports.objectContaining = (a, b) => {
   return exports.hashObject(a) === exports.hashObject(b);
 };
 
-exports.serialize = (field, value) => {
-  if (!exports.isPlainObject(value)) return value;
-  const model = field.getModelRef();
-  if (!model) return value;
-  const key = model.idKey();
-  return value[key];
-};
-
 /**
  * Transform an object with dot.notation keys into an expanded object.
  * eg. { 'user.name': 'richard' } => { user: { name: 'richard' } }

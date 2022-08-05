@@ -1,6 +1,6 @@
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
-const { map, ucFirst, castCmp, ensureArray } = require('../service/app.service');
+const { map, castCmp, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Model {
   constructor(schema, model, driver) {
@@ -43,105 +43,50 @@ module.exports = class extends Model {
     return this.referentials;
   }
 
-  /**
-   * Called when creating a new document. Will add attributes such as id, createdAt, updatedAt
-   * while ensuring that all defaulted values are set appropriately
-   */
-  appendCreateFields(input, embed = false) {
-    // id, createdAt, updatedAt
-    const timestamp = new Date();
-    if (embed && !input.id && this.idKey()) input.id = this.idValue();
-    if (!input.createdAt) input.createdAt = timestamp;
-    input.updatedAt = timestamp;
+  // /**
+  //  * Called when creating a new document. Will add attributes such as id, createdAt, updatedAt
+  //  * while ensuring that all defaulted values are set appropriately
+  //  */
+  // appendCreateFields(input, embed = false) {
+  //   // id, createdAt, updatedAt
+  //   const timestamp = new Date();
+  //   if (embed && !input.id && this.idKey()) input.id = this.idValue();
+  //   if (!input.createdAt) input.createdAt = timestamp;
+  //   input.updatedAt = timestamp;
 
-    // Generate embedded default values
-    this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
-      if (input[field]) map(input[field], v => field.getModelRef().appendCreateFields(v, true));
-    });
+  //   // Generate embedded default values
+  //   this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
+  //     if (input[field]) map(input[field], v => field.getModelRef().appendCreateFields(v, true));
+  //   });
 
-    return input;
-  }
+  //   return input;
+  // }
 
-  appendUpdateFields(input, embed = false) {
-    // id, updatedAt
-    if (embed && !input.id && this.idKey()) input.id = this.idValue();
-    input.updatedAt = new Date();
+  // appendUpdateFields(input, embed = false) {
+  //   // id, updatedAt
+  //   if (embed && !input.id && this.idKey()) input.id = this.idValue();
+  //   input.updatedAt = new Date();
 
-    // Generate embedded default values
-    this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
-      if (input[field]) map(input[field], v => field.getModelRef().appendUpdateFields(v, field.isArray())); // Only embedded when it's an array (because then we'll ensure ids)
-    });
+  //   // Generate embedded default values
+  //   this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
+  //     if (input[field]) map(input[field], v => field.getModelRef().appendUpdateFields(v, field.isArray())); // Only embedded when it's an array (because then we'll ensure ids)
+  //   });
 
-    return input;
-  }
+  //   return input;
+  // }
 
-  appendDefaultFields(query, input) {
-    this.getDefaultedFields().filter(field => field.isPersistable()).forEach((field) => {
-      // input[field] = field.resolveBoundValue(query, input[field]);
-    });
+  // appendDefaultFields(query, input) {
+  //   this.getDefaultedFields().filter(field => field.isPersistable()).forEach((field) => {
+  //     // input[field] = field.resolveBoundValue(query, input[field]);
+  //   });
 
-    // Generate embedded default values
-    this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
-      map(input[field], v => field.getModelRef().appendDefaultFields(query, v));
-    });
+  //   // Generate embedded default values
+  //   this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
+  //     map(input[field], v => field.getModelRef().appendDefaultFields(query, v));
+  //   });
 
-    return input;
-  }
-
-  /**
-   * Serialize data from Domain Model to Data Model (where clause has special handling)
-   */
-  serialize(query, data, minimal = false) {
-    return this.transform(query, data, 'serialize', minimal);
-  }
-
-  /**
-   * Deserialize data from Data Model to Domain Model
-   */
-  deserialize(query, data) {
-    return this.transform(query, data, 'deserialize');
-  }
-
-  /**
-   * Serializer/Deserializer
-   */
-  transform(query, data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); })(), minimal = false) {
-    // Serialize always gets the bound values
-    const appendFields = [];
-
-    // Certain cases do not want custom serdes or defaults
-    if (!minimal) appendFields.push(...this[`get${ucFirst(serdes)}Fields`](), ...this.getDefaultFields());
-
-    // Transform all the data
-    return map(data, (doc) => {
-      // We want the appendFields + those in the data, deduped
-      const fields = [...new Set(appendFields.concat(Object.keys(doc).map(k => this.getField(k))))].filter(Boolean);
-
-      // Loop through the fields and delegate (renaming keys appropriately)
-      return fields.reduce((prev, field) => {
-        const [key, name] = serdes === 'serialize' ? [field.getKey(), field.getName()] : [field.getName(), field.getKey()];
-        prev[key] = field[serdes](query, doc[name], minimal);
-        return prev;
-      }, {});
-    });
-  }
-
-  /**
-   * Normalizes data by renaming keys and serdes on field values (unless keysOnly)
-   */
-  normalize(query, data, serdes = (() => { throw new Error('No Sir Sir SerDes!'); }), keysOnly = false) {
-    // Transform all the data
-    return map(data, (doc) => {
-      const fields = Object.keys(doc).map(k => this.getField(k)).filter(Boolean);
-
-      // Loop through the fields and delegate (renaming keys appropriately)
-      return fields.reduce((prev, field) => {
-        const [key, name] = serdes === 'serialize' ? [field.getKey(), field.getName()] : [field.getName(), field.getKey()];
-        prev[key] = keysOnly ? doc[name] : field[serdes](query, doc[name], true);
-        return prev;
-      }, {});
-    });
-  }
+  //   return input;
+  // }
 
   validate(query, data) {
     return Promise.all(this.getFields().map((field) => {

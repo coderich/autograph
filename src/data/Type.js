@@ -8,26 +8,6 @@ module.exports = class extends Type {
     this.field = field;
   }
 
-  getRules() {
-    const rules = [];
-    const scalarType = this.field.getScalarRef();
-    const enumType = this.field.getEnumRef();
-
-    if (scalarType) {
-      Object.entries(scalarType.getDirectiveArgs('field', {})).forEach(([key, value]) => {
-        if (!Array.isArray(value)) value = [value];
-        if (key === 'enforce') rules.push(...value.map(r => Rule.getInstances()[r]));
-      });
-    }
-
-    if (enumType) {
-      const values = enumType.getValue();
-      rules.push(Rule.allow(...values));
-    }
-
-    return rules;
-  }
-
   getStructures() {
     const enumType = this.field.getEnumRef();
     const scalarType = this.field.getScalarRef();
@@ -45,47 +25,5 @@ module.exports = class extends Type {
       if (key === 'transform') prev.transformers.push(...value.map(t => Transformer.getInstances()[t]));
       return prev;
     }, structures);
-  }
-
-  getTransformers() {
-    const transformers = [];
-    const scalarType = this.field.getScalarRef();
-
-    if (scalarType) {
-      Object.entries(scalarType.getDirectiveArgs('field', {})).forEach(([key, value]) => {
-        if (!Array.isArray(value)) value = [value];
-        if (key === 'transform') transformers.push(...value.map(t => Transformer.getInstances()[t]));
-      });
-    }
-
-    return transformers;
-  }
-
-  getSerializers() {
-    const transformers = [];
-    const scalarType = this.field.getScalarRef();
-
-    if (scalarType) {
-      Object.entries(scalarType.getDirectiveArgs('field', {})).forEach(([key, value]) => {
-        if (!Array.isArray(value)) value = [value];
-        if (key === 'serialize') transformers.push(...value.map(t => Transformer.getInstances()[t]));
-      });
-    }
-
-    return transformers;
-  }
-
-  getDeserializers() {
-    const transformers = [];
-    const scalarType = this.field.getScalarRef();
-
-    if (scalarType) {
-      Object.entries(scalarType.getDirectiveArgs('field', {})).forEach(([key, value]) => {
-        if (!Array.isArray(value)) value = [value];
-        if (key === 'deserialize') transformers.push(...value.map(t => Transformer.getInstances()[t]));
-      });
-    }
-
-    return transformers;
   }
 };

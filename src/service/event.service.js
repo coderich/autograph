@@ -43,8 +43,6 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
         const shape = model.getShape('create', 'where');
         const $where = await QueryService.resolveWhereClause(query);
         const $$where = model.shapeObject(shape, $where, context);
-        // const $$where = model.serialize(query, $where, true);
-        // query.match($$where);
         query.match($$where);
       }
 

@@ -128,14 +128,6 @@ module.exports = class Node {
     return this.getDirectiveArg('model', 'meta');
   }
 
-  getSerialize() {
-    return this.getDirectiveArg('field', 'serialize', this.getDirectiveArg('model', 'serialize'));
-  }
-
-  getDeserialize() {
-    return this.getDirectiveArg('field', 'deserialize', this.getDirectiveArg('model', 'deserialize'));
-  }
-
   // Booleans
   isModel() {
     return Boolean(modelKinds.some(k => this.getKind() === k) && operations.every(o => this.getName() !== o));
