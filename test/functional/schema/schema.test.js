@@ -1,5 +1,4 @@
 const { cloneDeep } = require('lodash');
-const { shapeObject } = require('../../../src/service/app.service');
 const ASTSchema = require('../../../src/graphql/ast/SchemaDecorator');
 const CoreSchema = require('../../../src/core/SchemaDecorator');
 const schemaJS = require('./../../fixtures/schema');
