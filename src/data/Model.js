@@ -1,3 +1,4 @@
+const Stream = require('stream');
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
 const { map, castCmp, ensureArray } = require('../service/app.service');
@@ -95,6 +96,20 @@ module.exports = class extends Model {
         return field.validate(query, obj[field.getKey()]);
       })));
     }));
+  }
+
+  hydrateResults(stream, context) {
+    // If we're not a stream we return the shape
+    const shape = this.getShape();
+    if (!(stream instanceof Stream)) return Promise.resolve(this.shapeObject(shape, stream, context));
+
+    // Stream API
+    const results = [];
+    return new Promise((resolve, reject) => {
+      stream.on('data', (data) => { results.push(this.shapeObject(shape, data, context)); });
+      stream.on('end', () => { resolve(results); });
+      stream.on('error', reject);
+    });
   }
 
   getShape(crud = 'read', target = 'doc') {

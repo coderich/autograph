@@ -1,4 +1,3 @@
-const { get } = require('lodash');
 const Node = require('./Node');
 const Type = require('./Type');
 const { uvl } = require('../../service/app.service');

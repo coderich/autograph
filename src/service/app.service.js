@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const Stream = require('stream');
 const PicoMatch = require('picomatch');
 const FillRange = require('fill-range');
 const DeepMerge = require('deepmerge');
@@ -268,19 +267,5 @@ exports.resolveDataObject = (obj) => {
     return results.reduce((prev, { key, value }) => {
       return Object.assign(prev, { [key]: value });
     }, {});
-  });
-};
-
-exports.hydrateResults = (model, stream, context) => {
-  // If we're not a stream we return the shape
-  const shape = model.getShape();
-  if (!(stream instanceof Stream)) return Promise.resolve(model.shapeObject(shape, stream, context));
-
-  // Stream API
-  const results = [];
-  return new Promise((resolve, reject) => {
-    stream.on('data', (data) => { results.push(model.shapeObject(shape, data, context)); });
-    stream.on('end', () => { resolve(results); });
-    stream.on('error', reject);
   });
 };

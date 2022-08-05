@@ -167,12 +167,6 @@ module.exports = class QueryResolver {
       const $from = model.shapeObject(paramShape, { [key]: from }, this.context)[key] || from;
       set(doc, key, DataService.spliceEmbeddedArray(array, $from, $to));
 
-      // if (flags.debug) {
-      //   console.log(array);
-      //   console.log(to, $to);
-      //   console.log(from, $from);
-      // }
-
       return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(doc) }, async () => {
         const shape = model.getShape('update');
         await model.validate(query, doc);

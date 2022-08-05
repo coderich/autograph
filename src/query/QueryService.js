@@ -1,5 +1,5 @@
 const { get, set, uniq, flattenDeep } = require('lodash');
-const { map, keyPaths, ensureArray, isPlainObject, shapeObject } = require('../service/app.service');
+const { map, keyPaths, ensureArray, isPlainObject } = require('../service/app.service');
 
 const resolveEmbeddedWhere = (ref, key, value) => {
   const resolved = ensureArray(map(value, (obj) => {

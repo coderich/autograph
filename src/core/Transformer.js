@@ -1,5 +1,5 @@
 const { get, set, uniqWith } = require('lodash');
-const { map, serialize, castCmp, hashObject } = require('../service/app.service');
+const { map, hashObject } = require('../service/app.service');
 
 const instances = {};
 let allInstances;
