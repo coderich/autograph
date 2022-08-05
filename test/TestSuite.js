@@ -182,7 +182,7 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('Person', async () => {
         expect(await resolver.match('Person').one()).toBeDefined();
         expect(await resolver.match('Person').id(richard.id).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
-        expect(await resolver.match('Person').id(christie.id).one({ debug: true })).toMatchObject({ id: christie.id, name: christie.name, friends: [richard.id], network: 'networkId' });
+        expect(await resolver.match('Person').id(christie.id).one()).toMatchObject({ id: christie.id, name: christie.name, friends: [richard.id], network: 'networkId' });
         expect(await resolver.match('Person').id(christie.id).many()).toMatchObject([{ id: christie.id, name: christie.name, friends: [richard.id], network: 'networkId' }]);
         expect(await resolver.match('Person').where({ age: 40 }).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
         expect(await resolver.match('Person').where({ age: '40' }).one()).toMatchObject({ id: richard.id, name: richard.name, network: 'networkId' });
@@ -200,7 +200,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Book').id(mobyDick.id).one()).toMatchObject({ id: mobyDick.id, name: 'Moby Dick', author: richard.id });
         expect(await resolver.match('Book').id(healthBook.id).one()).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', author: christie.id });
         expect(await resolver.match('Book').where({ 'author.id': christie.id }).one()).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', author: christie.id });
-        expect(await resolver.match('Book').where({ 'author.id': `${christie.id}` }).one({ debug: true })).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', author: christie.id });
+        expect(await resolver.match('Book').where({ 'author.id': `${christie.id}` }).one()).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', author: christie.id });
       });
 
       test('Chapter', async () => {
@@ -343,6 +343,7 @@ module.exports = (driver = 'mongo', options = {}) => {
     describe('Count (find)', () => {
       test('Person', async () => {
         expect(await resolver.match('Person').count()).toBe(2);
+        expect(await resolver.match('Person').id(richard.id).count()).toBe(1);
         expect(await resolver.match('Person').where({ name: 'richard' }).count()).toBe(1);
         expect(await resolver.match('Person').where({ name: 'Christie' }).count()).toBe(1);
       });

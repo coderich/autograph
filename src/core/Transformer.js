@@ -54,7 +54,6 @@ Transformer.factory('toTitleCase', () => ({ value }) => value.replace(/\w\S*/g, 
 Transformer.factory('toLocaleTitleCase', (...args) => ({ value }) => value.replace(/\w\S*/g, w => w.charAt(0).toLocaleUpperCase(...args) + w.slice(1).toLocaleLowerCase()));
 Transformer.factory('toSentenceCase', () => ({ value }) => value.charAt(0).toUpperCase() + value.slice(1), { enumerable: true });
 Transformer.factory('toLocaleSentenceCase', (...args) => ({ value }) => value.charAt(0).toLocaleUpperCase(...args) + value.slice(1));
-// Transformer.factory('toId', () => ({ value }) => f.getModel().idValue(value), { enumerable: true });
 Transformer.factory('toArray', () => ({ value }) => (Array.isArray(value) ? value : [value]), { itemize: false, enumerable: true });
 Transformer.factory('toDate', () => ({ value }) => new Date(value), { enumerable: true, writable: true });
 Transformer.factory('dedupe', () => ({ value }) => uniqWith(value, (b, c) => hashObject(b) === hashObject(c)), { ignoreNull: false, enumerable: true });

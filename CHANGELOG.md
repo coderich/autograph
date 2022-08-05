@@ -1,10 +1,12 @@
 # CHANGELOG
 
 ## v0.10.x
+- Removed all $$ magic methods
+- Removed embedded API GQL concept
+- Removed Directives [embedApi, resolve, @value]
+- Removed toId Transform
 - Removed Model.tform()
-- Removed embedApi directive and embedded API GQL
-- Removed resolve directive transformer concept
-- Removed @value directive
+- Changed Rule + Transform API
 
 ## v0.9.x
 - Subscriptions API

@@ -64,7 +64,8 @@ jsStringMethods.forEach(name => Rule.factory(name, (...args) => (f, v) => !Strin
 // Ensures Foreign Key relationships
 Rule.factory('ensureId', () => (f, v, q) => {
   const { resolver } = q.toObject();
-  return resolver.match(f.getType()).id(v).one().then(doc => Boolean(doc == null));
+  // return resolver.match(f.getType()).id(v).one().then(doc => Boolean(doc == null));
+  return resolver.match(f.getType()).id(v).count().then(num => num === 0);
 });
 
 // Enforces required fields (only during create)
