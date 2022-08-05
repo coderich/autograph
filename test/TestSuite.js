@@ -343,6 +343,7 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('Person', async () => {
         expect(await resolver.match('Person').count()).toBe(2);
         expect(await resolver.match('Person').id(richard.id).count()).toBe(1);
+        expect(await resolver.match('Person').where({ id: [] }).count()).toBe(0);
         expect(await resolver.match('Person').where({ name: 'richard' }).count()).toBe(1);
         expect(await resolver.match('Person').where({ name: 'Christie' }).count()).toBe(1);
       });

@@ -58,10 +58,17 @@ module.exports = class Resolver {
         });
       }
       default: {
-        // This is a shortcut to prevent making unnecessary query
         const key = model.idKey();
         const { where, method } = query.toDriver();
-        if (Object.prototype.hasOwnProperty.call(where, key) && where[key] == null) return Promise.resolve(method === 'findMany' ? [] : null);
+
+        // This is a shortcut to prevent making unnecessary query
+        if (Object.prototype.hasOwnProperty.call(where, key) && where[key] == null) {
+          switch (method) {
+            case 'count': return Promise.resolve(0);
+            case 'findMany': return Promise.resolve([]);
+            default: return Promise.resolve(null);
+          }
+        }
 
         // Go through DataLoader to cache results
         return this.loaders.get(`${model}`).load(query);
