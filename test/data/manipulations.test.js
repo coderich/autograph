@@ -9,7 +9,7 @@ describe('DataManipulations', () => {
     ({ resolver } = await setup());
 
     // Fixtures
-    rawPerson = await resolver.raw('Person').insertOne({ name: 'name' }).then(r => Object.assign({ name: 'name' }, { _id: r.insertedId }));
+    rawPerson = await resolver.raw('Person').insertOne({ name: 'name', network: 'network' }).then(r => Object.assign({ name: 'name' }, { _id: r.insertedId }));
   });
 
   test('person', async () => {

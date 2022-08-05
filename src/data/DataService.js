@@ -1,6 +1,5 @@
 const { get, remove } = require('lodash');
-const Boom = require('../core/Boom');
-const { isPlainObject, objectContaining, mergeDeep, map, ensureArray, keyPaths } = require('../service/app.service');
+const { isPlainObject, objectContaining, mergeDeep, ensureArray, keyPaths } = require('../service/app.service');
 
 exports.paginateResultSet = (rs, query) => {
   const { first, after, last, before, sort } = query.toObject();
@@ -12,14 +11,12 @@ exports.paginateResultSet = (rs, query) => {
   const limiter = first || last;
 
   // First try to take off the "bookends" ($gte | $lte)
-  if (after) console.log($rs[0].$$cursor, after);
   if ($rs.length && $rs[0].$$cursor === after) {
     rs.shift();
     $rs.shift();
     hasPreviousPage = true;
   }
 
-  if (after) console.log($rs[$rs.length - 1].$$cursor, after);
   if ($rs.length && $rs[$rs.length - 1].$$cursor === before) {
     rs.pop();
     $rs.pop();
@@ -28,7 +25,6 @@ exports.paginateResultSet = (rs, query) => {
 
   // Next, remove any overage
   const overage = $rs.length - (limiter - 2);
-  if (after) console.log('overage', overage);
 
   if (overage > 0) {
     if (first) {
@@ -129,19 +125,27 @@ exports.spliceEmbeddedArray = (array, from, to) => {
 
   switch (op) {
     case 'edit': {
-      ensureArray(from).forEach((f, i) => {
-        const t = ensureArray(to)[i];
-        const indexes = array.map((el, j) => (el == f ? j : -1)).filter(index => index !== -1);
-        indexes.forEach(index => (array[index] = t));
+      array.forEach((el, j) => {
+        ensureArray(from).forEach((val, k) => {
+          if (objectContaining(el, val)) array[j] = isPlainObject(el) ? mergeDeep(el, ensureArray(to)[k]) : ensureArray(to)[k];
+        });
       });
       break;
     }
+    // case 'edit': {
+    //   ensureArray(from).forEach((f, i) => {
+    //     const t = ensureArray(to)[i];
+    //     const indexes = array.map((el, j) => (el === f ? j : -1)).filter(index => index !== -1);
+    //     indexes.forEach(index => (array[index] = t));
+    //   });
+    //   break;
+    // }
     case 'push': {
       array.push(...to);
       break;
     }
     case 'pull': {
-      remove(array, el => from.find(val => el == val));
+      remove(array, el => from.find(val => objectContaining(el, val)));
       break;
     }
     default: {

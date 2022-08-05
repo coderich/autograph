@@ -1,5 +1,5 @@
 const { get, set, uniq, flattenDeep } = require('lodash');
-const { map, keyPaths, ensureArray, isPlainObject } = require('../service/app.service');
+const { map, keyPaths, ensureArray, isPlainObject, shapeObject } = require('../service/app.service');
 
 const resolveEmbeddedWhere = (ref, key, value) => {
   const resolved = ensureArray(map(value, (obj) => {
@@ -60,8 +60,10 @@ exports.resolveWhereClause = (query) => {
 };
 
 exports.resolveSortBy = (query) => {
-  const { model, sort = {} } = query.toObject();
-  const $sort = model.normalize(query, sort, 'serialize', true);
+  const { resolver, model, sort = {} } = query.toObject();
+  const context = resolver.getContext();
+  const shape = model.getShape('create', 'sortBy');
+  const $sort = model.shapeObject(shape, sort, context);
 
   // Because normalize casts the value (sometimes to an array) need special handling
   keyPaths($sort).forEach((path) => {

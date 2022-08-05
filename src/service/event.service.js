@@ -1,6 +1,6 @@
 const QueryService = require('../query/QueryService');
 const EventEmitter = require('../core/EventEmitter');
-const { ensureArray, ucFirst, shapeObject } = require('./app.service');
+const { ensureArray, ucFirst } = require('./app.service');
 
 // Event emitters
 const eventEmitter = new EventEmitter().setMaxListeners(100);
@@ -42,7 +42,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
       if (!native) {
         const shape = model.getShape('create', 'where');
         const $where = await QueryService.resolveWhereClause(query);
-        const $$where = shapeObject(shape, $where, context);
+        const $$where = model.shapeObject(shape, $where, context);
         // const $$where = model.serialize(query, $where, true);
         // query.match($$where);
         query.match($$where);

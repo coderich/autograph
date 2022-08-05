@@ -72,7 +72,7 @@ describe('FNSchema', () => {
     ]));
 
     // Shape Object
-    const obj = shapeObject(shape, { name: 'art1', sections: [{ name: 'section1' }] });
+    const obj = artModel.shapeObject(shape, { name: 'art1', sections: [{ name: 'section1' }] });
     expect(obj).toMatchObject({
       _id: expect.anything(),
       name: 'Art1',

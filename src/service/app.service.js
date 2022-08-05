@@ -279,29 +279,15 @@ exports.resolveDataObject = (obj) => {
   });
 };
 
-exports.shapeObject = (shape, obj, context, root) => {
-  return exports.map(obj, (doc) => {
-    root = root || doc;
-
-    return shape.reduce((prev, { from, to, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
-      let value = doc[from];
-      value = transformers.reduce((val, t) => t({ root, doc, value: val, context }), value); // Transformers
-      if (value === undefined && !Object.prototype.hasOwnProperty.call(doc, from)) return prev; // Remove this key
-      prev[to] = (!subShape || value == null) ? value : exports.shapeObject(subShape, value, context, root); // Rename key & assign value
-      return prev;
-    }, {});
-  });
-};
-
 exports.hydrateResults = (model, stream, context) => {
   // If we're not a stream we return the shape
   const shape = model.getShape();
-  if (!(stream instanceof Stream)) return Promise.resolve(exports.shapeObject(shape, stream, context));
+  if (!(stream instanceof Stream)) return Promise.resolve(model.shapeObject(shape, stream, context));
 
   // Stream API
   const results = [];
   return new Promise((resolve, reject) => {
-    stream.on('data', (data) => { results.push(exports.shapeObject(shape, data, context)); });
+    stream.on('data', (data) => { results.push(model.shapeObject(shape, data, context)); });
     stream.on('end', () => { resolve(results); });
     stream.on('error', reject);
   });

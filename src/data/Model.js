@@ -160,10 +160,10 @@ module.exports = class extends Model {
 
     const targetMap = {
       doc: ['defaultValue', 'ensureArrayValue', 'castValue', 'instructs', ...crudKeys, `$${serdes}rs`, `${serdes}rs`, 'transformers'],
-      where: [`$${serdes}rs`, 'instructs'],
+      where: ['castValue', `$${serdes}rs`, 'instructs'],
     };
 
-    const structureKeys = targetMap[target] || [];
+    const structureKeys = targetMap[target] || ['castValue'];
 
     return fields.map((field) => {
       const structures = field.getStructures();
@@ -175,6 +175,20 @@ module.exports = class extends Model {
       structures.castValue = ({ value }) => (value != null && !shape ? map(value, v => castCmp(type, v)) : value);
       const transformers = structureKeys.reduce((prev, struct) => prev.concat(structures[struct]), []);
       return { from, to, type, isArray, transformers, shape };
+    });
+  }
+
+  shapeObject(shape, obj, context, root) {
+    return map(obj, (doc) => {
+      root = root || doc;
+
+      return shape.reduce((prev, { from, to, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
+        let value = doc[from];
+        value = transformers.reduce((val, t) => t({ root, doc, value: val, context }), value); // Transformers
+        if (value === undefined && !Object.prototype.hasOwnProperty.call(doc, from)) return prev; // Remove this key
+        prev[to] = (!subShape || value == null) ? value : this.shapeObject(subShape, value, context, root); // Rename key & assign value
+        return prev;
+      }, {});
     });
   }
 };

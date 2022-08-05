@@ -245,6 +245,7 @@ module.exports = class Query {
   }
 
   toDriver() {
+    const self = this;
     const { model } = this.props;
     const isSorted = Boolean(Object.keys(this.props.$sort || {}).length);
 
@@ -261,9 +262,24 @@ module.exports = class Query {
       skip: this.props.skip,
       limit: this.props.limit,
       first: isSorted ? this.props.first : undefined,
-      after: isSorted && this.props.after ? model.normalize(this, JSON.parse(Buffer.from(this.props.after, 'base64').toString('ascii')), 'serialize') : undefined,
       last: isSorted ? this.props.last : undefined,
-      before: isSorted && this.props.before ? model.normalize(this, JSON.parse(Buffer.from(this.props.before, 'base64').toString('ascii')), 'serialize') : undefined,
+      // before: isSorted && this.props.before ? model.normalize(this, JSON.parse(Buffer.from(this.props.before, 'base64').toString('ascii')), 'serialize') : undefined,
+      get before() {
+        if (!isSorted || !self.props.before) return undefined;
+        const context = self.props.resolver.getContext();
+        const shape = model.getShape('create', 'sort');
+        const before = JSON.parse(Buffer.from(self.props.before, 'base64').toString('ascii'));
+        const $before = model.shapeObject(shape, before, context);
+        return $before;
+      },
+      get after() {
+        if (!isSorted || !self.props.after) return undefined;
+        const context = self.props.resolver.getContext();
+        const shape = model.getShape('create', 'sort');
+        const after = JSON.parse(Buffer.from(self.props.after, 'base64').toString('ascii'));
+        const $after = model.shapeObject(shape, after, context);
+        return $after;
+      },
       options: this.props.options,
       input: this.props.$input,
       flags: this.props.flags,

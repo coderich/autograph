@@ -603,324 +603,302 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('sortBy', async () => {
         const [health, moby] = await resolver.match('Book').sortBy({ name: 'asc' }).many();
         const [healthCursor, mobyCursor] = toResultSet([health, moby], { name: 'asc' }).map(el => el.$$cursor);
-        console.log(healthCursor, mobyCursor);
         expect(healthCursor).toBeDefined();
         expect(mobyCursor).toBeDefined();
-        expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(healthCursor).flags({ debug: true }).first(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(healthCursor).last(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(healthCursor).first(1)).toMatchObject([]);
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(healthCursor).last(1)).toMatchObject([]);
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(mobyCursor).first(1)).toMatchObject([]);
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(mobyCursor).last(1)).toMatchObject([]);
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(mobyCursor).first(1)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }]);
-        // expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(mobyCursor).last(1)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(healthCursor).first(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(healthCursor).last(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(healthCursor).first(1)).toMatchObject([]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(healthCursor).last(1)).toMatchObject([]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(mobyCursor).first(1)).toMatchObject([]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(mobyCursor).last(1)).toMatchObject([]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(mobyCursor).first(1)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }]);
+        expect(await resolver.match('Book').sortBy({ name: 'asc' }).before(mobyCursor).last(1)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }]);
       });
     });
 
 
-    // describe('Query (sortBy deep)', () => {
-    //   test('sortBy', async () => {
-    //     expect(await resolver.match('Person').sortBy({ authored: { name: 'asc' } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
-    //     expect(await resolver.match('Person').sortBy({ authored: { name: 'desc' } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
-    //     // expect(await resolver.match('Person').sortBy({ authored: { chapters: { name: 'asc' } } }).flags({ debug: true }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
-    //     // expect(await resolver.match('Person').sortBy({ authored: { chapters: { name: 'desc' } } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
-    //     // // expect(await resolver.match('Person').sortBy({ authored: { chapters: { countPages: 'asc' } } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
-    //     // // expect(await resolver.match('Person').sortBy({ authored: { chapters: { countPages: 'desc' } } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
-    //     // // expect(await resolver.match('Chapter').sortBy({ countPages: 'asc', name: 'desc' }).many()).toMatchObject([{ name: 'Chapter1' }, { name: 'Chapter2' }]);
-    //     // // expect(await resolver.match('Chapter').sortBy({ countPages: 'desc', name: 'desc' }).many()).toMatchObject([{ name: 'Chapter2' }, { name: 'Chapter1' }]);
+    describe('Query (sortBy deep)', () => {
+      test('sortBy', async () => {
+        expect(await resolver.match('Person').sortBy({ authored: { name: 'asc' } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+        expect(await resolver.match('Person').sortBy({ authored: { name: 'desc' } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        expect(await resolver.match('Person').sortBy({ authored: { chapters: { name: 'asc' } } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+        expect(await resolver.match('Person').sortBy({ authored: { chapters: { name: 'desc' } } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        // expect(await resolver.match('Person').sortBy({ authored: { chapters: { countPages: 'asc' } } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        // expect(await resolver.match('Person').sortBy({ authored: { chapters: { countPages: 'desc' } } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+        // expect(await resolver.match('Chapter').sortBy({ countPages: 'asc', name: 'desc' }).many()).toMatchObject([{ name: 'Chapter1' }, { name: 'Chapter2' }]);
+        // expect(await resolver.match('Chapter').sortBy({ countPages: 'desc', name: 'desc' }).many()).toMatchObject([{ name: 'Chapter2' }, { name: 'Chapter1' }]);
 
-    //     // Convenience counterparts
-    //     expect(await resolver.match('Person').sortBy({ 'authored.name': 'asc' }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
-    //     expect(await resolver.match('Person').sortBy({ 'authored.name': 'desc' }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
-    //     // expect(await resolver.match('Person').sortBy({ 'authored.chapters.name': 'asc' }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
-    //     // expect(await resolver.match('Person').sortBy({ 'authored.chapters.name': 'desc' }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
-    //     // // expect(await resolver.match('Person').sortBy({ 'authored.chapters.countPages': 'asc' }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
-    //     // // expect(await resolver.match('Person').sortBy({ 'authored.chapters.countPages': 'desc' }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
-    //   });
-    // });
-
-
-    // // describe('Query (find & sortBy deep)', () => {
-    // //   test('whereSortBy', async () => {
-    // //     expect(await resolver.match('Person').where({ 'authored.name': '*' }).sortBy({ authored: { chapters: { name: 'asc' } } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
-    // //     expect(await resolver.match('Person').where({ 'authored.name': '*' }).sortBy({ authored: { chapters: { name: 'desc' } } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
-    // //     expect(await resolver.match('Person').where({ 'authored.chapters.pages.verbage': 'the end.' }).sortBy({ authored: { chapters: { name: 'asc' } } }).many()).toMatchObject([{ id: christie.id }]);
-    // //     expect(await resolver.match('Person').where({ 'authored.chapters.pages.verbage': 'the end.' }).sortBy({ authored: { chapters: { name: 'desc' } } }).many()).toMatchObject([{ id: christie.id }]);
-    // //   });
-    // // });
+        // Convenience counterparts
+        expect(await resolver.match('Person').sortBy({ 'authored.name': 'asc' }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+        expect(await resolver.match('Person').sortBy({ 'authored.name': 'desc' }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        expect(await resolver.match('Person').sortBy({ 'authored.chapters.name': 'asc' }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+        expect(await resolver.match('Person').sortBy({ 'authored.chapters.name': 'desc' }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        // expect(await resolver.match('Person').sortBy({ 'authored.chapters.countPages': 'asc' }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        // expect(await resolver.match('Person').sortBy({ 'authored.chapters.countPages': 'desc' }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+      });
+    });
 
 
-    // describe('Transactions (auto)', () => {
-    //   test('multi-update', async () => {
-    //     expect(await resolver.match('Person').where({}).save({ status: 'online' })).toMatchObject([{ status: 'online' }, { status: 'online' }]);
-    //     expect(await resolver.match('Person').many()).toMatchObject([{ status: 'online' }, { status: 'online' }]);
-    //     await resolver.match('Person').where({ status: 'online' }).save({ status: 'offline' });
-    //     expect(await resolver.match('Person').many()).toMatchObject([{ status: 'offline' }, { status: 'offline' }]);
-    //     await expect(resolver.match('Chapter').save({ name: 'chapter1' }, { name: 'chapter2' })).rejects.toThrow();
-    //   });
-
-    //   test('multi-push-pull', async () => {
-    //     // push
-    //     await resolver.match('Art').save({ name: 'Art1' }, { name: 'Art2' });
-    //     await resolver.match('Art').where({}).push('bids', 69.99, '109.99');
-
-    //     // const idk = await resolver.match('Art').many();
-    //     // console.log(idk);
-    //     expect(await resolver.match('Art').many()).toMatchObject([{ bids: [69.99, 109.99] }, { bids: [69.99, 109.99] }]);
-    //     // pull
-    //     await resolver.match('Art').where({}).pull('bids', '69.99');
-    //     expect(await resolver.match('Art').many()).toMatchObject([{ bids: [109.99] }, { bids: [109.99] }]);
-    //   });
-    // });
+    describe('Query (find & sortBy deep)', () => {
+      test('whereSortBy', async () => {
+        expect(await resolver.match('Person').where({ 'authored.name': '*' }).sortBy({ authored: { chapters: { name: 'asc' } } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
+        expect(await resolver.match('Person').where({ 'authored.name': '*' }).sortBy({ authored: { chapters: { name: 'desc' } } }).many()).toMatchObject([{ id: richard.id }, { id: christie.id }]);
+        expect(await resolver.match('Person').where({ 'authored.chapters.pages.verbage': 'the end.' }).sortBy({ authored: { chapters: { name: 'asc' } } }).many()).toMatchObject([{ id: christie.id }]);
+        expect(await resolver.match('Person').where({ 'authored.chapters.pages.verbage': 'the end.' }).sortBy({ authored: { chapters: { name: 'desc' } } }).many()).toMatchObject([{ id: christie.id }]);
+      });
+    });
 
 
-    // if (options.transactions !== false) {
-    //   describe('Transactions (manual)', () => {
-    //     test('single txn (commit)', async () => {
-    //       const txn1 = resolver.transaction();
-    //       txn1.match('Person').save({ name: 'person1', emailAddress: 'person1@gmail.com' });
-    //       txn1.match('Person').save({ name: 'person2', emailAddress: 'person2@gmail.com' });
-    //       const [person1$1, person2$1] = await txn1.exec();
-    //       expect(person1$1.id).toBeDefined();
-    //       expect(person1$1.name).toBe('Person1');
-    //       expect(person2$1.id).toBeDefined();
-    //       expect(person2$1.name).toBe('Person2');
-    //       expect(await resolver.match('Person').id(person1$1.id).one()).toBeNull();
-    //       await txn1.commit();
-    //       expect(await resolver.match('Person').id(person1$1.id).one()).not.toBeNull();
-    //     });
+    describe('Transactions (auto)', () => {
+      test('multi-update', async () => {
+        expect(await resolver.match('Person').where({}).save({ status: 'online' })).toMatchObject([{ status: 'online' }, { status: 'online' }]);
+        expect(await resolver.match('Person').many()).toMatchObject([{ status: 'online' }, { status: 'online' }]);
+        await resolver.match('Person').where({ status: 'online' }).save({ status: 'offline' });
+        expect(await resolver.match('Person').many()).toMatchObject([{ status: 'offline' }, { status: 'offline' }]);
+        await expect(resolver.match('Chapter').save({ name: 'chapter1' }, { name: 'chapter2' })).rejects.toThrow();
+      });
 
-    //     test('single txn (rollback)', async () => {
-    //       const txn1 = resolver.transaction();
-    //       txn1.match('Person').save({ name: 'person3', emailAddress: 'person3@gmail.com' });
-    //       txn1.match('Person').save({ name: 'person4', emailAddress: 'person4@gmail.com' });
-    //       const [person1$1, person2$1] = await txn1.exec();
-    //       expect(person1$1.name).toBe('Person3');
-    //       expect(person2$1.name).toBe('Person4');
-    //       expect(await resolver.match('Person').id(person1$1.id).one()).toBeNull();
-    //       await txn1.rollback();
-    //       expect(await resolver.match('Person').id(person1$1.id).one()).toBeNull();
-    //     });
+      test('multi-push-pull', async () => {
+        // push
+        await resolver.match('Art').save({ name: 'Art1' }, { name: 'Art2' });
+        await resolver.match('Art').where({}).push('bids', 69.99, '109.99');
+        expect(await resolver.match('Art').many()).toMatchObject([{ bids: [69.99, 109.99] }, { bids: [69.99, 109.99] }]);
 
-    //     test('single txn (duplicate key)', async () => {
-    //       const txn1 = resolver.transaction();
-    //       txn1.match('Person').save({ name: 'person1', emailAddress: 'person1@gmail.com' });
-    //       txn1.match('Person').save({ name: 'person2', emailAddress: 'person2@gmail.com' });
-    //       await expect(txn1.exec()).rejects.toThrow();
-    //     });
-
-    //     test('single-txn (read & write)', async () => {
-    //       const txn = resolver.transaction();
-    //       txn.match('Person').save({ name: 'write1', emailAddress: 'write1@gmail.com' });
-    //       txn.match('Person').id(richard.id).one();
-    //       txn.match('Person').save({ name: 'write2', emailAddress: 'write2@gmail.com' });
-    //       const [person1, richie, person2] = await txn.exec();
-    //       expect(person1.name).toBe('Write1');
-    //       expect(richie.name).toBe('Richard');
-    //       expect(person2.name).toBe('Write2');
-    //       await txn.rollback();
-    //     });
-    //   });
-
-    //   describe('Transactions (manual-with-auto)', () => {
-    //     test('multi-txn (duplicate key with rollback)', async () => {
-    //       const txn1 = resolver.transaction();
-    //       const txn2 = resolver.transaction();
-    //       txn1.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
-    //       txn2.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
-
-    //       await txn1.exec().then((results) => {
-    //         const [[person1, person2]] = results;
-    //         expect(person1.name).toBe('Person10');
-    //         expect(person2.name).toBe('Person11');
-    //         return txn1.rollback();
-    //       });
-
-    //       await timeout(100);
-
-    //       await txn2.exec().then((results) => {
-    //         const [[person1, person2]] = results;
-    //         expect(person1.name).toBe('Person10');
-    //         expect(person2.name).toBe('Person11');
-    //         return txn2.rollback();
-    //       });
-    //     });
-
-    //     test('multi-txn (duplicate key with commit)', async () => {
-    //       const txn1 = resolver.transaction();
-    //       const txn2 = resolver.transaction();
-    //       txn1.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
-    //       txn2.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
-
-    //       txn1.exec().then((results) => {
-    //         const [[person1, person2]] = results;
-    //         expect(person1.name).toBe('Person10');
-    //         expect(person2.name).toBe('Person11');
-    //         txn1.commit();
-    //       });
-
-    //       await timeout(100);
-    //       await expect(txn2.exec()).rejects.toThrow();
-    //     });
-    //   });
-    // }
+        // pull
+        await resolver.match('Art').where({}).pull('bids', '69.99');
+        expect(await resolver.match('Art').many()).toMatchObject([{ bids: [109.99] }, { bids: [109.99] }]);
+      });
+    });
 
 
-    // describe('Referential Integrity', () => {
-    //   test('remove', async () => {
-    //     await expect(resolver.match('Person').remove()).rejects.toThrow();
-    //     await expect(resolver.match('Person').id(christie.id).remove()).rejects.toThrow();
-    //     await resolver.match('Chapter').id(chapter3.id).remove(); // Need to delete chapter to remove Author....
-    //     expect(await resolver.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
-    //     expect(await resolver.match('Person').where({ name: '{christie,richard}' }).many()).toMatchObject([{ id: christie.id }]);
-    //     expect(await resolver.match('Book').many()).toMatchObject([{ id: healthBook.id }]);
-    //     expect(await resolver.match('Chapter').sortBy({ name: 'ASC' }).many()).toMatchObject([{ id: chapter1.id }, { id: chapter2.id }]);
-    //   });
+    if (options.transactions !== false) {
+      describe('Transactions (manual)', () => {
+        test('single txn (commit)', async () => {
+          const txn1 = resolver.transaction();
+          txn1.match('Person').save({ name: 'person1', emailAddress: 'person1@gmail.com' });
+          txn1.match('Person').save({ name: 'person2', emailAddress: 'person2@gmail.com' });
+          const [person1$1, person2$1] = await txn1.exec();
+          expect(person1$1.id).toBeDefined();
+          expect(person1$1.name).toBe('Person1');
+          expect(person2$1.id).toBeDefined();
+          expect(person2$1.name).toBe('Person2');
+          expect(await resolver.match('Person').id(person1$1.id).one()).toBeNull();
+          await txn1.commit();
+          expect(await resolver.match('Person').id(person1$1.id).one()).not.toBeNull();
+        });
 
-    //   test('remove multi', async () => {
-    //     // Create some colors
-    //     const colors = await resolver.match('Color').save({ type: 'blue' }, { type: 'red' }, { type: 'green' }, { type: 'purple' });
-    //     expect(colors.length).toBe(4);
+        test('single txn (rollback)', async () => {
+          const txn1 = resolver.transaction();
+          txn1.match('Person').save({ name: 'person3', emailAddress: 'person3@gmail.com' });
+          txn1.match('Person').save({ name: 'person4', emailAddress: 'person4@gmail.com' });
+          const [person1$1, person2$1] = await txn1.exec();
+          expect(person1$1.name).toBe('Person3');
+          expect(person2$1.name).toBe('Person4');
+          expect(await resolver.match('Person').id(person1$1.id).one()).toBeNull();
+          await txn1.rollback();
+          expect(await resolver.match('Person').id(person1$1.id).one()).toBeNull();
+        });
 
-    //     // Remove some colors
-    //     const ids = await resolver.match('Color').where({ type: '{red,purple}' }).remove();
-    //     const results = await resolver.match('Color').sortBy({ type: 'ASC' }).many();
-    //     expect(ids.sort(sorter)).toMatchObject([{ id: colors[1].id }, { id: colors[3].id }].sort(sorter));
-    //     expect(results).toMatchObject([{ type: 'blue' }, { type: 'green' }]);
-    //   });
-    // });
+        test('single txn (duplicate key)', async () => {
+          const txn1 = resolver.transaction();
+          txn1.match('Person').save({ name: 'person1', emailAddress: 'person1@gmail.com' });
+          txn1.match('Person').save({ name: 'person2', emailAddress: 'person2@gmail.com' });
+          await expect(txn1.exec()).rejects.toThrow();
+        });
+
+        test('single-txn (read & write)', async () => {
+          const txn = resolver.transaction();
+          txn.match('Person').save({ name: 'write1', emailAddress: 'write1@gmail.com' });
+          txn.match('Person').id(richard.id).one();
+          txn.match('Person').save({ name: 'write2', emailAddress: 'write2@gmail.com' });
+          const [person1, richie, person2] = await txn.exec();
+          expect(person1.name).toBe('Write1');
+          expect(richie.name).toBe('Richard');
+          expect(person2.name).toBe('Write2');
+          await txn.rollback();
+        });
+      });
+
+      describe('Transactions (manual-with-auto)', () => {
+        test('multi-txn (duplicate key with rollback)', async () => {
+          const txn1 = resolver.transaction();
+          const txn2 = resolver.transaction();
+          txn1.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
+          txn2.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
+
+          await txn1.exec().then((results) => {
+            const [[person1, person2]] = results;
+            expect(person1.name).toBe('Person10');
+            expect(person2.name).toBe('Person11');
+            return txn1.rollback();
+          });
+
+          await timeout(100);
+
+          await txn2.exec().then((results) => {
+            const [[person1, person2]] = results;
+            expect(person1.name).toBe('Person10');
+            expect(person2.name).toBe('Person11');
+            return txn2.rollback();
+          });
+        });
+
+        test('multi-txn (duplicate key with commit)', async () => {
+          const txn1 = resolver.transaction();
+          const txn2 = resolver.transaction();
+          txn1.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
+          txn2.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
+
+          txn1.exec().then((results) => {
+            const [[person1, person2]] = results;
+            expect(person1.name).toBe('Person10');
+            expect(person2.name).toBe('Person11');
+            txn1.commit();
+          });
+
+          await timeout(100);
+          await expect(txn2.exec()).rejects.toThrow();
+        });
+      });
+    }
 
 
-    // describe('$hydrated results', () => {
-    //   test('manual', async () => {
-    //     const person = await resolver.match('Person').id(christie.id).one();
-    //     expect(person.$authored().name).not.toBeDefined();
+    describe('Referential Integrity', () => {
+      test('remove', async () => {
+        await expect(resolver.match('Person').remove()).rejects.toThrow();
+        await expect(resolver.match('Person').id(christie.id).remove()).rejects.toThrow();
+        await resolver.match('Chapter').id(chapter3.id).remove(); // Need to delete chapter to remove Author....
+        expect(await resolver.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
+        expect(await resolver.match('Person').where({ name: '{christie,richard}' }).many()).toMatchObject([{ id: christie.id }]);
+        expect(await resolver.match('Book').many()).toMatchObject([{ id: healthBook.id }]);
+        expect(await resolver.match('Chapter').sortBy({ name: 'ASC' }).many()).toMatchObject([{ id: chapter1.id }, { id: chapter2.id }]);
+      });
 
-    //     // Hydrate book
-    //     const [$book] = await person.$authored();
-    //     expect($book.name).toBe('Health And Wellness');
+      test('remove multi', async () => {
+        // Create some colors
+        const colors = await resolver.match('Color').save({ type: 'blue' }, { type: 'red' }, { type: 'green' }, { type: 'purple' });
+        expect(colors.length).toBe(4);
 
-    //     // Sanity check that you're able to await repeatedly
-    //     const [$book2] = await person.$authored();
-    //     expect($book2.name).toBe('Health And Wellness');
-    //   });
-    // });
-
-
-    // describe('Native Queries', () => {
-    //   test('get', async () => {
-    //     switch (driver) {
-    //       case 'mongo': {
-    //         expect(await resolver.match('Person').native({ name: 'Christie' }).one()).toMatchObject({ id: christie.id, name: 'Christie', emailAddress: 'christie@gmail.com' }); // case insensitive
-    //         expect(await resolver.match('Person').native({ name: 'christie' }).one()).toMatchObject({ id: christie.id, name: 'Christie', emailAddress: 'christie@gmail.com' });
-    //         expect(await resolver.match('Person').native({ name: 'Christie' }).count()).toBe(1); // case insensitive
-    //         expect(await resolver.match('Person').native({ name: 'christie' }).count()).toBe(1);
-    //         const count = await resolver.match('Person').native({ name: { $ne: 'chard' } }).count();
-    //         expect(count).toBeGreaterThanOrEqual(1);
-    //         expect(await resolver.match('Person').native({ name: { $ne: 'christie' } }).count()).toBe(count - 1);
-    //         expect(await resolver.match('Person').native({ email_address: 'christie@gmail.com' }).count()).toBe(1);
-    //         break;
-    //       }
-    //       default: {
-    //         break;
-    //       }
-    //     }
-    //   });
-    // });
+        // Remove some colors
+        const ids = await resolver.match('Color').where({ type: '{red,purple}' }).remove();
+        const results = await resolver.match('Color').sortBy({ type: 'ASC' }).many();
+        expect(ids.sort(sorter)).toMatchObject([{ id: colors[1].id }, { id: colors[3].id }].sort(sorter));
+        expect(results).toMatchObject([{ type: 'blue' }, { type: 'green' }]);
+      });
+    });
 
 
-    // describe('Raw Queries', () => {
-    //   test('get', async () => {
-    //     switch (driver) {
-    //       case 'mongo': {
-    //         expect(await resolver.raw('Person').findOne({})).toBeDefined();
-    //         expect(await resolver.raw('Person').findOne({ name: 'richard' })).toBeNull(); // deleted
-    //         expect(await resolver.raw('Person').findOne({ name: 'Christie' })).toBeNull(); // case
-    //         expect(await resolver.raw('Person').findOne({ name: 'christie' })).toMatchObject({ name: 'christie', email_address: 'christie@gmail.com' });
-    //         break;
-    //       }
-    //       default: {
-    //         break;
-    //       }
-    //     }
-    //   });
-    // });
+    describe('Native Queries', () => {
+      test('get', async () => {
+        switch (driver) {
+          case 'mongo': {
+            expect(await resolver.match('Person').native({ name: 'Christie' }).one()).toMatchObject({ id: christie.id, name: 'Christie', emailAddress: 'christie@gmail.com' }); // case insensitive
+            expect(await resolver.match('Person').native({ name: 'christie' }).one()).toMatchObject({ id: christie.id, name: 'Christie', emailAddress: 'christie@gmail.com' });
+            expect(await resolver.match('Person').native({ name: 'Christie' }).count()).toBe(1); // case insensitive
+            expect(await resolver.match('Person').native({ name: 'christie' }).count()).toBe(1);
+            const count = await resolver.match('Person').native({ name: { $ne: 'chard' } }).count();
+            expect(count).toBeGreaterThanOrEqual(1);
+            expect(await resolver.match('Person').native({ name: { $ne: 'christie' } }).count()).toBe(count - 1);
+            expect(await resolver.match('Person').native({ email_address: 'christie@gmail.com' }).count()).toBe(1);
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      });
+    });
 
 
-    // describe('Bug Fixes', () => {
-    //   test('embedded arrays', async () => {
-    //     const art = await resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1' }] });
-    //     expect(art.id).toBeDefined();
-    //     expect(art.sections).toMatchObject([{ name: 'section1' }]); // toLowerCase
-    //     expect(art.sections[0].id).toBeDefined();
-    //     expect(art.sections[0].name).toBeDefined();
-    //     expect(art.sections[0].$name()).toBeDefined();
-    //   });
+    describe('Raw Queries', () => {
+      test('get', async () => {
+        switch (driver) {
+          case 'mongo': {
+            expect(await resolver.raw('Person').findOne({})).toBeDefined();
+            expect(await resolver.raw('Person').findOne({ name: 'richard' })).toBeNull(); // deleted
+            expect(await resolver.raw('Person').findOne({ name: 'Christie' })).toBeNull(); // case
+            expect(await resolver.raw('Person').findOne({ name: 'christie' })).toMatchObject({ name: 'christie', email_address: 'christie@gmail.com' });
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      });
+    });
 
-    //   test('push/pull embedded arrays', async () => {
-    //     const art = await resolver.match('Art').save({ name: 'Piedmont Beauty' });
 
-    //     // Push
-    //     const push = await resolver.match('Art').id(art.id).push('sections', { name: 'Pushed Section' });
-    //     expect(push.sections.length).toBe(1);
-    //     expect(push.sections[0].id).toBeDefined();
-    //     expect(push.sections[0].name).toEqual('pushed section'); // toLowerCase
-    //     expect(push.sections[0].$name()).toBeDefined();
+    describe('Bug Fixes', () => {
+      test('embedded arrays', async () => {
+        const art = await resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1' }] });
+        expect(art.id).toBeDefined();
+        expect(art.sections).toMatchObject([{ name: 'section1' }]); // toLowerCase
+        expect(art.sections[0].id).toBeDefined();
+        expect(art.sections[0].name).toBeDefined();
+      });
 
-    //     // Pull
-    //     const pull = await resolver.match('Art').id(art.id).pull('sections', { name: 'pushed section' });
-    //     expect(pull.sections.length).toBe(0);
-    //   });
+      test('push/pull embedded arrays', async () => {
+        const art = await resolver.match('Art').save({ name: 'Piedmont Beauty' });
 
-    //   test('embedded array with modelRef', async () => {
-    //     // Create section
-    //     await expect(resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: richard.id }] })).rejects.toThrow();
-    //     const art = await resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: christie.id }] });
-    //     expect(art).toBeDefined();
-    //     expect(art.sections[0].id).toBeDefined();
-    //     expect(art.sections[0].person).toEqual(christie.id);
-    //     expect((await art.sections[0].$person()).name).toBe('Christie');
-    //   });
+        // Push
+        const push = await resolver.match('Art').id(art.id).push('sections', { name: 'Pushed Section' });
+        expect(push.sections.length).toBe(1);
+        expect(push.sections[0].id).toBeDefined();
+        expect(push.sections[0].name).toEqual('pushed section'); // toLowerCase
 
-    //   test('update should not clobber unknown attributes', async () => {
-    //     switch (driver) {
-    //       case 'mongo': {
-    //         await resolver.raw('Person').findOneAndUpdate({ _id: christie.id }, { $set: { unknownAttr: 1 } });
-    //         const person = await resolver.match('Person').id(christie.id).save({ age: 20 });
-    //         expect(person.age).toBe(20);
-    //         const dbPerson = await resolver.raw('Person').findOne({ _id: christie.id });
-    //         expect(dbPerson).toBeDefined();
-    //         expect(dbPerson.unknownAttr).toBe(1);
-    //         break;
-    //       }
-    //       default: break;
-    //     }
-    //   });
+        // Pull
+        const pull = await resolver.match('Art').id(art.id).pull('sections', { name: 'pushed section' });
+        expect(pull.sections.length).toBe(0);
+      });
 
-    //   test('where clause with one(required) should throw', async () => {
-    //     await expect(resolver.match('Person').where({ age: 400 }).one({ required: true })).rejects.toThrow();
-    //     await expect(resolver.match('Person').where({ age: 400 }).many({ required: true })).rejects.toThrow();
-    //   });
-    // });
+      test('embedded array with modelRef', async () => {
+        // Create section
+        await expect(resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: richard.id }] })).rejects.toThrow();
+        const art = await resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: christie.id }] });
+        expect(art).toBeDefined();
+        expect(art.sections[0].id).toBeDefined();
+        expect(art.sections[0].person).toEqual(christie.id);
+      });
 
-    // describe('Case [In]sensitive Sort', () => {
-    //   test('get', async () => {
-    //     // Create documents for sorting purpose (no transformation on name)
-    //     await Promise.all([
-    //       resolver.match('PlainJane').save({ name: 'boolander' }),
-    //       resolver.match('PlainJane').save({ name: 'Zoolander' }),
-    //     ]);
+      test('update should not clobber unknown attributes', async () => {
+        switch (driver) {
+          case 'mongo': {
+            await resolver.raw('Person').findOneAndUpdate({ _id: christie.id }, { $set: { unknownAttr: 1 } });
+            const person = await resolver.match('Person').id(christie.id).save({ age: 20 });
+            expect(person.age).toBe(20);
+            const dbPerson = await resolver.raw('Person').findOne({ _id: christie.id });
+            expect(dbPerson).toBeDefined();
+            expect(dbPerson.unknownAttr).toBe(1);
+            break;
+          }
+          default: break;
+        }
+      });
 
-    //     switch (driver) {
-    //       case 'mongo': {
-    //         expect(await resolver.match('PlainJane').where({ name: '*lander' }).sortBy({ name: 'desc' }).many()).toMatchObject([{ name: 'Zoolander' }, { name: 'boolander' }]);
-    //         break;
-    //       }
-    //       default: {
-    //         break;
-    //       }
-    //     }
-    //   });
-    // });
+      test('where clause with one(required) should throw', async () => {
+        await expect(resolver.match('Person').where({ age: 400 }).one({ required: true })).rejects.toThrow();
+        await expect(resolver.match('Person').where({ age: 400 }).many({ required: true })).rejects.toThrow();
+      });
+    });
+
+    describe('Case [In]sensitive Sort', () => {
+      test('get', async () => {
+        // Create documents for sorting purpose (no transformation on name)
+        await Promise.all([
+          resolver.match('PlainJane').save({ name: 'boolander' }),
+          resolver.match('PlainJane').save({ name: 'Zoolander' }),
+        ]);
+
+        switch (driver) {
+          case 'mongo': {
+            expect(await resolver.match('PlainJane').where({ name: '*lander' }).sortBy({ name: 'desc' }).many()).toMatchObject([{ name: 'Zoolander' }, { name: 'boolander' }]);
+            break;
+          }
+          default: {
+            break;
+          }
+        }
+      });
+    });
   });
 };

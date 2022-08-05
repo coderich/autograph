@@ -3,7 +3,7 @@ const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
 const DataService = require('../data/DataService');
 const { createSystemEvent } = require('../service/event.service');
-const { mergeDeep, shapeObject } = require('../service/app.service');
+const { mergeDeep } = require('../service/app.service');
 
 module.exports = class QueryResolver {
   constructor(query) {
@@ -33,11 +33,9 @@ module.exports = class QueryResolver {
   createOne(query) {
     const { model, input, flags } = query.toObject();
     const shape = model.getShape('create');
-    // model.appendDefaultFields(query, input);
 
     return createSystemEvent('Mutation', { method: 'create', query }, async () => {
-      const $input = shapeObject(shape, input, this.context);
-      // const $input = model.serialize(query, model.appendCreateFields(input));
+      const $input = model.shapeObject(shape, input, this.context);
       query.$input($input);
       if (!get(flags, 'novalidate')) await model.validate(query, $input);
       const doc = await this.resolver.resolve(query);
@@ -62,11 +60,8 @@ module.exports = class QueryResolver {
       const shape = model.getShape('update');
 
       return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(merged) }, async () => {
-        const $input = shapeObject(shape, merged, this.context);
-        // const $input = model.serialize(query, model.appendUpdateFields(input), true);
+        const $input = model.shapeObject(shape, merged, this.context);
         if (!get(flags, 'novalidate')) await model.validate(query, $input);
-        // const $doc = mergeDeep(model.serialize(query, doc, true), $input);
-        // const $doc = mergeDeep(shapeObject(shape, doc, this.context), $input);
         return this.resolver.resolve(query.$doc($input).$input($input));
       });
     });
@@ -157,7 +152,7 @@ module.exports = class QueryResolver {
   }
 
   splice(query) {
-    const { model, match, args, flags } = query.toObject();
+    const { model, match, args, flags = {} } = query.toObject();
     const [key, from, to] = args;
 
     // Can only splice arrays
@@ -167,13 +162,21 @@ module.exports = class QueryResolver {
 
     return this.resolver.match(model).match(match).flags(flags).one({ required: true }).then(async (doc) => {
       const array = get(doc, key) || [];
-      set(doc, key, DataService.spliceEmbeddedArray(array, from, to));
+      const paramShape = model.getShape('create', 'spliceTo');
+      const $to = model.shapeObject(paramShape, { [key]: to }, this.context)[key] || to;
+      const $from = model.shapeObject(paramShape, { [key]: from }, this.context)[key] || from;
+      set(doc, key, DataService.spliceEmbeddedArray(array, $from, $to));
+
+      // if (flags.debug) {
+      //   console.log(array);
+      //   console.log(to, $to);
+      //   console.log(from, $from);
+      // }
 
       return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(doc) }, async () => {
         const shape = model.getShape('update');
         await model.validate(query, doc);
-        // const $doc = model.serialize(query, doc, true);
-        const $doc = shapeObject(shape, doc, this.context);
+        const $doc = model.shapeObject(shape, doc, this.context);
         return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc));
       });
     });
