@@ -1,60 +1,60 @@
 const { get, remove } = require('lodash');
-const { isPlainObject, objectContaining, mergeDeep, ensureArray, keyPaths } = require('../service/app.service');
+const { map, isPlainObject, objectContaining, mergeDeep, ensureArray, keyPaths } = require('../service/app.service');
 
 exports.paginateResultSet = (rs, query) => {
   const { first, after, last, before, sort } = query.toObject();
-  const $rs = exports.toResultSet(rs, sort);
-
+  const sortPaths = keyPaths(sort);
+  const limiter = first || last;
   let hasNextPage = false;
   let hasPreviousPage = false;
 
-  const limiter = first || last;
+  // Add $$cursor data
+  map(rs, (doc) => {
+    const sortValues = sortPaths.reduce((prv, path) => Object.assign(prv, { [path]: get(doc, path) }), {});
+    const sortJSON = JSON.stringify(sortValues);
+    doc.$$cursor = Buffer.from(sortJSON).toString('base64');
+  });
 
   // First try to take off the "bookends" ($gte | $lte)
-  if ($rs.length && $rs[0].$$cursor === after) {
+  if (rs.length && rs[0].$$cursor === after) {
     rs.shift();
-    $rs.shift();
     hasPreviousPage = true;
   }
 
-  if ($rs.length && $rs[$rs.length - 1].$$cursor === before) {
+  if (rs.length && rs[rs.length - 1].$$cursor === before) {
     rs.pop();
-    $rs.pop();
     hasNextPage = true;
   }
 
   // Next, remove any overage
-  const overage = $rs.length - (limiter - 2);
+  const overage = rs.length - (limiter - 2);
 
   if (overage > 0) {
     if (first) {
       rs.splice(-overage);
-      $rs.splice(-overage);
       hasNextPage = true;
     } else if (last) {
       rs.splice(0, overage);
-      $rs.splice(0, overage);
       hasPreviousPage = true;
     } else {
       rs.splice(-overage);
-      $rs.splice(-overage);
       hasNextPage = true;
     }
   }
 
-  return { rs, hasNextPage, hasPreviousPage };
-};
-
-exports.toResultSet = (results, sort) => {
-  return results.map((doc) => {
-    return {
-      get $$cursor() {
-        const sortPaths = keyPaths(sort);
-        const sortValues = sortPaths.reduce((prv, path) => Object.assign(prv, { [path]: get(doc, path) }), {});
-        const sortJSON = JSON.stringify(sortValues);
-        return Buffer.from(sortJSON).toString('base64');
+  // Add $$pageInfo data (hidden)
+  return Object.defineProperties(rs, {
+    $$pageInfo: {
+      get() {
+        return {
+          startCursor: get(rs, '0.$$cursor', ''),
+          endCursor: get(rs, `${rs.length - 1}.$$cursor`, ''),
+          hasPreviousPage,
+          hasNextPage,
+        };
       },
-    };
+      enumerable: false,
+    },
   });
 };
 

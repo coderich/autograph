@@ -1,8 +1,9 @@
+const { get } = require('lodash');
 const Type = require('./Type');
 const Field = require('../graphql/ast/Field');
 const Rule = require('../core/Rule');
 const Transformer = require('../core/Transformer');
-const { map, uvl, isPlainObject, ensureArray, promiseChain } = require('../service/app.service');
+const { map, uvl, isPlainObject, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Field {
   constructor(model, field) {
@@ -123,5 +124,46 @@ module.exports = class extends Field {
 
   deserialize(query, value) {
     return this.transform(query, value, 'deserialize');
+  }
+
+
+
+
+
+  resolve(resolver, doc, args = {}) {
+    const [name, isArray, isScalar, isVirtual, isRequired, isEmbedded, modelRef, virtualField] = [this.getName(), this.isArray(), this.isScalar(), this.isVirtual(), this.isRequired(), this.isEmbedded(), this.getModelRef(), this.getVirtualField()];
+    const value = doc[name];
+
+    // Default resolver return immediately!
+    if (isScalar || isEmbedded) return value;
+
+    // Ensure where clause for DB lookup
+    args.where = args.where || {};
+
+    if (isArray) {
+      if (isVirtual) {
+        args.where[[virtualField]] = doc.id; // Is where[[virtualField]] correct?
+        return resolver.match(modelRef).merge(args).many();
+      }
+
+      // Not a "required" query + strip out nulls
+      args.where.id = value;
+      return resolver.match(modelRef).merge(args).many();
+    }
+
+    if (isVirtual) {
+      args.where[[virtualField]] = doc.id;
+      return resolver.match(modelRef).merge(args).one();
+    }
+
+    return resolver.match(modelRef).id(value).one({ required: isRequired });
+  }
+
+  count(resolver, doc, args = {}) {
+    const [name, isVirtual, modelRef, virtualField] = [this.getName(), this.isVirtual(), this.getModelRef(), this.getVirtualField()];
+    args.where = args.where || {};
+    if (isVirtual) args.where[virtualField] = doc.id;
+    else args.where.id = doc[name];
+    return resolver.match(modelRef).merge(args).count();
   }
 };

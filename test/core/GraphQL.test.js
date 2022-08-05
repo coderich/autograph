@@ -44,9 +44,9 @@ describe('GraphQL', () => {
       mutation {
         createPerson(input: {
           name: "GraphQL"
+          telephone: null
           emailAddress: "graphql@gmail.com"
           friends: [${friendIds}]
-          telephone: null
         }) { ${attrs} }
       }
     `);
@@ -58,6 +58,7 @@ describe('GraphQL', () => {
       id: expect.anything(),
       name: 'Graphql',
       telephone: null,
+      emailAddress: 'graphql@gmail.com',
       authored: {
         edges: [],
       },
@@ -77,118 +78,118 @@ describe('GraphQL', () => {
     await resolver.match('Book').save({ author: guidToId({}, personId), name: 'book', price: 9.99 });
   });
 
-  // test('exec (update)', async () => {
-  //   const result = await graphql.exec(`
-  //     mutation {
-  //       updatePerson(id: "${personId}", input: {
-  //         name: "NewName"
-  //       }) { ${attrs} }
-  //     }
-  //   `);
+  test('exec (update)', async () => {
+    const result = await graphql.exec(`
+      mutation {
+        updatePerson(id: "${personId}", input: {
+          name: "NewName"
+        }) { ${attrs} }
+      }
+    `);
 
-  //   expect(result).toBeDefined();
-  //   expect(result.errors).not.toBeDefined();
-  //   expect(result.data).toBeDefined();
-  //   expect(result.data.updatePerson).toMatchObject({
-  //     id: expect.anything(),
-  //     name: 'Newname',
-  //     telephone: null,
-  //     authored: {
-  //       edges: [
-  //         {
-  //           node: {
-  //             name: 'Book',
-  //             price: 9.99,
-  //             author: { name: 'Newname' },
-  //           },
-  //         },
-  //       ],
-  //     },
-  //     friends: {
-  //       edges: [
-  //         { node: { id: expect.anything(), name: 'Friend1' } },
-  //         { node: { id: expect.anything(), name: 'Friend2' } },
-  //         { node: { id: expect.anything(), name: 'Friend3' } },
-  //       ],
-  //     },
-  //   });
-  // });
+    expect(result).toBeDefined();
+    expect(result.errors).not.toBeDefined();
+    expect(result.data).toBeDefined();
+    expect(result.data.updatePerson).toMatchObject({
+      id: expect.anything(),
+      name: 'Newname',
+      telephone: null,
+      authored: {
+        edges: [
+          {
+            node: {
+              name: 'Book',
+              price: 9.99,
+              author: { name: 'Newname' },
+            },
+          },
+        ],
+      },
+      friends: {
+        edges: [
+          { node: { id: expect.anything(), name: 'Friend1' } },
+          { node: { id: expect.anything(), name: 'Friend2' } },
+          { node: { id: expect.anything(), name: 'Friend3' } },
+        ],
+      },
+    });
+  });
 
-  // test('exec (find)', async () => {
-  //   const result = await graphql.exec(`
-  //     query {
-  //       findPerson {
-  //         edges {
-  //           node { ${attrs} }
-  //         }
-  //       }
-  //     }
-  //   `);
+  test('exec (find)', async () => {
+    const result = await graphql.exec(`
+      query {
+        findPerson {
+          edges {
+            node { ${attrs} }
+          }
+        }
+      }
+    `);
 
-  //   expect(result).toBeDefined();
-  //   expect(result.errors).not.toBeDefined();
-  //   expect(result.data).toBeDefined();
+    expect(result).toBeDefined();
+    expect(result.errors).not.toBeDefined();
+    expect(result.data).toBeDefined();
 
-  //   // Need to sort friends to make sure it matches order
-  //   result.data.findPerson.edges.sort((a, b) => {
-  //     if (`${a.node.id}` < `${b.node.id}`) return -1;
-  //     if (`${a.node.id}` > `${b.node.id}`) return 1;
-  //     return 0;
-  //   });
+    // Need to sort friends to make sure it matches order
+    result.data.findPerson.edges.sort((a, b) => {
+      if (`${a.node.id}` < `${b.node.id}`) return -1;
+      if (`${a.node.id}` > `${b.node.id}`) return 1;
+      return 0;
+    });
 
-  //   expect(result.data.findPerson.edges[0].node).toMatchObject({
-  //     id: expect.anything(),
-  //     name: 'Friend1',
-  //     telephone: '###-###-####',
-  //     authored: { edges: [] },
-  //     friends: { edges: [] },
-  //   });
-  //   expect(result.data.findPerson.edges[1].node).toMatchObject({
-  //     id: expect.anything(),
-  //     name: 'Friend2',
-  //     telephone: '###-###-####',
-  //     authored: { edges: [] },
-  //     friends: { edges: [] },
-  //   });
-  //   expect(result.data.findPerson.edges[2].node).toMatchObject({
-  //     id: expect.anything(),
-  //     name: 'Friend3',
-  //     telephone: '###-###-####',
-  //     authored: { edges: [] },
-  //     friends: { edges: [] },
-  //   });
-  //   expect(result.data.findPerson.edges[3].node).toMatchObject({
-  //     id: expect.anything(),
-  //     name: 'Newname',
-  //     telephone: null,
-  //     authored: {
-  //       edges: [
-  //         {
-  //           node: {
-  //             name: 'Book',
-  //             price: 9.99,
-  //             author: { name: 'Newname' },
-  //           },
-  //         },
-  //       ],
-  //     },
-  //   });
+    expect(result.data.findPerson.edges[0].node).toMatchObject({
+      id: expect.anything(),
+      name: 'Friend1',
+      telephone: '###-###-####',
+      authored: { edges: [] },
+      friends: { edges: [] },
+    });
+    expect(result.data.findPerson.edges[1].node).toMatchObject({
+      id: expect.anything(),
+      name: 'Friend2',
+      telephone: '###-###-####',
+      authored: { edges: [] },
+      friends: { edges: [] },
+    });
+    expect(result.data.findPerson.edges[2].node).toMatchObject({
+      id: expect.anything(),
+      name: 'Friend3',
+      telephone: '###-###-####',
+      authored: { edges: [] },
+      friends: { edges: [] },
+    });
+    expect(result.data.findPerson.edges[3].node).toMatchObject({
+      id: expect.anything(),
+      name: 'Newname',
+      telephone: null,
+      authored: {
+        edges: [
+          {
+            node: {
+              name: 'Book',
+              price: 9.99,
+              author: { name: 'Newname' },
+            },
+          },
+        ],
+      },
+    });
 
-  //   // Need to sort friends to make sure it matches order
-  //   result.data.findPerson.edges[3].node.friends.edges.sort((a, b) => {
-  //     if (`${a.node.id}` < `${b.node.id}`) return -1;
-  //     if (`${a.node.id}` > `${b.node.id}`) return 1;
-  //     return 0;
-  //   });
+    // Need to sort friends to make sure it matches order
+    result.data.findPerson.edges[3].node.friends.edges.sort((a, b) => {
+      if (`${a.node.id}` < `${b.node.id}`) return -1;
+      if (`${a.node.id}` > `${b.node.id}`) return 1;
+      return 0;
+    });
 
-  //   expect(result.data.findPerson.edges[3].node.friends).toMatchObject({
-  //     edges: expect.objectContaining([
-  //       { node: { id: expect.anything(), name: 'Friend1', emailAddress: 'friend1@gmail.com' } },
-  //       { node: { id: expect.anything(), name: 'Friend2', emailAddress: 'friend2@gmail.com' } },
-  //       { node: { id: expect.anything(), name: 'Friend3', emailAddress: 'friend3@gmail.com' } },
-  //     ]),
-  //   });
-  // });
+    expect(result.data.findPerson.edges[3].node.friends).toMatchObject({
+      edges: expect.objectContaining([
+        { node: { id: expect.anything(), name: 'Friend1', emailAddress: 'friend1@gmail.com' } },
+        { node: { id: expect.anything(), name: 'Friend2', emailAddress: 'friend2@gmail.com' } },
+        { node: { id: expect.anything(), name: 'Friend3', emailAddress: 'friend3@gmail.com' } },
+      ]),
+    });
+  });
 
   // test('exec with systemEvent override', async () => {
   //   expect(schema).toBeDefined();

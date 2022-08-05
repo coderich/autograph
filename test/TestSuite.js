@@ -2,7 +2,6 @@
 // const Redis = require('redis-mock');
 const { set } = require('lodash');
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
-const { toResultSet } = require('../src/data/DataService');
 const { timeout } = require('../src/service/app.service');
 const Schema = require('../src/core/SchemaDecorator');
 const Resolver = require('../src/core/Resolver');
@@ -603,7 +602,7 @@ module.exports = (driver = 'mongo', options = {}) => {
     describe('Query (sortBy with Cursors)', () => {
       test('sortBy', async () => {
         const [health, moby] = await resolver.match('Book').sortBy({ name: 'asc' }).many();
-        const [healthCursor, mobyCursor] = toResultSet([health, moby], { name: 'asc' }).map(el => el.$$cursor);
+        const [healthCursor, mobyCursor] = [health.$$cursor, moby.$$cursor];
         expect(healthCursor).toBeDefined();
         expect(mobyCursor).toBeDefined();
         expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(healthCursor).first(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);

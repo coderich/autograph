@@ -1,7 +1,9 @@
 # CHANGELOG
 
 ## v0.10.x
-- Removed all $$ magic methods
+- Replaced ResultSet -> POJOs
+  - Removed all $$ magic methods
+  - Removed .toObject()
 - Removed embedded API GQL concept
 - Removed Directives [embedApi, resolve, @value]
 - Removed toId Transform

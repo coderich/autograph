@@ -1,7 +1,7 @@
 const { get } = require('lodash');
 const { Kind } = require('graphql');
 const ServerResolver = require('../../core/ServerResolver');
-const { ucFirst, fromGUID } = require('../../service/app.service');
+const { ucFirst, toGUID, fromGUID } = require('../../service/app.service');
 const { findGQLModels } = require('../../service/schema.service');
 const { makeCreateAPI, makeReadAPI, makeUpdateAPI, makeDeleteAPI, makeSubscriptionAPI, makeQueryResolver, makeMutationResolver } = require('../../service/decorator.service');
 
@@ -50,9 +50,9 @@ module.exports = (schema) => {
           ${model.getFields().filter(field => field.hasGQLScope('r')).map(field => `${field.getName()}${field.getExtendArgs()}: ${field.getPayloadType()}`)}
         }
         type ${model.getName()}Connection {
+          count: Int!
           pageInfo: PageInfo!
           edges: [${model.getName()}Edge]
-          count: Int!
         }
         type ${model.getName()}Edge {
           node: ${model.getName()}
@@ -132,21 +132,21 @@ module.exports = (schema) => {
         const isConnection = field.isConnection();
 
         return Object.assign(def, {
-          [fieldName]: (root, args, { autograph }) => {
-            if (fieldName === 'id') return autograph.legacyMode ? root.id : root.$id;
+          [fieldName]: (doc, args, { autograph }) => {
+            if (fieldName === 'id') return autograph.legacyMode ? doc.id : toGUID(modelName, doc.id);
 
-            const $fieldName = `$${fieldName}`;
-
+            // If this field is a connection we return thunks in order to delay query
+            // until the "Connection" resolver (below) is run
             if (isConnection) {
               return {
                 args,
-                edges: root[$fieldName], // Thunk to the data/edges
-                pageInfo: root[$fieldName], // You still need the data/edges to get pageInfo!
-                count: root[`${$fieldName}:count`], // Thunk to $$count
+                count: $args => field.count(autograph.resolver, doc, $args),
+                edges: $args => field.resolve(autograph.resolver, doc, $args),
+                pageInfo: $args => field.resolve(autograph.resolver, doc, $args),
               };
             }
 
-            return root.$$isResultSetItem ? root[$fieldName](args) : root[fieldName];
+            return field.resolve(autograph.resolver, doc, args);
           },
         });
       }, {});
@@ -163,24 +163,28 @@ module.exports = (schema) => {
       return Object.assign(prev, {
         [modelName]: fieldResolvers,
         [`${modelName}Connection`]: {
+          count: ({ count, args }) => count(args),
           edges: ({ edges, args }) => edges(args).then(rs => rs.map(node => ({ cursor: get(node, '$$cursor'), node }))),
           pageInfo: ({ pageInfo, args }) => pageInfo(args).then(rs => get(rs, '$$pageInfo')),
-          count: ({ count, args }) => count(args),
         },
       });
     }, {
       Node: {
-        __resolveType: (root, args, context, info) => root.__typename || fromGUID(root.$id)[0], // eslint-disable-line no-underscore-dangle
+        __resolveType: (doc, args, context, info) => doc.__typename, // eslint-disable-line no-underscore-dangle
       },
 
       Query: entityModels.reduce((prev, model) => {
         return Object.assign(prev, makeQueryResolver(model.getName(), model, resolver));
       }, {
-        node: (root, args, context, info) => {
+        node: (doc, args, context, info) => {
           const { id } = args;
           const [modelName] = fromGUID(id);
           const model = schema.getModel(modelName);
-          return resolver.get(context, model, args, false, info);
+          return resolver.get(context, model, args, false, info).then((result) => {
+            if (result == null) return result;
+            result.__typename = modelName; // eslint-disable-line no-underscore-dangle
+            return result;
+          });
         },
       }),
 

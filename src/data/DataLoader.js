@@ -38,7 +38,7 @@ module.exports = class DataLoader extends FBDataLoader {
           if (data == null || typeof data !== 'object') return data; // We only hydrate objects
 
           return hydrateResults(model, data, resolver.getContext()).then((results) => {
-            return results.length ? paginateResultSet(results, query).rs : results;
+            return results.length ? paginateResultSet(results, query) : results;
           });
         });
       }));
