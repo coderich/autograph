@@ -252,6 +252,12 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Person').where({ name: undefined }).many()).toEqual([]);
         expect(await resolver.match('Person').where({ id: undefined }).many()).toEqual([]);
         expect(await resolver.match('Person').where({ id: undefined, name: 'absolutelyNoone' }).many()).toEqual([]);
+
+        // Connection
+        const connection = await resolver.match('Person').where({ name: ['Richard', 'Christie'] }).connection();
+        expect(connection).toMatchObject({ count: expect.anything(), edges: expect.anything(), pageInfo: expect.anything() });
+        expect(await connection.count()).toBe(2);
+        expect((await connection.edges()).sort(sorter)).toMatchObject([{ id: christie.id, name: 'Christie' }, { id: richard.id, name: 'Richard' }].sort(sorter));
       });
 
       test('Book', async () => {
@@ -519,6 +525,13 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Person').where({ 'authored.chapters': { name: 'citizen', 'pages.verbage': '*intro*' } }).many()).toMatchObject([]);
         expect(await resolver.match('Person').where({ 'authored.chapters': { name: 'chapter*', 'pages.verbage': '*intro*' } }).many()).toMatchObject([{ id: christie.id, name: 'Christie' }]);
         expect(await resolver.match('Person').where({ 'authored.chapters': { name: '{citizen,chap*}', 'pages.verbage': '*intro*' } }).many()).toMatchObject([{ id: christie.id, name: 'Christie' }]);
+
+        // Connection
+        // const connection = await resolver.match('Person').where({ 'authored.chapters': { name: '{citizen,chap*}', 'pages.verbage': '*intro*' } }).connection();
+        // expect(connection).toMatchObject([{ id: christie.id, name: 'Christie' }]);
+        // expect(connection).toMatchObject({ count: expect.anything(), edges: expect.anything(), pageInfo: expect.anything() });
+        // expect(await connection.count()).toBe(1);
+        // expect(await connection.edges()).toMatchObject([{ id: christie.id, name: 'Christie' }]);
       });
 
       test('Book', async () => {

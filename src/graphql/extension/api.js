@@ -139,10 +139,9 @@ module.exports = (schema) => {
             // until the "Connection" resolver (below) is run
             if (isConnection) {
               return {
-                args,
-                count: $args => field.count(autograph.resolver, doc, $args),
-                edges: $args => field.resolve(autograph.resolver, doc, $args),
-                pageInfo: $args => field.resolve(autograph.resolver, doc, $args),
+                count: () => field.count(autograph.resolver, doc, args),
+                edges: () => field.resolve(autograph.resolver, doc, args),
+                pageInfo: () => field.resolve(autograph.resolver, doc, args),
               };
             }
 
@@ -163,9 +162,9 @@ module.exports = (schema) => {
       return Object.assign(prev, {
         [modelName]: fieldResolvers,
         [`${modelName}Connection`]: {
-          count: ({ count, args }) => count(args),
-          edges: ({ edges, args }) => edges(args).then(rs => rs.map(node => ({ cursor: get(node, '$$cursor'), node }))),
-          pageInfo: ({ pageInfo, args }) => pageInfo(args).then(rs => get(rs, '$$pageInfo')),
+          count: ({ count }) => count(),
+          edges: ({ edges }) => edges().then(rs => rs.map(node => ({ cursor: get(node, '$$cursor'), node }))),
+          pageInfo: ({ pageInfo }) => pageInfo().then(rs => get(rs, '$$pageInfo')),
         },
       });
     }, {

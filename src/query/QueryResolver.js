@@ -24,6 +24,14 @@ module.exports = class QueryResolver {
     });
   }
 
+  connection(query) {
+    return Promise.resolve({
+      count: () => this.resolver.resolve(query.clone().cmd('count').method('count')),
+      edges: () => this.resolver.resolve(query.clone().cmd('many').method('findMany')),
+      pageInfo: () => this.resolver.resolve(query.clone().cmd('many').method('findMany')),
+    });
+  }
+
   count(query) {
     return createSystemEvent('Query', { method: 'count', query }, () => {
       return this.resolver.resolve(query);

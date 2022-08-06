@@ -9,6 +9,7 @@ Release v0.10:
     - URL, RGB, RGBA, validator?
   * Determine attribute order when shaping data => this is how we want it saved to db
   * QueyBuilder.connection() perhaps needed when SF overwrites resolver
+    - BUG: DOES NOT WORK WITH FIND DEEP
   * Resolver.toResultSet() => How to hydrate results from the outside world?
     - Model.hydrateResults() could be the answer
   * Resolver.disconnect()

@@ -14,8 +14,8 @@ module.exports = class QueryBuilder {
 
     // Chainable commands
     this.id = (id) => { this.query.id(id); return this; };
-    // this.select = (select) => { this.query.select(select); return this; };
-    this.select = (select) => { this.query.select(Object.entries(toKeyObj(select)).reduce((prev, [key, value]) => Object.assign(prev, { [key.replace(/edges.node./g, '')]: !!value }), {})); return this; };
+    this.select = (select) => { this.query.select(select); return this; };
+    // this.select = (select) => { this.query.select(Object.entries(toKeyObj(select)).reduce((prev, [key, value]) => Object.assign(prev, { [key.replace(/edges.node./g, '')]: !!value }), {})); return this; };
     this.where = (where) => { this.query.where(where); return this; };
     this.match = (match) => { this.query.match(match); return this; };
     this.native = (native) => { this.query.native(native); return this; };
@@ -36,6 +36,7 @@ module.exports = class QueryBuilder {
     this.save = (...args) => this.resolve('save', args.map(arg => unravelObject(arg)));
     this.delete = (...args) => this.resolve('delete', args);
     this.remove = (...args) => this.resolve('remove', args);
+    this.connection = (...args) => this.resolve('connection', args);
     //
     this.count = (...args) => this.resolve('count', args);
     this.push = (...args) => this.resolve('push', args.map(arg => unravelObject(arg)));
@@ -47,10 +48,10 @@ module.exports = class QueryBuilder {
     // this.min = (...args) => this.makeTheCall(query, 'min', args);
     // this.max = (...args) => this.makeTheCall(query, 'max', args);
     // this.avg = (...args) => this.makeTheCall(query, 'avg', args);
+    // this.sum = (...args) => this.makeTheCall(query, 'sum', args); // Would sum be different than count?
     // // Food for thought...
     // this.archive = (...args) => this.makeTheCall(query, 'archive', args); // Soft Delete
     // this.stream = (...args) => this.makeTheCall(query, 'stream', args); // Stream records 1 by 1
-    // this.sum = (...args) => this.makeTheCall(query, 'sum', args); // Would sum be different than count?
     // this.rollup = (...args) => this.makeTheCall(query, 'rollup', args); // Like sum, but for nested attributes (eg. Person.rollupAuthoredChaptersPages)
   }
 
@@ -64,6 +65,12 @@ module.exports = class QueryBuilder {
         crud = 'read';
         flags = args[0] || flags;
         method = cmd === 'one' ? 'findOne' : 'findMany';
+        break;
+      }
+      case 'connection': {
+        crud = 'read';
+        flags = args[0] || flags;
+        method = cmd;
         break;
       }
       case 'first': case 'last': {
