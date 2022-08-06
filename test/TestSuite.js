@@ -527,11 +527,11 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Person').where({ 'authored.chapters': { name: '{citizen,chap*}', 'pages.verbage': '*intro*' } }).many()).toMatchObject([{ id: christie.id, name: 'Christie' }]);
 
         // Connection
-        // const connection = await resolver.match('Person').where({ 'authored.chapters': { name: '{citizen,chap*}', 'pages.verbage': '*intro*' } }).connection();
+        const connection = await resolver.match('Person').where({ 'authored.chapters': { name: '{citizen,chap*}', 'pages.verbage': '*intro*' } }).connection();
         // expect(connection).toMatchObject([{ id: christie.id, name: 'Christie' }]);
-        // expect(connection).toMatchObject({ count: expect.anything(), edges: expect.anything(), pageInfo: expect.anything() });
+        expect(connection).toMatchObject({ count: expect.anything(), edges: expect.anything(), pageInfo: expect.anything() });
         // expect(await connection.count()).toBe(1);
-        // expect(await connection.edges()).toMatchObject([{ id: christie.id, name: 'Christie' }]);
+        expect(await connection.edges()).toMatchObject([{ id: christie.id, name: 'Christie' }]);
       });
 
       test('Book', async () => {

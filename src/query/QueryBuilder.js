@@ -6,7 +6,7 @@ const { toKeyObj, unravelObject } = require('../service/app.service');
 * QueryBuilder
 *
 * Facilitates the creation and execution of a Query. It provides a chainable API to build a query
-* plus a list of terminal commands to resolve the query.
+* plus a list of terminal commands to execute the query.
 */
 module.exports = class QueryBuilder {
   constructor(resolver, model) {
@@ -31,19 +31,19 @@ module.exports = class QueryBuilder {
     this.transaction = (txn) => { this.query.transaction(txn); return this; };
 
     // Terminal commands
-    this.one = (...args) => this.resolve('one', args);
-    this.many = (...args) => this.resolve('many', args);
-    this.save = (...args) => this.resolve('save', args.map(arg => unravelObject(arg)));
-    this.delete = (...args) => this.resolve('delete', args);
-    this.remove = (...args) => this.resolve('remove', args);
-    this.connection = (...args) => this.resolve('connection', args);
+    this.one = (...args) => this.execute('one', args);
+    this.many = (...args) => this.execute('many', args);
+    this.save = (...args) => this.execute('save', args.map(arg => unravelObject(arg)));
+    this.delete = (...args) => this.execute('delete', args);
+    this.remove = (...args) => this.execute('remove', args);
+    this.connection = (...args) => this.execute('connection', args);
     //
-    this.count = (...args) => this.resolve('count', args);
-    this.push = (...args) => this.resolve('push', args.map(arg => unravelObject(arg)));
-    this.pull = (...args) => this.resolve('pull', args.map(arg => unravelObject(arg)));
-    this.splice = (...args) => this.resolve('splice', args.map(arg => unravelObject(arg)));
-    this.first = (...args) => { this.query.first(...args); return this.resolve('first', args); };
-    this.last = (...args) => { this.query.last(...args); return this.resolve('last', args); };
+    this.count = (...args) => this.execute('count', args);
+    this.push = (...args) => this.execute('push', args.map(arg => unravelObject(arg)));
+    this.pull = (...args) => this.execute('pull', args.map(arg => unravelObject(arg)));
+    this.splice = (...args) => this.execute('splice', args.map(arg => unravelObject(arg)));
+    this.first = (...args) => { this.query.first(...args); return this.execute('first', args); };
+    this.last = (...args) => { this.query.last(...args); return this.execute('last', args); };
     //
     // this.min = (...args) => this.makeTheCall(query, 'min', args);
     // this.max = (...args) => this.makeTheCall(query, 'max', args);
@@ -55,7 +55,7 @@ module.exports = class QueryBuilder {
     // this.rollup = (...args) => this.makeTheCall(query, 'rollup', args); // Like sum, but for nested attributes (eg. Person.rollupAuthoredChaptersPages)
   }
 
-  resolve(cmd, args) {
+  execute(cmd, args) {
     let method, crud, input = {};
     let { flags = {} } = this.query.toObject();
     const { id, where } = this.query.toObject();
@@ -109,6 +109,6 @@ module.exports = class QueryBuilder {
       }
     }
 
-    return new QueryResolver(this.query.cmd(cmd).method(method).crud(crud).input(input).flags(flags).args(args)).resolve();
+    return new QueryResolver(this.query.method(method).crud(crud).input(input).flags(flags).args(args)).resolve();
   }
 };

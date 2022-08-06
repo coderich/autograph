@@ -26,9 +26,9 @@ module.exports = class QueryResolver {
 
   connection(query) {
     return Promise.resolve({
-      count: () => this.resolver.resolve(query.clone().cmd('count').method('count')),
-      edges: () => this.resolver.resolve(query.clone().cmd('many').method('findMany')),
-      pageInfo: () => this.resolver.resolve(query.clone().cmd('many').method('findMany')),
+      count: () => new QueryResolver(this.query.clone().method('count')).resolve(),
+      edges: () => new QueryResolver(this.query.clone().method('findMany')).resolve(),
+      pageInfo: () => new QueryResolver(this.query.clone().method('findMany')).resolve(),
     });
   }
 

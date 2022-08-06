@@ -1,4 +1,3 @@
-const { cloneDeep } = require('lodash');
 const Boom = require('../core/Boom');
 const { unravelObject } = require('../service/app.service');
 
@@ -175,11 +174,6 @@ module.exports = class Query {
     return this;
   }
 
-  cmd(cmd) {
-    this.props.cmd = cmd;
-    return this;
-  }
-
   method(method) {
     this.props.method = method;
 
@@ -243,9 +237,8 @@ module.exports = class Query {
 
   clone() {
     const clone = new Query();
-    clone.props = cloneDeep(this.props);
+    clone.props = { ...this.props };
     return clone;
-    // return new Query({ ...this.props });
   }
 
   toDriver() {

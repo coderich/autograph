@@ -6,7 +6,7 @@ module.exports = class QueryBuilderTransaction extends QueryBuilder {
     this.query.transaction(transaction);
   }
 
-  resolve(cmd, args) {
+  execute(cmd, args) {
     return new Promise((resolve, reject) => {
       this.theCall = { cmd, args, resolve, reject };
     });
@@ -15,10 +15,10 @@ module.exports = class QueryBuilderTransaction extends QueryBuilder {
   exec(options) {
     if (!this.theCall) return undefined;
 
-    this.query.options(options);
     const { cmd, args, resolve } = this.theCall;
+    this.query.options(options);
 
-    return super.resolve(cmd, args).then((result) => {
+    return super.execute(cmd, args).then((result) => {
       resolve(result);
       return result;
     });
