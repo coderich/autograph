@@ -15,7 +15,7 @@ module.exports = (schema) => {
 
       directive @model(
         id: String # Specify db key (default "id")
-        key: String # Specify db key
+        key: String # Specify db table/collection name
         createdAt: String # Specify db key (default "createdAt")
         updatedAt: String # Specify db key (default "updatedAt")
         meta: AutoGraphMixed # Custom input "meta" field for mutations

@@ -13,18 +13,21 @@ module.exports = class extends Field {
 
   getStructures() {
     const structures = this.type.getStructures();
-    if (this.getModelRef() && !this.isEmbedded()) structures.rules.push(Rule.ensureId());
-    if (this.isRequired() && this.isPersistable() && !this.isVirtual()) structures.rules.push(Rule.required());
-    if (this.isPrimaryKeyId()) structures.serializers.push(({ value }) => (value != null ? value : this.model.idValue(value)));
-    if (this.isIdField()) structures.$serializers.push(({ value }) => (value ? map(value, v => this.getIdModel().idValue(v.id || v)) : value));
+    if (this.getModelRef() && !this.isEmbedded()) structures.rules.unshift(Rule.ensureId());
+    if (this.isRequired() && this.isPersistable() && !this.isVirtual()) structures.rules.unshift(Rule.required());
+    if (this.isPrimaryKeyId()) structures.serializers.unshift(({ value }) => (value != null ? value : this.model.idValue(value)));
+    if (this.isIdField()) structures.$serializers.unshift(({ value }) => (value ? map(value, v => this.getIdModel().idValue(v.id || v)) : value));
 
     return Object.entries(this.getDirectiveArgs('field', {})).reduce((prev, [key, value]) => {
       if (!Array.isArray(value)) value = [value];
-      if (key === 'enforce') prev.rules.push(...value.map(r => Rule.getInstances()[r]));
-      if (key === 'instruct') prev.instructs.push(...value.map(t => Transformer.getInstances()[t]));
-      if (key === 'serialize') prev.serializers.push(...value.map(t => Transformer.getInstances()[t]));
-      if (key === 'deserialize') prev.deserializers.push(...value.map(t => Transformer.getInstances()[t]));
-      if (key === 'transform') prev.transformers.push(...value.map(t => Transformer.getInstances()[t]));
+      if (key === 'enforce') prev.rules.unshift(...value.map(r => Rule.getInstances()[r]));
+      if (key === 'instruct') prev.instructs.unshift(...value.map(t => Transformer.getInstances()[t]));
+      if (key === 'restruct') prev.restructs.unshift(...value.map(t => Transformer.getInstances()[t]));
+      if (key === 'destruct') prev.destructs.unshift(...value.map(t => Transformer.getInstances()[t]));
+      if (key === 'construct') prev.constructs.unshift(...value.map(t => Transformer.getInstances()[t]));
+      if (key === 'serialize') prev.serializers.unshift(...value.map(t => Transformer.getInstances()[t]));
+      if (key === 'deserialize') prev.deserializers.unshift(...value.map(t => Transformer.getInstances()[t]));
+      if (key === 'transform') prev.transformers.unshift(...value.map(t => Transformer.getInstances()[t]));
       return prev;
     }, structures);
   }

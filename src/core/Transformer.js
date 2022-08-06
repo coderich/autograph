@@ -58,7 +58,8 @@ Transformer.factory('toArray', () => ({ value }) => (Array.isArray(value) ? valu
 Transformer.factory('toDate', () => ({ value }) => new Date(value), { enumerable: true, writable: true });
 Transformer.factory('dedupe', () => ({ value }) => uniqWith(value, (b, c) => hashObject(b) === hashObject(c)), { ignoreNull: false, enumerable: true });
 Transformer.factory('dedupeBy', key => ({ value }) => uniqWith(value, (b, c) => hashObject(b[key]) === hashObject(c[key])), { ignoreNull: false, enumerable: true });
-Transformer.factory('timestamp', () => () => Date.now(), { enumerable: true });
+Transformer.factory('timestamp', () => () => Date.now(), { enumerable: true, ignoreNull: false });
+Transformer.factory('createdAt', () => ({ value }) => value || Date.now(), { enumerable: true, ignoreNull: false });
 Transformer.factory('first', () => ({ value }) => (Array.isArray(value) ? value[0] : value), { enumerable: true });
 Transformer.factory('get', path => ({ value }) => get(value, path), { enumerable: true });
 Transformer.factory('set', path => ({ value }) => set({}, path, value), { enumerable: true });

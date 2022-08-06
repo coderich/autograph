@@ -33,6 +33,7 @@ module.exports = class QueryResolver {
   createOne(query) {
     const { model, input, flags } = query.toObject();
     const shape = model.getShape('create');
+    // console.log(shape.find(({ to }) => to === 'updatedAt').transformers.map(t => t.method || t.name));
 
     return createSystemEvent('Mutation', { method: 'create', query }, async () => {
       const $input = model.shapeObject(shape, input, this.context);

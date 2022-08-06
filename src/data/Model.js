@@ -44,51 +44,6 @@ module.exports = class extends Model {
     return this.referentials;
   }
 
-  // /**
-  //  * Called when creating a new document. Will add attributes such as id, createdAt, updatedAt
-  //  * while ensuring that all defaulted values are set appropriately
-  //  */
-  // appendCreateFields(input, embed = false) {
-  //   // id, createdAt, updatedAt
-  //   const timestamp = new Date();
-  //   if (embed && !input.id && this.idKey()) input.id = this.idValue();
-  //   if (!input.createdAt) input.createdAt = timestamp;
-  //   input.updatedAt = timestamp;
-
-  //   // Generate embedded default values
-  //   this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
-  //     if (input[field]) map(input[field], v => field.getModelRef().appendCreateFields(v, true));
-  //   });
-
-  //   return input;
-  // }
-
-  // appendUpdateFields(input, embed = false) {
-  //   // id, updatedAt
-  //   if (embed && !input.id && this.idKey()) input.id = this.idValue();
-  //   input.updatedAt = new Date();
-
-  //   // Generate embedded default values
-  //   this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
-  //     if (input[field]) map(input[field], v => field.getModelRef().appendUpdateFields(v, field.isArray())); // Only embedded when it's an array (because then we'll ensure ids)
-  //   });
-
-  //   return input;
-  // }
-
-  // appendDefaultFields(query, input) {
-  //   this.getDefaultedFields().filter(field => field.isPersistable()).forEach((field) => {
-  //     // input[field] = field.resolveBoundValue(query, input[field]);
-  //   });
-
-  //   // Generate embedded default values
-  //   this.getEmbeddedFields().filter(field => field.isPersistable()).forEach((field) => {
-  //     map(input[field], v => field.getModelRef().appendDefaultFields(query, v));
-  //   });
-
-  //   return input;
-  // }
-
   validate(query, data) {
     return Promise.all(this.getFields().map((field) => {
       return Promise.all(ensureArray(map(data, (obj) => {
@@ -98,17 +53,17 @@ module.exports = class extends Model {
     }));
   }
 
-  hydrateResults(stream, context) {
+  hydrateResults(mixed, context) {
     // If we're not a stream we return the shape
     const shape = this.getShape();
-    if (!(stream instanceof Stream)) return Promise.resolve(this.shapeObject(shape, stream, context));
+    if (!(mixed instanceof Stream)) return Promise.resolve(this.shapeObject(shape, mixed, context));
 
     // Stream API
     const results = [];
     return new Promise((resolve, reject) => {
-      stream.on('data', (data) => { results.push(this.shapeObject(shape, data, context)); });
-      stream.on('end', () => { resolve(results); });
-      stream.on('error', reject);
+      mixed.on('data', (data) => { results.push(this.shapeObject(shape, data, context)); });
+      mixed.on('end', () => { resolve(results); });
+      mixed.on('error', reject);
     });
   }
 
@@ -133,7 +88,7 @@ module.exports = class extends Model {
       structures.defaultValue = ({ value }) => (value === undefined && target === 'doc' ? field.getDefaultValue() : value);
       structures.ensureArrayValue = ({ value }) => (value != null && isArray && !Array.isArray(value) ? [value] : value);
       structures.castValue = ({ value }) => (value != null && !shape ? map(value, v => castCmp(type, v)) : value);
-      const transformers = structureKeys.reduce((prev, struct) => prev.concat(structures[struct]), []);
+      const transformers = structureKeys.reduce((prev, struct) => prev.concat(structures[struct]), []).filter(Boolean);
       return { from, to, type, isArray, transformers, shape };
     });
   }

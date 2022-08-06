@@ -20,6 +20,9 @@ module.exports = class extends Type {
       if (!Array.isArray(value)) value = [value];
       if (key === 'enforce') prev.rules.push(...value.map(r => Transformer.getInstances()[r]));
       if (key === 'instruct') prev.instructs.push(...value.map(t => Transformer.getInstances()[t]));
+      if (key === 'restruct') prev.restructs.push(...value.map(t => Transformer.getInstances()[t]));
+      if (key === 'destruct') prev.destructs.push(...value.map(t => Transformer.getInstances()[t]));
+      if (key === 'construct') prev.constructs.push(...value.map(t => Transformer.getInstances()[t]));
       if (key === 'serialize') prev.serializers.push(...value.map(t => Transformer.getInstances()[t]));
       if (key === 'deserialize') prev.deserializers.push(...value.map(t => Transformer.getInstances()[t]));
       if (key === 'transform') prev.transformers.push(...value.map(t => Transformer.getInstances()[t]));

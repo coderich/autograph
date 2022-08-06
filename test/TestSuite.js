@@ -89,6 +89,8 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(richard.state).toBe('NJ');
         expect(richard.strip).not.toBeDefined(); // DB key should be stripped
         expect(richard.network).toBe('networkId');
+        expect(richard.createdAt).toBeTruthy();
+        expect(richard.updatedAt).toBeTruthy();
       });
 
       test('Book', async () => {
@@ -143,6 +145,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         bookstore2 = await resolver.match('BookStore').save({ name: 'New Books', books: [mobyDick.id], building: Object.assign({}, bookBuilding, { description: 'A building' }) });
         expect(bookstore1.id).toBeDefined();
         expect(bookstore1.books.length).toEqual(3);
+        // expect(bookstore1.building.id).toBeTruthy();
         expect(bookstore1.building.type).toEqual('business');
         expect(bookstore1.building.year).toEqual(1990);
         expect(bookstore1.building.tenants).toEqual([christie.id]);
@@ -173,6 +176,8 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(artsy.id).toBeDefined();
         expect(artsy.sections).toMatchObject([{ name: 'section1' }]);
         expect(artsy.sections[0].id).toBeDefined();
+        expect(artsy.sections[0].createdAt).toBeDefined();
+        expect(artsy.sections[0].updatedAt).toBeDefined();
       });
     });
 
@@ -344,6 +349,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Person').count()).toBe(2);
         expect(await resolver.match('Person').id(richard.id).count()).toBe(1);
         expect(await resolver.match('Person').where({ id: [] }).count()).toBe(0);
+        expect(await resolver.match('Person').where({ id: [richard.id, `${christie.id}`] }).count()).toBe(2);
         expect(await resolver.match('Person').where({ name: 'richard' }).count()).toBe(1);
         expect(await resolver.match('Person').where({ name: 'Christie' }).count()).toBe(1);
       });
@@ -464,7 +470,7 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('Library', async () => {
         await expect(resolver.match('Library').save()).rejects.toThrow();
         await expect(resolver.match('Library').save({ name: 'New Library' })).rejects.toThrow();
-        // await expect(resolver.match('Library').save({ name: 'New Library', building: 'bad-building' })).rejects.toThrow();
+        await expect(resolver.match('Library').save({ name: 'New Library', building: 'bad-building' })).rejects.toThrow();
         await expect(resolver.match('Library').save({ name: 'New Library', building: libraryBuilding })).rejects.toThrow();
       });
 
@@ -534,7 +540,10 @@ module.exports = (driver = 'mongo', options = {}) => {
 
     describe('Update', () => {
       test('Person', async () => {
-        expect(await resolver.match('Person').id(richard.id).save({ name: 'Rich' })).toMatchObject({ id: richard.id, name: 'Rich' });
+        const updated = await resolver.match('Person').id(richard.id).save({ name: 'Rich' });
+        expect(updated.createdAt).toEqual(richard.createdAt);
+        expect(updated.updatedAt).not.toEqual(richard.updatedAt);
+        expect(updated).toMatchObject({ id: richard.id, name: 'Rich' });
         expect(await resolver.match('Person').id(richard.id).save({ name: 'richard' })).toMatchObject({ id: richard.id, name: 'Richard' });
         expect(await resolver.match('Person').id(richard.id).save({ status: 'active' })).toMatchObject({ id: richard.id, name: 'Richard', status: 'active' });
         expect(await resolver.match('Person').id(richard.id).save({ status: null })).toMatchObject({ id: richard.id, name: 'Richard', status: null });
@@ -557,10 +566,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         const { id, sections } = artsy;
         sections.push({ name: 'New Section' });
         expect(await resolver.match('Art').id(id).save({ sections })).toMatchObject({
-          sections: [
-            { id: expect.anything(), name: 'section1' },
-            { id: expect.anything(), name: 'new section' },
-          ],
+          sections: [{ ...sections[0], updatedAt: expect.anything() }, { id: expect.anything(), name: 'new section', createdAt: expect.anything(), updatedAt: expect.anything() }],
         });
       });
 

@@ -17,8 +17,8 @@ module.exports = (schema) => {
         return `
           extend type ${modelName}${interfacesGQL} {
             ${id ? `id: ID! @field(key: "${id}", gqlScope: r)` : ''}
-            ${createdAt ? `createdAt: AutoGraphDateTime @field(key: "${createdAt}", gqlScope: r)` : ''}
-            ${updatedAt ? `updatedAt: AutoGraphDateTime @field(key: "${updatedAt}", gqlScope: r)` : ''}
+            ${createdAt ? `createdAt: AutoGraphDateTime @field(key: "${createdAt}", serialize: createdAt, gqlScope: r)` : ''}
+            ${updatedAt ? `updatedAt: AutoGraphDateTime @field(key: "${updatedAt}", serialize: timestamp, gqlScope: r)` : ''}
           }
         `;
       }
