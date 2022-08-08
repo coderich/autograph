@@ -1,5 +1,4 @@
 const { get } = require('lodash');
-const isEmail = require('validator/lib/isEmail');
 const Boom = require('./Boom');
 const { map, ensureArray, hashObject } = require('../service/app.service');
 
@@ -101,7 +100,6 @@ Rule.factory('range', (min, max) => {
     return test < min || test > max;
   };
 }, { itemize: false });
-Rule.factory('email', () => (f, v) => !isEmail(v), { enumerable: true });
 Rule.factory('distinct', () => (f, v) => false, { enumerable: true });
 
 module.exports = Rule;

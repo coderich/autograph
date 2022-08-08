@@ -14,7 +14,9 @@
 - Removed Model.tform() -> use Model.hydrate(data, context)
 - Removed Resolver.toResultSet() -> ? TBD ?
 - Refactored Rule + Transformer API
-  - Built-in names start with $ (eg. $toLowerCase)
+  - Removed many pre-defined rules + transformers
+  - Pre-defined names start with $ (eg. $toLowerCase)
+  - Moved "validator" to dev dependency -> isEmail
 - Added QueryBuilder.resolve() terminal command
 - Exported SchemaDecorator -> Schema
 
