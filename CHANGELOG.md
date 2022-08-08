@@ -8,7 +8,6 @@
 - Removed Directives [embedApi, resolve, @value]
 - Removed toId Transform -> use @field(id: '')
 - Removed Model.tform() -> use Model.hydrate(data, context)
-- Removed
 - Changed Rule + Transform API
 - Added .resolve() terminal command
 

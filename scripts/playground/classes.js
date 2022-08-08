@@ -1,6 +1,6 @@
 class A {
-  static factory(name) {
-    Object.defineProperty(A, 'casual', { value: name });
+  static create(name) {
+    Object.defineProperty(A, 'casual', { value: name, enumerable: true });
   }
 }
 
@@ -11,8 +11,10 @@ class C extends A {
 
 }
 
-// B.factory('rich');
-// console.log(A.__proto__);
+B.create('rich');
+console.log(Object.keys(A));
+console.log(Object.keys(B));
+console.log(Object.keys(C));
 // console.log(Object.getOwnPropertyNames(A));
 // const obj = Object.create(null);
 // console.log(obj.__proto__);
