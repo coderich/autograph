@@ -1,10 +1,10 @@
 const Path = require('path');
-const SchemaDecorator = require('../../src/graphql/ast/SchemaDecorator');
+const Schema = require('../../src/graphql/ast/Schema');
 const schemaFixtures = require('../fixtures/schema');
 
-describe('SchemaDecorator', () => {
+describe('Schema', () => {
   test('mergeSchemaFromFiles', async () => {
-    const schema = new SchemaDecorator();
+    const schema = new Schema();
     const modulePath = Path.join(__dirname, 'modules');
 
     //
@@ -31,7 +31,7 @@ describe('SchemaDecorator', () => {
   });
 
   test('schema fixture', () => {
-    const schema = new SchemaDecorator(schemaFixtures).decorate();
+    const schema = new Schema(schemaFixtures).decorate();
     expect(schema).toBeDefined();
 
     const xschema = schema.makeExecutableSchema();

@@ -1,6 +1,6 @@
 const { cloneDeep } = require('lodash');
-const ASTSchema = require('../../../src/graphql/ast/SchemaDecorator');
-const CoreSchema = require('../../../src/core/SchemaDecorator');
+const ASTSchema = require('../../../src/graphql/ast/Schema');
+const CoreSchema = require('../../../src/core/Schema');
 const schemaJS = require('./../../fixtures/schema');
 const baseGraphql = require('./base.graphql');
 const stores = require('../../stores');

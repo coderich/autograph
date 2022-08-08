@@ -1,10 +1,10 @@
 const Model = require('../data/Model');
-const SchemaDecorator = require('../graphql/ast/SchemaDecorator');
+const Schema = require('../graphql/ast/Schema');
 const { identifyOnDeletes } = require('../service/schema.service');
 const { createSystemEvent } = require('../service/event.service');
 
 // Export class
-module.exports = class extends SchemaDecorator {
+module.exports = class extends Schema {
   constructor(schema, stores) {
     super(schema);
 

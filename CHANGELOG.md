@@ -2,14 +2,21 @@
 
 ## v0.10.x
 - Replaced ResultSet -> POJOs
-  - Removed all $$ magic methods
+  - Removed all $$ magic resolver methods
+  - Removed all $ magic field methods
   - Removed .toObject()
-- Removed embedded API GQL concept
-- Removed Directives [embedApi, resolve, @value]
+- Removed embedded API completely
+- Removed Directives
+  - embedApi -> no replacement
+  - resolve -> use graphql resolvers
+  - @value -> use @field.instruct directive
 - Removed toId Transform -> use @field(id: '')
 - Removed Model.tform() -> use Model.hydrate(data, context)
-- Changed Rule + Transform API
-- Added .resolve() terminal command
+- Removed Resolver.toResultSet() -> ? TBD ?
+- Refactored Rule + Transformer API
+  - Built-in names start with $ (eg. $toLowerCase)
+- Added QueryBuilder.resolve() terminal command
+- Exported SchemaDecorator -> Schema
 
 ## v0.9.x
 - Subscriptions API

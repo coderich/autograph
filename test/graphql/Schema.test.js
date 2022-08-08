@@ -1,4 +1,4 @@
-const Schema = require('../../src/graphql/ast/SchemaDecorator');
+const Schema = require('../../src/graphql/ast/Schema');
 const complexSchema = require('../fixtures/complex.graphql');
 
 const typeDefs = `

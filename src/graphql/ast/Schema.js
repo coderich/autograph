@@ -11,7 +11,7 @@ const TypeDefApi = require('./TypeDefApi');
 const Node = require('./Node');
 
 /**
- * SchemaDecorator
+ * Schema
  *
  * This class helps facilitate dynamic modification of a schema before it is passed to makeExecutableSchema(). It allows
  * for "intelligent" merging of schemas and exposes an API wrapper for typeDefs.
@@ -23,7 +23,7 @@ const Node = require('./Node');
  *    schemaDirectives <Object> - GraphQL directives
  *
  */
-module.exports = class SchemaDecorator extends TypeDefApi {
+module.exports = class Schema extends TypeDefApi {
   constructor(schema) {
     super();
     this.schema = { typeDefs: [], resolvers: {}, schemaDirectives: {} };

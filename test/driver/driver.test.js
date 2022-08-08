@@ -1,7 +1,7 @@
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { MongoClient } = require('mongodb');
 const MongoDriver = require('../../src/driver/MongoDriver');
-const Schema = require('../../src/core/SchemaDecorator');
+const Schema = require('../../src/core/Schema');
 const Resolver = require('../../src/core/Resolver');
 const typeDefs = require('../fixtures/driver.graphql');
 const stores = require('../stores');

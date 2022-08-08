@@ -1,4 +1,4 @@
-const Schema = require('../../src/core/SchemaDecorator');
+const Schema = require('../../src/core/Schema');
 const stores = require('../stores');
 const simpleSchema = require('../fixtures/simple.graphql');
 const bareSchema = require('../fixtures/bare.graphql');

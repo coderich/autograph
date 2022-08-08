@@ -1,39 +1,46 @@
 Release v0.10:
-  *** Make sure context is connected and shared properly ***
   *** You currently have a "validate" event to allow async blocks ***
+    - "validate" is actually used as a last step AFTER all other transforms/events have happened to do one final step
+    - Rethink it?
 
-  resolver.match('NetworkPlace', { validate: false, silent: true, debug: true, shape: true }).toResult(data)
-
-  * Transform + Rules => Pipeline? If you combine, how do you turn off validation per say?
-    - Need to bottom out on the order of operations
-    - Common signature
+  * Transform + Rules => Pipeline?
+    - If you combine, how do you turn off validation per say?
+      - Filter our functions of kind = 'Rule'
+    - Need to bottom out on the order of pipeline operations
     - Sync (remove ensureId)
-    - Rule => return value or throw?
-    - Use of $<pipeline-name> to denote AG vs user-defined?
-    - Add more Lodash Transformers?
-    - URL, RGB, RGBA, validator?
+    - Rule => return value or throw? (throw)
+    - Use of $<pipeline-name> to denote AG vs user-defined? (yes)
+  * Verify that Transformer + Rules are only being called when needed
+
   * Determine attribute order when shaping data => this is how we want it saved to db
+    - _id
+    - fk ids
+    - scalars
+    - embedded objects
+    - arrays
   * Resolver.toResultSet() => How to hydrate results from the outside world?
-    - Model.hydrate() could be the answer
-  * Resolver.disconnect()
+    - resolver.match('NetworkPlace', { validate: false, silent: true, debug: true, shape: true }).toResult(data)
+    - resolver.raw('NetworkPlace', { shape: true });
   * SchemaDecorator mutates schema passed in constructor => make sure that's OK
   * Revisit update $doc/merge => make sure it's OK
   * Splice Embedded Array => make sure it's OK
   * Can you detect GLOB-ISH string => more optimal query?
   * Can QueryBuilder be re-used => If not, prevent re-use
-  * Database connection pooling?
   * Tests do not clean up open Mongo connection
+
+  * Finalize Driver Interface - consider moving out of Autograph into new NPM module
+  * Database connection pooling?
+  * Resolver.disconnect()
   * Tests comprehensive enough?
+
   * "root" is misnomer => "doc"
   * Optimize/Cache information needed for Pipeline
   * @field(ref: "???") => Does this work? How to use it? Rename it?
     * Allow FK by arbitrary value (ie. workspace.name)
   * Consider fixing API traveral problem:
     - If @model is omitted, it's a leaf, and embedded but no magic attributes added
-  * Finalize Driver Interface - consider moving out of Autograph into new NPM module
   * EventEmitter().setMaxListeners(100) => Is this smelly?
   * Revisit SystemEvent args
-  * Verify that Transformer + Rules are only being called when needed
   * It's unclear if where clause needs
     - "castValue" Transformation
     - QueryService.resolveWhereClause -> if (where.id) where.id = map(where.id, v => model.idValue(v));
