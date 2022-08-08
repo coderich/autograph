@@ -22,6 +22,9 @@ const attrs = `
       node { id name emailAddress }
     }
   }
+  sections {
+    name
+  }
 `;
 
 describe('GraphQL', () => {

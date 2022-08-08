@@ -3,7 +3,7 @@ const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
 const DataService = require('../data/DataService');
 const { createSystemEvent } = require('../service/event.service');
-const { mergeDeep } = require('../service/app.service');
+const { mergeDeep, getGQLReturnType } = require('../service/app.service');
 
 module.exports = class QueryResolver {
   constructor(query) {
@@ -24,12 +24,28 @@ module.exports = class QueryResolver {
     });
   }
 
-  connection(query) {
-    return Promise.resolve({
-      count: () => new QueryResolver(this.query.clone().method('count')).resolve(),
-      edges: () => new QueryResolver(this.query.clone().method('findMany')).resolve(),
-      pageInfo: () => new QueryResolver(this.query.clone().method('findMany')).resolve(),
-    });
+  autoResolve(query) {
+    const { args } = query.toObject();
+    const [,,, info] = args;
+
+    switch (getGQLReturnType(info.returnType)) {
+      case 'array': {
+        return new QueryResolver(this.query.clone().method('findMany')).resolve();
+      }
+      case 'number': {
+        return new QueryResolver(this.query.clone().method('count')).resolve();
+      }
+      case 'connection': {
+        return Promise.resolve({
+          count: () => new QueryResolver(this.query.clone().method('count')).resolve(),
+          edges: () => new QueryResolver(this.query.clone().method('findMany')).resolve(),
+          pageInfo: () => new QueryResolver(this.query.clone().method('findMany')).resolve(),
+        });
+      }
+      case 'scalar': default: {
+        return new QueryResolver(this.query.clone().method('findOne')).resolve();
+      }
+    }
   }
 
   count(query) {
@@ -41,7 +57,6 @@ module.exports = class QueryResolver {
   createOne(query) {
     const { model, input, flags } = query.toObject();
     const shape = model.getShape('create');
-    // console.log(shape.find(({ to }) => to === 'updatedAt').transformers.map(t => t.method || t.name));
 
     return createSystemEvent('Mutation', { method: 'create', query }, async () => {
       const $input = model.shapeObject(shape, input, this.context);

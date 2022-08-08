@@ -18,7 +18,6 @@ const Node = require('./Node');
  *
  * A "schema" is defined by the following object attributes:
  *
- *    context <Object> - Globally shared object by all resolvers
  *    typeDefs <String|Object> - GQL String or AST Object (also supports a mixed array of both)
  *    resolvers <Object> - GraphQL resolvers
  *    schemaDirectives <Object> - GraphQL directives
@@ -27,7 +26,7 @@ const Node = require('./Node');
 module.exports = class SchemaDecorator extends TypeDefApi {
   constructor(schema) {
     super();
-    this.schema = { context: {}, typeDefs: [], resolvers: {}, schemaDirectives: {} };
+    this.schema = { typeDefs: [], resolvers: {}, schemaDirectives: {} };
     if (schema) this.mergeSchema(schema);
   }
 
@@ -36,9 +35,9 @@ module.exports = class SchemaDecorator extends TypeDefApi {
    */
   mergeSchema(schema, options = {}) {
     // Ensure this is a schema of sorts otherwise skip it
-    if (typeof schema !== 'string' && ['context', 'typeDefs', 'resolvers', 'schemaDirectives'].every(key => !schema[key])) return this;
+    if (typeof schema !== 'string' && ['typeDefs', 'resolvers', 'schemaDirectives'].every(key => !schema[key])) return this;
 
-    // Here we want to normalize the schema into the shape { context, typeDefs, resolvers, schemaDirectives }
+    // Here we want to normalize the schema into the shape { typeDefs, resolvers, schemaDirectives }
     // We do NOT want to modify the schema object because that may cause unwanted side-effects.
     const normalizedSchema = { ...schema };
     if (typeof schema === 'string') normalizedSchema.typeDefs = [schema];
@@ -60,7 +59,6 @@ module.exports = class SchemaDecorator extends TypeDefApi {
     // Now we're ready to merge the schema
     const [left, right] = options.passive ? [normalizedSchema, this.schema] : [this.schema, normalizedSchema];
     if (normalizedSchema.typeDefs && normalizedSchema.typeDefs.length) this.schema.typeDefs = mergeASTArray(left.typeDefs.concat(right.typeDefs));
-    if (normalizedSchema.context) this.schema.context = Merge(left.context, right.context);
     if (normalizedSchema.resolvers) this.schema.resolvers = Merge(left.resolvers, right.resolvers);
     if (normalizedSchema.schemaDirectives) this.schema.schemaDirectives = Merge(left.schemaDirectives, right.schemaDirectives);
 
@@ -125,10 +123,6 @@ module.exports = class SchemaDecorator extends TypeDefApi {
 
   makeExecutableSchema() {
     return makeExecutableSchema(this.schema);
-  }
-
-  getContext() {
-    return this.schema.context;
   }
 
   toObject() {

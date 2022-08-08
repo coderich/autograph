@@ -54,6 +54,11 @@ exports.stripObjectUndefineds = obj => Object.entries(obj).reduce((prev, [key, v
 exports.pushIt = (arr, it) => arr[arr.push(it) - 1];
 exports.toKeyObj = obj => exports.keyPaths(obj).reduce((prev, path) => Object.assign(prev, { [path]: _.get(obj, path) }), {});
 
+exports.getGQLReturnType = (returnType) => {
+  const typeMap = { array: /^\[.+\].?$/, connection: /.+Connection!?$/, number: /^(Int|Float)!?$/, scalar: /.*/ };
+  return Object.entries(typeMap).find(([type, pattern]) => returnType.match(pattern))[0];
+};
+
 exports.removeUndefinedDeep = (obj) => {
   return exports.unravelObject(exports.keyPaths(obj).reduce((prev, path) => {
     const value = _.get(obj, path);

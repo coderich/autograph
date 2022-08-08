@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const { toKeyObj, keyPaths, keyPathLeafs, unravelObject, isPlainObject, isScalarValue, mergeDeep, proxyDeep, getDeep, uniq, hashObject, removeUndefinedDeep } = require('../../src/service/app.service');
+const AppService = require('../../src/service/app.service');
 
 const obj1 = { name: 'name1', friends: ['a', 'b', 'c'] };
 const obj2 = { name: 'name2', friends: ['d', 'e', 'f'] };
@@ -44,15 +44,15 @@ describe('AppService', () => {
   });
 
   test('isPlainObject', () => {
-    expect(isPlainObject(ObjectID('abclghalnohe'))).toBe(false);
-    expect(isPlainObject([])).toBe(false);
-    expect(isPlainObject({})).toBe(true);
+    expect(AppService.isPlainObject(ObjectID('abclghalnohe'))).toBe(false);
+    expect(AppService.isPlainObject([])).toBe(false);
+    expect(AppService.isPlainObject({})).toBe(true);
   });
 
   test('mergeDeep', () => {
     // Expect concatenation
-    expect(mergeDeep(obj1, obj2)).toEqual({ name: 'name2', friends: obj2.friends });
-    expect(mergeDeep(obj1, obj2, obj3)).toEqual({ name: 'name3', friends: obj3.friends });
+    expect(AppService.mergeDeep(obj1, obj2)).toEqual({ name: 'name2', friends: obj2.friends });
+    expect(AppService.mergeDeep(obj1, obj2, obj3)).toEqual({ name: 'name3', friends: obj3.friends });
 
     // Expect originals not to change
     expect(obj1).toEqual({ name: 'name1', friends: ['a', 'b', 'c'] });
@@ -61,54 +61,54 @@ describe('AppService', () => {
   });
 
   test('getDeep', () => {
-    expect(getDeep(doc2, 'workplace.obj1')).toBe(obj1);
-    expect(getDeep(doc2, 'workplace.obj1.name')).toBe('name1');
-    expect(getDeep(doc2, 'family.name')).toEqual(['name1', 'name2', 'name3']);
-    expect(getDeep(doc2, 'family.friends')).toEqual(['a', 'b', 'c', 'd', 'e', 'f', 'a', 'e', 'b']);
+    expect(AppService.getDeep(doc2, 'workplace.obj1')).toBe(obj1);
+    expect(AppService.getDeep(doc2, 'workplace.obj1.name')).toBe('name1');
+    expect(AppService.getDeep(doc2, 'family.name')).toEqual(['name1', 'name2', 'name3']);
+    expect(AppService.getDeep(doc2, 'family.friends')).toEqual(['a', 'b', 'c', 'd', 'e', 'f', 'a', 'e', 'b']);
   });
 
   test('hashObject', () => {
     const o1 = { a: 'hello', b: 'ball' };
     const o2 = { b: 'ball', a: 'hello' };
-    expect(hashObject(o1)).toEqual(hashObject(o2));
-    expect(hashObject(doc)).toEqual(hashObject(doc2));
+    expect(AppService.hashObject(o1)).toEqual(AppService.hashObject(o2));
+    expect(AppService.hashObject(doc)).toEqual(AppService.hashObject(doc2));
   });
 
   test('uniq', () => {
-    expect(uniq(['a', 'b', 'c', 'a', 'd', 'b'])).toEqual(['a', 'b', 'c', 'd']);
+    expect(AppService.uniq(['a', 'b', 'c', 'a', 'd', 'b'])).toEqual(['a', 'b', 'c', 'd']);
   });
 
   test('keyPathObj, keyPaths', () => {
-    expect(keyPaths({ a: 'a' })).toEqual(['a']);
-    expect(keyPaths({ a: { c: 'c' }, b: 'b' })).toEqual(['a.c', 'b']);
-    expect(keyPaths({ a: { 'c.d': 'e', c: 'c' }, b: 'b' })).toEqual(['a.c.d', 'a.c', 'b']);
-    expect(keyPaths({ 'authored.chapters': { name: 'citizen', 'pages.verbage': '*intro*' } })).toEqual(['authored.chapters.name', 'authored.chapters.pages.verbage']);
+    expect(AppService.keyPaths({ a: 'a' })).toEqual(['a']);
+    expect(AppService.keyPaths({ a: { c: 'c' }, b: 'b' })).toEqual(['a.c', 'b']);
+    expect(AppService.keyPaths({ a: { 'c.d': 'e', c: 'c' }, b: 'b' })).toEqual(['a.c.d', 'a.c', 'b']);
+    expect(AppService.keyPaths({ 'authored.chapters': { name: 'citizen', 'pages.verbage': '*intro*' } })).toEqual(['authored.chapters.name', 'authored.chapters.pages.verbage']);
   });
 
   test('keyPathLeafs', () => {
-    expect(keyPathLeafs({ a: 'a' })).toEqual(['a']);
-    expect(keyPathLeafs({ a: { c: 'c' }, b: 'b' })).toEqual(['b', 'a.c']);
-    expect(keyPathLeafs({ a: { 'c.d': 'e', c: 'c' }, b: 'b' })).toEqual(['b', 'a.c.d']);
-    expect(keyPathLeafs({ 'authored.chapters': { name: 'citizen', 'pages.verbage': '*intro*' } })).toEqual(['authored.chapters.pages.verbage', 'authored.chapters.name']);
+    expect(AppService.keyPathLeafs({ a: 'a' })).toEqual(['a']);
+    expect(AppService.keyPathLeafs({ a: { c: 'c' }, b: 'b' })).toEqual(['b', 'a.c']);
+    expect(AppService.keyPathLeafs({ a: { 'c.d': 'e', c: 'c' }, b: 'b' })).toEqual(['b', 'a.c.d']);
+    expect(AppService.keyPathLeafs({ 'authored.chapters': { name: 'citizen', 'pages.verbage': '*intro*' } })).toEqual(['authored.chapters.pages.verbage', 'authored.chapters.name']);
   });
 
   test('unravelObject', () => {
-    expect(unravelObject({ a: 'a' })).toEqual({ a: 'a' });
-    expect(unravelObject({ 'a.b.c': 'a' })).toEqual({ a: { b: { c: 'a' } } });
-    expect(unravelObject({ 'a.b.c': 'a', 'a.b.d': 'e' })).toEqual({ a: { b: { c: 'a', d: 'e' } } });
-    expect(unravelObject({ 'authored.chapters': { name: 'citizen', 'pages.verbage': '*intro*' } })).toEqual({ authored: { chapters: { name: 'citizen', pages: { verbage: '*intro*' } } } });
+    expect(AppService.unravelObject({ a: 'a' })).toEqual({ a: 'a' });
+    expect(AppService.unravelObject({ 'a.b.c': 'a' })).toEqual({ a: { b: { c: 'a' } } });
+    expect(AppService.unravelObject({ 'a.b.c': 'a', 'a.b.d': 'e' })).toEqual({ a: { b: { c: 'a', d: 'e' } } });
+    expect(AppService.unravelObject({ 'authored.chapters': { name: 'citizen', 'pages.verbage': '*intro*' } })).toEqual({ authored: { chapters: { name: 'citizen', pages: { verbage: '*intro*' } } } });
   });
 
   test('proxyDeep', () => {
     const trapFn = jest.fn((target, prop, rec) => {
       const value = Reflect.get(target, prop, rec);
-      if (isScalarValue(value)) return 1;
+      if (AppService.isScalarValue(value)) return 1;
       if (typeof value === 'function') return value.bind(target);
-      if (Array.isArray(value)) return value.map(v => (isScalarValue(v) ? 1 : v));
+      if (Array.isArray(value)) return value.map(v => (AppService.isScalarValue(v) ? 1 : v));
       return value;
     });
 
-    const proxy = proxyDeep(doc, { get: trapFn }).toObject();
+    const proxy = AppService.proxyDeep(doc, { get: trapFn }).toObject();
     expect(trapFn).toHaveBeenCalledTimes(31);
     expect(proxy.name).toBe(1);
     expect(proxy.workplace.name).toBe(1);
@@ -120,12 +120,35 @@ describe('AppService', () => {
 
   test('removeUndefinedDeep', () => {
     expect({ a: undefined }).toEqual({});
-    expect(removeUndefinedDeep({ a: 1 })).toEqual({ a: 1 });
-    expect(removeUndefinedDeep({ a: undefined })).toEqual({});
-    expect(removeUndefinedDeep({ a: { b: 'b', c: false, d: undefined } })).toEqual({ a: { b: 'b', c: false } });
+    expect(AppService.removeUndefinedDeep({ a: 1 })).toEqual({ a: 1 });
+    expect(AppService.removeUndefinedDeep({ a: undefined })).toEqual({});
+    expect(AppService.removeUndefinedDeep({ a: { b: 'b', c: false, d: undefined } })).toEqual({ a: { b: 'b', c: false } });
   });
 
-  test('toKeyObj', () => {
-    expect({ a: undefined }).toEqual({ a: undefined });
+  test('getGQLReturnType', () => {
+    // Array
+    expect(AppService.getGQLReturnType('[Int]!')).toBe('array');
+    expect(AppService.getGQLReturnType('[Float]!')).toBe('array');
+    expect(AppService.getGQLReturnType('[Array]')).toBe('array');
+    expect(AppService.getGQLReturnType('[Array]!')).toBe('array');
+    expect(AppService.getGQLReturnType('[Array!]!')).toBe('array');
+    expect(AppService.getGQLReturnType('[MyConnection]!')).toBe('array');
+
+    // Connection
+    expect(AppService.getGQLReturnType('MyConnection')).toBe('connection');
+    expect(AppService.getGQLReturnType('MyConnection!')).toBe('connection');
+
+    // number
+    expect(AppService.getGQLReturnType('Int')).toBe('number');
+    expect(AppService.getGQLReturnType('Int!')).toBe('number');
+    expect(AppService.getGQLReturnType('Float')).toBe('number');
+    expect(AppService.getGQLReturnType('Float!')).toBe('number');
+
+    // scalar
+    expect(AppService.getGQLReturnType('Person')).toBe('scalar');
+    expect(AppService.getGQLReturnType('Intt')).toBe('scalar');
+    expect(AppService.getGQLReturnType('aFloat')).toBe('scalar');
+    expect(AppService.getGQLReturnType('Connection')).toBe('scalar');
+    expect(AppService.getGQLReturnType('Connectionn')).toBe('scalar');
   });
 });

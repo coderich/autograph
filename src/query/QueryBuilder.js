@@ -36,7 +36,7 @@ module.exports = class QueryBuilder {
     this.save = (...args) => this.execute('save', args.map(arg => unravelObject(arg)));
     this.delete = (...args) => this.execute('delete', args);
     this.remove = (...args) => this.execute('remove', args);
-    this.connection = (...args) => this.execute('connection', args);
+    this.resolve = (...args) => this.execute('resolve', args);
     //
     this.count = (...args) => this.execute('count', args);
     this.push = (...args) => this.execute('push', args.map(arg => unravelObject(arg)));
@@ -67,10 +67,9 @@ module.exports = class QueryBuilder {
         method = cmd === 'one' ? 'findOne' : 'findMany';
         break;
       }
-      case 'connection': {
+      case 'resolve': {
         crud = 'read';
-        flags = args[0] || flags;
-        method = cmd;
+        method = 'autoResolve';
         break;
       }
       case 'first': case 'last': {

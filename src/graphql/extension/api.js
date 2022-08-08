@@ -132,7 +132,7 @@ module.exports = (schema) => {
         const isConnection = field.isConnection();
 
         return Object.assign(def, {
-          [fieldName]: (doc, args, { autograph }) => {
+          [fieldName]: (doc, args, { autograph }, info) => {
             if (fieldName === 'id') return autograph.legacyMode ? doc.id : toGUID(modelName, doc.id);
 
             // If this field is a connection we return thunks in order to delay query

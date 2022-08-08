@@ -1,4 +1,9 @@
 Release v0.10:
+  *** Make sure context is connected and shared properly ***
+  *** You currently have a "validate" event to allow async blocks ***
+
+  resolver.match('NetworkPlace', { validate: false, silent: true, debug: true, shape: true }).toResult(data)
+
   * Transform + Rules => Pipeline? If you combine, how do you turn off validation per say?
     - Need to bottom out on the order of operations
     - Common signature
@@ -8,16 +13,13 @@ Release v0.10:
     - Add more Lodash Transformers?
     - URL, RGB, RGBA, validator?
   * Determine attribute order when shaping data => this is how we want it saved to db
-  * QueyBuilder.connection() perhaps needed when SF overwrites resolver
-    - BUG: DOES NOT WORK WITH FIND DEEP
   * Resolver.toResultSet() => How to hydrate results from the outside world?
-    - Model.hydrateResults() could be the answer
+    - Model.hydrate() could be the answer
   * Resolver.disconnect()
   * SchemaDecorator mutates schema passed in constructor => make sure that's OK
   * Revisit update $doc/merge => make sure it's OK
   * Splice Embedded Array => make sure it's OK
   * Can you detect GLOB-ISH string => more optimal query?
-  * Resolver.match() => Resolver.query() => Resolver.exec()?
   * Can QueryBuilder be re-used => If not, prevent re-use
   * Database connection pooling?
   * Tests do not clean up open Mongo connection

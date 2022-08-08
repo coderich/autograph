@@ -9,7 +9,7 @@ module.exports = class DataLoader extends FBDataLoader {
   constructor(resolver, model) {
     // const idKey = model.idKey();
     const driver = model.getDriver();
-    // const context = resolver.getContext();
+    const context = resolver.getContext();
 
     return new FBDataLoader((queries) => {
       // // The idea is to group the "findOne by id" queries together to make 1 query instead
@@ -34,9 +34,9 @@ module.exports = class DataLoader extends FBDataLoader {
 
       return Promise.all(queries.map((query) => {
         return driver.resolve(query.toDriver()).then((data) => {
-          if (data == null || typeof data !== 'object') return data; // We only hydrate objects
+          if (data == null || typeof data !== 'object') return data; // We only deserialize objects
 
-          return model.hydrateResults(data, resolver.getContext()).then((results) => {
+          return model.deserialize(data, context).then((results) => {
             return results.length ? paginateResultSet(results, query) : results;
           });
         });

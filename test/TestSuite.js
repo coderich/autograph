@@ -254,10 +254,10 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Person').where({ id: undefined, name: 'absolutelyNoone' }).many()).toEqual([]);
 
         // Connection
-        const connection = await resolver.match('Person').where({ name: ['Richard', 'Christie'] }).connection();
-        expect(connection).toMatchObject({ count: expect.anything(), edges: expect.anything(), pageInfo: expect.anything() });
-        expect(await connection.count()).toBe(2);
-        expect((await connection.edges()).sort(sorter)).toMatchObject([{ id: christie.id, name: 'Christie' }, { id: richard.id, name: 'Richard' }].sort(sorter));
+        const resolution = await resolver.match('Person').where({ name: ['Richard', 'Christie'] }).resolve(null, null, null, { returnType: 'MyConnection' });
+        expect(resolution).toMatchObject({ count: expect.anything(), edges: expect.anything(), pageInfo: expect.anything() });
+        expect(await resolution.count()).toBe(2);
+        expect((await resolution.edges()).sort(sorter)).toMatchObject([{ id: christie.id, name: 'Christie' }, { id: richard.id, name: 'Richard' }].sort(sorter));
       });
 
       test('Book', async () => {
@@ -527,11 +527,10 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Person').where({ 'authored.chapters': { name: '{citizen,chap*}', 'pages.verbage': '*intro*' } }).many()).toMatchObject([{ id: christie.id, name: 'Christie' }]);
 
         // Connection
-        const connection = await resolver.match('Person').where({ 'authored.chapters': { name: '{citizen,chap*}', 'pages.verbage': '*intro*' } }).connection();
-        // expect(connection).toMatchObject([{ id: christie.id, name: 'Christie' }]);
-        expect(connection).toMatchObject({ count: expect.anything(), edges: expect.anything(), pageInfo: expect.anything() });
-        // expect(await connection.count()).toBe(1);
-        expect(await connection.edges()).toMatchObject([{ id: christie.id, name: 'Christie' }]);
+        const resolution = await resolver.match('Person').where({ 'authored.chapters': { name: '{citizen,chap*}', 'pages.verbage': '*intro*' } }).resolve(null, null, null, { returnType: 'MyConnection' });
+        expect(resolution).toMatchObject({ count: expect.anything(), edges: expect.anything(), pageInfo: expect.anything() });
+        expect(await resolution.count()).toBe(1);
+        expect(await resolution.edges()).toMatchObject([{ id: christie.id, name: 'Christie' }]);
       });
 
       test('Book', async () => {

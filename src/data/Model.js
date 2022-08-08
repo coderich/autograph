@@ -53,9 +53,13 @@ module.exports = class extends Model {
     }));
   }
 
-  hydrateResults(mixed, context) {
-    // If we're not a stream we return the shape
+  /**
+   * Convenience method to deserialize data from a data source (such as a database)
+   */
+  deserialize(mixed, context) {
     const shape = this.getShape();
+
+    // If we're not a stream we return the shape
     if (!(mixed instanceof Stream)) return Promise.resolve(this.shapeObject(shape, mixed, context));
 
     // Stream API
@@ -70,7 +74,7 @@ module.exports = class extends Model {
   getShape(crud = 'read', target = 'doc') {
     const serdes = crud === 'read' ? 'deserialize' : 'serialize';
     const fields = serdes === 'deserialize' ? this.getSelectFields() : this.getPersistableFields();
-    const crudMap = { create: ['constructs'], update: ['restructs'], delete: ['destructs'] };
+    const crudMap = { create: ['constructs'], update: ['restructs'], delete: ['destructs'], remove: ['destructs'] };
     const crudKeys = crudMap[crud] || [];
 
     const targetMap = {

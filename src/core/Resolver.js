@@ -9,10 +9,14 @@ module.exports = class Resolver {
     this.context = context;
     this.models = schema.getModels();
     this.loaders = this.models.reduce((prev, model) => prev.set(`${model}`, new DataLoader(this, model)), new Map());
+  }
 
-    //
-    this.getSchema = () => this.schema;
-    this.getContext = () => this.context;
+  getSchema() {
+    return this.schema;
+  }
+
+  getContext() {
+    return this.context;
   }
 
   /**
