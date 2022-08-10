@@ -42,8 +42,6 @@ module.exports = (schema) => {
         onDelete: AutoGraphOnDeleteEnum # onDelete behavior
 
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
-        enforce: [AutoGraphMixed!] # Rules to enforce
-        # enforce: [AutoGraphEnforceEnum!] # Rules to enforce
 
         # Pipeline Structure
         instruct: [AutoGraphPipelineEnum!]

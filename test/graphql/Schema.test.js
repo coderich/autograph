@@ -5,7 +5,7 @@ const typeDefs = `
   scalar Mixed
   enum Gender { male female }
   directive @model(scope: Mixed) on OBJECT
-  directive @field(transform: [Mixed] enforce: Mixed onDelete: Mixed, default: Mixed) on FIELD_DEFINITION
+  directive @field(transform: [Mixed] serialize: Mixed onDelete: Mixed, default: Mixed) on FIELD_DEFINITION
   input SomeInput { id: ID! name: String! }
   type Query { noop: String }
   type Mutation { noop: String }
@@ -40,8 +40,8 @@ const resolvers = {
 const extendDef = `
   type Building @model {
     year: Int
-    type: String! @field(enforce: buildingType)
-    tenants: [Person] @field(enforce: distinct, onDelete: cascade)
+    type: String! @field(serialize: buildingType)
+    tenants: [Person] @field(onDelete: cascade)
     landlord: Person @field(onDelete: nullify, default: context)
   }
 
@@ -123,7 +123,6 @@ describe('Documents', () => {
       expect(bookFields.map(f => f.isRequired())).toEqual([true, true, true, false, true, false]);
       expect(Person.getField('name').getDefaultValue()).toEqual('Rich');
       expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toUpperCase']);
-      // expect(Person.getField('name').getDirective('field').getArg('enforce')).toEqual(['toTitleCase', 'toUpperCase']);
     };
 
     validate();

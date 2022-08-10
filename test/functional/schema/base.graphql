@@ -1,8 +1,8 @@
-scalar Mixed @field(enforce: required)
+scalar Mixed @field(serialize: required)
 enum Gender { male female }
 input SomeInput { id: ID! name: String! }
 directive @model(scope: Mixed) on OBJECT
-directive @field(transform: [Mixed] enforce: Mixed onDelete: Mixed, default: Mixed, gender: Gender) on FIELD_DEFINITION | SCALAR
+directive @field(transform: [Mixed] serialize: Mixed onDelete: Mixed, default: Mixed, gender: Gender) on FIELD_DEFINITION | SCALAR
 type Query { noop: String }
 type Mutation { noop: String }
 type Subscription { noop: String }

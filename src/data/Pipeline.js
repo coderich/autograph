@@ -86,10 +86,23 @@ module.exports = class Pipeline {
   }
 };
 
-/* ////////////////////////////////////////////// RULES //////////////////////////////////////////////// */
 
-// // Enforces required fields (only during create)
-// exports.Rule.define('required', (f, v, q) => {
-//   const { crud, input } = q.toObject();
-//   return (crud === 'create' ? v == null : Object.prototype.hasOwnProperty.call(input, f.getName()) && v == null);
-// }, { ignoreNull: false });
+// const jsStringMethods = [
+//   'charAt', 'charCodeAt', 'codePointAt', 'concat', 'indexOf', 'lastIndexOf', 'localeCompare',
+//   'normalize', 'padEnd', 'padStart', 'repeat', 'replace', 'search', 'slice', 'split', 'substr', 'substring',
+//   'toLocaleLowerCase', 'toLocaleUpperCase', 'toLowerCase', 'toString', 'toUpperCase', 'trim', 'trimEnd', 'trimStart', 'raw',
+// ];
+
+// Transformer.factory('toTitleCase', () => ({ value }) => value.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()), { enumerable: true });
+// Transformer.factory('toLocaleTitleCase', (...args) => ({ value }) => value.replace(/\w\S*/g, w => w.charAt(0).toLocaleUpperCase(...args) + w.slice(1).toLocaleLowerCase()));
+// Transformer.factory('toSentenceCase', () => ({ value }) => value.charAt(0).toUpperCase() + value.slice(1), { enumerable: true });
+// Transformer.factory('toLocaleSentenceCase', (...args) => ({ value }) => value.charAt(0).toLocaleUpperCase(...args) + value.slice(1));
+// Transformer.factory('toArray', () => ({ value }) => (Array.isArray(value) ? value : [value]), { itemize: false, enumerable: true });
+// Transformer.factory('toDate', () => ({ value }) => new Date(value), { enumerable: true, writable: true });
+// Transformer.factory('dedupe', () => ({ value }) => uniqWith(value, (b, c) => hashObject(b) === hashObject(c)), { ignoreNull: false, enumerable: true });
+// Transformer.factory('dedupeBy', key => ({ value }) => uniqWith(value, (b, c) => hashObject(b[key]) === hashObject(c[key])), { ignoreNull: false, enumerable: true });
+// Transformer.factory('timestamp', () => () => Date.now(), { enumerable: true, ignoreNull: false });
+// Transformer.factory('createdAt', () => ({ value }) => value || Date.now(), { enumerable: true, ignoreNull: false });
+// Transformer.factory('first', () => ({ value }) => (Array.isArray(value) ? value[0] : value), { enumerable: true });
+// Transformer.factory('get', path => ({ value }) => get(value, path), { enumerable: true });
+// Transformer.factory('set', path => ({ value }) => set({}, path, value), { enumerable: true });

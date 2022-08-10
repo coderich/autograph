@@ -1,4 +1,3 @@
-const { get } = require('lodash');
 const Stream = require('stream');
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');

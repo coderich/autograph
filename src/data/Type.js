@@ -17,7 +17,6 @@ module.exports = class extends Type {
 
     return Object.entries(scalarType.getDirectiveArgs('field', {})).reduce((prev, [key, value]) => {
       if (!Array.isArray(value)) value = [value];
-      // if (key === 'enforce') prev.rules.push(...value.map(r => Rule.getInstances()[r]));
       if (key === 'instruct') prev.instructs.push(...value.map(t => Pipeline[t]));
       if (key === 'restruct') prev.restructs.push(...value.map(t => Pipeline[t]));
       if (key === 'destruct') prev.destructs.push(...value.map(t => Pipeline[t]));

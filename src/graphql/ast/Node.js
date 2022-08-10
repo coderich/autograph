@@ -192,14 +192,6 @@ module.exports = class Node {
   }
 
   /**
-   * Can the field be changed after it's set
-   */
-  isImmutable() {
-    const enforce = this.getDirectiveArg('field', 'enforce', '');
-    return Boolean(JSON.stringify(enforce).indexOf('immutable') > -1);
-  }
-
-  /**
    * Define it's behavior at the Data Access Layer
    *
    * Model + Field:

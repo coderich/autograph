@@ -18,7 +18,6 @@ module.exports = class extends Field {
 
     const $structures = Object.entries(this.getDirectiveArgs('field', {})).reduce((prev, [key, value]) => {
       if (!Array.isArray(value)) value = [value];
-      // if (key === 'enforce') prev.rules.unshift(...value.map(r => Rule.getInstances()[r]));
       if (key === 'instruct') prev.instructs.unshift(...value.map(t => Pipeline[t]));
       if (key === 'restruct') prev.restructs.unshift(...value.map(t => Pipeline[t]));
       if (key === 'destruct') prev.destructs.unshift(...value.map(t => Pipeline[t]));

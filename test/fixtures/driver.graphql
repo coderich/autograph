@@ -1,7 +1,7 @@
 type Person @model(meta: "PersonInputMeta") {
   age: Int @field(key: "my_age")
   name: String! @field(deserialize: toTitleCase, serialize: toLowerCase)
-  emailAddress: String! @field(key: "email_address", enforce: email)
+  emailAddress: String! @field(key: "email_address", serialize: email)
   status: String @field(key: "state")
   # state: String @field(key: "address_state")
   telephone: String @field(default: "###-###-####")
