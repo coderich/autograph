@@ -71,14 +71,16 @@ module.exports = class extends Model {
     });
   }
 
-  getShape(crud = 'read', target = 'doc') {
+  getShape(crud = 'read', target = 'doc', path = []) {
+    const modelName = this.getName();
     const serdes = crud === 'read' ? 'deserialize' : 'serialize';
     const fields = serdes === 'deserialize' ? this.getSelectFields() : this.getPersistableFields();
     const crudMap = { create: ['constructs'], update: ['restructs'], delete: ['destructs'], remove: ['destructs'] };
     const crudKeys = crudMap[crud] || [];
 
     const targetMap = {
-      doc: ['defaultValue', 'ensureArrayValue', 'castValue', 'instructs', ...crudKeys, `$${serdes}rs`, `${serdes}rs`, 'transformers'],
+      // doc: ['defaultValue', 'ensureArrayValue', 'castValue', 'instructs', ...crudKeys, `$${serdes}rs`, `${serdes}rs`, 'transformers'],
+      doc: ['defaultValue', 'ensureArrayValue', 'castValue', ...crudKeys, 'transformers', `$${serdes}rs`, `${serdes}rs`, 'instructs'],
       where: ['castValue', `$${serdes}rs`, 'instructs'],
     };
 
@@ -87,13 +89,14 @@ module.exports = class extends Model {
     return fields.map((field) => {
       const structures = field.getStructures();
       const [key, name, type, isArray] = [field.getKey(), field.getName(), field.getType(), field.isArray(), field.isIdField()];
-      const shape = field.isEmbedded() ? field.getModelRef().getShape(crud, target) : null;
       const [from, to] = serdes === 'serialize' ? [name, key] : [key, name];
+      path.push(to);
+      const shape = field.isEmbedded() ? field.getModelRef().getShape(crud, target, path) : null;
       structures.defaultValue = ({ value }) => (value === undefined && target === 'doc' ? field.getDefaultValue() : value);
       structures.ensureArrayValue = ({ value }) => (value != null && isArray && !Array.isArray(value) ? [value] : value);
       structures.castValue = ({ value }) => (value != null && !shape ? map(value, v => castCmp(type, v)) : value);
       const transformers = structureKeys.reduce((prev, struct) => prev.concat(structures[struct]), []).filter(Boolean);
-      return { from, to, type, isArray, transformers, shape };
+      return { modelName, path, from, to, type, isArray, transformers, shape };
     });
   }
 
@@ -101,11 +104,21 @@ module.exports = class extends Model {
     return map(obj, (doc) => {
       root = root || doc;
 
-      return shape.reduce((prev, { from, to, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
+      return shape.reduce((prev, { modelName, from, to, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
         let value = doc[from];
-        value = transformers.reduce((val, t) => t({ root, doc, value: val, context }), value); // Transformers
-        if (value === undefined && !Object.prototype.hasOwnProperty.call(doc, from)) return prev; // Remove this key
-        prev[to] = (!subShape || value == null) ? value : this.shapeObject(subShape, value, context, root); // Rename key & assign value
+
+        // Transform value
+        value = transformers.reduce((val, t) => {
+          const v = t({ root, doc, value: val, context, fieldName: to, modelName });
+          return v === undefined ? val : v;
+        }, value);
+
+        // Determine if key should stay or be removed
+        if (value === undefined && !Object.prototype.hasOwnProperty.call(doc, from)) return prev;
+
+        // Rename key & assign value
+        prev[to] = (!subShape || value == null) ? value : this.shapeObject(subShape, value, context, root);
+
         return prev;
       }, {});
     });

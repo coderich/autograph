@@ -1,55 +1,82 @@
-const { get } = require('lodash');
+const { get, uniqWith } = require('lodash');
 const { map, hashObject } = require('../service/app.service');
 
-exports.Method = class Method {
-  static define(kind, name, fn, options = {}) {
-    // Methods are functions
-    if (typeof fn !== 'function') throw new Error(`${kind} definition for "${name}" must be a function`);
+module.exports = class Pipeline {
+  static define(name, factory, options = {}) {
+    // A factory must be a function
+    if (typeof factory !== 'function') throw new Error(`Pipeline definition for "${name}" must be a function`);
 
-    // Determine options; which may come from a factory function
-    const { ignoreNull = true, itemize = true, configurable = false } = Object.assign({}, fn.options, options);
+    // Determine options; which may come from the factory function
+    const { ignoreNull = true, itemize = true, configurable = false } = Object.assign({}, factory.options, options);
 
-    // Function wrapper
-    const wrapper = (args) => {
+    const wrapper = Object.defineProperty((args) => {
       if (ignoreNull && args.value == null) return args.value;
-      if (ignoreNull && itemize) return map(args.value, v => fn({ ...args, value: v }));
-      return fn(args);
-    };
 
-    Object.defineProperty(wrapper, 'kind', { value: kind }); // Used to filter Transformer/Rule functions
-    Object.defineProperty(Method, name, { value: wrapper, configurable, enumerable: true }); // Create enumerable method
+      if (ignoreNull && itemize) {
+        return map(args.value, (val) => {
+          const v = factory({ ...args, value: val });
+          return v === undefined ? val : v;
+        });
+      }
+
+      return factory(args);
+    }, 'name', { value: name });
+
+    // Attach enumerable method to the Pipeline
+    Object.defineProperty(Pipeline, name, {
+      value: wrapper,
+      configurable,
+      enumerable: true,
+    });
   }
 
   static factory(name, thunk, options = {}) {
-    if (typeof thunk !== 'function') throw new Error(`Factory definition for "${name}" must be a thunk`);
+    if (typeof thunk !== 'function') throw new Error(`Pipeline factory for "${name}" must be a thunk`);
     if (typeof thunk() !== 'function') throw new Error(`Factory thunk() for "${name}" must return a function`);
-    Object.defineProperty(Method, name, { value: Object.defineProperty(thunk, 'options', { value: options }) });
+    Object.defineProperty(Pipeline, name, { value: Object.defineProperty(thunk, 'options', { value: options }) });
   }
 
   static createPresets() {
     // Built-In Javascript String Transformers
     const jsStringTransformers = ['toLowerCase', 'toUpperCase', 'toString', 'trim', 'trimEnd', 'trimStart'];
-    jsStringTransformers.forEach(name => exports.Transformer.define(`$${name}`, ({ value }) => String(value)[name]()));
+    jsStringTransformers.forEach(name => Pipeline.define(`${name}`, ({ value }) => String(value)[name]()));
 
     // Additional Transformers
-    exports.Transformer.define('$toTitleCase', ({ value }) => value.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()));
-    exports.Transformer.define('$toSentenceCase', ({ value }) => value.charAt(0).toUpperCase() + value.slice(1));
-    exports.Transformer.define('$toArray', ({ value }) => (Array.isArray(value) ? value : [value]), { itemize: false });
-    exports.Transformer.define('$toDate', ({ value }) => new Date(value), { configurable: true });
-    exports.Transformer.define('$timestamp', ({ value }) => Date.now(), { ignoreNull: false });
-    exports.Transformer.define('$createdAt', ({ value }) => value || Date.now(), { ignoreNull: false });
-  }
-};
+    Pipeline.define('toTitleCase', ({ value }) => value.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()));
+    Pipeline.define('toSentenceCase', ({ value }) => value.charAt(0).toUpperCase() + value.slice(1));
+    Pipeline.define('toArray', ({ value }) => (Array.isArray(value) ? value : [value]), { itemize: false });
+    Pipeline.define('toDate', ({ value }) => new Date(value), { configurable: true });
+    Pipeline.define('timestamp', ({ value }) => Date.now(), { ignoreNull: false });
+    Pipeline.define('createdAt', ({ value }) => value || Date.now(), { ignoreNull: false });
+    Pipeline.define('dedupe', ({ value }) => uniqWith(value, (b, c) => hashObject(b) === hashObject(c)), { ignoreNull: false });
 
-exports.Rule = class Rule extends exports.Method {
-  static define(name, fn, options) {
-    exports.Method.define('Rule', name, fn, options);
-  }
-};
+    // Required fields
+    Pipeline.define('required', ({ value }) => {
+      if (value == null) throw new Error('Required.');
+    }, { ignoreNull: false });
 
-exports.Transformer = class Transformer extends exports.Method {
-  static define(name, fn, options) {
-    exports.Method.define('Transformer', name, fn, options);
+    // A field cannot hold a reference to itself
+    Pipeline.define('selfless', ({ doc, value }) => {
+      if (`${value}` === `${get(doc, 'id')}`) throw new Error('Cannot reference to itself');
+    });
+
+    Pipeline.factory('allow', (...args) => ({ value }) => {
+      if (args.indexOf(value) === -1) throw new Error('allow');
+    });
+
+    Pipeline.factory('deny', (...args) => ({ value }) => {
+      if (args.indexOf(value) > -1) throw new Error('deny');
+    });
+
+    Pipeline.factory('range', (min, max) => {
+      if (min == null) min = undefined;
+      if (max == null) max = undefined;
+      return ({ value }) => {
+        const num = +value; // Coerce to number if possible
+        const test = Number.isNaN(num) ? value.length : num;
+        if (test < min || test > max) throw new Error('range');
+      };
+    }, { itemize: false });
   }
 };
 
@@ -60,34 +87,3 @@ exports.Transformer = class Transformer extends exports.Method {
 //   const { crud, input } = q.toObject();
 //   return (crud === 'create' ? v == null : Object.prototype.hasOwnProperty.call(input, f.getName()) && v == null);
 // }, { ignoreNull: false });
-
-// // A field cannot hold a reference to itself (model)
-// exports.Rule.factory('selfless', (f, v, q) => {
-//   const { doc } = q.toObject();
-//   if (`${v}` === `${get(doc, 'id')}`) throw Boom.badRequest(`${f.getModel()}.${f.getName()} cannot hold a reference to itself`);
-//   return false;
-// });
-
-// // Once set it cannot be changed
-// exports.Rule.factory('immutable', (f, v, q) => {
-//   const { doc, crud } = q.toObject();
-//   const path = `${f.getModel()}.${f.getName()}`;
-//   const p = path.substr(path.indexOf('.') + 1);
-//   const oldVal = get(doc, p);
-//   if (crud === 'update' && oldVal !== undefined && v !== undefined && `${hashObject(v)}` !== `${hashObject(oldVal)}`) throw Boom.badRequest(`${path} is immutable; cannot be changed once set`);
-//   return false;
-// });
-
-// exports.Rule.define('distinct', (f, v) => false);
-// exports.Rule.factory('allow', (...args) => (f, v) => args.indexOf(v) === -1);
-// exports.Rule.factory('deny', (...args) => (f, v) => args.indexOf(v) > -1);
-
-// exports.Rule.factory('range', (min, max) => {
-//   if (min == null) min = undefined;
-//   if (max == null) max = undefined;
-//   return (f, v) => {
-//     const num = +v; // Coerce to number if possible
-//     const test = Number.isNaN(num) ? v.length : num;
-//     return test < min || test > max;
-//   };
-// }, { itemize: false });

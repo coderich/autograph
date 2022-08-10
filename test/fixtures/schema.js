@@ -1,13 +1,11 @@
-const Rule = require('../../src/core/Rule');
-const Transformer = require('../../src/core/Transformer');
+const Pipeline = require('../../src/data/Pipeline');
 
-Rule.extend('bookName', Rule.deny('The Bible'));
-Rule.extend('bookPrice', Rule.range(0, 100));
-Rule.extend('artComment', Rule.allow('yay', 'great', 'boo'));
-Rule.extend('colors', Rule.allow('blue', 'red', 'green', 'purple'));
-Rule.extend('buildingType', Rule.allow('home', 'office', 'business'));
-
-Transformer.factory('networkID', () => ({ context }) => context.network.id, { ignoreNull: false, enumerable: true });
+Pipeline.define('bookName', Pipeline.deny('The Bible'));
+Pipeline.define('bookPrice', Pipeline.range(0, 100));
+Pipeline.define('artComment', Pipeline.allow('yay', 'great', 'boo'));
+Pipeline.define('colors', Pipeline.allow('blue', 'red', 'green', 'purple'));
+Pipeline.define('buildingType', Pipeline.allow('home', 'office', 'business'));
+Pipeline.define('networkID', ({ context }) => context.network.id, { ignoreNull: false });
 
 module.exports = {
   typeDefs: `
@@ -22,8 +20,8 @@ module.exports = {
       age: Int @field(key: "my_age")
       name: String! @field(deserialize: toTitleCase, serialize: toLowerCase)
       authored: [Book] @link(by: author) @field(connection: true)
-      emailAddress: String! @field(key: "email_address", enforce: email)
-      friends: [Person] @field(transform: dedupe, enforce: selfless, onDelete: cascade, connection: true)
+      emailAddress: String! @field(key: "email_address", serialize: email)
+      friends: [Person] @field(transform: dedupe, serialize: selfless, onDelete: cascade, connection: true)
       status: String @field(key: "state")
       state: String @field(key: "address_state")
       telephone: String @field(default: "###-###-####")
@@ -36,9 +34,9 @@ module.exports = {
       @model
       @index(name: "uix_book", type: unique, on: [name, author])
     {
-      name: String! @field(transform: toTitleCase, enforce: bookName)
-      price: Float! @field(enforce: bookPrice)
-      author: Person! @field(enforce: immutable, onDelete: cascade)
+      name: String! @field(transform: toTitleCase, serialize: bookName)
+      price: Float! @field(serialize: bookPrice)
+      author: Person! @field(immutable: true, onDelete: cascade)
       bestSeller: Boolean
       bids: [Float]
       chapters: [Chapter] @link(by: book)
@@ -96,8 +94,8 @@ module.exports = {
     type Building
     {
       year: Int @field(key: "year_built")
-      type: String! @field(enforce: buildingType)
-      tenants: [Person] @field(enforce: distinct, onDelete: cascade)
+      type: String! @field(serialize: buildingType)
+      tenants: [Person] @field(onDelete: cascade)
       landlord: Person @field(onDelete: nullify)
       description: String @field(default: "A building from the bloom")
     }
@@ -105,8 +103,8 @@ module.exports = {
     type Color
       @model
     {
-      type: String! @field(enforce: colors)
-      isDefault: Boolean @field(noRepeat: true)
+      type: String! @field(serialize: colors)
+      isDefault: Boolean
     }
 
     type Art
@@ -114,12 +112,13 @@ module.exports = {
     {
       name: String! @field(transform: toTitleCase)
       bids: [Float]
-      comments: [String] @field(enforce: artComment)
+      comments: [String] @field(serialize: artComment)
       sections: [Section]
     }
 
     type Section @model(embed: true) {
       name: String! @field(transform: toLowerCase)
+      frozen: String! @field(default: "frozen", immutable: true)
       description: String
       person: Person
     }

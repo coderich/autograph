@@ -196,7 +196,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         // Context switch
         const ctx = resolver.getContext();
         ctx.network.id = 'networkIdd';
-        await expect(resolver.match('Person').where({ name: richard.name }).one({ required: true })).rejects.toThrow();
+        await expect(resolver.match('Person').where({ name: richard.name }).one({ required: true })).rejects.toThrow(/not found/gi);
         ctx.network.id = 'networkId';
       });
 
@@ -400,45 +400,43 @@ module.exports = (driver = 'mongo', options = {}) => {
 
     describe('Data Validation', () => {
       test('Person', async () => {
-        await expect(resolver.match('Person').save()).rejects.toThrow(); // Should this really throw? New refactor code creates new object and I'm OK with that....
-        await expect(resolver.match('Person').save({ name: 'Richard' })).rejects.toThrow();
-        await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: ['nobody'] })).rejects.toThrow();
-        await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: [richard.id, 'nobody'] })).rejects.toThrow();
-        await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguygmail.com' })).rejects.toThrow();
-        await expect(resolver.match('Person').id(richard.id).save({ name: 'Christie' })).rejects.toThrow();
-        await expect(resolver.match('Person').id(richard.id).save({ name: 'christie' })).rejects.toThrow();
-        await expect(resolver.match('Person').id(richard.id).save({ name: null })).rejects.toThrow();
-        await expect(resolver.match('Person').id('nobody').save({ name: 'NewGuy' })).rejects.toThrow();
-        await expect(resolver.match('Person').id(richard.id).save({ friends: [richard.id] })).rejects.toThrow();
+        await expect(resolver.match('Person').save()).rejects.toThrow(/required/gi); // Should this really throw? New refactor code creates new object and I'm OK with that....
+        await expect(resolver.match('Person').save({ name: 'Richard' })).rejects.toThrow(/required/gi);
+        await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: ['nobody'] })).rejects.toThrow(/ensureId/gi);
+        await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: [richard.id, 'nobody'] })).rejects.toThrow(/ensureId/gi);
+        await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguygmail.com' })).rejects.toThrow(/email/gi);
+        await expect(resolver.match('Person').id(richard.id).save({ name: 'Christie' })).rejects.toThrow(/duplicate/gi);
+        await expect(resolver.match('Person').id(richard.id).save({ name: 'christie' })).rejects.toThrow(/duplicate/gi);
+        await expect(resolver.match('Person').id(richard.id).save({ name: null })).rejects.toThrow(/required/gi);
+        await expect(resolver.match('Person').id('nobody').save({ name: 'NewGuy' })).rejects.toThrow(/not found/gi);
+        await expect(resolver.match('Person').id(richard.id).save({ friends: [richard.id] })).rejects.toThrow(/reference to itself/gi);
       });
 
       test('Book', async () => {
         await expect(resolver.match('Book').save()).rejects.toThrow();
-        await expect(resolver.match('Book').save({ name: 'The Bible' })).rejects.toThrow();
-        await expect(resolver.match('Book').save({ name: 'The Bible', author: 'Moses' })).rejects.toThrow();
-        await expect(resolver.match('Book').save({ name: 'The Bible', author: richard.id })).rejects.toThrow();
-        await expect(resolver.match('Book').save({ name: 'The Bible', price: 1.99 })).rejects.toThrow();
-        await expect(resolver.match('Book').save({ name: 'No Moby', price: 1.99, author: mobyDick.id })).rejects.toThrow();
-        await expect(resolver.match('Book').save({ name: 'The Bible', price: 1.99, author: [christie.id] })).rejects.toThrow();
-        await expect(resolver.match('Book').save({ name: 'the bible', price: 1.99, author: christie.id })).rejects.toThrow();
-        await expect(resolver.match('Book').save({ name: 'Great Book', price: -1, author: christie.id })).rejects.toThrow();
-        await expect(resolver.match('Book').save({ name: 'Best Book', price: 101, author: christie.id })).rejects.toThrow();
-        await expect(resolver.match('Book').id(mobyDick.id).save({ author: christie.id })).rejects.toThrow();
+        await expect(resolver.match('Book').save({ name: 'The Bible', price: 1.99, author: richard.id })).rejects.toThrow(/deny/gi);
+        await expect(resolver.match('Book').save({ name: 'No Moby', price: 1.99, author: 'Moses' })).rejects.toThrow(/ensureId/gi);
+        await expect(resolver.match('Book').save({ name: 'No Moby', price: 1.99, author: mobyDick.id })).rejects.toThrow(/ensureId/gi);
+        await expect(resolver.match('Book').save({ name: 'The Bible', price: 1.99, author: [christie.id] })).rejects.toThrow(/deny/gi);
+        await expect(resolver.match('Book').save({ name: 'the bible', price: 1.99, author: christie.id })).rejects.toThrow(/deny/gi);
+        await expect(resolver.match('Book').save({ name: 'Great Book', price: -1, author: christie.id })).rejects.toThrow(/range/gi);
+        await expect(resolver.match('Book').save({ name: 'Best Book', price: 101, author: christie.id })).rejects.toThrow(/range/gi);
+        await expect(resolver.match('Book').id(mobyDick.id).save({ author: christie.id })).rejects.toThrow(/immutable/gi);
         await expect(resolver.match('Book').id(mobyDick.id).save({ author: richard.id })).resolves.toBeDefined();
-        await expect(resolver.match('Book', { name: 'MoBY DiCK', price: 1.99, author: richard.id }).save()).rejects.toThrow();
+        await expect(resolver.match('Book', { name: 'MoBY DiCK', price: 1.99, author: richard.id }).save()).rejects.toThrow(/required/gi);
       });
 
       test('Chapter', async () => {
-        await expect(resolver.match('Chapter').save()).rejects.toThrow();
-        await expect(resolver.match('Chapter').save({ name: 'chapter1' })).rejects.toThrow();
-        await expect(resolver.match('Chapter').save({ name: 'chapter2' })).rejects.toThrow();
-        await expect(resolver.match('Chapter').save({ name: 'chapter3' })).rejects.toThrow();
+        await expect(resolver.match('Chapter').save()).rejects.toThrow(/required/gi);
+        await expect(resolver.match('Chapter').save({ name: 'chapter1' })).rejects.toThrow(/required/gi);
+        await expect(resolver.match('Chapter').save({ name: 'chapter2' })).rejects.toThrow(/required/gi);
+        await expect(resolver.match('Chapter').save({ name: 'chapter3' })).rejects.toThrow(/required/gi);
 
         // Composite key
         switch (driver) {
           case 'mongo': {
-            await expect(resolver.match('Chapter').save({ name: 'chapter1', book: healthBook.id })).rejects.toThrow();
-            await expect(resolver.match('Chapter').save({ name: 'chapter3', book: christie.id })).rejects.toThrow();
+            await expect(resolver.match('Chapter').save({ name: 'chapter1', book: healthBook.id })).rejects.toThrow(/duplicate/gi);
+            await expect(resolver.match('Chapter').save({ name: 'chapter3', book: christie.id })).rejects.toThrow(/ensureId/gi);
             break;
           }
           default: break;
@@ -446,16 +444,16 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
 
       test('Page', async () => {
-        await expect(resolver.match('Page').save()).rejects.toThrow();
-        await expect(resolver.match('Page').save({ number: 3 })).rejects.toThrow();
+        await expect(resolver.match('Page').save()).rejects.toThrow(/required/gi);
+        await expect(resolver.match('Page').save({ number: 3 })).rejects.toThrow(/required/gi);
 
         // Composite key
         switch (driver) {
           case 'mongo': {
-            await expect(resolver.match('Page').save({ number: 1, chapter: chapter1 })).rejects.toThrow();
-            await expect(resolver.match('Page').save({ number: 1, chapter: chapter1.id })).rejects.toThrow();
-            await expect(resolver.match('Page').save({ number: 1, chapter: page4.id })).rejects.toThrow();
-            await expect(resolver.match('Page').id(page1.id).save({ number: 2 })).rejects.toThrow();
+            await expect(resolver.match('Page').save({ number: 1, chapter: chapter1 })).rejects.toThrow(/duplicate/gi);
+            await expect(resolver.match('Page').save({ number: 1, chapter: chapter1.id })).rejects.toThrow(/duplicate/gi);
+            await expect(resolver.match('Page').save({ number: 1, chapter: page4.id })).rejects.toThrow(/ensureId/gi);
+            await expect(resolver.match('Page').id(page1.id).save({ number: 2 })).rejects.toThrow(/duplicate/gi);
             break;
           }
           default: break;
@@ -463,25 +461,25 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
 
       test('BookStore', async () => {
-        await expect(resolver.match('BookStore').save()).rejects.toThrow();
-        await expect(resolver.match('BookStore').save({ name: 'New Books' })).rejects.toThrow();
-        // await expect(resolver.match('BookStore').save({ name: 'New Books', building: 'bad-building' })).rejects.toThrow();
-        await expect(resolver.match('BookStore').save({ name: 'besT bookS eveR', building: bookBuilding })).rejects.toThrow();
-        await expect(resolver.match('BookStore').save({ name: 'Best Books Ever', building: libraryBuilding })).rejects.toThrow();
-        await expect(resolver.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: richard.id })).rejects.toThrow();
-        await expect(resolver.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: [richard.id] })).rejects.toThrow();
-        await expect(resolver.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: [mobyDick.id, bookBuilding] })).rejects.toThrow();
+        await expect(resolver.match('BookStore').save()).rejects.toThrow(/required/gi);
+        await expect(resolver.match('BookStore').save({ name: 'New Books' })).rejects.toThrow(/required/gi);
+        await expect(resolver.match('BookStore').save({ name: 'New Books', building: 'bad-building' })).rejects.toThrow(/required/gi);
+        await expect(resolver.match('BookStore').save({ name: 'besT bookS eveR', building: bookBuilding })).rejects.toThrow(/duplicate/gi);
+        await expect(resolver.match('BookStore').save({ name: 'Best Books Ever', building: libraryBuilding })).rejects.toThrow(/duplicate/gi);
+        await expect(resolver.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: richard.id })).rejects.toThrow(/ensureId/gi);
+        await expect(resolver.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: [richard.id] })).rejects.toThrow(/ensureId/gi);
+        await expect(resolver.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: [mobyDick.id, bookBuilding] })).rejects.toThrow(/ensureId/gi);
       });
 
       test('Library', async () => {
-        await expect(resolver.match('Library').save()).rejects.toThrow();
-        await expect(resolver.match('Library').save({ name: 'New Library' })).rejects.toThrow();
-        await expect(resolver.match('Library').save({ name: 'New Library', building: 'bad-building' })).rejects.toThrow();
-        await expect(resolver.match('Library').save({ name: 'New Library', building: libraryBuilding })).rejects.toThrow();
+        await expect(resolver.match('Library').save()).rejects.toThrow(/required/gi);
+        await expect(resolver.match('Library').save({ name: 'New Library' })).rejects.toThrow(/required/gi);
+        await expect(resolver.match('Library').save({ name: 'New Library', building: 'bad-building' })).rejects.toThrow(/required/gi);
+        await expect(resolver.match('Library').save({ name: 'New Library', building: libraryBuilding })).rejects.toThrow(/duplicate/gi);
       });
 
       test('Art', async () => {
-        await expect(resolver.match('Art').save({ name: 'sup', comments: ['whoops'] })).rejects.toThrow();
+        await expect(resolver.match('Art').save({ name: 'sup', comments: ['whoops'] })).rejects.toThrow(/allow/gi);
       });
     });
 
@@ -674,7 +672,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Person').many()).toMatchObject([{ status: 'online' }, { status: 'online' }]);
         await resolver.match('Person').where({ status: 'online' }).save({ status: 'offline' });
         expect(await resolver.match('Person').many()).toMatchObject([{ status: 'offline' }, { status: 'offline' }]);
-        await expect(resolver.match('Chapter').save({ name: 'chapter1' }, { name: 'chapter2' })).rejects.toThrow();
+        await expect(resolver.match('Chapter').save({ name: 'chapter1' }, { name: 'chapter2' })).rejects.toThrow(/required/gi);
       });
 
       test('multi-push-pull', async () => {
@@ -722,7 +720,7 @@ module.exports = (driver = 'mongo', options = {}) => {
           const txn1 = resolver.transaction();
           txn1.match('Person').save({ name: 'person1', emailAddress: 'person1@gmail.com' });
           txn1.match('Person').save({ name: 'person2', emailAddress: 'person2@gmail.com' });
-          await expect(txn1.exec()).rejects.toThrow();
+          await expect(txn1.exec()).rejects.toThrow(/duplicate/gi);
         });
 
         test('single-txn (read & write)', async () => {
@@ -776,7 +774,7 @@ module.exports = (driver = 'mongo', options = {}) => {
           });
 
           await timeout(100);
-          await expect(txn2.exec()).rejects.toThrow();
+          await expect(txn2.exec()).rejects.toThrow(/duplicate/gi);
         });
       });
     }
@@ -784,8 +782,8 @@ module.exports = (driver = 'mongo', options = {}) => {
 
     describe('Referential Integrity', () => {
       test('remove', async () => {
-        await expect(resolver.match('Person').remove()).rejects.toThrow();
-        await expect(resolver.match('Person').id(christie.id).remove()).rejects.toThrow();
+        await expect(resolver.match('Person').remove()).rejects.toThrow(/remove requires/gi);
+        await expect(resolver.match('Person').id(christie.id).remove()).rejects.toThrow(/restricted/gi);
         await resolver.match('Chapter').id(chapter3.id).remove(); // Need to delete chapter to remove Author....
         expect(await resolver.match('Person').id(richard.id).remove()).toMatchObject({ id: richard.id, name: 'Richard' });
         expect(await resolver.match('Person').where({ name: '{christie,richard}' }).many()).toMatchObject([{ id: christie.id }]);
@@ -872,7 +870,7 @@ module.exports = (driver = 'mongo', options = {}) => {
 
       test('embedded array with modelRef', async () => {
         // Create section
-        await expect(resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: richard.id }] })).rejects.toThrow();
+        await expect(resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: richard.id }] })).rejects.toThrow(/ensureId/gi);
         const art = await resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: christie.id }] });
         expect(art).toBeDefined();
         expect(art.sections[0].id).toBeDefined();
@@ -895,8 +893,8 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
 
       test('where clause with one(required) should throw', async () => {
-        await expect(resolver.match('Person').where({ age: 400 }).one({ required: true })).rejects.toThrow();
-        await expect(resolver.match('Person').where({ age: 400 }).many({ required: true })).rejects.toThrow();
+        await expect(resolver.match('Person').where({ age: 400 }).one({ required: true })).rejects.toThrow(/not found/gi);
+        await expect(resolver.match('Person').where({ age: 400 }).many({ required: true })).rejects.toThrow(/not found/gi);
       });
     });
 

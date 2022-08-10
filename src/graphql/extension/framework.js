@@ -1,5 +1,6 @@
-const Rule = require('../../core/Rule');
-const Transformer = require('../../core/Transformer');
+const Pipeline = require('../../data/Pipeline');
+
+Pipeline.createPresets();
 
 module.exports = (schema) => {
   return {
@@ -7,8 +8,7 @@ module.exports = (schema) => {
       scalar AutoGraphMixed
       scalar AutoGraphDriver
       scalar AutoGraphDateTime @field(transform: toDate)
-      enum AutoGraphEnforceEnum { ${Object.keys(Rule.getInstances()).join(' ')} }
-      enum AutoGraphTransformEnum  { ${Object.keys(Transformer.getInstances()).join(' ')} }
+      enum AutoGraphPipelineEnum { ${Object.keys(Pipeline).join(' ')} }
       enum AutoGraphAuthzEnum { private protected public }
       enum AutoGraphOnDeleteEnum { cascade nullify restrict defer }
       enum AutoGraphIndexEnum { unique }
@@ -33,26 +33,27 @@ module.exports = (schema) => {
         id: String # Specify the ModelRef this field FK References
         key: String # Specify db key
         persist: Boolean # Persist this field (default true)
+        connection: Boolean # Treat this field as a connection type (default false - rolling this out slowly)
         default: AutoGraphMixed # Define a default value
         ref: AutoGraphMixed # Specify the modelRef field's name (overrides isEmbedded)
         gqlScope: AutoGraphMixed # Dictate how GraphQL API behaves
         dalScope: AutoGraphMixed # Dictate how the DAL behaves
         fieldScope: AutoGraphMixed # Dictate how a FIELD may use me
-        connection: Boolean # Treat this field as a connection type (default false - rolling this out slowly)
         onDelete: AutoGraphOnDeleteEnum # onDelete behavior
 
-        noRepeat: Boolean
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
-        enforce: [AutoGraphEnforceEnum!] # Rules to enforce
+        enforce: [AutoGraphMixed!] # Rules to enforce
+        # enforce: [AutoGraphEnforceEnum!] # Rules to enforce
+        immutable: Boolean # Disallow value change (default true)
 
-        # Structure
-        instruct: [AutoGraphTransformEnum!]
-        destruct: [AutoGraphTransformEnum!]
-        restruct: [AutoGraphTransformEnum!]
-        construct: [AutoGraphTransformEnum!]
-        serialize: [AutoGraphTransformEnum!]
-        deserialize: [AutoGraphTransformEnum!]
-        transform: [AutoGraphTransformEnum!]
+        # Pipeline Structure
+        instruct: [AutoGraphPipelineEnum!]
+        destruct: [AutoGraphPipelineEnum!]
+        restruct: [AutoGraphPipelineEnum!]
+        construct: [AutoGraphPipelineEnum!]
+        serialize: [AutoGraphPipelineEnum!]
+        deserialize: [AutoGraphPipelineEnum!]
+        transform: [AutoGraphPipelineEnum!]
       ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
 
       directive @link(
