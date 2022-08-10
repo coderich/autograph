@@ -59,7 +59,7 @@ module.exports = class QueryResolver {
     const shape = model.getShape('create');
 
     return createSystemEvent('Mutation', { method: 'create', query }, async () => {
-      const $input = model.shapeObject(shape, input, this.context);
+      const $input = model.shapeObject(shape, input, query);
       query.$input($input);
       if (!get(flags, 'novalidate')) await model.validate(query, $input);
       const doc = await this.resolver.resolve(query);
@@ -84,7 +84,7 @@ module.exports = class QueryResolver {
       const shape = model.getShape('update');
 
       return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(merged) }, async () => {
-        const $input = model.shapeObject(shape, merged, this.context);
+        const $input = model.shapeObject(shape, merged, query);
         if (!get(flags, 'novalidate')) await model.validate(query, $input);
         return this.resolver.resolve(query.$doc($input).$input($input));
       });
@@ -187,14 +187,14 @@ module.exports = class QueryResolver {
     return this.resolver.match(model).match(match).flags(flags).one({ required: true }).then(async (doc) => {
       const array = get(doc, key) || [];
       const paramShape = model.getShape('create', 'spliceTo');
-      const $to = model.shapeObject(paramShape, { [key]: to }, this.context)[key] || to;
-      const $from = model.shapeObject(paramShape, { [key]: from }, this.context)[key] || from;
+      const $to = model.shapeObject(paramShape, { [key]: to }, query)[key] || to;
+      const $from = model.shapeObject(paramShape, { [key]: from }, query)[key] || from;
       set(doc, key, DataService.spliceEmbeddedArray(array, $from, $to));
 
       return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(doc) }, async () => {
         const shape = model.getShape('update');
         await model.validate(query, doc);
-        const $doc = model.shapeObject(shape, doc, this.context);
+        const $doc = model.shapeObject(shape, doc, query);
         return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc));
       });
     });

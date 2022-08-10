@@ -1,5 +1,4 @@
 Release v0.10:
-  * immutable makes no sense as part of pipeline - should consider "immutable" directive
   * immutable does not even work past the top-level attribute!!!
 
   *** You currently have a "validate" event to allow async blocks ***
@@ -10,11 +9,6 @@ Release v0.10:
     - "immutable" is part of this "validation" process (not the pipeline)
 
   * Transform + Rules => Pipeline?
-    - If you combine, how do you turn off validation per say?
-      - Filter our functions of kind = 'Rule'
-    - Need to bottom out on the order of pipeline operations
-    - Sync (remove ensureId)
-    - Rule => return value or throw? (throw)
     - Use of $<pipeline-name> to denote AG vs user-defined? (yes)
   * Verify that Transformer + Rules are only being called when needed
 
@@ -32,13 +26,12 @@ Release v0.10:
   * SchemaDecorator mutates schema passed in constructor => make sure that's OK
   * Revisit update $doc/merge => make sure it's OK
   * Splice Embedded Array => make sure it's OK
-  * Can you detect GLOB-ISH string => more optimal query?
   * Can QueryBuilder be re-used => If not, prevent re-use
-  * Tests do not clean up open Mongo connection
 
   * Finalize Driver Interface - consider moving out of Autograph into new NPM module
   * Database connection pooling?
   * Resolver.disconnect()
+  * Tests do not clean up open Mongo connection
   * Tests comprehensive enough?
 
   * "root" is misnomer => "doc"

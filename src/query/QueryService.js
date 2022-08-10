@@ -60,10 +60,9 @@ exports.resolveWhereClause = (query) => {
 };
 
 exports.resolveSortBy = (query) => {
-  const { resolver, model, sort = {} } = query.toObject();
-  const context = resolver.getContext();
+  const { model, sort = {} } = query.toObject();
   const shape = model.getShape('create', 'sortBy');
-  const $sort = model.shapeObject(shape, sort, context);
+  const $sort = model.shapeObject(shape, sort, query);
 
   // Because normalize casts the value (sometimes to an array) need special handling
   keyPaths($sort).forEach((path) => {

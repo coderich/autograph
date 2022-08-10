@@ -58,7 +58,7 @@ module.exports = class Resolver {
       case 'create': case 'update': case 'delete': {
         return model.getDriver().resolve(query.toDriver()).then((data) => {
           this.clear(model);
-          return model.shapeObject(model.getShape(), data, this.context);
+          return model.shapeObject(model.getShape(), data, query);
         });
       }
       default: {

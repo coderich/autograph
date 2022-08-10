@@ -56,16 +56,16 @@ module.exports = class extends Model {
   /**
    * Convenience method to deserialize data from a data source (such as a database)
    */
-  deserialize(mixed, context) {
+  deserialize(mixed, query) {
     const shape = this.getShape();
 
     // If we're not a stream we return the shape
-    if (!(mixed instanceof Stream)) return Promise.resolve(this.shapeObject(shape, mixed, context));
+    if (!(mixed instanceof Stream)) return Promise.resolve(this.shapeObject(shape, mixed, query));
 
     // Stream API
     const results = [];
     return new Promise((resolve, reject) => {
-      mixed.on('data', (data) => { results.push(this.shapeObject(shape, data, context)); });
+      mixed.on('data', (data) => { results.push(this.shapeObject(shape, data, query)); });
       mixed.on('end', () => { resolve(results); });
       mixed.on('error', reject);
     });
@@ -79,7 +79,6 @@ module.exports = class extends Model {
     const crudKeys = crudMap[crud] || [];
 
     const targetMap = {
-      // doc: ['defaultValue', 'ensureArrayValue', 'castValue', 'instructs', ...crudKeys, `$${serdes}rs`, `${serdes}rs`, 'transformers'],
       doc: ['defaultValue', 'ensureArrayValue', 'castValue', ...crudKeys, 'transformers', `$${serdes}rs`, `${serdes}rs`, 'instructs'],
       where: ['castValue', `$${serdes}rs`, 'instructs'],
     };
@@ -100,7 +99,10 @@ module.exports = class extends Model {
     });
   }
 
-  shapeObject(shape, obj, context, root) {
+  shapeObject(shape, obj, query, root) {
+    const { resolver } = query.toObject();
+    const context = resolver.getContext();
+
     return map(obj, (doc) => {
       root = root || doc;
 
@@ -117,7 +119,7 @@ module.exports = class extends Model {
         if (value === undefined && !Object.prototype.hasOwnProperty.call(doc, from)) return prev;
 
         // Rename key & assign value
-        prev[to] = (!subShape || value == null) ? value : this.shapeObject(subShape, value, context, root);
+        prev[to] = (!subShape || value == null) ? value : this.shapeObject(subShape, value, query, root);
 
         return prev;
       }, {});

@@ -1,9 +1,11 @@
 const { cloneDeep } = require('lodash');
+const Query = require('../../../src/query/Query');
 const ASTSchema = require('../../../src/graphql/ast/Schema');
 const CoreSchema = require('../../../src/core/Schema');
 const schemaJS = require('./../../fixtures/schema');
 const baseGraphql = require('./base.graphql');
 const stores = require('../../stores');
+const setup = require('../../setup');
 
 const validate = (schema) => {
   // Models
@@ -29,6 +31,13 @@ const validate = (schema) => {
 };
 
 describe('FNSchema', () => {
+  let resolver;
+
+  beforeAll(async () => {
+    // Setup
+    ({ resolver } = await setup());
+  });
+
   test('AST Base', () => {
     const schema = new ASTSchema({ typeDefs: cloneDeep(baseGraphql) }).initialize();
     validate(schema);
@@ -71,7 +80,7 @@ describe('FNSchema', () => {
     ]));
 
     // Shape Object
-    const obj = artModel.shapeObject(shape, { name: 'art1', sections: [{ name: 'section1' }] });
+    const obj = artModel.shapeObject(shape, { name: 'art1', sections: [{ name: 'section1' }] }, new Query().resolver(resolver));
     expect(obj).toMatchObject({
       _id: expect.anything(),
       name: 'Art1',
