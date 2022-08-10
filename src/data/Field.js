@@ -40,7 +40,6 @@ module.exports = class extends Field {
 
     if (this.getModelRef() && !this.isEmbedded()) rules.push(Rule.ensureId());
     if (this.isRequired() && this.isPersistable() && !this.isVirtual()) rules.push(Rule.required());
-    if (this.getDirectiveArg('field', 'immutable')) rules.push(Rule.immutable());
 
     return Promise.all(rules.map((rule) => {
       return rule(this, value, query);

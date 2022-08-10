@@ -56,8 +56,14 @@ module.exports = class Pipeline {
     }, { ignoreNull: false });
 
     // A field cannot hold a reference to itself
-    Pipeline.define('selfless', ({ doc, value }) => {
-      if (`${value}` === `${get(doc, 'id')}`) throw new Error('Cannot reference to itself');
+    Pipeline.define('selfless', ({ parent, value }) => {
+      if (`${value}` === `${get(parent, 'id')}`) throw new Error('Cannot reference to itself');
+    });
+
+    // Once set it cannot be changed
+    Pipeline.define('immutable', ({ doc, path, value }) => {
+      const oldVal = get(doc, path);
+      if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw new Error('immutable');
     });
 
     Pipeline.factory('allow', (...args) => ({ value }) => {

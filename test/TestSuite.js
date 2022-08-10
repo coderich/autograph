@@ -145,7 +145,6 @@ module.exports = (driver = 'mongo', options = {}) => {
         bookstore2 = await resolver.match('BookStore').save({ name: 'New Books', books: [mobyDick.id], building: Object.assign({}, bookBuilding, { description: 'A building' }) });
         expect(bookstore1.id).toBeDefined();
         expect(bookstore1.books.length).toEqual(3);
-        // expect(bookstore1.building.id).toBeTruthy();
         expect(bookstore1.building.type).toEqual('business');
         expect(bookstore1.building.year).toEqual(1990);
         expect(bookstore1.building.tenants).toEqual([christie.id]);

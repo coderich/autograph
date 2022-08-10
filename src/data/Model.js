@@ -1,3 +1,4 @@
+const { get } = require('lodash');
 const Stream = require('stream');
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
@@ -71,7 +72,7 @@ module.exports = class extends Model {
     });
   }
 
-  getShape(crud = 'read', target = 'doc', path = []) {
+  getShape(crud = 'read', target = 'doc', paths = []) {
     const modelName = this.getName();
     const serdes = crud === 'read' ? 'deserialize' : 'serialize';
     const fields = serdes === 'deserialize' ? this.getSelectFields() : this.getPersistableFields();
@@ -89,7 +90,7 @@ module.exports = class extends Model {
       const structures = field.getStructures();
       const [key, name, type, isArray] = [field.getKey(), field.getName(), field.getType(), field.isArray(), field.isIdField()];
       const [from, to] = serdes === 'serialize' ? [name, key] : [key, name];
-      path.push(to);
+      const path = paths.concat(to);
       const shape = field.isEmbedded() ? field.getModelRef().getShape(crud, target, path) : null;
       structures.defaultValue = ({ value }) => (value === undefined && target === 'doc' ? field.getDefaultValue() : value);
       structures.ensureArrayValue = ({ value }) => (value != null && isArray && !Array.isArray(value) ? [value] : value);
@@ -100,26 +101,27 @@ module.exports = class extends Model {
   }
 
   shapeObject(shape, obj, query, root) {
-    const { resolver } = query.toObject();
+    const { resolver, doc = {} } = query.toObject();
     const context = resolver.getContext();
 
-    return map(obj, (doc) => {
-      root = root || doc;
+    return map(obj, (parent) => {
+      root = root || parent;
 
-      return shape.reduce((prev, { modelName, from, to, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
-        let value = doc[from];
+      return shape.reduce((prev, { modelName, path, from, to, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
+        const fieldName = to;
+        const startValue = parent[from];
 
         // Transform value
-        value = transformers.reduce((val, t) => {
-          const v = t({ root, doc, value: val, context, fieldName: to, modelName });
-          return v === undefined ? val : v;
-        }, value);
+        const transformedValue = transformers.reduce((value, t) => {
+          const v = t({ modelName, fieldName, path, doc, root, parent, startValue, value, context });
+          return v === undefined ? value : v;
+        }, startValue);
 
         // Determine if key should stay or be removed
-        if (value === undefined && !Object.prototype.hasOwnProperty.call(doc, from)) return prev;
+        if (transformedValue === undefined && !Object.prototype.hasOwnProperty.call(parent, from)) return prev;
 
         // Rename key & assign value
-        prev[to] = (!subShape || value == null) ? value : this.shapeObject(subShape, value, query, root);
+        prev[fieldName] = (!subShape || transformedValue == null) ? transformedValue : this.shapeObject(subShape, transformedValue, query, root);
 
         return prev;
       }, {});

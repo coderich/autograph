@@ -44,7 +44,6 @@ module.exports = (schema) => {
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
         enforce: [AutoGraphMixed!] # Rules to enforce
         # enforce: [AutoGraphEnforceEnum!] # Rules to enforce
-        immutable: Boolean # Disallow value change (default true)
 
         # Pipeline Structure
         instruct: [AutoGraphPipelineEnum!]

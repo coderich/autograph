@@ -36,7 +36,7 @@ module.exports = {
     {
       name: String! @field(transform: toTitleCase, serialize: bookName)
       price: Float! @field(serialize: bookPrice)
-      author: Person! @field(immutable: true, onDelete: cascade)
+      author: Person! @field(serialize: immutable, onDelete: cascade)
       bestSeller: Boolean
       bids: [Float]
       chapters: [Chapter] @link(by: book)
@@ -118,7 +118,7 @@ module.exports = {
 
     type Section @model(embed: true) {
       name: String! @field(transform: toLowerCase)
-      frozen: String! @field(default: "frozen", immutable: true)
+      frozen: String! @field(default: "frozen", serialize: immutable)
       description: String
       person: Person
     }
