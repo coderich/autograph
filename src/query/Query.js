@@ -161,6 +161,12 @@ module.exports = class Query {
 
   resolver(resolver) {
     this.props.resolver = resolver;
+    this.props.context = resolver.getContext();
+    return this;
+  }
+
+  context(context) {
+    this.props.context = context;
     return this;
   }
 

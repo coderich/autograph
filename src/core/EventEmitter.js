@@ -8,7 +8,7 @@ const { ensureArray } = require('../service/app.service');
  * If it expects more than 1 we block and wait for it to finish.
  */
 module.exports = class extends EventEmitter {
-  emit(event, data, prev) {
+  emit(event, data) {
     return Promise.all(this.rawListeners(event).map((wrapper) => {
       return new Promise((resolve, reject) => {
         const next = result => resolve(result); // If a result is passed this will bypass middleware thunk()
@@ -17,9 +17,7 @@ module.exports = class extends EventEmitter {
         if (numArgs < 2) next();
       });
     })).then((results) => {
-      if (event === 'preMutation') return this.emit('validate', data, results);
-      const target = event === 'validate' ? prev : results;
-      return target.find(r => r !== undefined); // There can be only one (result)
+      return results.find(r => r !== undefined); // There can be only one (result)
     });
   }
 

@@ -20,6 +20,7 @@
   - Moved "validator" to dev dependency -> isEmail
 - Added QueryBuilder.resolve() terminal command
 - Exported SchemaDecorator -> Schema
+- Removed embedded schema SystemEvents (internal emitter also removed)
 
 ## v0.9.x
 - Subscriptions API

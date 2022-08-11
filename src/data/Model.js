@@ -2,6 +2,7 @@ const { get } = require('lodash');
 const Stream = require('stream');
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
+const { eventEmitter } = require('../service/event.service');
 const { map, castCmp, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Model {
@@ -49,20 +50,14 @@ module.exports = class extends Model {
     const { flags } = query.toObject();
     if (get(flags, 'novalidate')) return Promise.resolve();
 
-    // return createSystemEvent('Validate', { method: 'create', query }, async () => {
-    //   const $input = model.shapeObject(shape, input, query);
-    //   await model.validate(query, $input);
-    //   const doc = await this.resolver.resolve(query.$input($input));
-    //   query.doc(doc);
-    //   return doc;
-    // });
-
     return Promise.all(this.getFields().map((field) => {
       return Promise.all(ensureArray(map(data, (obj) => {
         if (obj == null) return Promise.resolve();
         return field.validate(query, obj[field.getKey()]);
       })));
-    }));
+    })).then(() => {
+      return eventEmitter.emit('validate', query);
+    });
   }
 
   /**
