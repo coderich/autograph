@@ -12,10 +12,10 @@ module.exports = class extends Field {
   }
 
   getStructures() {
+    // Grab structures from the underlying type
     const structures = this.type.getStructures();
-    if (this.isPrimaryKeyId()) structures.serializers.unshift(({ value }) => (value != null ? value : this.model.idValue(value)));
-    if (this.isIdField()) structures.$serializers.unshift(({ value }) => (value ? map(value, v => this.getIdModel().idValue(v.id || v)) : value));
 
+    // Structures defined on the field
     const $structures = Object.entries(this.getDirectiveArgs('field', {})).reduce((prev, [key, value]) => {
       if (!Array.isArray(value)) value = [value];
       if (key === 'instruct') prev.instructs.unshift(...value.map(t => Pipeline[t]));
@@ -28,17 +28,21 @@ module.exports = class extends Field {
       return prev;
     }, structures);
 
-    // if (this.isRequired() && this.isPersistable() && !this.isVirtual()) $structures.serializers.push(Pipeline.required);
+    // IDs (first - shift)
+    if (this.isPrimaryKeyId()) $structures.serializers.unshift(({ value }) => (value != null ? value : this.model.idValue(value)));
+    if (this.isIdField()) $structures.$serializers.unshift(({ value }) => (value ? map(value, v => this.getIdModel().idValue(v.id || v)) : value));
+
+    // Required (last - push)
+    if (this.isRequired() && this.isPersistable() && !this.isVirtual()) $structures.serializers.push(Pipeline.required);
 
     return $structures;
   }
 
   validate(query, value) {
+    const rules = [];
     const modelRef = this.getModelRef();
-    const { rules } = this.getStructures();
 
     if (this.getModelRef() && !this.isEmbedded()) rules.push(Rule.ensureId());
-    if (this.isRequired() && this.isPersistable() && !this.isVirtual()) rules.push(Rule.required());
 
     return Promise.all(rules.map((rule) => {
       return rule(this, value, query);

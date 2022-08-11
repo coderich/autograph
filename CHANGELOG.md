@@ -8,12 +8,13 @@
 - Removed embedded API completely
 - Removed Directives
   - embedApi -> no replacement
+  - enforce -> use pipeline methods
   - resolve -> use graphql resolvers
   - @value -> use @field.instruct directive
 - Removed toId Transform -> use @field(id: '')
 - Removed Model.tform() -> use Model.hydrate(data, context)
 - Removed Resolver.toResultSet() -> ? TBD ?
-- Refactored Rule + Transformer API
+- Removed Transformer + Rule -> use Pipeline
   - Removed many pre-defined rules + transformers
   - Pre-defined names start with $ (eg. $toLowerCase)
   - Moved "validator" to dev dependency -> isEmail
