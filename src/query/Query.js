@@ -180,14 +180,32 @@ module.exports = class Query {
     switch (method) {
       case 'createOne': case 'createMany': {
         this.props.crud = 'create';
+        this.props.key = `create${this.props.model}`;
         break;
       }
       case 'updateOne': case 'updateMany': {
         this.props.crud = 'update';
+        this.props.key = `update${this.props.model}`;
         break;
       }
-      case 'deleteOne': case 'deleteMay': case 'removeOne': case 'removeMany': {
+      case 'deleteOne': case 'deleteMany': case 'removeOne': case 'removeMany': {
         this.props.crud = 'delete';
+        this.props.key = `delete${this.props.model}`;
+        break;
+      }
+      case 'count': {
+        this.props.crud = 'read';
+        this.props.key = `count${this.props.model}`;
+        break;
+      }
+      case 'findOne': {
+        this.props.crud = 'read';
+        this.props.key = `get${this.props.model}`;
+        break;
+      }
+      case 'findMany': {
+        this.props.crud = 'read';
+        this.props.key = `find${this.props.model}`;
         break;
       }
       default: {
@@ -201,6 +219,11 @@ module.exports = class Query {
 
   crud(crud) {
     this.props.crud = crud;
+    return this;
+  }
+
+  key(key) {
+    this.props.key = key;
     return this;
   }
 

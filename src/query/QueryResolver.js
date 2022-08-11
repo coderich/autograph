@@ -13,13 +13,13 @@ module.exports = class QueryResolver {
   }
 
   findOne(query) {
-    return createSystemEvent('Query', { method: 'get', query }, () => {
+    return createSystemEvent('Query', { query }, () => {
       return this.resolver.resolve(query);
     });
   }
 
   findMany(query) {
-    return createSystemEvent('Query', { method: 'find', query }, () => {
+    return createSystemEvent('Query', { query }, () => {
       return this.resolver.resolve(query);
     });
   }
@@ -49,20 +49,19 @@ module.exports = class QueryResolver {
   }
 
   count(query) {
-    return createSystemEvent('Query', { method: 'count', query }, () => {
+    return createSystemEvent('Query', { query }, () => {
       return this.resolver.resolve(query);
     });
   }
 
   createOne(query) {
-    const { model, input, flags } = query.toObject();
+    const { model, input } = query.toObject();
     const shape = model.getShape('create');
 
-    return createSystemEvent('Mutation', { method: 'create', query }, async () => {
+    return createSystemEvent('Mutation', { query }, async () => {
       const $input = model.shapeObject(shape, input, query);
-      query.$input($input);
-      if (!get(flags, 'novalidate')) await model.validate(query, $input);
-      const doc = await this.resolver.resolve(query);
+      await model.validate(query, $input);
+      const doc = await this.resolver.resolve(query.$input($input));
       query.doc(doc);
       return doc;
     });
@@ -76,16 +75,16 @@ module.exports = class QueryResolver {
   }
 
   updateOne(query) {
-    const { model, match, flags } = query.toObject();
+    const { model, match } = query.toObject();
 
     return this.resolver.match(model).match(match).one({ required: true }).then((doc) => {
       const { input } = query.toObject();
       const merged = mergeDeep(doc, input);
       const shape = model.getShape('update');
 
-      return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(merged) }, async () => {
+      return createSystemEvent('Mutation', { query: query.doc(doc).merged(merged) }, async () => {
         const $input = model.shapeObject(shape, merged, query);
-        if (!get(flags, 'novalidate')) await model.validate(query, $input);
+        await model.validate(query, $input);
         return this.resolver.resolve(query.$doc($input).$input($input));
       });
     });
@@ -105,7 +104,7 @@ module.exports = class QueryResolver {
     const { model, id, flags } = query.toObject();
 
     return this.resolver.match(model).id(id).flags(flags).one({ required: true }).then((doc) => {
-      return createSystemEvent('Mutation', { method: 'delete', query: query.doc(doc) }, () => {
+      return createSystemEvent('Mutation', { query: query.doc(doc) }, () => {
         return QueryService.resolveReferentialIntegrity(query).then(() => {
           return this.resolver.resolve(query).then(() => doc);
         });
@@ -191,11 +190,11 @@ module.exports = class QueryResolver {
       const $from = model.shapeObject(paramShape, { [key]: from }, query)[key] || from;
       set(doc, key, DataService.spliceEmbeddedArray(array, $from, $to));
 
-      return createSystemEvent('Mutation', { method: 'update', query: query.doc(doc).merged(doc) }, async () => {
+      return createSystemEvent('Mutation', { query: query.method('updateOne').doc(doc).merged(doc) }, async () => {
         const shape = model.getShape('update');
-        await model.validate(query, doc);
         const $doc = model.shapeObject(shape, doc, query);
-        return this.resolver.resolve(query.method('updateOne').doc(doc).$doc($doc));
+        await model.validate(query, $doc);
+        return this.resolver.resolve(query.$doc($doc));
       });
     });
   }

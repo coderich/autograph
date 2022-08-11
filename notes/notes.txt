@@ -1,5 +1,6 @@
-Release v0.10:
+Release 0.10.1:
   * immutable does not even work past the top-level attribute!!!
+    - Write this test
 
   *** You currently have a "validate" event to allow async blocks ***
     - "validate" is actually used as a last step AFTER all other transforms/events have happened to do one final step
@@ -12,7 +13,20 @@ Release v0.10:
     - Use of $<pipeline-name> to denote AG vs user-defined? (yes)
   * Verify that Transformer + Rules are only being called when needed
 
+  * Resolver.toResultSet() => How to hydrate results from the outside world?
+    - resolver.match('NetworkPlace', { validate: false, silent: true, debug: true, shape: true }).toResult(data)
+    - resolver.raw('NetworkPlace', { shape: true });
+
+  * Revisit update $doc/merge => make sure it's OK
+
+  * Optimize/Cache information needed for Pipeline
+
+  * REMOVED embedded SystemEvents -> make sure it's OK
+
+Release 0.10.2:
   *** There is a bug "where: { id: {one,two,three} }" does not work
+
+  * Revamp error handling -> all things to use Boom (including driver) with proper status codes
 
   * Determine attribute order when shaping data => this is how we want it saved to db
     - _id
@@ -20,11 +34,8 @@ Release v0.10:
     - scalars
     - embedded objects
     - arrays
-  * Resolver.toResultSet() => How to hydrate results from the outside world?
-    - resolver.match('NetworkPlace', { validate: false, silent: true, debug: true, shape: true }).toResult(data)
-    - resolver.raw('NetworkPlace', { shape: true });
+
   * SchemaDecorator mutates schema passed in constructor => make sure that's OK
-  * Revisit update $doc/merge => make sure it's OK
   * Splice Embedded Array => make sure it's OK
   * Can QueryBuilder be re-used => If not, prevent re-use
 
@@ -34,8 +45,6 @@ Release v0.10:
   * Tests do not clean up open Mongo connection
   * Tests comprehensive enough?
 
-  * "root" is misnomer => "doc"
-  * Optimize/Cache information needed for Pipeline
   * @field(ref: "???") => Does this work? How to use it? Rename it?
     * Allow FK by arbitrary value (ie. workspace.name)
   * Consider fixing API traveral problem:

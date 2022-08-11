@@ -1,3 +1,4 @@
+const { get } = require('lodash');
 const Stream = require('stream');
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
@@ -45,6 +46,17 @@ module.exports = class extends Model {
   }
 
   validate(query, data) {
+    const { flags } = query.toObject();
+    if (get(flags, 'novalidate')) return Promise.resolve();
+
+    // return createSystemEvent('Validate', { method: 'create', query }, async () => {
+    //   const $input = model.shapeObject(shape, input, query);
+    //   await model.validate(query, $input);
+    //   const doc = await this.resolver.resolve(query.$input($input));
+    //   query.doc(doc);
+    //   return doc;
+    // });
+
     return Promise.all(this.getFields().map((field) => {
       return Promise.all(ensureArray(map(data, (obj) => {
         if (obj == null) return Promise.resolve();
@@ -85,34 +97,46 @@ module.exports = class extends Model {
 
     const structureKeys = targetMap[target] || ['castValue'];
 
-    return fields.map((field) => {
+    // Create shape, recursive
+    const shape = fields.map((field) => {
       const structures = field.getStructures();
       const [key, name, type, isArray] = [field.getKey(), field.getName(), field.getType(), field.isArray(), field.isIdField()];
       const [from, to] = serdes === 'serialize' ? [name, key] : [key, name];
       const path = paths.concat(to);
-      const shape = field.isEmbedded() ? field.getModelRef().getShape(crud, target, path) : null;
+      const subShape = field.isEmbedded() ? field.getModelRef().getShape(crud, target, path) : null;
       structures.defaultValue = ({ value }) => (value === undefined && target === 'doc' ? field.getDefaultValue() : value);
       structures.ensureArrayValue = ({ value }) => (value != null && isArray && !Array.isArray(value) ? [value] : value);
-      structures.castValue = ({ value }) => (value != null && !shape ? map(value, v => castCmp(type, v)) : value);
+      structures.castValue = ({ value }) => (value != null && !subShape ? map(value, v => castCmp(type, v)) : value);
       const transformers = structureKeys.reduce((prev, struct) => prev.concat(structures[struct]), []).filter(Boolean);
-      return { modelName, path, from, to, type, isArray, transformers, shape };
+      return { path, from, to, type, isArray, transformers, shape: subShape };
     });
+
+    // Adding useful shape info
+    shape.crud = crud;
+    shape.serdes = serdes;
+    shape.modelName = modelName;
+
+    return shape;
   }
 
   shapeObject(shape, obj, query, root) {
+    const { serdes, modelName } = shape;
     const { resolver, doc = {} } = query.toObject();
     const context = resolver.getContext();
+    const docPath = path => get(doc, path);
 
     return map(obj, (parent) => {
       root = root || parent;
+      const rootPath = serdes === 'serialize' ? path => get(root, path) : {};
+      const parentPath = serdes === 'serialize' ? path => get(parent, path) : {};
 
-      return shape.reduce((prev, { modelName, path, from, to, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
+      return shape.reduce((prev, { path, from, to, type, defaultValue, transformers = [], shape: subShape }) => {
         const fieldName = to;
         const startValue = parent[from];
 
         // Transform value
         const transformedValue = transformers.reduce((value, t) => {
-          const v = t({ modelName, fieldName, path, doc, root, parent, startValue, value, context });
+          const v = t({ modelName, fieldName, path, docPath, rootPath, parentPath, startValue, value, context });
           return v === undefined ? value : v;
         }, startValue);
 

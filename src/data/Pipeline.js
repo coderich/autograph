@@ -1,7 +1,12 @@
-const { get, uniqWith } = require('lodash');
+const { uniqWith } = require('lodash');
 const { map, hashObject } = require('../service/app.service');
+const Boom = require('../core/Boom');
 
 module.exports = class Pipeline {
+  constructor() {
+    throw new Error('Pipeline is a singleton; use the static {define|factory} methods');
+  }
+
   static define(name, factory, options = {}) {
     // A factory must be a function
     if (typeof factory !== 'function') throw new Error(`Pipeline definition for "${name}" must be a function`);
@@ -51,36 +56,36 @@ module.exports = class Pipeline {
     Pipeline.define('dedupe', ({ value }) => uniqWith(value, (b, c) => hashObject(b) === hashObject(c)), { ignoreNull: false });
 
     // Required fields
-    Pipeline.define('required', ({ value }) => {
-      if (value == null) throw new Error('Required.');
+    Pipeline.define('required', ({ modelName, fieldName, value }) => {
+      if (value == null) throw Boom.badRequest(`${modelName}.${fieldName} is required`);
     }, { ignoreNull: false });
 
     // A field cannot hold a reference to itself
-    Pipeline.define('selfless', ({ parent, value }) => {
-      if (`${value}` === `${get(parent, 'id')}`) throw new Error('Cannot reference to itself');
+    Pipeline.define('selfless', ({ modelName, fieldName, parentPath, value }) => {
+      if (`${value}` === `${parentPath('id')}`) throw Boom.badRequest(`${modelName}.${fieldName} cannot hold a reference to itself`);
     });
 
     // Once set it cannot be changed
-    Pipeline.define('immutable', ({ doc, path, value }) => {
-      const oldVal = get(doc, path);
-      if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw new Error('immutable');
+    Pipeline.define('immutable', ({ modelName, fieldName, docPath, path, value }) => {
+      const oldVal = docPath(path);
+      if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw Boom.badRequest(`${modelName}.${fieldName} is immutable; cannot be changed once set`);
     });
 
-    Pipeline.factory('allow', (...args) => ({ value }) => {
-      if (args.indexOf(value) === -1) throw new Error('allow');
+    Pipeline.factory('allow', (...args) => ({ modelName, fieldName, value }) => {
+      if (args.indexOf(value) === -1) throw Boom.badRequest(`${modelName}.${fieldName} allows ${args}; found '${value}'`);
     });
 
-    Pipeline.factory('deny', (...args) => ({ value }) => {
-      if (args.indexOf(value) > -1) throw new Error('deny');
+    Pipeline.factory('deny', (...args) => ({ modelName, fieldName, value }) => {
+      if (args.indexOf(value) > -1) throw Boom.badRequest(`${modelName}.${fieldName} denys ${args}; found '${value}'`);
     });
 
     Pipeline.factory('range', (min, max) => {
       if (min == null) min = undefined;
       if (max == null) max = undefined;
-      return ({ value }) => {
+      return ({ modelName, fieldName, value }) => {
         const num = +value; // Coerce to number if possible
         const test = Number.isNaN(num) ? value.length : num;
-        if (test < min || test > max) throw new Error('range');
+        if (test < min || test > max) throw Boom.badRequest(`${modelName}.${fieldName} must satisfy range ${min}:${max}; found '${value}'`);
       };
     }, { itemize: false });
   }

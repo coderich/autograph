@@ -1,6 +1,6 @@
 const QueryService = require('../query/QueryService');
 const EventEmitter = require('../core/EventEmitter');
-const { ensureArray, ucFirst } = require('./app.service');
+const { ucFirst } = require('./app.service');
 
 // Event emitters
 const eventEmitter = new EventEmitter().setMaxListeners(100);
@@ -18,12 +18,12 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
   const type = ucFirst(name);
 
   if (name !== 'Setup' && name !== 'Response') {
-    const { method, query } = mixed;
-    const { resolver, model, meta, doc, id, input, sort, merged, native, root, crud } = query.toObject();
+    const { query } = mixed;
+    const { resolver, model, meta, doc, id, input, sort, merged, native, root, crud, key, method } = query.toObject();
     const context = resolver.getContext();
 
     event = {
-      key: `${method}${model}`,
+      key,
       resolver,
       context,
       method,
@@ -72,41 +72,41 @@ exports.eventEmitter = eventEmitter;
 exports.internalEmitter = internalEmitter;
 
 
-/**
- * Hook into the pre event only!
- *
- * Kick off system events for embedded fields
- */
-const eventHandler = (event) => {
-  const { model, input, method, doc = input, query } = event;
+// /**
+//  * Hook into the pre event only!
+//  *
+//  * Kick off system events for embedded fields
+//  */
+// const eventHandler = (event) => {
+//   const { model, input, method, doc = input, query } = event;
 
-  return Promise.all(model.getEmbeddedFields().map((field) => {
-    return new Promise((resolve, reject) => {
-      if (Object.prototype.hasOwnProperty.call(input || {}, field.getName())) {
-        let i = 0;
-        const value = input[field.getName()];
-        const values = ensureArray(value).filter(el => el != null);
-        const newModel = field.getModelRef();
+//   return Promise.all(model.getEmbeddedFields().map((field) => {
+//     return new Promise((resolve, reject) => {
+//       if (Object.prototype.hasOwnProperty.call(input || {}, field.getName())) {
+//         let i = 0;
+//         const value = input[field.getName()];
+//         const values = ensureArray(value).filter(el => el != null);
+//         const newModel = field.getModelRef();
 
-        if (values.length) {
-          values.forEach((val) => {
-            const clone = query.clone().model(newModel).input(val).doc(doc);
-            exports.createSystemEvent('Mutation', { method, query: clone }, () => {
-              if (++i >= values.length) resolve();
-            }).catch(e => reject(e));
-            // const newEvent = { parent: doc, key: `${method}${field}`, method, model: newModel, resolver, query: new Query(resolver, newModel, { meta }), input: val };
-            // exports.createSystemEvent('Mutation', newEvent, () => {
-            //   if (++i >= values.length) resolve();
-            // }).catch(e => reject(e));
-          });
-        } else {
-          resolve();
-        }
-      } else {
-        resolve();
-      }
-    });
-  }));
-};
+//         if (values.length) {
+//           values.forEach((val) => {
+//             const clone = query.clone().model(newModel).input(val).doc(doc);
+//             exports.createSystemEvent('Mutation', { method, query: clone }, () => {
+//               if (++i >= values.length) resolve();
+//             }).catch(e => reject(e));
+//             // const newEvent = { parent: doc, key: `${method}${field}`, method, model: newModel, resolver, query: new Query(resolver, newModel, { meta }), input: val };
+//             // exports.createSystemEvent('Mutation', newEvent, () => {
+//             //   if (++i >= values.length) resolve();
+//             // }).catch(e => reject(e));
+//           });
+//         } else {
+//           resolve();
+//         }
+//       } else {
+//         resolve();
+//       }
+//     });
+//   }));
+// };
 
-internalEmitter.on('preMutation', async (event, next) => eventHandler(event).then(next)); // Only preMutation!
+// internalEmitter.on('preMutation', async (event, next) => eventHandler(event).then(next)); // Only preMutation!
