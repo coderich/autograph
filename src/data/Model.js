@@ -5,14 +5,13 @@ const Model = require('../graphql/ast/Model');
 const { eventEmitter } = require('../service/event.service');
 const { map, castCmp, ensureArray } = require('../service/app.service');
 
-const shapesCache = new Map();
-
 module.exports = class extends Model {
   constructor(schema, model, driver) {
     super(schema, JSON.parse(JSON.stringify((model.getAST()))));
     this.driver = driver;
     this.fields = super.getFields().map(field => new Field(this, field));
     this.namedQueries = {};
+    this.shapesCache = new Map();
   }
 
   raw() {
@@ -81,8 +80,8 @@ module.exports = class extends Model {
   }
 
   getShape(crud = 'read', target = 'doc', paths = []) {
-    // const cacheKey = `${crud}:${target}`;
-    // if (shapesCache.has(cacheKey)) return shapesCache.get(cacheKey);
+    const cacheKey = `${crud}:${target}`;
+    if (this.shapesCache.has(cacheKey)) return this.shapesCache.get(cacheKey);
 
     const serdes = crud === 'read' ? 'deserialize' : 'serialize';
     const fields = serdes === 'deserialize' ? this.getSelectFields() : this.getPersistableFields();
@@ -117,7 +116,7 @@ module.exports = class extends Model {
     shape.serdes = serdes;
 
     // Cache and return
-    // shapesCache.set(cacheKey, shape);
+    this.shapesCache.set(cacheKey, shape);
     return shape;
   }
 
