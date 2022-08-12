@@ -53,7 +53,7 @@ module.exports = class Pipeline {
     Pipeline.define('toDate', ({ value }) => new Date(value), { configurable: true });
     Pipeline.define('timestamp', ({ value }) => Date.now(), { ignoreNull: false });
     Pipeline.define('createdAt', ({ value }) => value || Date.now(), { ignoreNull: false });
-    Pipeline.define('dedupe', ({ value }) => uniqWith(value, (b, c) => hashObject(b) === hashObject(c)), { ignoreNull: false });
+    Pipeline.define('dedupe', ({ value }) => uniqWith(value, (b, c) => hashObject(b) === hashObject(c)), { itemize: false });
 
     // Required fields
     Pipeline.define('required', ({ modelName, fieldName, value }) => {

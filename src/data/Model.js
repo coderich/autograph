@@ -5,6 +5,8 @@ const Model = require('../graphql/ast/Model');
 const { eventEmitter } = require('../service/event.service');
 const { map, castCmp, ensureArray } = require('../service/app.service');
 
+const shapesCache = new Map();
+
 module.exports = class extends Model {
   constructor(schema, model, driver) {
     super(schema, JSON.parse(JSON.stringify((model.getAST()))));
@@ -79,6 +81,9 @@ module.exports = class extends Model {
   }
 
   getShape(crud = 'read', target = 'doc', paths = []) {
+    // const cacheKey = `${crud}:${target}`;
+    // if (shapesCache.has(cacheKey)) return shapesCache.get(cacheKey);
+
     const modelName = this.getName();
     const serdes = crud === 'read' ? 'deserialize' : 'serialize';
     const fields = serdes === 'deserialize' ? this.getSelectFields() : this.getPersistableFields();
@@ -95,11 +100,12 @@ module.exports = class extends Model {
     // Create shape, recursive
     const shape = fields.map((field) => {
       const structures = field.getStructures();
+      const defaultValue = field.getDefaultValue();
       const [key, name, type, isArray] = [field.getKey(), field.getName(), field.getType(), field.isArray(), field.isIdField()];
       const [from, to] = serdes === 'serialize' ? [name, key] : [key, name];
       const path = paths.concat(to);
       const subShape = field.isEmbedded() ? field.getModelRef().getShape(crud, target, path) : null;
-      structures.defaultValue = ({ value }) => (value === undefined && target === 'doc' ? field.getDefaultValue() : value);
+      structures.defaultValue = ({ value }) => (value === undefined && target === 'doc' ? defaultValue : value);
       structures.ensureArrayValue = ({ value }) => (value != null && isArray && !Array.isArray(value) ? [value] : value);
       structures.castValue = ({ value }) => (value != null && !subShape ? map(value, v => castCmp(type, v)) : value);
       const transformers = structureKeys.reduce((prev, struct) => prev.concat(structures[struct]), []).filter(Boolean);
@@ -111,13 +117,14 @@ module.exports = class extends Model {
     shape.serdes = serdes;
     shape.modelName = modelName;
 
+    // Cache and return
+    // shapesCache.set(cacheKey, shape);
     return shape;
   }
 
   shapeObject(shape, obj, query, root) {
     const { serdes, modelName } = shape;
-    const { resolver, doc = {} } = query.toObject();
-    const context = resolver.getContext();
+    const { context, doc = {} } = query.toObject();
     const docPath = path => get(doc, path);
 
     return map(obj, (parent) => {
@@ -138,7 +145,7 @@ module.exports = class extends Model {
         // Determine if key should stay or be removed
         if (transformedValue === undefined && !Object.prototype.hasOwnProperty.call(parent, from)) return prev;
 
-        // Rename key & assign value
+        // // Rename key & assign value
         prev[fieldName] = (!subShape || transformedValue == null) ? transformedValue : this.shapeObject(subShape, transformedValue, query, root);
 
         return prev;
