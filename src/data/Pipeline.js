@@ -68,6 +68,7 @@ module.exports = class Pipeline {
     // Once set it cannot be changed
     Pipeline.define('immutable', ({ modelName, fieldName, docPath, path, value }) => {
       const oldVal = docPath(path);
+      // if (fieldName === 'frozen') console.log(value, oldVal, path);
       if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw Boom.badRequest(`${modelName}.${fieldName} is immutable; cannot be changed once set`);
     });
 

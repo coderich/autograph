@@ -173,10 +173,7 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('Art', async () => {
         artsy = await resolver.match('Art').save({ name: 'My Find Art', sections: [{ name: 'Section1' }] });
         expect(artsy.id).toBeDefined();
-        expect(artsy.sections).toMatchObject([{ name: 'section1' }]);
-        expect(artsy.sections[0].id).toBeDefined();
-        expect(artsy.sections[0].createdAt).toBeDefined();
-        expect(artsy.sections[0].updatedAt).toBeDefined();
+        expect(artsy.sections).toMatchObject([{ id: expect.anything(), name: 'section1', frozen: 'frozen', createdAt: expect.anything(), updatedAt: expect.anything() }]);
       });
     });
 
@@ -479,6 +476,7 @@ module.exports = (driver = 'mongo', options = {}) => {
 
       test('Art', async () => {
         await expect(resolver.match('Art').save({ name: 'sup', comments: ['whoops'] })).rejects.toThrow(/allow/gi);
+        // await expect(resolver.match('Art').id(artsy.id).save({ sections: [{ name: 'section1', frozen: 'rope' }] })).rejects.toThrow(/immutable/gi);
       });
     });
 
