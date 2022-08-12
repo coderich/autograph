@@ -24,7 +24,8 @@ module.exports = class Pipeline {
         });
       }
 
-      return factory(args);
+      const val = factory(args);
+      return val === undefined ? args.value : val;
     }, 'name', { value: name });
 
     // Attach enumerable method to the Pipeline
@@ -56,37 +57,36 @@ module.exports = class Pipeline {
     Pipeline.define('dedupe', ({ value }) => uniqWith(value, (b, c) => hashObject(b) === hashObject(c)), { itemize: false });
 
     // Required fields
-    Pipeline.define('required', ({ modelName, fieldName, value }) => {
-      if (value == null) throw Boom.badRequest(`${modelName}.${fieldName} is required`);
+    Pipeline.define('required', ({ model, field, value }) => {
+      if (value == null) throw Boom.badRequest(`${model}.${field} is required`);
     }, { ignoreNull: false });
 
     // A field cannot hold a reference to itself
-    Pipeline.define('selfless', ({ modelName, fieldName, parentPath, value }) => {
-      if (`${value}` === `${parentPath('id')}`) throw Boom.badRequest(`${modelName}.${fieldName} cannot hold a reference to itself`);
+    Pipeline.define('selfless', ({ model, field, parentPath, value }) => {
+      if (`${value}` === `${parentPath('id')}`) throw Boom.badRequest(`${model}.${field} cannot hold a reference to itself`);
     });
 
     // Once set it cannot be changed
-    Pipeline.define('immutable', ({ modelName, fieldName, docPath, path, value }) => {
+    Pipeline.define('immutable', ({ model, field, docPath, path, value }) => {
       const oldVal = docPath(path);
-      // if (fieldName === 'frozen') console.log(value, oldVal, path);
-      if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw Boom.badRequest(`${modelName}.${fieldName} is immutable; cannot be changed once set`);
+      if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw Boom.badRequest(`${model}.${field} is immutable; cannot be changed once set`);
     });
 
-    Pipeline.factory('allow', (...args) => ({ modelName, fieldName, value }) => {
-      if (args.indexOf(value) === -1) throw Boom.badRequest(`${modelName}.${fieldName} allows ${args}; found '${value}'`);
+    Pipeline.factory('allow', (...args) => ({ model, field, value }) => {
+      if (args.indexOf(value) === -1) throw Boom.badRequest(`${model}.${field} allows ${args}; found '${value}'`);
     });
 
-    Pipeline.factory('deny', (...args) => ({ modelName, fieldName, value }) => {
-      if (args.indexOf(value) > -1) throw Boom.badRequest(`${modelName}.${fieldName} denys ${args}; found '${value}'`);
+    Pipeline.factory('deny', (...args) => ({ model, field, value }) => {
+      if (args.indexOf(value) > -1) throw Boom.badRequest(`${model}.${field} denys ${args}; found '${value}'`);
     });
 
     Pipeline.factory('range', (min, max) => {
       if (min == null) min = undefined;
       if (max == null) max = undefined;
-      return ({ modelName, fieldName, value }) => {
+      return ({ model, field, value }) => {
         const num = +value; // Coerce to number if possible
         const test = Number.isNaN(num) ? value.length : num;
-        if (test < min || test > max) throw Boom.badRequest(`${modelName}.${fieldName} must satisfy range ${min}:${max}; found '${value}'`);
+        if (test < min || test > max) throw Boom.badRequest(`${model}.${field} must satisfy range ${min}:${max}; found '${value}'`);
       };
     }, { itemize: false });
   }

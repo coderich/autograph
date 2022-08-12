@@ -84,7 +84,6 @@ module.exports = class extends Model {
     // const cacheKey = `${crud}:${target}`;
     // if (shapesCache.has(cacheKey)) return shapesCache.get(cacheKey);
 
-    const modelName = this.getName();
     const serdes = crud === 'read' ? 'deserialize' : 'serialize';
     const fields = serdes === 'deserialize' ? this.getSelectFields() : this.getPersistableFields();
     const crudMap = { create: ['constructs'], update: ['restructs'], delete: ['destructs'], remove: ['destructs'] };
@@ -100,22 +99,22 @@ module.exports = class extends Model {
     // Create shape, recursive
     const shape = fields.map((field) => {
       const structures = field.getStructures();
-      const defaultValue = field.getDefaultValue();
+      const fieldDefaultValue = field.getDefaultValue();
       const [key, name, type, isArray] = [field.getKey(), field.getName(), field.getType(), field.isArray(), field.isIdField()];
       const [from, to] = serdes === 'serialize' ? [name, key] : [key, name];
       const path = paths.concat(to);
       const subShape = field.isEmbedded() ? field.getModelRef().getShape(crud, target, path) : null;
-      structures.defaultValue = ({ value }) => (value === undefined && target === 'doc' ? defaultValue : value);
+      structures.defaultValue = ({ value }) => (value === undefined && target === 'doc' ? fieldDefaultValue : value);
       structures.ensureArrayValue = ({ value }) => (value != null && isArray && !Array.isArray(value) ? [value] : value);
       structures.castValue = ({ value }) => (value != null && !subShape ? map(value, v => castCmp(type, v)) : value);
       const transformers = structureKeys.reduce((prev, struct) => prev.concat(structures[struct]), []).filter(Boolean);
-      return { path, from, to, type, isArray, transformers, shape: subShape };
+      return { field, path, from, to, type, isArray, transformers, shape: subShape };
     });
 
     // Adding useful shape info
     shape.crud = crud;
+    shape.model = this;
     shape.serdes = serdes;
-    shape.modelName = modelName;
 
     // Cache and return
     // shapesCache.set(cacheKey, shape);
@@ -123,7 +122,7 @@ module.exports = class extends Model {
   }
 
   shapeObject(shape, obj, query, root) {
-    const { serdes, modelName } = shape;
+    const { serdes, model } = shape;
     const { context, doc = {} } = query.toObject();
     const docPath = p => get(doc, p);
 
@@ -132,13 +131,12 @@ module.exports = class extends Model {
       const rootPath = serdes === 'serialize' ? p => get(root, p) : {};
       const parentPath = serdes === 'serialize' ? p => get(parent, p) : {};
 
-      return shape.reduce((prev, { from, to, path, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
-        const fieldName = to;
+      return shape.reduce((prev, { field, from, to, path, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
         const startValue = parent[from];
 
         // Transform value
         const transformedValue = transformers.reduce((value, t) => {
-          const v = t({ modelName, fieldName, path, docPath, rootPath, parentPath, startValue, value, context });
+          const v = t({ model, field, path, docPath, rootPath, parentPath, startValue, value, context });
           return v === undefined ? value : v;
         }, startValue);
 
@@ -146,7 +144,7 @@ module.exports = class extends Model {
         if (transformedValue === undefined && !Object.prototype.hasOwnProperty.call(parent, from)) return prev;
 
         // Rename key & assign value
-        prev[fieldName] = (!subShape || transformedValue == null) ? transformedValue : this.shapeObject(subShape, transformedValue, query, root);
+        prev[to] = (!subShape || transformedValue == null) ? transformedValue : this.shapeObject(subShape, transformedValue, query, root);
 
         return prev;
       }, {});
