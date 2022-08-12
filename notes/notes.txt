@@ -1,17 +1,9 @@
 Release 0.10.1:
   * immutable does not even work past the top-level attribute!!!
-    - Write this test
-
-  *** You currently have a "validate" event to allow async blocks ***
-    - "validate" is actually used as a last step AFTER all other transforms/events have happened to do one final step
-    - validation is different from Pipeline - it can do things like make sure multiple fields exist together, etc
-    - Autograph @field is at an atomic level - therefore I believe "validation" event should be a first-class citizen
-      - So then what does "validate: false" mean?
-    - "immutable" is part of this "validation" process (not the pipeline)
+    - "immutable" is part of this "validation" process (not the pipeline)???
 
   * Transform + Rules => Pipeline?
     - Use of $<pipeline-name> to denote AG vs user-defined? (yes)
-  * Verify that Transformer + Rules are only being called when needed
 
   * Resolver.toResultSet() => How to hydrate results from the outside world?
     - resolver.match('NetworkPlace', { validate: false, silent: true, debug: true, shape: true }).toResult(data)
