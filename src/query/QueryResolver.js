@@ -75,17 +75,16 @@ module.exports = class QueryResolver {
   }
 
   updateOne(query) {
-    const { model, match } = query.toObject();
+    const { model, match, input } = query.toObject();
 
     return this.resolver.match(model).match(match).one({ required: true }).then((doc) => {
-      const { input } = query.toObject();
-      const merged = mergeDeep(doc, input);
       const shape = model.getShape('update');
+      const merged = model.shapeObject(shape, mergeDeep(doc, input), query);
 
       return createSystemEvent('Mutation', { query: query.doc(doc).merged(merged) }, async () => {
-        const $input = model.shapeObject(shape, merged, query);
-        await model.validate(query, $input);
-        return this.resolver.resolve(query.$doc($input).$input($input));
+        const $doc = model.shapeObject(shape, mergeDeep(doc, input), query);
+        await model.validate(query, $doc);
+        return this.resolver.resolve(query.$doc($doc));
       });
     });
   }

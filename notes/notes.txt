@@ -2,18 +2,11 @@ Release 0.10.1:
   * immutable does not even work past the top-level attribute!!!
     - "immutable" is part of this "validation" process (not the pipeline)???
 
-  * Transform + Rules => Pipeline?
-    - Use of $<pipeline-name> to denote AG vs user-defined? (yes)
-
   * Resolver.toResultSet() => How to hydrate results from the outside world?
     - resolver.match('NetworkPlace', { validate: false, silent: true, debug: true, shape: true }).toResult(data)
     - resolver.raw('NetworkPlace', { shape: true });
 
-  * Revisit update $doc/merge => make sure it's OK
-
   * Optimize/Cache information needed for Pipeline
-
-  * REMOVED embedded SystemEvents -> make sure it's OK
 
 Release 0.10.2:
   *** There is a bug "where: { id: {one,two,three} }" does not work
