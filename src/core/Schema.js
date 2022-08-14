@@ -41,6 +41,7 @@ module.exports = class extends Schema {
     super.initialize();
     this.models = super.getModels().map(model => new Model(this, model, this.drivers[model.getDriverName()]));
     this.models.forEach(model => model.referentialIntegrity(identifyOnDeletes(this.models, model)));
+    this.models.forEach(model => model.initialize());
     return this;
   }
 };

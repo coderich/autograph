@@ -89,7 +89,9 @@ module.exports = class Schema extends TypeDefApi {
    * only needs to be called when typeDefs have been changed and you want to keep the data model in sync.
    */
   initialize() {
-    return super.initialize(this.schema.typeDefs);
+    super.initialize(this.schema.typeDefs);
+    this.getModels().forEach(model => model.initialize());
+    return this;
   }
 
   /**

@@ -8,6 +8,10 @@ Release 0.10.1:
 
   * Optimize/Cache information needed for Pipeline
 
+  * Model.validate needs a look -> Rule.ensureId()
+
+  * docPath, rootPath, parentPath --> serialize not yet implemented
+
 Release 0.10.2:
   *** There is a bug "where: { id: {one,two,three} }" does not work
 

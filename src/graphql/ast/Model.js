@@ -137,4 +137,9 @@ module.exports = class Model extends Node {
       }, {});
     });
   }
+
+  initialize() {
+    this.fields.forEach(field => field.initialize());
+    return this;
+  }
 };

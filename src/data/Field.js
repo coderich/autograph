@@ -2,7 +2,7 @@ const Type = require('./Type');
 const Field = require('../graphql/ast/Field');
 const Rule = require('../core/Rule');
 const Pipeline = require('./Pipeline');
-const { map, isPlainObject, ensureArray } = require('../service/app.service');
+const { isPlainObject, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Field {
   constructor(model, field) {
@@ -11,9 +11,28 @@ module.exports = class extends Field {
     this.model = model;
   }
 
+  initialize() {
+    super.initialize();
+
+    this.props = {
+      name: this.getName(),
+      isArray: this.isArray(),
+      isScalar: this.isScalar(),
+      isVirtual: this.isVirtual(),
+      isRequired: this.isRequired(),
+      isEmbedded: this.isEmbedded(),
+      isIdField: this.isIdField(),
+      isPrimaryKeyId: this.isPrimaryKeyId(),
+      isPersistable: this.isPersistable(),
+      modelRef: this.getModelRef(),
+      virtualField: this.getVirtualField(),
+    };
+  }
+
   getStructures() {
     // Grab structures from the underlying type
     const structures = this.type.getStructures();
+    const { isRequired, isPersistable, isVirtual, isPrimaryKeyId, isIdField } = this.props;
 
     // Structures defined on the field
     const $structures = Object.entries(this.getDirectiveArgs('field', {})).reduce((prev, [key, value]) => {
@@ -29,20 +48,20 @@ module.exports = class extends Field {
     }, structures);
 
     // IDs (first - shift)
-    if (this.isPrimaryKeyId()) $structures.serializers.unshift(Pipeline.idKey);
-    if (this.isIdField()) $structures.$serializers.unshift(Pipeline.idField);
+    if (isPrimaryKeyId) $structures.serializers.unshift(Pipeline.idKey);
+    if (isIdField) $structures.$serializers.unshift(Pipeline.idField);
 
     // Required (last - push)
-    if (this.isRequired() && this.isPersistable() && !this.isVirtual()) $structures.serializers.push(Pipeline.required);
+    if (isRequired && isPersistable && !isVirtual) $structures.serializers.push(Pipeline.required);
 
     return $structures;
   }
 
   validate(query, value) {
     const rules = [];
-    const modelRef = this.getModelRef();
+    const { modelRef, isEmbedded } = this.props;
 
-    if (this.getModelRef() && !this.isEmbedded()) rules.push(Rule.ensureId());
+    if (modelRef && !isEmbedded) rules.push(Rule.ensureId());
 
     return Promise.all(rules.map((rule) => {
       return rule(this, value, query);
@@ -53,7 +72,7 @@ module.exports = class extends Field {
   }
 
   resolve(resolver, doc, args = {}) {
-    const [name, isArray, isScalar, isVirtual, isRequired, isEmbedded, modelRef, virtualField] = [this.getName(), this.isArray(), this.isScalar(), this.isVirtual(), this.isRequired(), this.isEmbedded(), this.getModelRef(), this.getVirtualField()];
+    const { name, isArray, isScalar, isVirtual, isRequired, isEmbedded, modelRef, virtualField } = this.props;
     const value = doc[name];
 
     // Default resolver return immediately!
@@ -64,7 +83,7 @@ module.exports = class extends Field {
 
     if (isArray) {
       if (isVirtual) {
-        args.where[[virtualField]] = doc.id; // Is where[[virtualField]] correct?
+        args.where[virtualField] = doc.id;
         return resolver.match(modelRef).merge(args).many();
       }
 
@@ -74,7 +93,7 @@ module.exports = class extends Field {
     }
 
     if (isVirtual) {
-      args.where[[virtualField]] = doc.id;
+      args.where[virtualField] = doc.id;
       return resolver.match(modelRef).merge(args).one();
     }
 
@@ -82,7 +101,7 @@ module.exports = class extends Field {
   }
 
   count(resolver, doc, args = {}) {
-    const [name, isVirtual, modelRef, virtualField] = [this.getName(), this.isVirtual(), this.getModelRef(), this.getVirtualField()];
+    const { name, isVirtual, modelRef, virtualField } = this.props;
     args.where = args.where || {};
     if (isVirtual) args.where[virtualField] = doc.id;
     else args.where.id = doc[name];

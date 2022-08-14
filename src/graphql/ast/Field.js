@@ -172,4 +172,8 @@ module.exports = class Field extends Node {
     if (this.isFKReference()) return this.isArray() ? '[ID]' : 'ID';
     return this.getGQLType();
   }
+
+  initialize() {
+    return this;
+  }
 };
