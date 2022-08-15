@@ -20,7 +20,7 @@ exports.resolveWhereClause = (query) => {
   const { resolver, model, match: where = {}, flags = {} } = query.toObject();
 
   // This is needed for where clause (but why!?!)
-  if (where.id) where.id = map(where.id, v => model.idValue(v));
+  // if (where.id) where.id = map(where.id, v => model.idValue(v));
 
   // Construct
   const $where = Object.entries(where).reduce((prev, [key, value]) => {

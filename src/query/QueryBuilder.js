@@ -108,6 +108,6 @@ module.exports = class QueryBuilder {
       }
     }
 
-    return new QueryResolver(this.query.method(method).crud(crud).input(input).flags(flags).args(args)).resolve();
+    return new QueryResolver(this.query.method(method).cmd(cmd).crud(crud).input(input).flags(flags).args(args)).resolve();
   }
 };

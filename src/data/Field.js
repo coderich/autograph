@@ -1,3 +1,4 @@
+const { isEmpty } = require('lodash');
 const Type = require('./Type');
 const Field = require('../graphql/ast/Field');
 const Rule = require('../core/Rule');
@@ -83,16 +84,19 @@ module.exports = class extends Field {
 
     if (isArray) {
       if (isVirtual) {
+        if (isEmpty(args.where)) args.identity = `${virtualField}`;
         args.where[virtualField] = doc.id;
         return resolver.match(modelRef).merge(args).many();
       }
 
       // Not a "required" query + strip out nulls
+      if (isEmpty(args.where)) args.identity = 'id';
       args.where.id = value;
       return resolver.match(modelRef).merge(args).many();
     }
 
     if (isVirtual) {
+      if (isEmpty(args.where)) args.identity = `${virtualField}`;
       args.where[virtualField] = doc.id;
       return resolver.match(modelRef).merge(args).one();
     }

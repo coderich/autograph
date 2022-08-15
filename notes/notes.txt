@@ -6,8 +6,6 @@ Release 0.10.1:
     - resolver.match('NetworkPlace', { validate: false, silent: true, debug: true, shape: true, required: true }).toResult(data)
     - resolver.raw('NetworkPlace', { shape: true });
 
-  * Optimize/Cache information needed for Pipeline
-
   * Model.validate needs a look -> Rule.ensureId()
 
   * docPath, rootPath, parentPath --> serialize not yet implemented

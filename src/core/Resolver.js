@@ -22,8 +22,9 @@ module.exports = class Resolver {
   /**
    * Creates and returns a QueryBuilder for a given model
    */
-  match(model) {
-    return new QueryBuilder(this, this.toModelEntity(model));
+  match(model, opts = {}) {
+    const flags = Object.assign({ validate: true, silent: false, debug: false, shape: true, required: false }, opts);
+    return new QueryBuilder(this, this.toModelEntity(model)).flags(flags);
   }
 
   /**
@@ -52,7 +53,7 @@ module.exports = class Resolver {
   }
 
   resolve(query) {
-    const { model, crud } = query.toObject();
+    const { model, crud, method } = query.toObject();
 
     switch (crud) {
       case 'create': case 'update': case 'delete': {
@@ -63,10 +64,11 @@ module.exports = class Resolver {
       }
       default: {
         const key = model.idKey();
-        const { where, method } = query.toDriver();
+        const { where } = query.toDriver();
+        const lookupValue = where[key];
 
         // This is a shortcut to prevent making unnecessary query
-        if (Object.prototype.hasOwnProperty.call(where, key) && where[key] == null) {
+        if (Object.prototype.hasOwnProperty.call(where, key) && (lookupValue == null || (Array.isArray(lookupValue) && lookupValue.length === 0))) {
           switch (method) {
             case 'count': return Promise.resolve(0);
             case 'findMany': return Promise.resolve([]);

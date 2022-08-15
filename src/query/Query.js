@@ -5,6 +5,7 @@ module.exports = class Query {
   constructor(props = {}) {
     this.props = {};
     this.timers = {};
+    this.props.flags = this.props.flags || {};
     this.props.joins = this.props.joins || [];
     this.props.match = this.props.match || {};
     this.props.options = this.props.options || {};
@@ -22,7 +23,14 @@ module.exports = class Query {
   id(id) {
     this.propCheck('id', 'where', 'native', 'sort', 'skip', 'limit', 'before', 'after', 'first', 'last');
     this.props.id = id;
+    this.props.identity = 'id';
+    this.props.where = { id };
     return this.match({ id });
+  }
+
+  identity(identity) {
+    this.props.identity = identity;
+    return this;
   }
 
   where(where) {
@@ -142,7 +150,7 @@ module.exports = class Query {
   }
 
   flags(flags) {
-    this.props.flags = flags;
+    Object.assign(this.props.flags, flags);
     return this;
   }
 
@@ -177,6 +185,11 @@ module.exports = class Query {
 
   transaction(transaction) {
     this.props.transaction = transaction;
+    return this;
+  }
+
+  cmd(cmd) {
+    this.props.cmd = cmd; // Terminal cmd from QueryBuilder
     return this;
   }
 
@@ -318,7 +331,6 @@ module.exports = class Query {
 
   getCacheKey() {
     return {
-      // model: `${this.props.model}`,
       method: this.props.method,
       where: this.props.match,
       search: this.props.search,
