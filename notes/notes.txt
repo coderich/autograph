@@ -3,7 +3,7 @@ Release 0.10.1:
     - "immutable" is part of this "validation" process (not the pipeline)???
 
   * Resolver.toResultSet() => How to hydrate results from the outside world?
-    - resolver.match('NetworkPlace', { validate: false, silent: true, debug: true, shape: true }).toResult(data)
+    - resolver.match('NetworkPlace', { validate: false, silent: true, debug: true, shape: true, required: true }).toResult(data)
     - resolver.raw('NetworkPlace', { shape: true });
 
   * Optimize/Cache information needed for Pipeline
@@ -55,6 +55,7 @@ Next Release:
   * Finalize flags() vs options() - possibly use resolver.match(model, flags)
   * Deep sort (akin to where clause resolution?)
     - You are currently thwarted since key order is not preserved...
+    - https://github.com/apollographql/apollo-server/issues/1564
 
 Bugs:
   * Nested embedded object in array cannot delete without doing an explicit $pull operation (race condition)

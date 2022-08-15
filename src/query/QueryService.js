@@ -128,3 +128,18 @@ exports.resolveReferentialIntegrity = (query) => {
     }
   });
 };
+
+exports.resolveQuery = async (query) => {
+  const { model, sort, native } = query.toObject();
+
+  if (!native) {
+    const shape = model.getShape('create', 'where');
+    const $where = await exports.resolveWhereClause(query);
+    const $$where = model.shapeObject(shape, $where, query);
+    query.match($$where);
+  }
+
+  if (sort) {
+    query.$sort(exports.resolveSortBy(query));
+  }
+};

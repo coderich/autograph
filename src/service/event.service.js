@@ -1,4 +1,3 @@
-const QueryService = require('../query/QueryService');
 const EventEmitter = require('../core/EventEmitter');
 const { ucFirst } = require('./app.service');
 
@@ -12,33 +11,16 @@ const systemEvent = new EventEmitter().setMaxListeners(100).on('system', async (
 //
 exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
   let event = mixed;
-  let middleware = () => Promise.resolve();
   const type = ucFirst(name);
 
   if (name !== 'Setup' && name !== 'Response') {
     const { query } = mixed;
     event = query.toObject();
     event.query = query;
-
-    middleware = () => new Promise(async (resolve) => {
-      if (!event.native) {
-        const shape = event.model.getShape('create', 'where');
-        const $where = await QueryService.resolveWhereClause(query);
-        const $$where = event.model.shapeObject(shape, $where, query);
-        query.match($$where);
-      }
-
-      if (event.sort) {
-        query.$sort(QueryService.resolveSortBy(query));
-      }
-
-      resolve();
-    });
   }
 
   return systemEvent.emit('system', { type: `pre${type}`, data: event }).then((result) => {
-    if (result !== undefined) return result; // Allowing middleware to dictate result
-    return middleware().then(thunk);
+    return (result !== undefined) ? result : thunk(); // Allowing middleware to dictate result
   }).then((result) => {
     event.result = result;
     if (event.crud === 'create') event.doc = event.query.toObject().doc;
