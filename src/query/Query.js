@@ -1,5 +1,4 @@
 const Boom = require('../core/Boom');
-const { unravelObject } = require('../service/app.service');
 
 module.exports = class Query {
   constructor(props = {}) {
@@ -35,7 +34,7 @@ module.exports = class Query {
 
   where(where) {
     this.propCheck('where', 'id', 'native');
-    this.props.where = unravelObject(where);
+    this.props.where = where;
     return this.match(where);
   }
 
@@ -52,12 +51,12 @@ module.exports = class Query {
   }
 
   match(match) {
-    this.props.match = unravelObject(match);
+    this.props.match = match;
     return this;
   }
 
   select(select) {
-    this.props.select = unravelObject(select);
+    this.props.select = select;
     return this;
   }
 
@@ -78,7 +77,7 @@ module.exports = class Query {
 
   sort(sort) {
     this.propCheck('sort', 'id');
-    this.props.sort = unravelObject(sort);
+    this.props.sort = sort;
     return this;
   }
 

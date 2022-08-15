@@ -1,7 +1,5 @@
 const FBDataLoader = require('dataloader');
 const { paginateResultSet } = require('./DataService');
-const { map, ensureArray } = require('../service/app.service');
-const Query = require('../query/Query');
 
 const { hashObject } = require('../service/app.service');
 

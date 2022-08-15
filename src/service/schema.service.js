@@ -54,11 +54,13 @@ exports.getSchemaData = (schema) => {
 exports.identifyOnDeletes = (models, parentModel) => {
   return models.reduce((prev, model) => {
     model.getOnDeleteFields().forEach((field) => {
-      if (`${field.getModelRef()}` === `${parentModel}`) {
+      const { modelRef, isArray } = field.toObject();
+
+      if (`${modelRef}` === `${parentModel}`) {
         if (model.isEntity()) {
-          prev.push({ model, field, isArray: field.isArray(), op: field.getOnDelete() });
+          prev.push({ model, field, isArray, op: field.getOnDelete() });
         } else {
-          prev.push(...exports.identifyOnDeletes(models, model).map(od => Object.assign(od, { fieldRef: field, isArray: field.isArray(), op: field.getOnDelete() })));
+          prev.push(...exports.identifyOnDeletes(models, model).map(od => Object.assign(od, { fieldRef: field, isArray, op: field.getOnDelete() })));
         }
       }
     });

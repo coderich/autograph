@@ -47,12 +47,6 @@ module.exports = class extends Model {
     return this.referentials;
   }
 
-  initialize() {
-    super.initialize();
-    this.fields.forEach(field => field.initialize());
-    return this;
-  }
-
   validate(query, data) {
     const { flags } = query.toObject();
     if (get(flags, 'novalidate')) return Promise.resolve();

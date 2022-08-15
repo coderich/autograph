@@ -174,6 +174,24 @@ module.exports = class Field extends Node {
   }
 
   initialize() {
+    this.props = {
+      name: this.getName(),
+      isArray: this.isArray(),
+      isScalar: this.isScalar(),
+      isVirtual: this.isVirtual(),
+      isRequired: this.isRequired(),
+      isEmbedded: this.isEmbedded(),
+      isIdField: this.isIdField(),
+      isPrimaryKeyId: this.isPrimaryKeyId(),
+      isPersistable: this.isPersistable(),
+      modelRef: this.getModelRef(),
+      virtualField: this.getVirtualField(),
+    };
+
     return this;
+  }
+
+  toObject() {
+    return this.props;
   }
 };

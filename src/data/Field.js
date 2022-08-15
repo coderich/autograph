@@ -12,24 +12,6 @@ module.exports = class extends Field {
     this.model = model;
   }
 
-  initialize() {
-    super.initialize();
-
-    this.props = {
-      name: this.getName(),
-      isArray: this.isArray(),
-      isScalar: this.isScalar(),
-      isVirtual: this.isVirtual(),
-      isRequired: this.isRequired(),
-      isEmbedded: this.isEmbedded(),
-      isIdField: this.isIdField(),
-      isPrimaryKeyId: this.isPrimaryKeyId(),
-      isPersistable: this.isPersistable(),
-      modelRef: this.getModelRef(),
-      virtualField: this.getVirtualField(),
-    };
-  }
-
   getStructures() {
     // Grab structures from the underlying type
     const structures = this.type.getStructures();
