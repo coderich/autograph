@@ -45,6 +45,8 @@ module.exports = class DataLoader extends FBDataLoader {
        */
       const whereShape = model.getShape('create', 'where');
 
+      // console.log(Object.entries(batchQueries).map(([key, value]) => ({ [key]: value.length })));
+
       return Promise.all(Object.entries(batchQueries).map(([key, values]) => {
         switch (key) {
           case defaultBatchName: {
@@ -56,8 +58,19 @@ module.exports = class DataLoader extends FBDataLoader {
             const batchWhere = model.shapeObject(whereShape, { [key]: keys }, batchQuery); // This will add back instructs etc
 
             return driver.resolve(batchQuery.where(batchWhere).toDriver()).then(data => handleData(data, model, batchQuery)).then((results) => {
+              // One time data transformation on results to make matching back faster (below)
+              const resultsByKey = results.reduce((prev, row) => {
+                ensureArray(row[key]).forEach((id) => {
+                  prev[id] = prev[id] || [];
+                  prev[id].push(row);
+                });
+                return prev;
+              }, {});
+
+              // Match back
               return values.map(({ where, cmd, i }) => {
-                const data = ensureArray(where[key]).map(k => results.filter(r => `${r[key]}` === `${k}`) || null).flat();
+                const targets = ensureArray(where[key]).map(t => `${t}`);
+                const data = targets.map(t => resultsByKey[t] || null).flat();
                 return { i, data: cmd === 'many' ? data.filter(d => d != null) : data[0] };
               });
             });
