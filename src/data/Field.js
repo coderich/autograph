@@ -66,7 +66,7 @@ module.exports = class extends Field {
 
     if (isArray) {
       if (isVirtual) {
-        if (isEmpty(args.where)) args.identity = `${virtualField}`;
+        // if (isEmpty(args.where)) args.identity = `${virtualField}`;
         args.where[virtualField] = doc.id;
         return resolver.match(modelRef).merge(args).many();
       }
@@ -78,7 +78,7 @@ module.exports = class extends Field {
     }
 
     if (isVirtual) {
-      if (isEmpty(args.where)) args.identity = `${virtualField}`;
+      // if (isEmpty(args.where)) args.identity = `${virtualField}`;
       args.where[virtualField] = doc.id;
       return resolver.match(modelRef).merge(args).one();
     }

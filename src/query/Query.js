@@ -330,6 +330,7 @@ module.exports = class Query {
 
   getCacheKey() {
     return {
+      cmd: this.props.cmd,
       method: this.props.method,
       where: this.props.match,
       search: this.props.search,
