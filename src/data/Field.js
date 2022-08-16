@@ -66,19 +66,19 @@ module.exports = class extends Field {
 
     if (isArray) {
       if (isVirtual) {
-        // if (isEmpty(args.where)) args.identity = `${virtualField}`;
+        if (isEmpty(args.where)) args.batch = `${virtualField}`;
         args.where[virtualField] = doc.id;
         return resolver.match(modelRef).merge(args).many();
       }
 
       // Not a "required" query + strip out nulls
-      if (isEmpty(args.where)) args.identity = 'id';
+      if (isEmpty(args.where)) args.batch = 'id';
       args.where.id = value;
       return resolver.match(modelRef).merge(args).many();
     }
 
     if (isVirtual) {
-      // if (isEmpty(args.where)) args.identity = `${virtualField}`;
+      if (isEmpty(args.where)) args.batch = `${virtualField}`;
       args.where[virtualField] = doc.id;
       return resolver.match(modelRef).merge(args).one();
     }

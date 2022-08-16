@@ -15,31 +15,49 @@ module.exports = class DataLoader extends FBDataLoader {
     const driver = model.getDriver();
 
     return new FBDataLoader((queries) => {
-      //
+      let performBatchQuery = false; // If we don't have to batch it's faster to resolve normal
+      const defaultBatchName = '__default__'; // Something that won't collide with an actual field name
+
+      /**
+       * Batch queries can save resources and network round-trip latency. However, we have to be careful to
+       * preserve the order and adhere to the DataLoader API. This step simply creates a map of batch
+       * queries to run; saving the order ("i") along with useful meta information
+       */
       const batchQueries = queries.reduce((prev, query, i) => {
-        const { identity = '__na__', where, cmd } = query.toObject();
-        const key = identity && (cmd === 'one' || cmd === 'many') ? identity : '__na__';
+        const { batch = defaultBatchName, where, cmd } = query.toObject();
+        const key = batch && (cmd === 'one' || cmd === 'many') ? batch : defaultBatchName;
+        if (key !== defaultBatchName) performBatchQuery = true;
         prev[key] = prev[key] || [];
         prev[key].push({ query, where, cmd, i });
         return prev;
       }, {});
 
+      // Don't batch unless it's worth it!
+      if (!performBatchQuery) {
+        return Promise.all(queries.map((query) => {
+          return driver.resolve(query.toDriver()).then(data => handleData(data, model, query));
+        }));
+      }
+
+      /**
+       * We have reduced the number of queries down to a smaller set of batch queries to run. The dance
+       * performed below retreives the data and then expands the results back into the original queries
+       */
+      const whereShape = model.getShape('create', 'where');
+
       return Promise.all(Object.entries(batchQueries).map(([key, values]) => {
         switch (key) {
-          case '__na__': {
+          case defaultBatchName: {
             return values.map(({ query, i }) => driver.resolve(query.toDriver()).then(data => handleData(data, model, query)).then(data => ({ data, i })));
           }
           default: {
             const keys = Array.from(new Set(values.map(({ where }) => map(where[key], el => `${el}`)).flat()));
-            const whereShape = model.getShape('create', 'where');
             const batchQuery = new Query({ resolver, model, method: 'findMany', crud: 'read' });
             const batchWhere = model.shapeObject(whereShape, { [key]: keys }, batchQuery); // This will add back instructs etc
 
-            console.log(`${model}`, key, keys.length);
-
             return driver.resolve(batchQuery.where(batchWhere).toDriver()).then(data => handleData(data, model, batchQuery)).then((results) => {
               return values.map(({ where, cmd, i }) => {
-                const data = ensureArray(where[key]).map(k => results.find(r => `${r[key]}` === `${k}`) || null);
+                const data = ensureArray(where[key]).map(k => results.filter(r => `${r[key]}` === `${k}`) || null).flat();
                 return { i, data: cmd === 'many' ? data.filter(d => d != null) : data[0] };
               });
             });
@@ -48,10 +66,6 @@ module.exports = class DataLoader extends FBDataLoader {
       }).flat()).then((results) => {
         return results.flat().sort((a, b) => a.i - b.i).map(({ data }) => data);
       });
-
-      // return Promise.all(queries.map((query) => {
-      //   return driver.resolve(query.toDriver()).then(data => handleData(data, model, query));
-      // }));
     }, {
       cache: true,
       cacheKeyFn: query => hashObject(query.getCacheKey()),

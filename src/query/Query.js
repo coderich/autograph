@@ -22,13 +22,13 @@ module.exports = class Query {
   id(id) {
     this.propCheck('id', 'where', 'native', 'sort', 'skip', 'limit', 'before', 'after', 'first', 'last');
     this.props.id = id;
-    this.props.identity = 'id';
+    this.props.batch = 'id';
     this.props.where = { id };
     return this.match({ id });
   }
 
-  identity(identity) {
-    this.props.identity = identity;
+  batch(batch) {
+    this.props.batch = batch;
     return this;
   }
 
