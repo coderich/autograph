@@ -160,6 +160,7 @@ describe('AppService', () => {
         { name: 'section1' },
         { name: 'section2', hint: 'two' },
         { name: 'section3', hint: 'three' },
+        { name: 'section3', sections: [{ id: 1, name: 'a' }, { id: 2, name: 'b' }, { id: 3, name: 'c' }] },
       ],
     };
     expect(get(obj.sections, ['0', 'name'])).toBe('section1');
@@ -169,5 +170,7 @@ describe('AppService', () => {
     expect(AppService.seek(obj, 'sections.name', { name: 'section1' })).toBe('section1');
     expect(AppService.seek(obj, 'sections.name', { name: 'section2' })).toBe('section2');
     expect(AppService.seek(obj, 'sections.name', { hint: 'three' })).toBe('section3');
+    expect(AppService.seek(obj, 'sections.sections.name', { id: 2 })).toBe('b');
+    expect(AppService.seek(obj, 'sections.sections.name', { id: '2' })).toBe('b');
   });
 });

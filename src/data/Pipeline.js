@@ -75,14 +75,17 @@ module.exports = class Pipeline {
       if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw Boom.badRequest(`${model}.${field} is immutable; cannot be changed once set ${oldVal} -> ${value}`);
     });
 
+    // List of allowed values
     Pipeline.factory('allow', (...args) => ({ model, field, value }) => {
       if (args.indexOf(value) === -1) throw Boom.badRequest(`${model}.${field} allows ${args}; found '${value}'`);
     });
 
+    // List of disallowed values
     Pipeline.factory('deny', (...args) => ({ model, field, value }) => {
       if (args.indexOf(value) > -1) throw Boom.badRequest(`${model}.${field} denys ${args}; found '${value}'`);
     });
 
+    // Min/Max range
     Pipeline.factory('range', (min, max) => {
       if (min == null) min = undefined;
       if (max == null) max = undefined;

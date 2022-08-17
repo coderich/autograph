@@ -281,25 +281,46 @@ exports.seek = (obj, paths, hint) => {
   const value = _.get(obj, paths);
   if (!hint || value !== undefined) return value;
 
-  // Normalize paths for traversal
-  paths = Array.isArray(paths) ? paths : paths.split('.');
+  // Normalize paths & hint for traversal
+  const $paths = Array.isArray(paths) ? paths : paths.split('.');
+  const $hint = exports.unravelObject(hint);
 
   // Traverse paths and get as close to the value as possible
-  const { currentValue, pathsToGo } = paths.reduce((prev, path, i, arr) => {
+  const { currentValue, pathsToGo } = $paths.reduce((prev, path, i, arr) => {
     if (prev.currentValue === undefined) return prev;
     if (!Object.prototype.hasOwnProperty.call(prev.currentValue, path)) return prev;
     prev.currentValue = prev.currentValue[path];
     prev.pathsToGo = arr.slice(i + 1);
     return prev;
-  }, { currentValue: obj, pathsToGo: paths });
+  }, { currentValue: obj, pathsToGo: $paths });
 
   // Only if we hit an array can we continue
   if (!Array.isArray(currentValue)) return undefined;
 
   // If we got to the last segment we need the hint in order to verify
   const lastPath = Boolean(pathsToGo.length === 1);
-  const arr = lastPath ? currentValue.filter(v => exports.objectContaining(v, hint)) : currentValue;
+  const arr = lastPath ? currentValue.filter(v => exports.objectContaining(v, $hint)) : currentValue;
 
   // We keep going, recursive, till we find the first value
-  return arr.reduce((prev, v) => prev || exports.seek(v, pathsToGo, hint), undefined);
+  return arr.reduce((prev, v) => prev || exports.seek(v, pathsToGo, $hint), undefined);
+};
+
+exports.deseek = (shape, obj, paths, hint) => {
+  // Normalize paths
+  const $paths = (Array.isArray(paths) ? paths : paths.split('.')).map((path) => {
+    const item = shape.find(s => s.to === path); // Deserializing from unknown to expected
+    return item ? item.from : path;
+  });
+
+  // Normalize hint
+  const $hint = Object.entries(exports.toKeyObj(hint)).reduce((prev, [key, value]) => {
+    const segments = key.split('.').map((path) => {
+      const item = shape.find(s => s.to === path); // Deserializing from unknown to expected
+      return item ? item.from : path;
+    });
+
+    return Object.assign(prev, { [segments.join('.')]: value });
+  }, {});
+
+  return exports.seek(obj, $paths, $hint);
 };
