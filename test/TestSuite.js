@@ -171,7 +171,7 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
 
       test('Art', async () => {
-        artsy = await resolver.match('Art').save({ name: 'My Find Art', sections: [{ name: 'Section1' }] });
+        artsy = await resolver.match('Art').save({ name: 'My Find Art', sections: [{ name: 'Section1', person: richard.id }] });
         expect(artsy.id).toBeDefined();
         expect(artsy.sections).toMatchObject([{ id: expect.anything(), name: 'section1', frozen: 'frozen', createdAt: expect.anything(), updatedAt: expect.anything() }]);
       });
@@ -542,6 +542,13 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Book').where({ chapters: { pages: { number: 2 } } }).many()).toMatchObject([{ id: healthBook.id }]);
         expect(await resolver.match('Book').where({ chapters: [{ name: 'HongKong' }, chapter1.id] }).many()).toMatchObject([{ id: healthBook.id }]);
       });
+
+      test('Art', async () => {
+        expect(await resolver.match('Art').where({ 'sections.name': 'section1' }).one()).toMatchObject({ name: 'My Find Art' });
+        expect(await resolver.match('Art').where({ 'sections.name': 'section1' }).many()).toMatchObject([{ name: 'My Find Art' }]);
+        // expect(await resolver.match('Art').where({ 'sections.person.name': 'rich*' }).many()).toMatchObject([{ name: 'My Find Art' }]);
+        // expect(await resolver.match('Art').where({ 'sections.person.name': 'who' }).many()).toMatchObject([]);
+      });
     });
 
 
@@ -894,6 +901,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         await expect(resolver.match('Person').where({ age: 400 }).many({ required: true })).rejects.toThrow(/not found/gi);
       });
     });
+
 
     describe('Case [In]sensitive Sort', () => {
       test('get', async () => {

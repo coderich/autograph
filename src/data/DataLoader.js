@@ -58,7 +58,7 @@ module.exports = class DataLoader extends FBDataLoader {
             const batchWhere = model.shapeObject(whereShape, { [key]: keys }, batchQuery); // This will add back instructs etc
 
             return driver.resolve(batchQuery.where(batchWhere).toDriver()).then(data => handleData(data, model, batchQuery)).then((results) => {
-              // One time data transformation on results to make matching back faster (below)
+              // One-time data transformation on results to make matching back faster (below)
               const resultsByKey = results.reduce((prev, row) => {
                 ensureArray(row[key]).forEach((id) => {
                   prev[id] = prev[id] || [];

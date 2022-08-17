@@ -1,50 +1,25 @@
 const { get, set, uniq, flattenDeep } = require('lodash');
-const { map, keyPaths, ensureArray, isPlainObject } = require('../service/app.service');
-
-const resolveEmbeddedWhere = (ref, key, value) => {
-  const resolved = ensureArray(map(value, (obj) => {
-    return Object.entries(obj).reduce((p, [k, v]) => {
-      const f = ref.getFieldByName(k);
-
-      if (k === 'id') return Object.assign(p, { [k]: ref.idValue(v) });
-      if (f.isScalar()) return Object.assign(p, { [k]: v });
-      if (f.isEmbedded()) return Object.assign(p, { [k]: resolveEmbeddedWhere(f.getModelRef(), k, v) });
-      return Object.assign(p, { [k]: v });
-    }, {});
-  }));
-
-  return resolved.length > 1 ? resolved : resolved[0];
-};
+const { keyPaths, ensureArray, isPlainObject } = require('../service/app.service');
 
 exports.resolveWhereClause = (query) => {
   const { resolver, model, match: where = {}, flags = {} } = query.toObject();
+  const shape = model.getShape('create', 'where');
 
-  // This is needed for where clause (but why!?!)
-  if (where.id) where.id = map(where.id, v => model.idValue(v));
+  const $where = Object.entries(where).reduce((prev, [from, value]) => {
+    const { field } = shape.find(s => s.from === from);
+    const { isVirtual, isEmbedded, modelRef, virtualRef } = field.toObject();
 
-  // Construct
-  const $where = Object.entries(where).reduce((prev, [key, value]) => {
-    const field = model.getField(key);
-    if (!field) return prev;
-    const modelRef = field.getModelRef();
-
-    if (field.isVirtual()) {
-      const virtualRef = field.getVirtualRef();
+    if (isVirtual) {
       const ids = Promise.all(ensureArray(value).map(v => resolver.match(modelRef).where(isPlainObject(v) ? v : { id: v }).many(flags).then(docs => docs.map(doc => doc[virtualRef])))).then(results => uniq(flattenDeep(results)));
       return Object.assign(prev, { id: ids });
     }
 
-    if (modelRef && !field.isEmbedded()) {
+    if (modelRef && !isEmbedded) {
       const ids = Promise.all(ensureArray(value).map(v => (isPlainObject(v) ? resolver.match(modelRef).where(v).many(flags).then(docs => docs.map(doc => doc.id)) : Promise.resolve(v)))).then(results => uniq(flattenDeep(results)));
-      return Object.assign(prev, { [key]: ids });
+      return Object.assign(prev, { [from]: ids });
     }
 
-    // You do not have a unit-test that tests this (BUT ITS NEEDED)
-    if (field.isEmbedded()) {
-      return Object.assign(prev, { [key]: resolveEmbeddedWhere(modelRef, key, value) });
-    }
-
-    return Object.assign(prev, { [key]: value });
+    return Object.assign(prev, { [from]: value });
   }, {});
 
   // Resolve
@@ -130,11 +105,11 @@ exports.resolveReferentialIntegrity = (query) => {
 };
 
 exports.resolveQuery = async (query) => {
-  const { model, sort, native } = query.toObject();
+  const { model, sort, native, batch, match } = query.toObject();
 
   if (!native) {
     const shape = model.getShape('create', 'where');
-    const $where = await exports.resolveWhereClause(query);
+    const $where = batch ? match : await exports.resolveWhereClause(query);
     const $$where = model.shapeObject(shape, $where, query);
     query.match($$where);
   }

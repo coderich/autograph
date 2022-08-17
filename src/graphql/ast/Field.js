@@ -185,6 +185,7 @@ module.exports = class Field extends Node {
       isPrimaryKeyId: this.isPrimaryKeyId(),
       isPersistable: this.isPersistable(),
       modelRef: this.getModelRef(),
+      virtualRef: this.getVirtualRef(),
       virtualField: this.getVirtualField(),
     };
 
