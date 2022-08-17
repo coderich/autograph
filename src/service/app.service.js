@@ -95,7 +95,8 @@ exports.map = (mixed, fn) => {
   if (mixed == null) return mixed;
   const isArray = Array.isArray(mixed);
   const arr = isArray ? mixed : [mixed];
-  const results = arr.map((...args) => fn(...args));
+  // const results = arr.map((...args) => fn(...args));
+  const results = arr.map((el, i, a) => fn(el, isArray ? i : undefined, isArray ? a : undefined));
   return isArray ? results : results[0];
 };
 
@@ -273,4 +274,32 @@ exports.resolveDataObject = (obj) => {
       return Object.assign(prev, { [key]: value });
     }, {});
   });
+};
+
+exports.seek = (obj, paths, hint) => {
+  // We first do a normal get
+  const value = _.get(obj, paths);
+  if (!hint || value !== undefined) return value;
+
+  // Normalize paths for traversal
+  paths = Array.isArray(paths) ? paths : paths.split('.');
+
+  // Traverse paths and get as close to the value as possible
+  const { currentValue, pathsToGo } = paths.reduce((prev, path, i, arr) => {
+    if (prev.currentValue === undefined) return prev;
+    if (!Object.prototype.hasOwnProperty.call(prev.currentValue, path)) return prev;
+    prev.currentValue = prev.currentValue[path];
+    prev.pathsToGo = arr.slice(i + 1);
+    return prev;
+  }, { currentValue: obj, pathsToGo: paths });
+
+  // Only if we hit an array can we continue
+  if (!Array.isArray(currentValue)) return undefined;
+
+  // If we got to the last segment we need the hint in order to verify
+  const lastPath = Boolean(pathsToGo.length === 1);
+  const arr = lastPath ? currentValue.filter(v => exports.objectContaining(v, hint)) : currentValue;
+
+  // We keep going, recursive, till we find the first value
+  return arr.reduce((prev, v) => prev || exports.seek(v, pathsToGo, hint), undefined);
 };

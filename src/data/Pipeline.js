@@ -18,8 +18,8 @@ module.exports = class Pipeline {
       if (ignoreNull && args.value == null) return args.value;
 
       if (ignoreNull && itemize) {
-        return map(args.value, (val) => {
-          const v = factory({ ...args, value: val });
+        return map(args.value, (val, index) => {
+          const v = factory({ ...args, value: val, index });
           return v === undefined ? val : v;
         });
       }
@@ -69,9 +69,10 @@ module.exports = class Pipeline {
     });
 
     // Once set it cannot be changed
-    Pipeline.define('immutable', ({ model, field, docPath, path, value }) => {
-      const oldVal = docPath(path);
-      if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw Boom.badRequest(`${model}.${field} is immutable; cannot be changed once set`);
+    Pipeline.define('immutable', ({ model, field, docPath, parentPath, path, value }) => {
+      const hint = { id: parentPath('id') };
+      const oldVal = docPath(path, hint);
+      if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw Boom.badRequest(`${model}.${field} is immutable; cannot be changed once set ${oldVal} -> ${value}`);
     });
 
     Pipeline.factory('allow', (...args) => ({ model, field, value }) => {

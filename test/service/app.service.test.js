@@ -1,3 +1,4 @@
+const { get } = require('lodash');
 const { ObjectID } = require('mongodb');
 const AppService = require('../../src/service/app.service');
 
@@ -150,5 +151,23 @@ describe('AppService', () => {
     expect(AppService.getGQLReturnType('aFloat')).toBe('scalar');
     expect(AppService.getGQLReturnType('Connection')).toBe('scalar');
     expect(AppService.getGQLReturnType('Connectionn')).toBe('scalar');
+  });
+
+  test('seek', () => {
+    const obj = {
+      name: 'richard',
+      sections: [
+        { name: 'section1' },
+        { name: 'section2', hint: 'two' },
+        { name: 'section3', hint: 'three' },
+      ],
+    };
+    expect(get(obj.sections, ['0', 'name'])).toBe('section1');
+    expect(AppService.seek(obj, 'name')).toBe('richard');
+    expect(AppService.seek(obj, ['name'])).toBe('richard');
+    expect(AppService.seek(obj, 'sections.name')).toBeUndefined();
+    expect(AppService.seek(obj, 'sections.name', { name: 'section1' })).toBe('section1');
+    expect(AppService.seek(obj, 'sections.name', { name: 'section2' })).toBe('section2');
+    expect(AppService.seek(obj, 'sections.name', { hint: 'three' })).toBe('section3');
   });
 });

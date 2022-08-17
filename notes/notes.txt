@@ -1,7 +1,4 @@
 Release 0.10.1:
-  * immutable does not even work past the top-level attribute!!!
-    - "immutable" is part of this "validation" process (not the pipeline)???
-
   * Resolver.toResultSet() => How to hydrate results from the outside world?
     - resolver.match('NetworkPlace', { validate: false, silent: true, debug: true, shape: true, required: true }).toResult(data)
     - resolver.raw('NetworkPlace', { shape: true });

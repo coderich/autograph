@@ -3,7 +3,7 @@ const Stream = require('stream');
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
 const { eventEmitter } = require('../service/event.service');
-const { map, castCmp, ensureArray } = require('../service/app.service');
+const { map, seek, castCmp, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Model {
   constructor(schema, model, driver) {
@@ -123,15 +123,15 @@ module.exports = class extends Model {
   shapeObject(shape, obj, query, root) {
     const { serdes, model } = shape;
     const { context, doc = {} } = query.toObject();
-    const docPath = p => get(doc, p);
+    const docPath = (p, hint) => seek(doc, p, hint);
 
     return map(obj, (parent) => {
       root = root || parent;
-      const rootPath = serdes === 'serialize' ? p => get(root, p) : {};
-      const parentPath = serdes === 'serialize' ? p => get(parent, p) : {};
 
       return shape.reduce((prev, { field, from, to, path, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
         const startValue = parent[from];
+        const rootPath = serdes === 'serialize' ? (p, hint) => seek(root, p, hint) : {};
+        const parentPath = serdes === 'serialize' ? (p, hint) => seek(parent, p, hint) : {};
 
         // Transform value
         const transformedValue = transformers.reduce((value, t) => {
