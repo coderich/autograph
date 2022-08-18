@@ -1,10 +1,6 @@
 Release 0.10.1:
   * Ability to create/use a custom dataloader (wait times API)
-  * Would be nice to query in mode where none of the @value/instruct stuff is used (migration scripts etc)
-  * Finalize flags() vs options() - possibly use resolver.match(model, flags)
   * Resolver.toResultSet() => How to hydrate results from the outside world?
-    - resolver.match('NetworkPlace', { validate: false, silent: true, debug: true, shape: true, required: true }).toResult(data)
-    - resolver.raw('NetworkPlace', { shape: true });
   * Model.validate needs a look -> Rule.ensureId()
 
 Release 0.10.2:

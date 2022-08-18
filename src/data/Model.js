@@ -2,6 +2,7 @@ const { get } = require('lodash');
 const Stream = require('stream');
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
+const { paginateResultSet } = require('./DataService');
 const { eventEmitter } = require('../service/event.service');
 const { map, seek, deseek, castCmp, ensureArray } = require('../service/app.service');
 
@@ -48,8 +49,10 @@ module.exports = class extends Model {
   }
 
   validate(query, data) {
-    const { flags } = query.toObject();
-    if (get(flags, 'novalidate')) return Promise.resolve();
+    const { flags = {} } = query.toObject();
+    const { validate = true } = flags;
+
+    if (!validate) return Promise.resolve();
 
     return Promise.all(this.getFields().map((field) => {
       return Promise.all(ensureArray(map(data, (obj) => {
@@ -62,20 +65,24 @@ module.exports = class extends Model {
   }
 
   /**
-   * Convenience method to deserialize data from a data source (such as a database)
+   * Convenience method to hydrate data from a data source (such as a database)
    */
-  deserialize(mixed, query) {
+  hydrate(mixed, query) {
+    const { flags = {} } = query.toObject();
+    const { transform = true } = flags;
     const shape = this.getShape();
 
-    // If we're not a stream we return the shape
-    if (!(mixed instanceof Stream)) return Promise.resolve(this.shapeObject(shape, mixed, query));
-
-    // Stream API
-    const results = [];
     return new Promise((resolve, reject) => {
-      mixed.on('data', (data) => { results.push(this.shapeObject(shape, data, query)); });
-      mixed.on('end', () => { resolve(results); });
-      mixed.on('error', reject);
+      if (!(mixed instanceof Stream)) {
+        resolve(transform ? this.shapeObject(shape, mixed, query) : mixed);
+      } else {
+        const results = [];
+        mixed.on('data', (data) => { results.push(transform ? this.shapeObject(shape, data, query) : data); });
+        mixed.on('end', () => { resolve(results); });
+        mixed.on('error', reject);
+      }
+    }).then((results) => {
+      return results.length && transform ? paginateResultSet(results, query) : results;
     });
   }
 

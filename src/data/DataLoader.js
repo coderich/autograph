@@ -1,13 +1,10 @@
 const FBDataLoader = require('dataloader');
-const { paginateResultSet } = require('./DataService');
 const { map, ensureArray, hashObject } = require('../service/app.service');
 const Query = require('../query/Query');
 
 const handleData = (data, model, query) => {
-  if (data == null || typeof data !== 'object') return data; // We only deserialize objects
-  return model.deserialize(data, query).then((results) => {
-    return results.length ? paginateResultSet(results, query) : results;
-  });
+  if (data == null || typeof data !== 'object') return data;
+  return model.hydrate(data, query);
 };
 
 module.exports = class DataLoader extends FBDataLoader {
