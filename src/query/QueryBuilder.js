@@ -57,42 +57,43 @@ module.exports = class QueryBuilder {
   }
 
   execute(cmd, args) {
-    let method, crud, input = {};
-    let { flags = {} } = this.query.toObject();
+    let method, crud, input, flags = {};
     const { id, where } = this.query.toObject();
 
     switch (cmd) {
-      case 'one': case 'many': {
-        crud = 'read';
-        flags = args[0] || flags;
-        method = cmd === 'one' ? 'findOne' : 'findMany';
-        break;
-      }
       case 'resolve': {
         crud = 'read';
         method = 'autoResolve';
         break;
       }
+      case 'one': case 'many': {
+        crud = 'read';
+        [flags] = args;
+        method = cmd === 'one' ? 'findOne' : 'findMany';
+        break;
+      }
       case 'first': case 'last': {
         crud = 'read';
-        flags = args[1] || flags;
+        [, flags] = args;
         method = cmd;
         break;
       }
       case 'save': {
+        [input, flags] = args;
         crud = id || where ? 'update' : 'create';
-        if (crud === 'update') { method = id ? 'updateOne' : 'updateMany'; [input] = args; }
-        if (crud === 'create') { method = args.length < 2 ? 'createOne' : 'createMany'; input = args.length < 2 ? args[0] || {} : args; }
+        if (crud === 'update') { method = id ? 'updateOne' : 'updateMany'; }
+        if (crud === 'create') { method = Array.isArray(input) ? 'createMany' : 'createOne'; }
         break;
       }
       case 'push': case 'pull': case 'splice': {
+        // [target, input, flags] = args;
         crud = 'update'; // Your logic wants this to be a simple "update". Sub documents systemEvents will emit either "create" or "udpate"
         method = id ? `${cmd}One` : `${cmd}Many`;
         break;
       }
       case 'remove': case 'delete': {
         crud = 'delete';
-        flags = args[0] || flags;
+        [flags] = args;
         if (id) method = 'deleteOne';
         else if (where) method = 'deleteMany';
         else return Promise.reject(new Error('Remove requires an id() or where()'));
@@ -100,7 +101,7 @@ module.exports = class QueryBuilder {
       }
       case 'count': {
         crud = 'read';
-        flags = args[0] || flags;
+        [flags] = args;
         method = 'count';
         break;
       }

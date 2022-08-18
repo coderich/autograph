@@ -1,8 +1,10 @@
 Release 0.10.1:
+  * Ability to create/use a custom dataloader (wait times API)
+  * Would be nice to query in mode where none of the @value/instruct stuff is used (migration scripts etc)
+  * Finalize flags() vs options() - possibly use resolver.match(model, flags)
   * Resolver.toResultSet() => How to hydrate results from the outside world?
     - resolver.match('NetworkPlace', { validate: false, silent: true, debug: true, shape: true, required: true }).toResult(data)
     - resolver.raw('NetworkPlace', { shape: true });
-
   * Model.validate needs a look -> Rule.ensureId()
 
 Release 0.10.2:
@@ -35,17 +37,15 @@ Release 0.10.2:
   * Revisit SystemEvent args
   * It's unclear if where clause needs
     - "castValue" Transformation
-    - QueryService.resolveWhereClause -> if (where.id) where.id = map(where.id, v => model.idValue(v));
-    - Write a test that shows if any of these are needed
+  * Do you need proxyDeep?
 
   ** Fields with alias (keys) as the same name as other fields do not save properly eg:
       DataPackage.network: Network @field(key: "networkId") # Collides with networkId field
       DataPackage.networkId: ID # Legacy attribute so it's still needed
 
 Next Release:
-  * Would be nice to query in mode where none of the @value stuff is used (migration scripts etc)
+  ? Possibly rename input type to end with Input (eg. CreatePersonInput)
   * Allow input to be data model (not just graphql schema)
-  * Finalize flags() vs options() - possibly use resolver.match(model, flags)
   * Deep sort (akin to where clause resolution?)
     - You are currently thwarted since key order is not preserved...
     - https://github.com/apollographql/apollo-server/issues/1564
@@ -54,21 +54,13 @@ Bugs:
   * Nested embedded object in array cannot delete without doing an explicit $pull operation (race condition)
     - Drivers need concept of push and pull
   * MongoDB cannot-create-namespace-in-multi-document-transaction (collection must first be defined)
-  * Embedded documents get their updatedBy field changed even when they don't change
 
-Next:
-  * Incorporate Logger
-  * Neo4j does not know how to generate ids
-    - ID Value Strategy (MongoID, String, etc)
-  * I don't think you have "distinct" and "noRepeat" figured out and implemented (you can move noRepeat to enforce)
-  ? Possibly rename input type to end with Input (eg. CreatePersonInput)
 
 Enhancements:
   * Create person with books at the same time
   * Add 'filterBy' as an option for post query filtering (this can alleviate the depth-first where clause problem)
   * Concept of "incomplete" and "what's missing" as part of data retrieval
   * Get a list of references that would be onDelete affected
-  * Composite Rule Definitions?
 
 Todo:
   * MeteorUser _id is a String (not ID). How to handle?
@@ -81,10 +73,8 @@ Todo:
   * Embedded documents (outside of Mongo) do not work!
     - How to handle join-table in SQL?
     - How to create index on embedded objects? building.type unique?
-
-Ideas:
-  * If the Query holds all the information you can move logic to it (eg. Query.validate())
-  * Can you use semver over glob in some areas?
+  * Neo4j does not know how to generate ids
+    - ID Value Strategy (MongoID, String, etc)
 
 Figure out:
   * createdBy? (Audit trail)
@@ -115,26 +105,3 @@ Refs:
   * https://www.freecodecamp.org/news/node-js-streams-everything-you-need-to-know-c9141306be93/
   * https://www.smashingmagazine.com/2012/11/writing-fast-memory-efficient-javascript/
 
-db.getCollection('network_place').aggregate([
-  {
-    $facet: {
-      docs: [
-        {
-          $addFields: {
-            dataId: { $toString: '$dataId' },
-          }
-        },
-        {
-          $match: { dataType: "site" },
-        },
-      ],
-      count: [
-        { $match: { dataType: "site" } },
-        { $count: 'count' }
-      ],
-      totalCount: [
-        { $count: 'totalCount' }
-      ]
-    }
-  }
-]);

@@ -681,7 +681,7 @@ module.exports = (driver = 'mongo', options = {}) => {
 
       test('multi-push-pull', async () => {
         // push
-        await resolver.match('Art').save({ name: 'Art1' }, { name: 'Art2' });
+        await resolver.match('Art').save([{ name: 'Art1' }, { name: 'Art2' }]);
         await resolver.match('Art').where({}).push('bids', 69.99, '109.99');
         expect(await resolver.match('Art').many()).toMatchObject([{ bids: [69.99, 109.99] }, { bids: [69.99, 109.99] }]);
 
@@ -744,8 +744,8 @@ module.exports = (driver = 'mongo', options = {}) => {
         test('multi-txn (duplicate key with rollback)', async () => {
           const txn1 = resolver.transaction();
           const txn2 = resolver.transaction();
-          txn1.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
-          txn2.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
+          txn1.match('Person').save([{ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' }]);
+          txn2.match('Person').save([{ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' }]);
 
           await txn1.exec().then((results) => {
             const [[person1, person2]] = results;
@@ -767,8 +767,8 @@ module.exports = (driver = 'mongo', options = {}) => {
         test('multi-txn (duplicate key with commit)', async () => {
           const txn1 = resolver.transaction();
           const txn2 = resolver.transaction();
-          txn1.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
-          txn2.match('Person').save({ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' });
+          txn1.match('Person').save([{ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' }]);
+          txn2.match('Person').save([{ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' }]);
 
           txn1.exec().then((results) => {
             const [[person1, person2]] = results;
@@ -797,7 +797,7 @@ module.exports = (driver = 'mongo', options = {}) => {
 
       test('remove multi', async () => {
         // Create some colors
-        const colors = await resolver.match('Color').save({ type: 'blue' }, { type: 'red' }, { type: 'green' }, { type: 'purple' });
+        const colors = await resolver.match('Color').save([{ type: 'blue' }, { type: 'red' }, { type: 'green' }, { type: 'purple' }]);
         expect(colors.length).toBe(4);
 
         // Remove some colors

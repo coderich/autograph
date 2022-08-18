@@ -22,9 +22,8 @@ module.exports = class Resolver {
   /**
    * Creates and returns a QueryBuilder for a given model
    */
-  match(model, opts = {}) {
-    const flags = Object.assign({ validate: true, silent: false, debug: false, shape: true, required: false }, opts);
-    return new QueryBuilder(this, this.toModelEntity(model)).flags(flags);
+  match(model) {
+    return new QueryBuilder(this, this.toModelEntity(model));
   }
 
   /**

@@ -12,22 +12,6 @@ module.exports = class QueryResolver {
     this.context = this.resolver.getContext();
   }
 
-  async findOne(query) {
-    await QueryService.resolveQuery(query);
-
-    return createSystemEvent('Query', { query }, () => {
-      return this.resolver.resolve(query);
-    });
-  }
-
-  async findMany(query) {
-    await QueryService.resolveQuery(query);
-
-    return createSystemEvent('Query', { query }, () => {
-      return this.resolver.resolve(query);
-    });
-  }
-
   autoResolve(query) {
     const { args } = query.toObject();
     const [,,, info] = args;
@@ -50,6 +34,22 @@ module.exports = class QueryResolver {
         return new QueryResolver(this.query.clone().method('findOne')).resolve();
       }
     }
+  }
+
+  async findOne(query) {
+    await QueryService.resolveQuery(query);
+
+    return createSystemEvent('Query', { query }, () => {
+      return this.resolver.resolve(query);
+    });
+  }
+
+  async findMany(query) {
+    await QueryService.resolveQuery(query);
+
+    return createSystemEvent('Query', { query }, () => {
+      return this.resolver.resolve(query);
+    });
   }
 
   async count(query) {
@@ -76,9 +76,9 @@ module.exports = class QueryResolver {
   }
 
   createMany(query) {
-    const { model, args, transaction } = query.toObject();
+    const { model, input, transaction } = query.toObject();
     const txn = this.resolver.transaction(transaction);
-    args.forEach(arg => txn.match(model).save(arg));
+    input.forEach(arg => txn.match(model).save(arg));
     return txn.run();
   }
 
@@ -100,11 +100,11 @@ module.exports = class QueryResolver {
   }
 
   updateMany(query) {
-    const { model, args, match, transaction, flags } = query.toObject();
+    const { model, input, match, transaction, flags } = query.toObject();
 
-    return this.resolver.match(model).match(match).flags(flags).many().then((docs) => {
+    return this.resolver.match(model).match(match).many(flags).then((docs) => {
       const txn = this.resolver.transaction(transaction);
-      docs.forEach(doc => txn.match(model).id(doc.id).save(...args));
+      docs.forEach(doc => txn.match(model).id(doc.id).save(input, flags));
       return txn.run();
     });
   }
@@ -227,7 +227,7 @@ module.exports = class QueryResolver {
     // if (resolveQueryMethods.indexOf(method) > -1) await QueryService.resolveQuery(this.query);
 
     return this[method](this.query).then((data) => {
-      if (flags.required && (data == null || isEmpty(data))) throw Boom.notFound(`${model} Not Found`);
+      if (flags.required && isEmpty(data)) throw Boom.notFound(`${model} Not Found`);
       if (data == null) return null; // Explicitly return null here
       return data;
     });

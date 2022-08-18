@@ -4,12 +4,12 @@ module.exports = class Query {
   constructor(props = {}) {
     this.props = {};
     this.timers = {};
-    this.props.flags = this.props.flags || {};
+    this.isCursorPaging = false;
+    this.isClassicPaging = false;
     this.props.joins = this.props.joins || [];
     this.props.match = this.props.match || {};
     this.props.options = this.props.options || {};
-    this.isClassicPaging = false;
-    this.isCursorPaging = false;
+    this.props.flags = this.props.flags || { validate: true, silent: false, debug: false, shape: true, required: false };
     this.merge(props);
   }
 
