@@ -39,6 +39,11 @@ Release 0.10.2:
       DataPackage.network: Network @field(key: "networkId") # Collides with networkId field
       DataPackage.networkId: ID # Legacy attribute so it's still needed
 
+  ** Need plugin system
+    - Pipeline utilities (validEmail, etc)
+    - Validation libraries (JOI)
+    - Database Drivers (Mongo, Postgres, Neo4J)
+
 Next Release:
   ? Possibly rename input type to end with Input (eg. CreatePersonInput)
   * Allow input to be data model (not just graphql schema)

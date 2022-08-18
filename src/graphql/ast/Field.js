@@ -176,6 +176,8 @@ module.exports = class Field extends Node {
   initialize() {
     this.props = {
       name: this.getName(),
+      type: this.getType(),
+      datatype: this.getDataType(),
       isArray: this.isArray(),
       isScalar: this.isScalar(),
       isVirtual: this.isVirtual(),

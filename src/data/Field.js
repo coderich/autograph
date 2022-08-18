@@ -1,7 +1,7 @@
 const { isEmpty } = require('lodash');
 const Type = require('./Type');
 const Field = require('../graphql/ast/Field');
-const Rule = require('../core/Rule');
+const Boom = require('../core/Boom');
 const Pipeline = require('./Pipeline');
 const { isPlainObject, ensureArray } = require('../service/app.service');
 
@@ -40,18 +40,14 @@ module.exports = class extends Field {
     return $structures;
   }
 
-  validate(query, value) {
-    const rules = [];
-    const { modelRef, isEmbedded } = this.props;
-
-    if (modelRef && !isEmbedded) rules.push(Rule.ensureId());
-
-    return Promise.all(rules.map((rule) => {
-      return rule(this, value, query);
-    })).then((res) => {
-      if (modelRef && isPlainObject(ensureArray(value)[0])) return modelRef.validate(query, value); // Model delegation
-      return res;
-    });
+  async validate(query, value) {
+    if (value == null) return value;
+    const { resolver } = query.toObject();
+    const { type, modelRef, isEmbedded } = this.props;
+    const ids = Array.from(new Set(ensureArray(value).map(v => `${v}`)));
+    if (modelRef && !isEmbedded) await resolver.match(type).where({ id: ids }).count().then((count) => { if (count !== ids.length) throw Boom.notFound(`${modelRef} Not Found`); });
+    if (modelRef && isPlainObject(ensureArray(value)[0])) return modelRef.validate(query, value); // Model delegation
+    return value;
   }
 
   resolve(resolver, doc, args = {}) {

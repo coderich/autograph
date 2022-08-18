@@ -398,8 +398,8 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('Person', async () => {
         await expect(resolver.match('Person').save()).rejects.toThrow(/required/gi); // Should this really throw? New refactor code creates new object and I'm OK with that....
         await expect(resolver.match('Person').save({ name: 'Richard' })).rejects.toThrow(/required/gi);
-        await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: ['nobody'] })).rejects.toThrow(/ensureId/gi);
-        await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: [richard.id, 'nobody'] })).rejects.toThrow(/ensureId/gi);
+        await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: ['nobody'] })).rejects.toThrow(/not found/gi);
+        await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguy@gmail.com', friends: [richard.id, 'nobody'] })).rejects.toThrow(/not found/gi);
         await expect(resolver.match('Person').save({ name: 'NewGuy', emailAddress: 'newguygmail.com' })).rejects.toThrow(/email/gi);
         await expect(resolver.match('Person').id(richard.id).save({ name: 'Christie' })).rejects.toThrow(/duplicate/gi);
         await expect(resolver.match('Person').id(richard.id).save({ name: 'christie' })).rejects.toThrow(/duplicate/gi);
@@ -411,8 +411,8 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('Book', async () => {
         await expect(resolver.match('Book').save()).rejects.toThrow();
         await expect(resolver.match('Book').save({ name: 'The Bible', price: 1.99, author: richard.id })).rejects.toThrow(/deny/gi);
-        await expect(resolver.match('Book').save({ name: 'No Moby', price: 1.99, author: 'Moses' })).rejects.toThrow(/ensureId/gi);
-        await expect(resolver.match('Book').save({ name: 'No Moby', price: 1.99, author: mobyDick.id })).rejects.toThrow(/ensureId/gi);
+        await expect(resolver.match('Book').save({ name: 'No Moby', price: 1.99, author: 'Moses' })).rejects.toThrow(/not found/gi);
+        await expect(resolver.match('Book').save({ name: 'No Moby', price: 1.99, author: mobyDick.id })).rejects.toThrow(/not found/gi);
         await expect(resolver.match('Book').save({ name: 'The Bible', price: 1.99, author: [christie.id] })).rejects.toThrow(/deny/gi);
         await expect(resolver.match('Book').save({ name: 'the bible', price: 1.99, author: christie.id })).rejects.toThrow(/deny/gi);
         await expect(resolver.match('Book').save({ name: 'Great Book', price: -1, author: christie.id })).rejects.toThrow(/range/gi);
@@ -432,7 +432,7 @@ module.exports = (driver = 'mongo', options = {}) => {
         switch (driver) {
           case 'mongo': {
             await expect(resolver.match('Chapter').save({ name: 'chapter1', book: healthBook.id })).rejects.toThrow(/duplicate/gi);
-            await expect(resolver.match('Chapter').save({ name: 'chapter3', book: christie.id })).rejects.toThrow(/ensureId/gi);
+            await expect(resolver.match('Chapter').save({ name: 'chapter3', book: christie.id })).rejects.toThrow(/not found/gi);
             break;
           }
           default: break;
@@ -448,7 +448,7 @@ module.exports = (driver = 'mongo', options = {}) => {
           case 'mongo': {
             await expect(resolver.match('Page').save({ number: 1, chapter: chapter1 })).rejects.toThrow(/duplicate/gi);
             await expect(resolver.match('Page').save({ number: 1, chapter: chapter1.id })).rejects.toThrow(/duplicate/gi);
-            await expect(resolver.match('Page').save({ number: 1, chapter: page4.id })).rejects.toThrow(/ensureId/gi);
+            await expect(resolver.match('Page').save({ number: 1, chapter: page4.id })).rejects.toThrow(/not found/gi);
             await expect(resolver.match('Page').id(page1.id).save({ number: 2 })).rejects.toThrow(/duplicate/gi);
             break;
           }
@@ -462,9 +462,9 @@ module.exports = (driver = 'mongo', options = {}) => {
         await expect(resolver.match('BookStore').save({ name: 'New Books', building: 'bad-building' })).rejects.toThrow(/required/gi);
         await expect(resolver.match('BookStore').save({ name: 'besT bookS eveR', building: bookBuilding })).rejects.toThrow(/duplicate/gi);
         await expect(resolver.match('BookStore').save({ name: 'Best Books Ever', building: libraryBuilding })).rejects.toThrow(/duplicate/gi);
-        await expect(resolver.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: richard.id })).rejects.toThrow(/ensureId/gi);
-        await expect(resolver.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: [richard.id] })).rejects.toThrow(/ensureId/gi);
-        await expect(resolver.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: [mobyDick.id, bookBuilding] })).rejects.toThrow(/ensureId/gi);
+        await expect(resolver.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: richard.id })).rejects.toThrow(/not found/gi);
+        await expect(resolver.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: [richard.id] })).rejects.toThrow(/not found/gi);
+        await expect(resolver.match('BookStore').save({ name: 'More More Books', building: bookBuilding, books: [mobyDick.id, bookBuilding] })).rejects.toThrow(/not found/gi);
       });
 
       test('Library', async () => {
@@ -874,7 +874,7 @@ module.exports = (driver = 'mongo', options = {}) => {
 
       test('embedded array with modelRef', async () => {
         // Create section
-        await expect(resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: richard.id }] })).rejects.toThrow(/ensureId/gi);
+        await expect(resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: richard.id }] })).rejects.toThrow(/not found/gi);
         const art = await resolver.match('Art').save({ name: 'Piedmont Beauty', sections: [{ name: 'Section1', person: christie.id }] });
         expect(art).toBeDefined();
         expect(art.sections[0].id).toBeDefined();

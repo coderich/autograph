@@ -12,8 +12,8 @@ module.exports = class Query {
     this.props.flags = this.props.flags || {
       debug: false,
       silent: false,
-      validate: true,
-      transform: true,
+      validate: true, // { externals }
+      pipeline: true, // { instruct, construct, destruct, restruct, serialize, deserialize, transform, rekey }
       required: false,
     };
     this.merge(props);

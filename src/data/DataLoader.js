@@ -4,7 +4,7 @@ const Query = require('../query/Query');
 
 const handleData = (data, model, query) => {
   if (data == null || typeof data !== 'object') return data;
-  return model.hydrate(data, query);
+  return model.deserialize(data, query);
 };
 
 module.exports = class DataLoader extends FBDataLoader {

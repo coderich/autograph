@@ -65,24 +65,24 @@ module.exports = class extends Model {
   }
 
   /**
-   * Convenience method to hydrate data from a data source (such as a database)
+   * Convenience method to deserialize data from a data source (such as a database)
    */
-  hydrate(mixed, query) {
+  deserialize(mixed, query) {
     const { flags = {} } = query.toObject();
-    const { transform = true } = flags;
+    const { pipeline = true } = flags;
     const shape = this.getShape();
 
     return new Promise((resolve, reject) => {
       if (!(mixed instanceof Stream)) {
-        resolve(transform ? this.shapeObject(shape, mixed, query) : mixed);
+        resolve(pipeline ? this.shapeObject(shape, mixed, query) : mixed);
       } else {
         const results = [];
-        mixed.on('data', (data) => { results.push(transform ? this.shapeObject(shape, data, query) : data); });
+        mixed.on('data', (data) => { results.push(pipeline ? this.shapeObject(shape, data, query) : data); });
         mixed.on('end', () => { resolve(results); });
         mixed.on('error', reject);
       }
     }).then((results) => {
-      return results.length && transform ? paginateResultSet(results, query) : results;
+      return results.length && pipeline ? paginateResultSet(results, query) : results;
     });
   }
 
