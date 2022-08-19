@@ -1,13 +1,10 @@
 Release 0.10.1:
-  * Ability to create/use a custom dataloader (wait times API)
   * Resolver.toResultSet() => How to hydrate results from the outside world?
-  * Model.validate needs a look -> Rule.ensureId()
 
 Release 0.10.2:
   *** There is a bug "where: { id: {one,two,three} }" does not work
-
+  * Ability to create/use a custom dataloader (wait times API)
   * Revamp error handling -> all things to use Boom (including driver) with proper status codes
-
   * Determine attribute order when shaping data => this is how we want it saved to db
     - _id
     - fk ids

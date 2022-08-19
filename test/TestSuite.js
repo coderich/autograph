@@ -74,6 +74,7 @@ module.exports = (driver = 'mongo', options = {}) => {
     describe('Create', () => {
       test('Person', async () => {
         richard = await resolver.match('Person').save({ age: 40, name: 'Richard', status: 'alive', state: 'NJ', emailAddress: 'rich@coderich.com', network: 'network', strip: 'mall' });
+        expect(richard._id).not.toBeDefined(); // eslint-disable-line
         expect(richard.id).toBeDefined();
         expect(richard.name).toBe('Richard');
         expect(richard.telephone).toBe('###-###-####'); // Default value
@@ -110,13 +111,16 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('Chapter', async () => {
         chapter1 = await resolver.match('Chapter').save({ name: 'chapter1', book: healthBook.id });
         chapter2 = await resolver.match('Chapter').save({ name: 'chapter2', book: healthBook.id });
-        chapter3 = await resolver.match('Chapter').save({ name: 'newChapter', book: mobyDick.id });
+        chapter3 = await resolver.match('Chapter').save({ name: 'newChapter', book: mobyDick }); // Sending the entire object...
         expect(chapter1.id).toBeDefined();
         expect(chapter1.name).toEqual('Chapter1');
+        expect(chapter1.book).toEqual(healthBook.id);
         expect(chapter2.id).toBeDefined();
         expect(chapter2.name).toEqual('Chapter2');
+        expect(chapter2.book).toEqual(healthBook.id);
         expect(chapter3.id).toBeDefined();
         expect(chapter3.name).toEqual('Newchapter');
+        expect(chapter3.book).toEqual(mobyDick.id);
       });
 
       test('Page', async () => {

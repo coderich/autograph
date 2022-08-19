@@ -1,10 +1,10 @@
-const { get } = require('lodash');
 const Stream = require('stream');
 const Field = require('./Field');
+const Pipeline = require('./Pipeline');
 const Model = require('../graphql/ast/Model');
 const { paginateResultSet } = require('./DataService');
 const { eventEmitter } = require('../service/event.service');
-const { map, seek, deseek, castCmp, ensureArray } = require('../service/app.service');
+const { map, seek, deseek, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Model {
   constructor(schema, model, driver) {
@@ -96,7 +96,7 @@ module.exports = class extends Model {
     const crudKeys = crudMap[crud] || [];
 
     const targetMap = {
-      doc: ['defaultValue', 'ensureArrayValue', 'castValue', ...crudKeys, 'transformers', `$${serdes}rs`, `${serdes}rs`, 'instructs'],
+      doc: ['defaultValue', 'ensureArrayValue', 'castValue', ...crudKeys, `$${serdes}rs`, 'instructs', 'transformers', `${serdes}rs`],
       where: ['castValue', `$${serdes}rs`, 'instructs'],
     };
 
@@ -105,14 +105,15 @@ module.exports = class extends Model {
     // Create shape, recursive
     const shape = fields.map((field) => {
       const structures = field.getStructures();
-      const fieldDefaultValue = field.getDefaultValue();
       const [key, name, type, isArray] = [field.getKey(), field.getName(), field.getType(), field.isArray(), field.isIdField()];
       const [from, to] = serdes === 'serialize' ? [name, key] : [key, name];
       const path = paths.concat(to);
       const subShape = field.isEmbedded() ? field.getModelRef().getShape(crud, target, path) : null;
-      structures.defaultValue = ({ value }) => (value === undefined && target === 'doc' ? fieldDefaultValue : value);
+
+      structures.castValue = Pipeline.castValue;
+      structures.defaultValue = Pipeline.defaultValue;
+
       structures.ensureArrayValue = ({ value }) => (value != null && isArray && !Array.isArray(value) ? [value] : value);
-      structures.castValue = ({ value }) => (value != null && !subShape ? map(value, v => castCmp(type, v)) : value);
       const transformers = structureKeys.reduce((prev, struct) => prev.concat(structures[struct]), []).filter(Boolean);
       return { field, path, from, to, type, isArray, transformers, shape: subShape };
     });
@@ -148,6 +149,8 @@ module.exports = class extends Model {
           const v = t({ model, field, path, docPath, rootPath, parentPath, startValue, value, context });
           return v === undefined ? value : v;
         }, startValue);
+
+        // if (`${field}` === 'searchability') console.log(startValue, transformedValue, transformers);
 
         // Determine if key should stay or be removed
         if (transformedValue === undefined && !Object.prototype.hasOwnProperty.call(parent, from)) return prev;

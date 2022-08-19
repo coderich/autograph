@@ -42,6 +42,22 @@ module.exports = class Pipeline {
     Object.defineProperty(Pipeline, name, { value: Object.defineProperty(thunk, 'options', { value: options }) });
   }
 
+  // static wrapper(name, factory, { ignoreNull, itemize }) {
+  //   return Object.defineProperty((args) => {
+  //     if (ignoreNull && args.value == null) return args.value;
+
+  //     if (ignoreNull && itemize) {
+  //       return map(args.value, (val, index) => {
+  //         const v = factory({ ...args, value: val, index });
+  //         return v === undefined ? val : v;
+  //       });
+  //     }
+
+  //     const val = factory(args);
+  //     return val === undefined ? args.value : val;
+  //   }, 'name', { value: name });
+  // }
+
   static createPresets() {
     // Built-In Javascript String Transformers
     const jsStringTransformers = ['toLowerCase', 'toUpperCase', 'toString', 'trim', 'trimEnd', 'trimStart'];
@@ -57,6 +73,43 @@ module.exports = class Pipeline {
     Pipeline.define('dedupe', ({ value }) => uniqWith(value, (b, c) => hashObject(b) === hashObject(c)), { itemize: false });
     Pipeline.define('idKey', ({ model, value }) => (value == null ? model.idValue() : value), { ignoreNull: false });
     Pipeline.define('idField', ({ field, value }) => map(value, v => field.getIdModel().idValue(v.id || v)));
+
+    Pipeline.define('defaultValue', ({ field, value }) => {
+      const { defaultValue } = field.toObject();
+      return value === undefined ? defaultValue : value;
+    }, { ignoreNull: false });
+
+    Pipeline.define('castValue', ({ field, value }) => {
+      const { type, isEmbedded } = field.toObject();
+
+      if (isEmbedded) return value;
+
+      return map(value, (v) => {
+        switch (type) {
+          case 'String': {
+            return `${v}`;
+          }
+          case 'Float': case 'Number': {
+            const num = Number(v);
+            if (!Number.isNaN(num)) return num;
+            return v;
+          }
+          case 'Int': {
+            const num = Number(v);
+            if (!Number.isNaN(num)) return parseInt(v, 10);
+            return v;
+          }
+          case 'Boolean': {
+            if (v === 'true') return true;
+            if (v === 'false') return false;
+            return v;
+          }
+          default: {
+            return v;
+          }
+        }
+      });
+    }, { itemize: false });
 
     // Required fields
     Pipeline.define('required', ({ model, field, value }) => {
@@ -76,12 +129,12 @@ module.exports = class Pipeline {
     });
 
     // List of allowed values
-    Pipeline.factory('allow', (...args) => ({ model, field, value }) => {
+    Pipeline.factory('allow', (...args) => function allow({ model, field, value }) {
       if (args.indexOf(value) === -1) throw Boom.badRequest(`${model}.${field} allows ${args}; found '${value}'`);
     });
 
     // List of disallowed values
-    Pipeline.factory('deny', (...args) => ({ model, field, value }) => {
+    Pipeline.factory('deny', (...args) => function deny({ model, field, value }) {
       if (args.indexOf(value) > -1) throw Boom.badRequest(`${model}.${field} denys ${args}; found '${value}'`);
     });
 
@@ -89,7 +142,8 @@ module.exports = class Pipeline {
     Pipeline.factory('range', (min, max) => {
       if (min == null) min = undefined;
       if (max == null) max = undefined;
-      return ({ model, field, value }) => {
+
+      return function range({ model, field, value }) {
         const num = +value; // Coerce to number if possible
         const test = Number.isNaN(num) ? value.length : num;
         if (test < min || test > max) throw Boom.badRequest(`${model}.${field} must satisfy range ${min}:${max}; found '${value}'`);
