@@ -1,3 +1,4 @@
+const { makeExecutableSchema } = require('@graphql-tools/schema');
 const Schema = require('../../src/core/Schema');
 const stores = require('../stores');
 const simpleSchema = require('../fixtures/simple.graphql');
@@ -6,7 +7,7 @@ const complexSchema = require('../fixtures/complex.graphql');
 
 describe('CoreSchema', () => {
   test('simpleSchema', () => {
-    const schema = new Schema({ typeDefs: simpleSchema }, stores);
+    const schema = new Schema({ typeDefs: simpleSchema }, stores, makeExecutableSchema);
     expect(schema).toBeDefined();
     schema.decorate();
 
@@ -27,13 +28,13 @@ describe('CoreSchema', () => {
   });
 
   test('bareSchema', () => {
-    const schema = new Schema({ typeDefs: bareSchema }, stores);
+    const schema = new Schema({ typeDefs: bareSchema }, stores, makeExecutableSchema);
     expect(schema).toBeDefined();
     schema.decorate();
   });
 
   test('complexSchema', () => {
-    const schema = new Schema({ typeDefs: complexSchema }, stores);
+    const schema = new Schema({ typeDefs: complexSchema }, stores, makeExecutableSchema);
     expect(schema).toBeDefined();
     schema.decorate();
   });

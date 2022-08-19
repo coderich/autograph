@@ -5,8 +5,8 @@ const { createSystemEvent } = require('../service/event.service');
 
 // Export class
 module.exports = class extends Schema {
-  constructor(schema, stores) {
-    super(schema);
+  constructor(schema, stores, toExecutableSchema) {
+    super(schema, toExecutableSchema);
 
     // Create drivers
     this.drivers = Object.entries(stores).reduce((prev, [key, value]) => {

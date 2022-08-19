@@ -1,5 +1,9 @@
 Release 0.10.1:
+  * Still not sure about OOP -> instructs, etc
   * Resolver.toResultSet() => How to hydrate results from the outside world?
+  * Tests do not clean up Mongo connections
+  * makeExectuableSchema
+  * You never "validate" the schema anymore like in v0.9
 
 Release 0.10.2:
   *** There is a bug "where: { id: {one,two,three} }" does not work

@@ -22,6 +22,7 @@
 - Exported SchemaDecorator -> Schema
 - Removed embedded schema SystemEvents (internal emitter also removed)
 - Removed spread of arguments in QueryBuilder terminal commands (must pass in array)
+- Must pass makeExecutableSchema to Schema constructor
 
 ## v0.9.x
 - Subscriptions API

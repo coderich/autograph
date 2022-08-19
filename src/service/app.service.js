@@ -105,32 +105,6 @@ exports.mapPromise = (mixed, fn) => {
   return Array.isArray(map) ? Promise.all(map) : Promise.resolve(map);
 };
 
-exports.castCmp = (type, value) => {
-  switch (type) {
-    case 'String': {
-      return `${value}`;
-    }
-    case 'Float': case 'Number': {
-      const num = Number(value);
-      if (!Number.isNaN(num)) return num;
-      return value;
-    }
-    case 'Int': {
-      const num = Number(value);
-      if (!Number.isNaN(num)) return parseInt(value, 10);
-      return value;
-    }
-    case 'Boolean': {
-      if (value === 'true') return true;
-      if (value === 'false') return false;
-      return value;
-    }
-    default: {
-      return value;
-    }
-  }
-};
-
 exports.objectContaining = (a, b) => {
   if (a === b) return true;
 

@@ -2,7 +2,7 @@ const FS = require('fs');
 const Glob = require('glob');
 const Merge = require('deepmerge');
 const { Kind, print, parse, visit } = require('graphql');
-const { mergeASTArray, makeExecutableSchema } = require('../../service/graphql.service');
+const { mergeASTArray } = require('../../service/graphql.service');
 const { deleteKeys } = require('../../service/app.service');
 const frameworkExt = require('../extension/framework');
 const typeExt = require('../extension/type');
@@ -24,8 +24,9 @@ const Node = require('./Node');
  *
  */
 module.exports = class Schema extends TypeDefApi {
-  constructor(schema) {
+  constructor(schema, toExecutableSchema) {
     super();
+    this.toExecutableSchema = toExecutableSchema;
     this.schema = { typeDefs: [], resolvers: {}, schemaDirectives: {} };
     if (schema) this.mergeSchema(schema);
   }
@@ -124,7 +125,7 @@ module.exports = class Schema extends TypeDefApi {
   }
 
   makeExecutableSchema() {
-    return makeExecutableSchema(this.schema);
+    return this.toExecutableSchema(this.schema);
   }
 
   toObject() {
