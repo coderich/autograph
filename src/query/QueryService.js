@@ -1,13 +1,19 @@
 const { get, set, uniq, flattenDeep } = require('lodash');
 const { keyPaths, ensureArray, isPlainObject } = require('../service/app.service');
 
+/**
+ * The where clause may contain attributes that are NOT in the model
+ * This can happen because the where clause reaches into the schema via refs/virtual refs
+ */
 exports.resolveWhereClause = (query) => {
   const { resolver, model, match: where = {}, flags = {} } = query.toObject();
   const shape = model.getShape('create', 'where');
 
   const $where = Object.entries(where).reduce((prev, [from, value]) => {
-    const { field } = shape.find(s => s.from === from);
-    const { isVirtual, isEmbedded, modelRef, virtualRef } = field.toObject();
+    const el = shape.find(s => s.from === from);
+    if (!el) return prev; // There's no knowing what this could be
+
+    const { isVirtual, isEmbedded, modelRef, virtualRef } = el.field.toObject();
 
     if (isVirtual) {
       const ids = Promise.all(ensureArray(value).map(v => resolver.match(modelRef).where(isPlainObject(v) ? v : { id: v }).many(flags).then(docs => docs.map(doc => doc[virtualRef])))).then(results => uniq(flattenDeep(results)));

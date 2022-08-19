@@ -44,9 +44,17 @@ module.exports = class extends Field {
     if (value == null) return value;
     const { resolver } = query.toObject();
     const { type, modelRef, isEmbedded } = this.props;
-    const ids = Array.from(new Set(ensureArray(value).map(v => `${v}`)));
-    if (modelRef && !isEmbedded) await resolver.match(type).where({ id: ids }).count().then((count) => { if (count !== ids.length) throw Boom.notFound(`${modelRef} Not Found`); });
+
+    if (modelRef && !isEmbedded) {
+      const ids = Array.from(new Set(ensureArray(value).map(v => `${v}`)));
+      await resolver.match(type).where({ id: ids }).count().then((count) => {
+        // if (type === 'Category') console.log(ids, count);
+        if (count !== ids.length) throw Boom.notFound(`${type} Not Found`);
+      });
+    }
+
     if (modelRef && isPlainObject(ensureArray(value)[0])) return modelRef.validate(query, value); // Model delegation
+
     return value;
   }
 
