@@ -1,5 +1,7 @@
 const { get } = require('lodash');
 const { Kind, parse, print } = require('graphql');
+const { validate } = require('graphql/validation');
+const { makeExecutableSchema } = require('@graphql-tools/schema');
 
 //
 const mergePairs = [
@@ -78,6 +80,13 @@ exports.mergeASTArray = (arr) => {
     return prev.concat(curr);
   }, []).filter(el => !el.deleteFlag);
 };
+
+exports.validateSchema = (ast) => {
+  const errs = validate(makeExecutableSchema(ast), ast.typeDefs).filter(({ message }) => message.indexOf('not executable') === -1).map(({ message }) => message);
+  if (errs.length) throw new Error(errs.join('\n'));
+};
+
+exports.makeExecutableSchema = makeExecutableSchema;
 
 exports.toAST = (a) => {
   if (typeof a === 'string') return parse(a);

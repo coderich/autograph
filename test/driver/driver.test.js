@@ -1,4 +1,3 @@
-const { makeExecutableSchema } = require('@graphql-tools/schema');
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { MongoClient } = require('mongodb');
 const MongoDriver = require('../../src/driver/MongoDriver');
@@ -22,7 +21,7 @@ describe('MongoDriver', () => {
     const db = mongoClient.db();
 
     // Create core classes
-    const schema = new Schema({ typeDefs }, stores, makeExecutableSchema).decorate();
+    const schema = new Schema({ typeDefs }, stores).decorate();
     resolver = new Resolver(schema, { network: { id: 'networkId' } });
     driver = new MongoDriver({ uri: stores.default.uri });
     await schema.setup();

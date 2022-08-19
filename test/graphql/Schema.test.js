@@ -1,4 +1,3 @@
-const { makeExecutableSchema } = require('@graphql-tools/schema');
 const Schema = require('../../src/graphql/ast/Schema');
 const complexSchema = require('../fixtures/complex.graphql');
 
@@ -62,7 +61,7 @@ const extendDef = `
 
 describe('Documents', () => {
   test('foundation', () => {
-    const schema = new Schema({ typeDefs }, makeExecutableSchema).initialize();
+    const schema = new Schema({ typeDefs }).initialize();
     expect(schema).toBeDefined();
 
     const validate = () => {
@@ -94,13 +93,13 @@ describe('Documents', () => {
   });
 
   test('complexSchema', () => {
-    const schema = new Schema({ typeDefs: complexSchema }, makeExecutableSchema);
+    const schema = new Schema({ typeDefs: complexSchema });
     expect(schema).toBeDefined();
     expect(schema.makeExecutableSchema()).toBeDefined();
   });
 
   test('extendSchema', () => {
-    const schema = new Schema({ typeDefs, resolvers }, makeExecutableSchema).initialize();
+    const schema = new Schema({ typeDefs, resolvers }).initialize();
     schema.mergeSchema({
       typeDefs: extendDef,
       resolvers: {

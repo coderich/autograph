@@ -1,11 +1,10 @@
 const Path = require('path');
-const { makeExecutableSchema } = require('@graphql-tools/schema');
 const Schema = require('../../src/graphql/ast/Schema');
 const schemaFixtures = require('../fixtures/schema');
 
 describe('Schema', () => {
   test('mergeSchemaFromFiles', async () => {
-    const schema = new Schema({}, makeExecutableSchema);
+    const schema = new Schema();
     const modulePath = Path.join(__dirname, 'modules');
 
     //
@@ -32,7 +31,7 @@ describe('Schema', () => {
   });
 
   test('schema fixture', () => {
-    const schema = new Schema(schemaFixtures, makeExecutableSchema).decorate();
+    const schema = new Schema(schemaFixtures).decorate();
     expect(schema).toBeDefined();
 
     const xschema = schema.makeExecutableSchema();

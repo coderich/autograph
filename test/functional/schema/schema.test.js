@@ -1,5 +1,4 @@
 const { cloneDeep } = require('lodash');
-const { makeExecutableSchema } = require('@graphql-tools/schema');
 const Query = require('../../../src/query/Query');
 const ASTSchema = require('../../../src/graphql/ast/Schema');
 const CoreSchema = require('../../../src/core/Schema');
@@ -40,14 +39,14 @@ describe('FNSchema', () => {
   });
 
   test('AST Base', () => {
-    const schema = new ASTSchema({ typeDefs: cloneDeep(baseGraphql) }, makeExecutableSchema).initialize();
+    const schema = new ASTSchema({ typeDefs: cloneDeep(baseGraphql) }).initialize();
     validate(schema);
     expect(schema.makeExecutableSchema()).toBeDefined();
     validate(schema);
   });
 
   test('Core Base', () => {
-    const schema = new CoreSchema({ typeDefs: cloneDeep(baseGraphql) }, stores, makeExecutableSchema).initialize();
+    const schema = new CoreSchema({ typeDefs: cloneDeep(baseGraphql) }, stores).initialize();
     validate(schema);
     expect(schema.makeExecutableSchema()).toBeDefined();
     validate(schema);
@@ -58,7 +57,7 @@ describe('FNSchema', () => {
   });
 
   test('getShape', () => {
-    const schema = new CoreSchema(schemaJS, stores, makeExecutableSchema).decorate();
+    const schema = new CoreSchema(schemaJS, stores).decorate();
     const artModel = schema.getModel('Art');
     expect(artModel).toBeDefined();
 

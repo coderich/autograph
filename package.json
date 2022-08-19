@@ -1,7 +1,7 @@
 {
   "name": "@coderich/autograph",
   "author": "Richard Livolsi (coderich)",
-  "version": "0.10.2",
+  "version": "0.10.1",
   "description": "AutoGraph",
   "keywords": [
     "graphql",
@@ -30,6 +30,7 @@
     "ratchet": "ratchet"
   },
   "dependencies": {
+    "@graphql-tools/schema": "^8.3.14",
     "@hapi/boom": "^9.1.0",
     "axios": "^0.21.4",
     "dataloader": "^2.0.0",
@@ -45,7 +46,6 @@
   },
   "devDependencies": {
     "@coderich/ratchet": "^1.5.7",
-    "@graphql-tools/schema": "^8.3.14",
     "graphql": "^15.5.0",
     "mongodb-memory-server": "^8.7.2",
     "neo4j-driver": "^4.0.0",
@@ -53,6 +53,9 @@
     "redis": "^2.8.0",
     "redis-mock": "^0.47.0",
     "validator": "^13.7.0"
+  },
+  "peerDependencies": {
+    "graphql": "*"
   },
   "repository": {
     "type": "git",

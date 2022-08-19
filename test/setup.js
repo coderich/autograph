@@ -1,4 +1,3 @@
-const { makeExecutableSchema } = require('@graphql-tools/schema');
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const GraphQL = require('../src/core/GraphQL');
 const Schema = require('../src/core/Schema');
@@ -11,7 +10,7 @@ module.exports = async (context = {}) => {
   const mongoServer = await MongoMemoryReplSet.create({ replSet: { storageEngine: 'wiredTiger' } });
   const uri = mongoServer.getUri();
   stores.default.uri = uri;
-  const schema = new Schema(gqlSchema, stores, makeExecutableSchema);
+  const schema = new Schema(gqlSchema, stores);
   schema.decorate();
   const resolver = new Resolver(schema, context);
   context.autograph = { resolver };
