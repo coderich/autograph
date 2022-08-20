@@ -72,7 +72,7 @@ module.exports = class Pipeline {
     Pipeline.define('createdAt', ({ value }) => value || Date.now(), { ignoreNull: false });
     Pipeline.define('dedupe', ({ value }) => uniqWith(value, (b, c) => hashObject(b) === hashObject(c)), { itemize: false });
     Pipeline.define('idKey', ({ model, value }) => (value == null ? model.idValue() : value), { ignoreNull: false });
-    Pipeline.define('idField', ({ field, value }) => map(value, v => field.getIdModel().idValue(v.id || v)));
+    Pipeline.define('idField', ({ model, field, value }) => map(value, v => field.getIdModel().idValue(v.id || v)));
 
     Pipeline.define('defaultValue', ({ field, value }) => {
       const { defaultValue } = field.toObject();
@@ -151,7 +151,6 @@ module.exports = class Pipeline {
     }, { itemize: false });
   }
 };
-
 
 // const jsStringMethods = [
 //   'charAt', 'charCodeAt', 'codePointAt', 'concat', 'indexOf', 'lastIndexOf', 'localeCompare',

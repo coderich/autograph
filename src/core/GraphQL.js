@@ -15,6 +15,8 @@ module.exports = class GraphQL {
   }
 
   exec(source, variableValues) {
+    // console.log(JSON.stringify(source, null, 2));
+    // console.log(JSON.stringify(variableValues, null, 2));
     const { schema, contextValue = {} } = this;
     return graphql({ schema, source, variableValues, contextValue });
   }

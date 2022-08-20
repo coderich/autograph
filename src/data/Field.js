@@ -3,7 +3,7 @@ const Type = require('./Type');
 const Field = require('../graphql/ast/Field');
 const Boom = require('../core/Boom');
 const Pipeline = require('./Pipeline');
-const { isPlainObject, ensureArray } = require('../service/app.service');
+const { map, isPlainObject, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Field {
   constructor(model, field) {
@@ -33,6 +33,7 @@ module.exports = class extends Field {
     // IDs (first - shift)
     if (isPrimaryKeyId) $structures.serializers.unshift(Pipeline.idKey);
     if (isIdField) $structures.$serializers.unshift(Pipeline.idField);
+    // if (this.isIdField()) structures.$serializers.unshift(({ value }) => (value ? map(value, v => this.getIdModel().idValue(v.id || v)) : value));
 
     // Required (last - push)
     if (isRequired && isPersistable && !isVirtual) $structures.serializers.push(Pipeline.required);
@@ -48,7 +49,7 @@ module.exports = class extends Field {
     if (modelRef && !isEmbedded) {
       const ids = Array.from(new Set(ensureArray(value).map(v => `${v}`)));
       await resolver.match(type).where({ id: ids }).count().then((count) => {
-        // if (type === 'Category') console.log(ids, count);
+        // if (type === 'Category') console.log(value, ids, count);
         if (count !== ids.length) throw Boom.notFound(`${type} Not Found`);
       });
     }

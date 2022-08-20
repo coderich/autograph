@@ -1,7 +1,14 @@
-Release 0.10.1:
+Release 0.10.3:
+  * Still not sure about OOP -> instructs, etc
   * Resolver.toResultSet() => How to hydrate results from the outside world?
+  * Tests do not clean up Mongo connections
+  * makeExectuableSchema
+  * You never "validate" the schema anymore like in v0.9
+  * $$cursor is ugly - can you go back to defining attributes $$save etc?
+  * SPITFIRE:
+    - NetworkPlaceTagMultiLang definition
 
-Release 0.10.2:
+Release 0.10.4:
   *** There is a bug "where: { id: {one,two,three} }" does not work
   * Ability to create/use a custom dataloader (wait times API)
   * Revamp error handling -> all things to use Boom (including driver) with proper status codes
