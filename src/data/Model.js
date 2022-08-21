@@ -86,6 +86,7 @@ module.exports = class extends Model {
   }
 
   getShape(crud = 'read', target = 'doc', paths = []) {
+    // Cache check
     const cacheKey = `${crud}:${target}`;
     if (this.shapesCache.has(cacheKey)) return this.shapesCache.get(cacheKey);
 
@@ -95,25 +96,26 @@ module.exports = class extends Model {
     const crudKeys = crudMap[crud] || [];
 
     const targetMap = {
-      doc: ['defaultValue', 'ensureArrayValue', 'castValue', 'transformers', ...crudKeys, `$${serdes}rs`, 'instructs', `${serdes}rs`],
-      where: ['castValue', `$${serdes}rs`, 'instructs'],
+      doc: ['defaultValue', 'castValue', 'ensureArrayValue', 'instructs', 'transforms', ...crudKeys, `$${serdes}rs`, `${serdes}rs`],
+      where: ['castValue', 'instructs', `$${serdes}rs`],
     };
 
     const structureKeys = targetMap[target] || ['castValue'];
 
     // Create shape, recursive
     const shape = fields.map((field) => {
+      let instructed = false;
       const structures = field.getStructures();
-      const [key, name, type, isArray] = [field.getKey(), field.getName(), field.getType(), field.isArray(), field.isIdField()];
+      const { key, name, type, isArray, isEmbedded, modelRef } = field.toObject();
       const [from, to] = serdes === 'serialize' ? [name, key] : [key, name];
       const path = paths.concat(to);
-      const subShape = field.isEmbedded() ? field.getModelRef().getShape(crud, target, path) : null;
-
-      structures.castValue = Pipeline.castValue;
-      structures.defaultValue = Pipeline.defaultValue;
-
-      structures.ensureArrayValue = ({ value }) => (value != null && isArray && !Array.isArray(value) ? [value] : value);
-      const transformers = structureKeys.reduce((prev, struct) => prev.concat(structures[struct]), []).filter(Boolean);
+      const subShape = isEmbedded ? modelRef.getShape(crud, target, path) : null;
+      const transformers = structureKeys.reduce((prev, struct) => {
+        if (instructed) return prev;
+        const structs = structures[struct];
+        if (struct === 'instructs' && structs.length) instructed = true;
+        return prev.concat(structs);
+      }, []).filter(Boolean);
       return { field, path, from, to, type, isArray, transformers, shape: subShape };
     });
 
@@ -148,8 +150,6 @@ module.exports = class extends Model {
           const v = t({ model, field, path, docPath, rootPath, parentPath, startValue, value, context });
           return v === undefined ? value : v;
         }, startValue);
-
-        // if (`${field}` === 'searchability') console.log(startValue, transformedValue, transformers);
 
         // Determine if key should stay or be removed
         if (transformedValue === undefined && !Object.prototype.hasOwnProperty.call(parent, from)) return prev;

@@ -5,6 +5,7 @@ Release 0.10.3:
   * makeExectuableSchema
   * You never "validate" the schema anymore like in v0.9
   * Consider instruct -> value and look no further if it's defined
+  * Can you move caching to finalize() instead of initialize()?
   * SPITFIRE:
     - NetworkPlaceTagMultiLang definition
 

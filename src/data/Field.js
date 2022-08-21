@@ -15,18 +15,19 @@ module.exports = class extends Field {
   getStructures() {
     // Grab structures from the underlying type
     const structures = this.type.getStructures();
-    const { isRequired, isPersistable, isVirtual, isPrimaryKeyId, isIdField } = this.props;
+    const { isPrimaryKeyId, isIdField } = this.props;
 
     // Structures defined on the field
     const $structures = Object.entries(this.getDirectiveArgs('field', {})).reduce((prev, [key, value]) => {
       if (!Array.isArray(value)) value = [value];
+      if (key === 'validate') prev.validators.push(...value.map(t => Pipeline[t]));
       if (key === 'instruct') prev.instructs.push(...value.map(t => Pipeline[t]));
       if (key === 'restruct') prev.restructs.push(...value.map(t => Pipeline[t]));
       if (key === 'destruct') prev.destructs.push(...value.map(t => Pipeline[t]));
       if (key === 'construct') prev.constructs.push(...value.map(t => Pipeline[t]));
+      if (key === 'transform') prev.transforms.push(...value.map(t => Pipeline[t]));
       if (key === 'serialize') prev.serializers.push(...value.map(t => Pipeline[t]));
       if (key === 'deserialize') prev.deserializers.push(...value.map(t => Pipeline[t]));
-      if (key === 'transform') prev.transformers.push(...value.map(t => Pipeline[t]));
       return prev;
     }, structures);
 
@@ -34,16 +35,18 @@ module.exports = class extends Field {
     if (isPrimaryKeyId) $structures.serializers.unshift(Pipeline.idKey);
     if (isIdField) $structures.$serializers.unshift(Pipeline.idField);
 
-    // Required (last - push)
-    if (isRequired && isPersistable && !isVirtual) $structures.serializers.push(Pipeline.required);
-
     return $structures;
   }
 
   async validate(query, value) {
-    if (value == null) return value;
     const { resolver } = query.toObject();
-    const { type, modelRef, isEmbedded } = this.props;
+    const { type, name, model, isRequired, isPersistable, isVirtual, isEmbedded, modelRef } = this.props;
+
+    // if (isRequired && isPersistable && !isVirtual) $structures.serializers.push(Pipeline.required);
+    if (value == null) {
+      if (isRequired && isPersistable && !isVirtual) throw Boom.badRequest(`${model}.${name} is required`);
+      return value;
+    }
 
     if (modelRef && !isEmbedded) {
       const ids = Array.from(new Set(ensureArray(value).map(v => `${v}`)));

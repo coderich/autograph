@@ -44,13 +44,14 @@ module.exports = (schema) => {
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
 
         # Pipeline Structure
+        validate: [AutoGraphPipelineEnum!]
         instruct: [AutoGraphPipelineEnum!]
-        destruct: [AutoGraphPipelineEnum!]
         restruct: [AutoGraphPipelineEnum!]
+        destruct: [AutoGraphPipelineEnum!]
         construct: [AutoGraphPipelineEnum!]
+        transform: [AutoGraphPipelineEnum!]
         serialize: [AutoGraphPipelineEnum!]
         deserialize: [AutoGraphPipelineEnum!]
-        transform: [AutoGraphPipelineEnum!]
       ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
 
       directive @link(
