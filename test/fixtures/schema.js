@@ -20,8 +20,8 @@ module.exports = {
       age: Int @field(key: "my_age")
       name: String! @field(deserialize: toTitleCase, serialize: toLowerCase)
       authored: [Book] @link(by: author) @field(connection: true)
-      emailAddress: String! @field(key: "email_address", serialize: email)
-      friends: [Person] @field(transform: dedupe, serialize: selfless, onDelete: cascade, connection: true)
+      emailAddress: String! @field(key: "email_address", validate: email)
+      friends: [Person] @field(transform: dedupe, validate: selfless, onDelete: cascade, connection: true)
       status: String @field(key: "state")
       state: String @field(key: "address_state")
       telephone: String @field(default: "###-###-####")
@@ -34,9 +34,9 @@ module.exports = {
       @model
       @index(name: "uix_book", type: unique, on: [name, author])
     {
-      name: String! @field(transform: toTitleCase, serialize: bookName)
-      price: Float! @field(serialize: bookPrice)
-      author: Person! @field(serialize: immutable, onDelete: cascade)
+      name: String! @field(transform: toTitleCase, validate: bookName)
+      price: Float! @field(validate: bookPrice)
+      author: Person! @field(validate: immutable, onDelete: cascade)
       bestSeller: Boolean
       bids: [Float]
       chapters: [Chapter] @link(by: book)
@@ -94,7 +94,7 @@ module.exports = {
     type Building
     {
       year: Int @field(key: "year_built")
-      type: String! @field(serialize: buildingType)
+      type: String! @field(validate: buildingType)
       tenants: [Person] @field(onDelete: cascade)
       landlord: Person @field(onDelete: nullify)
       description: String @field(default: "A building from the bloom")
@@ -103,7 +103,7 @@ module.exports = {
     type Color
       @model
     {
-      type: String! @field(serialize: colors)
+      type: String! @field(validate: colors)
       isDefault: Boolean
     }
 
@@ -112,13 +112,13 @@ module.exports = {
     {
       name: String! @field(transform: toTitleCase)
       bids: [Float]
-      comments: [String] @field(serialize: artComment)
+      comments: [String] @field(validate: artComment)
       sections: [Section]
     }
 
     type Section @model(embed: true) {
       name: String! @field(transform: toLowerCase)
-      frozen: String! @field(default: "frozen", serialize: immutable)
+      frozen: String! @field(default: "frozen", validate: immutable)
       description: String
       person: Person
     }

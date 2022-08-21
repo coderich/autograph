@@ -21,9 +21,10 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
 
   return systemEvent.emit('system', { type: `pre${type}`, data: event }).then((result) => {
     return (result !== undefined) ? result : thunk(); // Allowing middleware to dictate result
-  }).then((result) => {
+  }).then(async (result) => {
     event.result = result;
     if (event.crud === 'create') event.doc = event.query.toObject().doc;
+    if (event.crud !== 'read' && name !== 'Setup' && name !== 'Response') await eventEmitter.emit('validate', event.query);
     return systemEvent.emit('system', { type: `post${type}`, data: event }).then((postResult = result) => postResult);
   }).then((result) => {
     if (name === 'Response') return result;

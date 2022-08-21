@@ -4,8 +4,8 @@ Release 0.10.3:
   * Tests do not clean up Mongo connections
   * makeExectuableSchema
   * You never "validate" the schema anymore like in v0.9
-  * Consider instruct -> value and look no further if it's defined
   * Can you move caching to finalize() instead of initialize()?
+  * Pipeline convention: Factory methods begin with Uppercase (eg. Allow, Deny)
   * SPITFIRE:
     - NetworkPlaceTagMultiLang definition
 

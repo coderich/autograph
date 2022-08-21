@@ -1,10 +1,8 @@
 const Stream = require('stream');
 const Field = require('./Field');
-const Pipeline = require('./Pipeline');
 const Model = require('../graphql/ast/Model');
 const { finalizeResults } = require('./DataService');
-const { eventEmitter } = require('../service/event.service');
-const { map, seek, deseek, ensureArray } = require('../service/app.service');
+const { map, mapPromise, seek, deseek } = require('../service/app.service');
 
 module.exports = class extends Model {
   constructor(schema, model, driver) {
@@ -46,23 +44,6 @@ module.exports = class extends Model {
   referentialIntegrity(refs) {
     if (refs) this.referentials = refs;
     return this.referentials;
-  }
-
-  validate(query, data) {
-    // return data;
-    const { flags = {} } = query.toObject();
-    const { validate = true } = flags;
-
-    if (!validate) return Promise.resolve();
-
-    return Promise.all(this.getFields().map((field) => {
-      return Promise.all(ensureArray(map(data, (obj) => {
-        if (obj == null) return Promise.resolve();
-        return field.validate(query, obj[field.getKey()]);
-      })));
-    })).then(() => {
-      return eventEmitter.emit('validate', query);
-    });
   }
 
   /**
@@ -116,7 +97,7 @@ module.exports = class extends Model {
         if (struct === 'instructs' && structs.length) instructed = true;
         return prev.concat(structs);
       }, []).filter(Boolean);
-      return { field, path, from, to, type, isArray, transformers, shape: subShape };
+      return { field, path, from, to, type, isArray, transformers, validators: structures.validators, shape: subShape };
     });
 
     // Adding useful shape info
@@ -131,7 +112,7 @@ module.exports = class extends Model {
 
   shapeObject(shape, obj, query, root) {
     const { serdes, model } = shape;
-    const { context, doc = {} } = query.toObject();
+    const { context, resolver, doc = {} } = query.toObject();
 
     return map(obj, (parent) => {
       // "root" is the base of the object
@@ -147,18 +128,46 @@ module.exports = class extends Model {
 
         // Transform value
         const transformedValue = transformers.reduce((value, t) => {
-          const v = t({ model, field, path, docPath, rootPath, parentPath, startValue, value, context });
+          const v = t({ model, field, path, docPath, rootPath, parentPath, startValue, value, resolver, context });
           return v === undefined ? value : v;
         }, startValue);
 
         // Determine if key should stay or be removed
         if (transformedValue === undefined && !Object.prototype.hasOwnProperty.call(parent, from)) return prev;
+        if (subShape && typeof transformedValue !== 'object') return prev;
 
         // Rename key & assign value
         prev[to] = (!subShape || transformedValue == null) ? transformedValue : this.shapeObject(subShape, transformedValue, query, root);
 
         return prev;
       }, {});
+    });
+  }
+
+  validateObject(shape, obj, query, root) {
+    // return data;
+    const { serdes, model } = shape;
+    const { context, resolver, doc = {}, flags = {} } = query.toObject();
+    const { validate = true } = flags;
+
+    if (!validate) return Promise.resolve();
+
+    return mapPromise(obj, (parent) => {
+      // "root" is the base of the object
+      root = root || parent;
+
+      // Lookup helper functions
+      const docPath = (p, hint) => seek(doc, p, hint); // doc is already serialized; so always a seek
+      const rootPath = (p, hint) => (serdes === 'serialize' ? seek(root, p, hint) : deseek(shape, root, p, hint));
+      const parentPath = (p, hint) => (serdes === 'serialize' ? seek(parent, p, hint) : deseek(shape, parent, p, hint));
+
+      return Promise.all(shape.map(({ field, to, path, validators, shape: subShape }) => {
+        const value = parent[to]; // It's already been shaped
+
+        return Promise.all(validators.map(v => v({ model, field, path, docPath, rootPath, parentPath, startValue: value, value, resolver, context }))).then(() => {
+          return subShape ? this.validateObject(subShape, value, query, root) : Promise.resolve();
+        });
+      }));
     });
   }
 };

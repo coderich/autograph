@@ -1,5 +1,5 @@
 const { uniqWith } = require('lodash');
-const { map, hashObject } = require('../service/app.service');
+const { map, ensureArray, hashObject } = require('../service/app.service');
 const Boom = require('../core/Boom');
 
 module.exports = class Pipeline {
@@ -75,6 +75,15 @@ module.exports = class Pipeline {
     Pipeline.define('idField', ({ model, field, value }) => map(value, v => field.getIdModel().idValue(v.id || v)));
     Pipeline.define('ensureArrayValue', ({ field, value }) => (field.toObject().isArray && !Array.isArray(value) ? [value] : value), { itemize: false });
 
+    Pipeline.define('ensureId', ({ resolver, field, value }) => {
+      const { type } = field.toObject();
+      const ids = Array.from(new Set(ensureArray(value).map(v => `${v}`)));
+
+      return resolver.match(type).where({ id: ids }).count().then((count) => {
+        if (count !== ids.length) throw Boom.notFound(`${type} Not Found`);
+      });
+    }, { itemize: false });
+
     Pipeline.define('defaultValue', ({ field, value }) => {
       const { defaultValue } = field.toObject();
       return value === undefined ? defaultValue : value;
@@ -118,13 +127,13 @@ module.exports = class Pipeline {
     }, { ignoreNull: false });
 
     // A field cannot hold a reference to itself
-    Pipeline.define('selfless', ({ model, field, parentPath, value }) => {
-      if (`${value}` === `${parentPath('id')}`) throw Boom.badRequest(`${model}.${field} cannot hold a reference to itself`);
+    Pipeline.define('selfless', ({ model, field, parent, parentPath, value }) => {
+      if (`${value}` === `${parentPath(model.idKey())}`) throw Boom.badRequest(`${model}.${field} cannot hold a reference to itself`);
     });
 
     // Once set it cannot be changed
     Pipeline.define('immutable', ({ model, field, docPath, parentPath, path, value }) => {
-      const hint = { id: parentPath('id') };
+      const hint = { id: parentPath(model.idKey()) };
       const oldVal = docPath(path, hint);
       if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw Boom.badRequest(`${model}.${field} is immutable; cannot be changed once set ${oldVal} -> ${value}`);
     });

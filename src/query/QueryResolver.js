@@ -68,7 +68,7 @@ module.exports = class QueryResolver {
 
     return createSystemEvent('Mutation', { query }, async () => {
       const $input = model.shapeObject(shape, input, query);
-      await model.validate(query, $input);
+      await model.validateObject(shape, $input, query);
       const doc = await this.resolver.resolve(query.$input($input));
       query.doc(doc);
       return doc;
@@ -93,7 +93,7 @@ module.exports = class QueryResolver {
 
       return createSystemEvent('Mutation', { query: query.doc(doc).merged(merged) }, async () => {
         const $doc = model.shapeObject(shape, mergeDeep(doc, input), query);
-        await model.validate(query, $doc);
+        await model.validateObject(shape, $doc, query);
         return this.resolver.resolve(query.$doc($doc));
       });
     });
@@ -206,7 +206,7 @@ module.exports = class QueryResolver {
       return createSystemEvent('Mutation', { query: query.method('updateOne').doc(doc).merged(doc) }, async () => {
         const shape = model.getShape('update');
         const $doc = model.shapeObject(shape, doc, query);
-        await model.validate(query, $doc);
+        await model.validateObject(shape, $doc, query);
         return this.resolver.resolve(query.$doc($doc));
       });
     });

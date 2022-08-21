@@ -1,9 +1,7 @@
 const { isEmpty } = require('lodash');
 const Type = require('./Type');
 const Field = require('../graphql/ast/Field');
-const Boom = require('../core/Boom');
 const Pipeline = require('./Pipeline');
-const { isPlainObject, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Field {
   constructor(model, field) {
@@ -15,7 +13,7 @@ module.exports = class extends Field {
   getStructures() {
     // Grab structures from the underlying type
     const structures = this.type.getStructures();
-    const { isPrimaryKeyId, isIdField } = this.props;
+    const { isPrimaryKeyId, isIdField, isRequired, isPersistable, isVirtual, isEmbedded, modelRef } = this.props;
 
     // Structures defined on the field
     const $structures = Object.entries(this.getDirectiveArgs('field', {})).reduce((prev, [key, value]) => {
@@ -35,30 +33,11 @@ module.exports = class extends Field {
     if (isPrimaryKeyId) $structures.serializers.unshift(Pipeline.idKey);
     if (isIdField) $structures.$serializers.unshift(Pipeline.idField);
 
+    // Required (last - push)
+    if (isRequired && isPersistable && !isVirtual) $structures.validators.push(Pipeline.required);
+    if (modelRef && !isEmbedded) $structures.validators.push(Pipeline.ensureId);
+
     return $structures;
-  }
-
-  async validate(query, value) {
-    const { resolver } = query.toObject();
-    const { type, name, model, isRequired, isPersistable, isVirtual, isEmbedded, modelRef } = this.props;
-
-    // if (isRequired && isPersistable && !isVirtual) $structures.serializers.push(Pipeline.required);
-    if (value == null) {
-      if (isRequired && isPersistable && !isVirtual) throw Boom.badRequest(`${model}.${name} is required`);
-      return value;
-    }
-
-    if (modelRef && !isEmbedded) {
-      const ids = Array.from(new Set(ensureArray(value).map(v => `${v}`)));
-      await resolver.match(type).where({ id: ids }).count().then((count) => {
-        // if (type === 'Category') console.log(value, ids, count);
-        if (count !== ids.length) throw Boom.notFound(`${type} Not Found`);
-      });
-    }
-
-    if (modelRef && isPlainObject(ensureArray(value)[0])) return modelRef.validate(query, value); // Model delegation
-
-    return value;
   }
 
   resolve(resolver, doc, args = {}) {

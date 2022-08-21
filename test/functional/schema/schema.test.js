@@ -53,7 +53,7 @@ describe('FNSchema', () => {
     expect(schema.decorate()).toBeDefined();
     expect(schema.getModel('Person').getField('_id').getName()).toBe('id');
     expect(schema.getModel('Person').getField('status').getStructures().serializers.length).toBe(1);
-    expect(schema.getModel('User').getField('gender').getStructures().serializers.length).toBe(1);
+    expect(schema.getModel('User').getField('gender').getStructures().validators.length).toBe(1);
   });
 
   test('getShape', () => {
