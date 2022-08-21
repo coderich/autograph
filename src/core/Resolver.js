@@ -2,6 +2,7 @@ const Model = require('../data/Model');
 const DataLoader = require('../data/DataLoader');
 const DataTransaction = require('../data/DataTransaction');
 const QueryBuilder = require('../query/QueryBuilder');
+const { finalizeResults } = require('../data/DataService');
 
 module.exports = class Resolver {
   constructor(schema, context = {}) {
@@ -58,7 +59,8 @@ module.exports = class Resolver {
       case 'create': case 'update': case 'delete': {
         return model.getDriver().resolve(query.toDriver()).then((data) => {
           this.clear(model);
-          return model.shapeObject(model.getShape(), data, query);
+          const rs = model.shapeObject(model.getShape(), data, query);
+          return finalizeResults(rs, query);
         });
       }
       default: {

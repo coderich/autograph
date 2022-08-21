@@ -49,6 +49,7 @@ module.exports = class extends Model {
   }
 
   validate(query, data) {
+    // return data;
     const { flags = {} } = query.toObject();
     const { validate = true } = flags;
 
@@ -94,7 +95,7 @@ module.exports = class extends Model {
     const crudKeys = crudMap[crud] || [];
 
     const targetMap = {
-      doc: ['defaultValue', 'ensureArrayValue', 'castValue', ...crudKeys, `$${serdes}rs`, 'instructs', 'transformers', `${serdes}rs`],
+      doc: ['defaultValue', 'ensureArrayValue', 'castValue', 'transformers', ...crudKeys, `$${serdes}rs`, 'instructs', `${serdes}rs`],
       where: ['castValue', `$${serdes}rs`, 'instructs'],
     };
 

@@ -4,7 +4,7 @@ Release 0.10.3:
   * Tests do not clean up Mongo connections
   * makeExectuableSchema
   * You never "validate" the schema anymore like in v0.9
-  * $$cursor is ugly - can you go back to defining attributes $$save etc?
+  * Consider instruct -> value and look no further if it's defined
   * SPITFIRE:
     - NetworkPlaceTagMultiLang definition
 

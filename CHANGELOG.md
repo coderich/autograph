@@ -2,8 +2,7 @@
 
 ## v0.10.x
 - Replaced ResultSet -> POJOs
-  - Removed all $$ magic resolver methods
-  - Removed all $ magic field methods
+  - Removed all $ magic field methods (auto populated)
   - Removed .toObject()
 - Removed embedded API completely
 - Removed Directives
@@ -16,7 +15,6 @@
 - Removed Resolver.toResultSet() -> ? TBD ?
 - Removed Transformer + Rule -> use Pipeline
   - Removed many pre-defined rules + transformers
-  - Pre-defined names start with $ (eg. $toLowerCase)
   - Moved "validator" to dev dependency -> isEmail
 - Added QueryBuilder.resolve() terminal command
 - Exported SchemaDecorator -> Schema

@@ -2,26 +2,14 @@ const { get, remove } = require('lodash');
 const { map, isPlainObject, objectContaining, mergeDeep, ensureArray, keyPaths } = require('../service/app.service');
 
 exports.finalizeResults = (rs, query) => {
-  const { model, resolver } = query;
+  const { model, resolver } = query.toObject();
 
   return map(exports.paginateResults(rs, query), (doc) => {
     return Object.defineProperties(doc, {
-      $$model: {
-        value: model,
-        enumerable: false,
-      },
-      $$save: {
-        get() { return input => resolver.match(model).id(doc.id).save({ ...doc, ...input }); },
-        enumerable: false,
-      },
-      $$remove: {
-        get() { return () => resolver.match(model).id(doc.id).remove(); },
-        enumerable: false,
-      },
-      $$delete: {
-        get() { return () => resolver.match(model).id(doc.id).delete(); },
-        enumerable: false,
-      },
+      $$model: { value: model },
+      $$save: { value: input => resolver.match(model).id(doc.id).save({ ...doc, ...input }) },
+      $$remove: { value: () => resolver.match(model).id(doc.id).remove() },
+      $$delete: { value: () => resolver.match(model).id(doc.id).delete() },
     });
   });
 };
@@ -86,7 +74,6 @@ exports.paginateResults = (rs, query) => {
           hasNextPage,
         };
       },
-      enumerable: false,
     },
   });
 };

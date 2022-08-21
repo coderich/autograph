@@ -3,7 +3,7 @@ const Type = require('./Type');
 const Field = require('../graphql/ast/Field');
 const Boom = require('../core/Boom');
 const Pipeline = require('./Pipeline');
-const { map, isPlainObject, ensureArray } = require('../service/app.service');
+const { isPlainObject, ensureArray } = require('../service/app.service');
 
 module.exports = class extends Field {
   constructor(model, field) {
@@ -20,13 +20,13 @@ module.exports = class extends Field {
     // Structures defined on the field
     const $structures = Object.entries(this.getDirectiveArgs('field', {})).reduce((prev, [key, value]) => {
       if (!Array.isArray(value)) value = [value];
-      if (key === 'instruct') prev.instructs.unshift(...value.map(t => Pipeline[t]));
-      if (key === 'restruct') prev.restructs.unshift(...value.map(t => Pipeline[t]));
-      if (key === 'destruct') prev.destructs.unshift(...value.map(t => Pipeline[t]));
-      if (key === 'construct') prev.constructs.unshift(...value.map(t => Pipeline[t]));
-      if (key === 'serialize') prev.serializers.unshift(...value.map(t => Pipeline[t]));
-      if (key === 'deserialize') prev.deserializers.unshift(...value.map(t => Pipeline[t]));
-      if (key === 'transform') prev.transformers.unshift(...value.map(t => Pipeline[t]));
+      if (key === 'instruct') prev.instructs.push(...value.map(t => Pipeline[t]));
+      if (key === 'restruct') prev.restructs.push(...value.map(t => Pipeline[t]));
+      if (key === 'destruct') prev.destructs.push(...value.map(t => Pipeline[t]));
+      if (key === 'construct') prev.constructs.push(...value.map(t => Pipeline[t]));
+      if (key === 'serialize') prev.serializers.push(...value.map(t => Pipeline[t]));
+      if (key === 'deserialize') prev.deserializers.push(...value.map(t => Pipeline[t]));
+      if (key === 'transform') prev.transformers.push(...value.map(t => Pipeline[t]));
       return prev;
     }, structures);
 
