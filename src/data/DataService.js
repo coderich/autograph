@@ -2,10 +2,25 @@ const { get, remove } = require('lodash');
 const { map, isPlainObject, objectContaining, mergeDeep, ensureArray, keyPaths } = require('../service/app.service');
 
 exports.finalizeResults = (rs, query) => {
+  const { model, resolver } = query;
+
   return map(exports.paginateResults(rs, query), (doc) => {
     return Object.defineProperties(doc, {
+      $$model: {
+        value: model,
+        enumerable: false,
+      },
       $$save: {
-        value: () => null,
+        get() { return input => resolver.match(model).id(doc.id).save({ ...doc, ...input }); },
+        enumerable: false,
+      },
+      $$remove: {
+        get() { return () => resolver.match(model).id(doc.id).remove(); },
+        enumerable: false,
+      },
+      $$delete: {
+        get() { return () => resolver.match(model).id(doc.id).delete(); },
+        enumerable: false,
       },
     });
   });

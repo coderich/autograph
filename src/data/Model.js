@@ -81,9 +81,7 @@ module.exports = class extends Model {
         mixed.on('end', () => { resolve(results); });
         mixed.on('error', reject);
       }
-    }).then((results) => {
-      return results.length && pipeline ? finalizeResults(results, query) : results;
-    });
+    }).then(rs => finalizeResults(rs, query));
   }
 
   getShape(crud = 'read', target = 'doc', paths = []) {
