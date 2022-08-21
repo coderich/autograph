@@ -74,6 +74,9 @@ module.exports = class Pipeline {
     Pipeline.define('idKey', ({ model, value }) => (value == null ? model.idValue() : value), { ignoreNull: false });
     Pipeline.define('idField', ({ model, field, value }) => map(value, v => field.getIdModel().idValue(v.id || v)));
 
+    // Pipeline.define('magic', ({ value }) => Object.defineProperties(value, { $$save: { value: null } }));
+    // Pipeline.define('cursor', ({ value }) => Object.defineProperties(value, { $$save: { value: null } }));
+
     Pipeline.define('defaultValue', ({ field, value }) => {
       const { defaultValue } = field.toObject();
       return value === undefined ? defaultValue : value;

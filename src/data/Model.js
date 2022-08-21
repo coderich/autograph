@@ -2,7 +2,7 @@ const Stream = require('stream');
 const Field = require('./Field');
 const Pipeline = require('./Pipeline');
 const Model = require('../graphql/ast/Model');
-const { paginateResultSet } = require('./DataService');
+const { finalizeResults } = require('./DataService');
 const { eventEmitter } = require('../service/event.service');
 const { map, seek, deseek, ensureArray } = require('../service/app.service');
 
@@ -82,7 +82,7 @@ module.exports = class extends Model {
         mixed.on('error', reject);
       }
     }).then((results) => {
-      return results.length && pipeline ? paginateResultSet(results, query) : results;
+      return results.length && pipeline ? finalizeResults(results, query) : results;
     });
   }
 

@@ -33,7 +33,6 @@ module.exports = class extends Field {
     // IDs (first - shift)
     if (isPrimaryKeyId) $structures.serializers.unshift(Pipeline.idKey);
     if (isIdField) $structures.$serializers.unshift(Pipeline.idField);
-    // if (this.isIdField()) structures.$serializers.unshift(({ value }) => (value ? map(value, v => this.getIdModel().idValue(v.id || v)) : value));
 
     // Required (last - push)
     if (isRequired && isPersistable && !isVirtual) $structures.serializers.push(Pipeline.required);

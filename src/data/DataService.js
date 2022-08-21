@@ -1,18 +1,36 @@
 const { get, remove } = require('lodash');
 const { map, isPlainObject, objectContaining, mergeDeep, ensureArray, keyPaths } = require('../service/app.service');
 
-exports.paginateResultSet = (rs, query) => {
+exports.finalizeResults = (rs, query) => {
+  return map(exports.paginateResults(rs, query), (doc) => {
+    return Object.defineProperties(doc, {
+      $$save: {
+        value: () => null,
+      },
+    });
+  });
+};
+
+/**
+ * This is cursor-style pagination only
+ * You add 2 extra records to the result in order to determine previous/next
+ */
+exports.paginateResults = (rs, query) => {
   const { first, after, last, before, sort } = query.toObject();
-  const sortPaths = keyPaths(sort);
-  const limiter = first || last;
+  const isPaginating = Boolean(first || last || after || before);
+
+  // Return right away if not paginating
+  if (!isPaginating) return rs;
+
   let hasNextPage = false;
   let hasPreviousPage = false;
+  const limiter = first || last;
+  const sortPaths = keyPaths(sort);
 
   // Add $$cursor data
   map(rs, (doc) => {
     const sortValues = sortPaths.reduce((prv, path) => Object.assign(prv, { [path]: get(doc, path) }), {});
-    const sortJSON = JSON.stringify(sortValues);
-    doc.$$cursor = Buffer.from(sortJSON).toString('base64');
+    Object.defineProperty(doc, '$$cursor', { get() { return Buffer.from(JSON.stringify(sortValues)).toString('base64'); } });
   });
 
   // First try to take off the "bookends" ($gte | $lte)
@@ -42,7 +60,7 @@ exports.paginateResultSet = (rs, query) => {
     }
   }
 
-  // Add $$pageInfo data (hidden)
+  // Add $$pageInfo
   return Object.defineProperties(rs, {
     $$pageInfo: {
       get() {
