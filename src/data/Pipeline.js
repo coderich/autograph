@@ -29,17 +29,17 @@ module.exports = class Pipeline {
     }, 'name', { value: name });
 
     // Attach enumerable method to the Pipeline
-    Object.defineProperty(Pipeline, name, {
+    return Object.defineProperty(Pipeline, name, {
       value: wrapper,
       configurable,
       enumerable: true,
-    });
+    })[name];
   }
 
   static factory(name, thunk, options = {}) {
     if (typeof thunk !== 'function') throw new Error(`Pipeline factory for "${name}" must be a thunk`);
     if (typeof thunk() !== 'function') throw new Error(`Factory thunk() for "${name}" must return a function`);
-    Object.defineProperty(Pipeline, name, { value: Object.defineProperty(thunk, 'options', { value: options }) });
+    return Object.defineProperty(Pipeline, name, { value: Object.defineProperty(thunk, 'options', { value: options }) })[name];
   }
 
   // static wrapper(name, factory, { ignoreNull, itemize }) {
