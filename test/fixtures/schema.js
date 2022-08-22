@@ -1,10 +1,10 @@
 const Pipeline = require('../../src/data/Pipeline');
 
-Pipeline.define('bookName', Pipeline.deny('The Bible'));
-Pipeline.define('bookPrice', Pipeline.range(0, 100));
-Pipeline.define('artComment', Pipeline.allow('yay', 'great', 'boo'));
-Pipeline.define('colors', Pipeline.allow('blue', 'red', 'green', 'purple'));
-Pipeline.define('buildingType', Pipeline.allow('home', 'office', 'business'));
+Pipeline.define('bookName', Pipeline.Deny('The Bible'));
+Pipeline.define('bookPrice', Pipeline.Range(0, 100));
+Pipeline.define('artComment', Pipeline.Allow('yay', 'great', 'boo'));
+Pipeline.define('colors', Pipeline.Allow('blue', 'red', 'green', 'purple'));
+Pipeline.define('buildingType', Pipeline.Allow('home', 'office', 'business'));
 Pipeline.define('networkID', ({ context }) => context.network.id, { ignoreNull: false });
 
 module.exports = {

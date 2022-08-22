@@ -139,17 +139,17 @@ module.exports = class Pipeline {
     });
 
     // List of allowed values
-    Pipeline.factory('allow', (...args) => function allow({ model, field, value }) {
+    Pipeline.factory('Allow', (...args) => function allow({ model, field, value }) {
       if (args.indexOf(value) === -1) throw Boom.badRequest(`${model}.${field} allows ${args}; found '${value}'`);
     });
 
     // List of disallowed values
-    Pipeline.factory('deny', (...args) => function deny({ model, field, value }) {
+    Pipeline.factory('Deny', (...args) => function deny({ model, field, value }) {
       if (args.indexOf(value) > -1) throw Boom.badRequest(`${model}.${field} denys ${args}; found '${value}'`);
     });
 
     // Min/Max range
-    Pipeline.factory('range', (min, max) => {
+    Pipeline.factory('Range', (min, max) => {
       if (min == null) min = undefined;
       if (max == null) max = undefined;
 

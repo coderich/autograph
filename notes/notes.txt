@@ -1,16 +1,13 @@
 Release 0.10.3:
-  * Still not sure about OOP -> instructs, etc
   * Resolver.toResultSet() => How to hydrate results from the outside world?
-  * Tests do not clean up Mongo connections
   * makeExectuableSchema
-  * You never "validate" the schema anymore like in v0.9
-  * Can you move caching to finalize() instead of initialize()?
-  * Pipeline convention: Factory methods begin with Uppercase (eg. Allow, Deny)
   * SPITFIRE:
     - NetworkPlaceTagMultiLang definition
 
 Release 0.10.4:
   *** There is a bug "where: { id: {one,two,three} }" does not work
+  * Tests do not clean up Mongo connections
+  * You never "validate" the schema anymore like in v0.9
   * Ability to create/use a custom dataloader (wait times API)
   * Revamp error handling -> all things to use Boom (including driver) with proper status codes
   * Determine attribute order when shaping data => this is how we want it saved to db
@@ -39,6 +36,7 @@ Release 0.10.4:
   * It's unclear if where clause needs
     - "castValue" Transformation
   * Do you need proxyDeep?
+  * Can you move caching to finalize() instead of initialize()?
 
   ** Fields with alias (keys) as the same name as other fields do not save properly eg:
       DataPackage.network: Network @field(key: "networkId") # Collides with networkId field
