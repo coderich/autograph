@@ -1,5 +1,5 @@
 const { get, set, uniq, flattenDeep } = require('lodash');
-const { keyPaths, ensureArray, isPlainObject } = require('../service/app.service');
+const { keyPaths, ensureArray, isPlainObject, mergeDeep } = require('../service/app.service');
 
 /**
  * The where clause may contain attributes that are NOT in the model
@@ -111,12 +111,18 @@ exports.resolveReferentialIntegrity = (query) => {
 };
 
 exports.resolveQuery = async (query) => {
-  const { model, sort, native, batch, match } = query.toObject();
+  const { model, crud, sort, input, native, batch, match, doc = {} } = query.toObject();
+
+  if (crud !== 'read') {
+    const inputShape = model.getShape(crud, 'input');
+    const merged = model.shapeObject(inputShape, mergeDeep(doc, input), query);
+    query.input(merged).merged(merged);
+  }
 
   if (!native) {
-    const shape = model.getShape('create', 'where');
+    const whereShape = model.getShape('create', 'where');
     const $where = batch ? match : await exports.resolveWhereClause(query);
-    const $$where = model.shapeObject(shape, $where, query);
+    const $$where = model.shapeObject(whereShape, $where, query);
     query.match($$where);
   }
 

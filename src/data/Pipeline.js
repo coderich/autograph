@@ -39,7 +39,7 @@ module.exports = class Pipeline {
   static factory(name, thunk, options = {}) {
     if (typeof thunk !== 'function') throw new Error(`Pipeline factory for "${name}" must be a thunk`);
     if (typeof thunk() !== 'function') throw new Error(`Factory thunk() for "${name}" must return a function`);
-    return Object.defineProperty(Pipeline, name, { value: Object.defineProperty(thunk, 'options', { value: options }) })[name];
+    return Object.defineProperty(Pipeline, name, { value: (...args) => Object.defineProperty(thunk(...args), 'options', { value: options }) })[name];
   }
 
   // static wrapper(name, factory, { ignoreNull, itemize }) {

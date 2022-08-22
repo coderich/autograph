@@ -50,16 +50,14 @@ module.exports = class extends Model {
    * Convenience method to deserialize data from a data source (such as a database)
    */
   deserialize(mixed, query) {
-    const { flags = {} } = query.toObject();
-    const { pipeline = true } = flags;
     const shape = this.getShape();
 
     return new Promise((resolve, reject) => {
       if (!(mixed instanceof Stream)) {
-        resolve(pipeline ? this.shapeObject(shape, mixed, query) : mixed);
+        resolve(this.shapeObject(shape, mixed, query));
       } else {
         const results = [];
-        mixed.on('data', (data) => { results.push(pipeline ? this.shapeObject(shape, data, query) : data); });
+        mixed.on('data', (data) => { results.push(this.shapeObject(shape, data, query)); });
         mixed.on('end', () => { resolve(results); });
         mixed.on('error', reject);
       }
@@ -76,11 +74,9 @@ module.exports = class extends Model {
     const crudMap = { create: ['constructs'], update: ['restructs'], delete: ['destructs'], remove: ['destructs'] };
     const crudKeys = crudMap[crud] || [];
 
-    const targetMap = {
-      doc: ['defaultValue', 'castValue', 'ensureArrayValue', 'instructs', 'transforms', ...crudKeys, `$${serdes}rs`, `${serdes}rs`],
-      where: ['castValue', 'instructs', `$${serdes}rs`],
-    };
-
+    // Define target mapping
+    const commonStructs = ['defaultValue', 'castValue', 'ensureArrayValue', 'normalizers', 'instructs', ...crudKeys, `$${serdes}rs`, `${serdes}rs`, 'transforms'];
+    const targetMap = { doc: commonStructs, input: commonStructs, where: ['castValue', 'instructs', `$${serdes}rs`] };
     const structureKeys = targetMap[target] || ['castValue'];
 
     // Create shape, recursive
@@ -89,15 +85,17 @@ module.exports = class extends Model {
       const structures = field.getStructures();
       const { key, name, type, isArray, isEmbedded, modelRef } = field.toObject();
       const [from, to] = serdes === 'serialize' ? [name, key] : [key, name];
-      const path = paths.concat(to);
-      const subShape = isEmbedded ? modelRef.getShape(crud, target, path) : null;
+      const actualTo = target === 'input' ? from : to;
+      const path = paths.concat(actualTo);
+      const subCrud = crud === 'update' && isArray ? 'create' : crud; // Due to limitation to update embedded array
+      const subShape = isEmbedded ? modelRef.getShape(subCrud, target, path) : null;
       const transformers = structureKeys.reduce((prev, struct) => {
         if (instructed) return prev;
         const structs = structures[struct];
         if (struct === 'instructs' && structs.length) instructed = true;
         return prev.concat(structs);
       }, []).filter(Boolean);
-      return { field, path, from, to, type, isArray, transformers, validators: structures.validators, shape: subShape };
+      return { field, path, from, to: actualTo, type, isArray, transformers, validators: structures.validators, shape: subShape };
     });
 
     // Adding useful shape info
@@ -112,7 +110,11 @@ module.exports = class extends Model {
 
   shapeObject(shape, obj, query, root) {
     const { serdes, model } = shape;
-    const { context, resolver, doc = {} } = query.toObject();
+    const { context, resolver, doc = {}, flags = {} } = query.toObject();
+    const { pipeline } = flags;
+
+    if (!pipeline) return obj;
+    // const filters = pipeline === true ? [] : Object.entries(pipeline).map(([k, v]) => (v === false ? k : null)).filter(Boolean);
 
     return map(obj, (parent) => {
       // "root" is the base of the object
@@ -125,6 +127,7 @@ module.exports = class extends Model {
 
       return shape.reduce((prev, { field, from, to, path, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
         const startValue = parent[from];
+        // transformers = filters.length ? transformers.filter() : transformers;
 
         // Transform value
         const transformedValue = transformers.reduce((value, t) => {
@@ -145,7 +148,7 @@ module.exports = class extends Model {
   }
 
   validateObject(shape, obj, query, root) {
-    // return data;
+    // return obj;
     const { serdes, model } = shape;
     const { context, resolver, doc = {}, flags = {} } = query.toObject();
     const { validate = true } = flags;

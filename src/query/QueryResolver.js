@@ -3,7 +3,7 @@ const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
 const DataService = require('../data/DataService');
 const { createSystemEvent } = require('../service/event.service');
-const { mergeDeep, getGQLReturnType } = require('../service/app.service');
+const { getGQLReturnType } = require('../service/app.service');
 
 module.exports = class QueryResolver {
   constructor(query) {
@@ -61,12 +61,11 @@ module.exports = class QueryResolver {
   }
 
   async createOne(query) {
-    const { model, input } = query.toObject();
-    const shape = model.getShape('create');
-
     await QueryService.resolveQuery(query);
 
     return createSystemEvent('Mutation', { query }, async () => {
+      const { model, input } = query.toObject();
+      const shape = model.getShape('create');
       const $input = model.shapeObject(shape, input, query);
       await model.validateObject(shape, $input, query);
       const doc = await this.resolver.resolve(query.$input($input));
@@ -83,16 +82,16 @@ module.exports = class QueryResolver {
   }
 
   async updateOne(query) {
-    const { model, match, input } = query.toObject();
+    const { model, match } = query.toObject();
+    const shape = model.getShape('update');
 
     return this.resolver.match(model).match(match).one({ required: true }).then(async (doc) => {
-      const shape = model.getShape('update');
-      const merged = model.shapeObject(shape, mergeDeep(doc, input), query);
-
+      query.doc(doc);
       await QueryService.resolveQuery(query);
 
-      return createSystemEvent('Mutation', { query: query.doc(doc).merged(merged) }, async () => {
-        const $doc = model.shapeObject(shape, mergeDeep(doc, input), query);
+      return createSystemEvent('Mutation', { query }, async () => {
+        const { input } = query.toObject();
+        const $doc = model.shapeObject(shape, input, query);
         await model.validateObject(shape, $doc, query);
         return this.resolver.resolve(query.$doc($doc));
       });
@@ -222,9 +221,6 @@ module.exports = class QueryResolver {
 
   async resolve() {
     const { model, method, flags } = this.query.toObject();
-
-    // const resolveQueryMethods = ['findOne', 'findMany', 'count', 'createOne', 'updateOne', 'deleteOne', 'splice'];
-    // if (resolveQueryMethods.indexOf(method) > -1) await QueryService.resolveQuery(this.query);
 
     return this[method](this.query).then((data) => {
       if (flags.required && isEmpty(data)) throw Boom.notFound(`${model} Not Found`);

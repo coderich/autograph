@@ -11,7 +11,19 @@ module.exports = class extends Type {
     const type = this.field.getType();
     const enumType = this.field.getEnumRef();
     const scalarType = this.field.getScalarRef();
-    const structures = { validators: [], instructs: [], restructs: [], destructs: [], constructs: [], $serializers: [], serializers: [], $deserializers: [], deserializers: [], transforms: [] };
+    const structures = {
+      validators: [],
+      instructs: [],
+      restructs: [],
+      destructs: [],
+      constructs: [],
+      normalizers: [],
+      $serializers: [],
+      $deserializers: [],
+      serializers: [],
+      deserializers: [],
+      transforms: [],
+    };
 
     // Built-in pipelines
     structures.castValue = Pipeline.castValue;
@@ -29,6 +41,7 @@ module.exports = class extends Type {
       if (key === 'destruct') prev.destructs.push(...value.map(t => Pipeline[t]));
       if (key === 'construct') prev.constructs.push(...value.map(t => Pipeline[t]));
       if (key === 'transform') prev.transforms.push(...value.map(t => Pipeline[t]));
+      if (key === 'normalize') prev.normalizers.push(...value.map(t => Pipeline[t]));
       if (key === 'serialize') prev.serializers.push(...value.map(t => Pipeline[t]));
       if (key === 'deserialize') prev.deserializers.push(...value.map(t => Pipeline[t]));
       return prev;

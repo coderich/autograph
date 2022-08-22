@@ -50,6 +50,7 @@ module.exports = (schema) => {
         destruct: [AutoGraphPipelineEnum!]
         construct: [AutoGraphPipelineEnum!]
         transform: [AutoGraphPipelineEnum!]
+        normalize: [AutoGraphPipelineEnum!]
         serialize: [AutoGraphPipelineEnum!]
         deserialize: [AutoGraphPipelineEnum!]
       ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR

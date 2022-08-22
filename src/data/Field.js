@@ -24,6 +24,7 @@ module.exports = class extends Field {
       if (key === 'destruct') prev.destructs.push(...value.map(t => Pipeline[t]));
       if (key === 'construct') prev.constructs.push(...value.map(t => Pipeline[t]));
       if (key === 'transform') prev.transforms.push(...value.map(t => Pipeline[t]));
+      if (key === 'normalize') prev.normalizers.push(...value.map(t => Pipeline[t]));
       if (key === 'serialize') prev.serializers.push(...value.map(t => Pipeline[t]));
       if (key === 'deserialize') prev.deserializers.push(...value.map(t => Pipeline[t]));
       return prev;
