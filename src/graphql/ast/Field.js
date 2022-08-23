@@ -189,6 +189,7 @@ module.exports = class Field extends Node {
       isIdField: this.isIdField(),
       isPrimaryKeyId: this.isPrimaryKeyId(),
       isPersistable: this.isPersistable(),
+      idModel: this.getIdModel(),
       modelRef: this.getModelRef(),
       virtualRef: this.getVirtualRef(),
       virtualField: this.getVirtualField(),

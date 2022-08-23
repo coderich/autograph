@@ -2,7 +2,7 @@ const _ = require('lodash');
 const PicoMatch = require('picomatch');
 const FillRange = require('fill-range');
 const DeepMerge = require('deepmerge');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const ObjectHash = require('object-hash');
 
 // const combineMerge = (target, source, options) => {
@@ -32,15 +32,15 @@ exports.id = '3d896496-02a3-4ee5-8e42-2115eb215f7e';
 exports.ucFirst = string => string.charAt(0).toUpperCase() + string.slice(1);
 exports.lcFirst = string => string.charAt(0).toLowerCase() + string.slice(1);
 exports.isNumber = value => typeof value === 'number' && Number.isFinite(value);
-exports.isBasicObject = obj => obj != null && typeof obj === 'object' && !(ObjectID.isValid(obj)) && !(obj instanceof Date) && typeof (obj.then) !== 'function';
+exports.isBasicObject = obj => obj != null && typeof obj === 'object' && !(ObjectId.isValid(obj)) && !(obj instanceof Date) && typeof (obj.then) !== 'function';
 exports.isPlainObject = obj => exports.isBasicObject(obj) && !Array.isArray(obj);
 exports.isScalarValue = value => typeof value !== 'object' && typeof value !== 'function';
 exports.isScalarDataType = value => ['String', 'Float', 'Int', 'Boolean', 'DateTime'].indexOf(value) > -1;
-exports.isIdValue = value => exports.isScalarValue(value) || value instanceof ObjectID;
+exports.isIdValue = value => exports.isScalarValue(value) || value instanceof ObjectId;
 exports.mergeDeep = (...args) => DeepMerge.all(args, { isMergeableObject: obj => (exports.isPlainObject(obj) || Array.isArray(obj)), arrayMerge: smartMerge });
 exports.uniq = arr => [...new Set(arr.map(a => `${a}`))];
 exports.timeout = ms => new Promise(res => setTimeout(res, ms));
-exports.hashObject = obj => ObjectHash(obj, { respectType: false, respectFunctionNames: false, respectFunctionProperties: false, unorderedArrays: true, ignoreUnknown: true, replacer: r => (r instanceof ObjectID ? `${r}` : r) });
+exports.hashObject = obj => ObjectHash(obj, { respectType: false, respectFunctionNames: false, respectFunctionProperties: false, unorderedArrays: true, ignoreUnknown: true, replacer: r => (r instanceof ObjectId ? `${r}` : r) });
 exports.globToRegex = (glob, options = {}) => PicoMatch.makeRe(glob, { ...options, expandRange: (a, b) => `(${FillRange(a, b, { toRegex: true })})` });
 exports.globToRegexp = (glob, options = {}) => PicoMatch.toRegex(exports.globToRegex(glob, options));
 exports.toGUID = (model, id) => Buffer.from(`${model},${`${id}`}`).toString('base64');

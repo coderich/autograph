@@ -75,8 +75,12 @@ module.exports = class extends Model {
     const crudKeys = crudMap[crud] || [];
 
     // Define target mapping
-    const commonStructs = ['defaultValue', 'castValue', 'ensureArrayValue', 'normalizers', 'instructs', ...crudKeys, `$${serdes}rs`, `${serdes}rs`, 'transforms'];
-    const targetMap = { doc: commonStructs, input: commonStructs, where: ['castValue', 'instructs', `$${serdes}rs`] };
+    const targetMap = {
+      doc: ['defaultValue', 'castValue', 'ensureArrayValue', 'normalizers', 'instructs', ...crudKeys, `$${serdes}rs`, `${serdes}rs`, 'transforms'],
+      input: ['defaultValue', 'castValue', 'ensureArrayValue', 'normalizers', 'instructs', ...crudKeys, `$${serdes}rs`, `${serdes}rs`, 'transforms'],
+      // input: ['defaultValue', 'castValue', 'ensureArrayValue'],
+      where: ['castValue', 'instructs', `$${serdes}rs`],
+    };
     const structureKeys = targetMap[target] || ['castValue'];
 
     // Create shape, recursive
@@ -102,6 +106,7 @@ module.exports = class extends Model {
     shape.crud = crud;
     shape.model = this;
     shape.serdes = serdes;
+    shape.target = target;
 
     // Cache and return
     this.shapesCache.set(cacheKey, shape);

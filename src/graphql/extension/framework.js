@@ -31,11 +31,11 @@ module.exports = (schema) => {
 
       directive @field(
         id: String # Specify the ModelRef this field FK References
+        ref: AutoGraphMixed # Specify the modelRef field's name (overrides isEmbedded)
         key: String # Specify db key
         persist: Boolean # Persist this field (default true)
         connection: Boolean # Treat this field as a connection type (default false - rolling this out slowly)
         default: AutoGraphMixed # Define a default value
-        ref: AutoGraphMixed # Specify the modelRef field's name (overrides isEmbedded)
         gqlScope: AutoGraphMixed # Dictate how GraphQL API behaves
         dalScope: AutoGraphMixed # Dictate how the DAL behaves
         fieldScope: AutoGraphMixed # Dictate how a FIELD may use me

@@ -13,7 +13,7 @@ module.exports = class extends Field {
   getStructures() {
     // Grab structures from the underlying type
     const structures = this.type.getStructures();
-    const { isPrimaryKeyId, isIdField, isRequired, isPersistable, isVirtual, isEmbedded, modelRef } = this.props;
+    const { type, isPrimaryKeyId, isIdField, isRequired, isPersistable, isVirtual, isEmbedded, modelRef } = this.props;
 
     // Structures defined on the field
     const $structures = Object.entries(this.getDirectiveArgs('field', {})).reduce((prev, [key, value]) => {
@@ -31,7 +31,7 @@ module.exports = class extends Field {
     }, structures);
 
     // IDs (first - shift)
-    if (isPrimaryKeyId) $structures.serializers.unshift(Pipeline.idKey);
+    if (isPrimaryKeyId && type === 'ID') $structures.serializers.unshift(Pipeline.idKey);
     if (isIdField) $structures.$serializers.unshift(Pipeline.idField);
 
     // Required (last - push)

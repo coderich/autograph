@@ -8,23 +8,27 @@ const systemEvent = new EventEmitter().setMaxListeners(100).on('system', async (
   next(await eventEmitter.emit(type, data)); // Return result from user-defined middleware
 });
 
+const makeEvent = (mixed) => {
+  const { query } = mixed;
+  const event = query.toObject();
+  event.query = query;
+  return event;
+};
+
 //
 exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
   let event = mixed;
   const type = ucFirst(name);
 
-  if (name !== 'Setup' && name !== 'Response') {
-    const { query } = mixed;
-    event = query.toObject();
-    event.query = query;
-  }
+  if (name !== 'Setup' && name !== 'Response') event = makeEvent(mixed);
 
-  return systemEvent.emit('system', { type: `pre${type}`, data: event }).then((result) => {
-    return (result !== undefined) ? result : thunk(); // Allowing middleware to dictate result
-  }).then(async (result) => {
+  return systemEvent.emit('system', { type: `pre${type}`, data: event }).then(async (result) => {
+    if (result !== undefined) return result; // Allowing middleware to dictate result
+    if (event.crud !== 'read' && name !== 'Setup' && name !== 'Response') await eventEmitter.emit('validate', event);
+    return thunk();
+  }).then((result) => {
     event.result = result;
     if (event.crud === 'create') event.doc = event.query.toObject().doc;
-    if (event.crud !== 'read' && name !== 'Setup' && name !== 'Response') await eventEmitter.emit('validate', event.query);
     return systemEvent.emit('system', { type: `post${type}`, data: event }).then((postResult = result) => postResult);
   }).then((result) => {
     if (name === 'Response') return result;

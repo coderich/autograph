@@ -6,7 +6,7 @@ const { keyPaths, ensureArray, isPlainObject, mergeDeep } = require('../service/
  * This can happen because the where clause reaches into the schema via refs/virtual refs
  */
 exports.resolveWhereClause = (query) => {
-  const { resolver, model, match: where = {}, flags = {} } = query.toObject();
+  const { resolver, model, match: where = {} } = query.toObject();
   const shape = model.getShape('create', 'where');
 
   const $where = Object.entries(where).reduce((prev, [from, value]) => {
@@ -16,12 +16,12 @@ exports.resolveWhereClause = (query) => {
     const { isVirtual, isEmbedded, modelRef, virtualRef } = el.field.toObject();
 
     if (isVirtual) {
-      const ids = Promise.all(ensureArray(value).map(v => resolver.match(modelRef).where(isPlainObject(v) ? v : { id: v }).many(flags).then(docs => docs.map(doc => doc[virtualRef])))).then(results => uniq(flattenDeep(results)));
+      const ids = Promise.all(ensureArray(value).map(v => resolver.match(modelRef).where(isPlainObject(v) ? v : { id: v }).many().then(docs => docs.map(doc => doc[virtualRef])))).then(results => uniq(flattenDeep(results)));
       return Object.assign(prev, { id: ids });
     }
 
     if (modelRef && !isEmbedded) {
-      const ids = Promise.all(ensureArray(value).map(v => (isPlainObject(v) ? resolver.match(modelRef).where(v).many(flags).then(docs => docs.map(doc => doc.id)) : Promise.resolve(v)))).then(results => uniq(flattenDeep(results)));
+      const ids = Promise.all(ensureArray(value).map(v => (isPlainObject(v) ? resolver.match(modelRef).where(v).many().then(docs => docs.map(doc => doc.id)) : Promise.resolve(v)))).then(results => uniq(flattenDeep(results)));
       return Object.assign(prev, { [from]: ids });
     }
 
@@ -67,7 +67,7 @@ exports.resolveSortBy = (query) => {
 };
 
 exports.resolveReferentialIntegrity = (query) => {
-  const { id, model, resolver, transaction, flags } = query.toObject();
+  const { id, model, resolver, transaction } = query.toObject();
   const txn = resolver.transaction(transaction);
 
   return new Promise((resolve, reject) => {
@@ -79,18 +79,18 @@ exports.resolveReferentialIntegrity = (query) => {
         switch (op) {
           case 'cascade': {
             if (isArray) {
-              txn.match(ref).where($where).flags(flags).pull(fieldStr, id);
+              txn.match(ref).where($where).pull(fieldStr, id);
             } else {
-              txn.match(ref).where($where).flags(flags).remove();
+              txn.match(ref).where($where).remove();
             }
             break;
           }
           case 'nullify': {
-            txn.match(ref).where($where).flags(flags).save({ [fieldStr]: null });
+            txn.match(ref).where($where).save({ [fieldStr]: null });
             break;
           }
           case 'restrict': {
-            txn.match(ref).where($where).flags(flags).count().then(count => (count ? reject(new Error('Restricted')) : count));
+            txn.match(ref).where($where).count().then(count => (count ? reject(new Error('Restricted')) : count));
             break;
           }
           case 'defer': {

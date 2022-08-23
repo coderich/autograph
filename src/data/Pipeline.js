@@ -66,13 +66,15 @@ module.exports = class Pipeline {
     // Additional Transformers
     Pipeline.define('toTitleCase', ({ value }) => value.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()));
     Pipeline.define('toSentenceCase', ({ value }) => value.charAt(0).toUpperCase() + value.slice(1));
+    Pipeline.define('toId', ({ model, value }) => model.idValue(value));
     Pipeline.define('toArray', ({ value }) => (Array.isArray(value) ? value : [value]), { itemize: false });
     Pipeline.define('toDate', ({ value }) => new Date(value), { configurable: true });
     Pipeline.define('timestamp', ({ value }) => Date.now(), { ignoreNull: false });
     Pipeline.define('createdAt', ({ value }) => value || Date.now(), { ignoreNull: false });
     Pipeline.define('dedupe', ({ value }) => uniqWith(value, (b, c) => hashObject(b) === hashObject(c)), { itemize: false });
     Pipeline.define('idKey', ({ model, value }) => (value == null ? model.idValue() : value), { ignoreNull: false });
-    Pipeline.define('idField', ({ model, field, value }) => map(value, v => field.getIdModel().idValue(v.id || v)));
+    Pipeline.define('idField', ({ model, field, value }) => field.getIdModel().idValue(value.id || value));
+    // Pipeline.define('idField', ({ model, field, value }) => map(value, v => field.getIdModel().idValue(v.id || v)));
     Pipeline.define('ensureArrayValue', ({ field, value }) => (field.toObject().isArray && !Array.isArray(value) ? [value] : value), { itemize: false });
 
     Pipeline.define('ensureId', ({ resolver, field, value }) => {

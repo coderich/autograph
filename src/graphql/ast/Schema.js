@@ -2,7 +2,7 @@ const FS = require('fs');
 const Glob = require('glob');
 const Merge = require('deepmerge');
 const { Kind, print, parse, visit } = require('graphql');
-const { mergeASTArray, makeExecutableSchema } = require('../../service/graphql.service');
+const { validateSchema, mergeASTArray, makeExecutableSchema } = require('../../service/graphql.service');
 const { deleteKeys } = require('../../service/app.service');
 const frameworkExt = require('../extension/framework');
 const typeExt = require('../extension/type');
@@ -120,6 +120,7 @@ module.exports = class Schema extends TypeDefApi {
     });
 
     this.schema.typeDefs = { kind: Kind.DOCUMENT, definitions };
+    // validateSchema(this.schema);
     return this;
   }
 

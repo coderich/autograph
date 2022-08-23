@@ -10,6 +10,7 @@ exports.finalizeResults = (rs, query) => {
       $$save: { value: input => resolver.match(model).id(doc.id).save({ ...doc, ...input }) },
       $$remove: { value: () => resolver.match(model).id(doc.id).remove() },
       $$delete: { value: () => resolver.match(model).id(doc.id).delete() },
+      $$resolve: { value: (fieldName, args) => model.getFieldByName(fieldName).resolve(resolver, doc, args) },
     });
   });
 };

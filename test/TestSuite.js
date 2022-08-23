@@ -904,6 +904,12 @@ module.exports = (driver = 'mongo', options = {}) => {
         await expect(resolver.match('Person').where({ age: 400 }).one({ required: true })).rejects.toThrow(/not found/gi);
         await expect(resolver.match('Person').where({ age: 400 }).many({ required: true })).rejects.toThrow(/not found/gi);
       });
+
+      test('multiple updates in Promise.all()', async () => {
+        const people = await resolver.match('Person').many();
+        const updated = await Promise.all(people.map((person, i) => resolver.match('Person').id(person.id).save({ age: 20 + i })));
+        expect(updated.map(up => up.age)).toEqual(people.map((p, i) => 20 + i));
+      });
     });
 
 

@@ -1,6 +1,6 @@
 const Util = require('util');
 const { get } = require('lodash');
-const { MongoClient, ObjectID } = require('mongodb');
+const { MongoClient, ObjectId } = require('mongodb');
 const { map, ensureArray, proxyDeep, toKeyObj, globToRegex, proxyPromise, isScalarDataType, promiseRetry } = require('../service/app.service');
 
 module.exports = class MongoDriver {
@@ -126,10 +126,10 @@ module.exports = class MongoDriver {
   }
 
   static idValue(value) {
-    if (value instanceof ObjectID) return value;
+    if (value instanceof ObjectId) return value;
 
     try {
-      const id = ObjectID(value);
+      const id = ObjectId(value);
       return id;
     } catch (e) {
       return value;
@@ -142,7 +142,10 @@ module.exports = class MongoDriver {
         const value = Reflect.get(target, prop, rec);
         if (typeof value === 'function') return value.bind(target);
         const $value = map(value, v => (typeof v === 'string' ? globToRegex(v, { nocase: true, regex: true }) : v));
-        if (Array.isArray($value)) return { $in: $value };
+        if (Array.isArray($value)) {
+          // console.log(Util.inspect({ value, $value }, { depth: null, showHidden: false, colors: true }));
+          return { $in: $value };
+        }
         return $value;
       },
     }).toObject();

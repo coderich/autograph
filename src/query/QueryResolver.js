@@ -109,9 +109,9 @@ module.exports = class QueryResolver {
   }
 
   deleteOne(query) {
-    const { model, id, flags } = query.toObject();
+    const { model, id } = query.toObject();
 
-    return this.resolver.match(model).id(id).flags(flags).one({ required: true }).then(async (doc) => {
+    return this.resolver.match(model).id(id).one({ required: true }).then(async (doc) => {
       await QueryService.resolveQuery(query);
 
       return createSystemEvent('Mutation', { query: query.doc(doc) }, () => {
@@ -185,7 +185,7 @@ module.exports = class QueryResolver {
   }
 
   splice(query) {
-    const { model, match, args, flags = {} } = query.toObject();
+    const { model, match, args } = query.toObject();
     const [key, from, to] = args;
 
     // Can only splice arrays
@@ -193,7 +193,7 @@ module.exports = class QueryResolver {
     const isArray = field.isArray();
     if (!isArray) throw Boom.badRequest(`Cannot splice field '${model}.${field}'`);
 
-    return this.resolver.match(model).match(match).flags(flags).one({ required: true }).then(async (doc) => {
+    return this.resolver.match(model).match(match).one({ required: true }).then(async (doc) => {
       const array = get(doc, key) || [];
       const paramShape = model.getShape('create', 'spliceTo');
       const $to = model.shapeObject(paramShape, { [key]: to }, query)[key] || to;
