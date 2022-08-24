@@ -63,7 +63,7 @@ module.exports = class QueryResolver {
 
     return createSystemEvent('Mutation', { query: query.doc(doc).merged(merged) }, async () => {
       const payload = model.shapeObject(inputShape, mergeDeep(doc, input), query);
-      await model.validateObject(inputShape, payload, query);
+      await model.validateObject(inputShape, payload, query.payload(payload));
       return this.resolver.resolve(query.$input(model.shapeObject(docShape, payload, query)));
     });
   }
@@ -85,7 +85,7 @@ module.exports = class QueryResolver {
 
       return createSystemEvent('Mutation', { query: query.doc(doc).merged(merged) }, async () => {
         const payload = model.shapeObject(inputShape, mergeDeep(doc, input), query);
-        await model.validateObject(inputShape, payload, query);
+        await model.validateObject(inputShape, payload, query.payload(payload));
         return this.resolver.resolve(query.$doc(model.shapeObject(docShape, payload, query)));
       });
     });
@@ -195,7 +195,7 @@ module.exports = class QueryResolver {
 
       return createSystemEvent('Mutation', { query: query.method('updateOne').doc(doc).merged(doc) }, async () => {
         const payload = model.shapeObject(inputShape, doc, query);
-        await model.validateObject(inputShape, payload, query);
+        await model.validateObject(inputShape, payload, query.payload(payload));
         return this.resolver.resolve(query.$doc(model.shapeObject(docShape, payload, query)));
       });
     });

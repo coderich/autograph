@@ -272,6 +272,16 @@ module.exports = class Query {
     return this;
   }
 
+  payload(payload) {
+    this.props.payload = payload;
+    return this;
+  }
+
+  result(result) {
+    this.props.result = result;
+    return this;
+  }
+
   $doc($doc) {
     this.props.$doc = $doc;
     return this;
@@ -279,11 +289,6 @@ module.exports = class Query {
 
   args(args) {
     this.props.args = args;
-    return this;
-  }
-
-  result(result) {
-    this.props.result = result;
     return this;
   }
 

@@ -178,7 +178,7 @@ module.exports = class extends Model {
         });
       }));
     }).then(() => {
-      return silent ? Promise.resolve() : eventEmitter.emit('validate', query);
+      return silent ? Promise.resolve() : eventEmitter.emit('validate', query.toObject());
     });
   }
 };
