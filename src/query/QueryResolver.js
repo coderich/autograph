@@ -62,7 +62,7 @@ module.exports = class QueryResolver {
     const merged = mergeDeep(doc, input);
 
     return createSystemEvent('Mutation', { query: query.doc(doc).merged(merged) }, async () => {
-      const payload = model.shapeObject(inputShape, mergeDeep(doc, input), query);
+      const payload = model.shapeObject(inputShape, merged, query);
       await model.validateObject(inputShape, payload, query.payload(payload));
       return this.resolver.resolve(query.$input(model.shapeObject(docShape, payload, query)));
     });
@@ -84,7 +84,7 @@ module.exports = class QueryResolver {
       const merged = mergeDeep(doc, input);
 
       return createSystemEvent('Mutation', { query: query.doc(doc).merged(merged) }, async () => {
-        const payload = model.shapeObject(inputShape, mergeDeep(doc, input), query);
+        const payload = model.shapeObject(inputShape, merged, query);
         await model.validateObject(inputShape, payload, query.payload(payload));
         return this.resolver.resolve(query.$doc(model.shapeObject(docShape, payload, query)));
       });

@@ -20,6 +20,8 @@
 - Exported SchemaDecorator -> Schema
 - Removed embedded schema SystemEvents (internal emitter also removed)
 - Removed spread of arguments in QueryBuilder terminal commands (must pass in array)
+- Mutate "merged" instead of "input"
+- Validate "payload"
 
 ## v0.9.x
 - Subscriptions API
