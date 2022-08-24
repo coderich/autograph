@@ -3,7 +3,7 @@ const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
 const DataService = require('../data/DataService');
 const { createSystemEvent } = require('../service/event.service');
-const { getGQLReturnType } = require('../service/app.service');
+const { mergeDeep, getGQLReturnType } = require('../service/app.service');
 
 module.exports = class QueryResolver {
   constructor(query) {
@@ -36,41 +36,35 @@ module.exports = class QueryResolver {
     }
   }
 
-  async findOne(query) {
-    await QueryService.resolveQuery(query);
-
-    return createSystemEvent('Query', { query }, () => {
+  findOne(query) {
+    return createSystemEvent('Query', { query }, async () => {
       return this.resolver.resolve(query);
     });
   }
 
-  async findMany(query) {
-    await QueryService.resolveQuery(query);
-
-    return createSystemEvent('Query', { query }, () => {
+  findMany(query) {
+    return createSystemEvent('Query', { query }, async () => {
       return this.resolver.resolve(query);
     });
   }
 
-  async count(query) {
-    await QueryService.resolveQuery(query);
-
-    return createSystemEvent('Query', { query }, () => {
+  count(query) {
+    return createSystemEvent('Query', { query }, async () => {
       return this.resolver.resolve(query);
     });
   }
 
-  async createOne(query) {
-    await QueryService.resolveQuery(query);
+  createOne(query) {
+    const { model, input } = query.toObject();
+    const inputShape = model.getShape('create', 'input');
+    const docShape = model.getShape('create', 'doc');
+    const doc = model.shapeObject(inputShape, {}, query); // We use input shape here
+    const merged = mergeDeep(doc, input);
 
-    return createSystemEvent('Mutation', { query }, async () => {
-      const { model, input } = query.toObject();
-      const shape = model.getShape('create');
-      const $input = model.shapeObject(shape, input, query);
-      await model.validateObject(shape, $input, query);
-      const doc = await this.resolver.resolve(query.$input($input));
-      query.doc(doc);
-      return doc;
+    return createSystemEvent('Mutation', { query: query.doc(doc).merged(merged) }, async () => {
+      const payload = model.shapeObject(inputShape, mergeDeep(doc, input), query);
+      await model.validateObject(inputShape, payload, query);
+      return this.resolver.resolve(query.$input(model.shapeObject(docShape, payload, query)));
     });
   }
 
@@ -82,18 +76,17 @@ module.exports = class QueryResolver {
   }
 
   async updateOne(query) {
-    const { model, match } = query.toObject();
-    const shape = model.getShape('update');
+    const { model, match, input } = query.toObject();
+    const inputShape = model.getShape('update', 'input');
+    const docShape = model.getShape('update', 'doc');
 
-    return this.resolver.match(model).match(match).one({ required: true }).then(async (doc) => {
-      query.doc(doc);
-      await QueryService.resolveQuery(query);
+    return this.resolver.match(model).match(match).one({ required: true }).then((doc) => {
+      const merged = mergeDeep(doc, input);
 
-      return createSystemEvent('Mutation', { query }, async () => {
-        const { input } = query.toObject();
-        const $doc = model.shapeObject(shape, input, query);
-        await model.validateObject(shape, $doc, query);
-        return this.resolver.resolve(query.$doc($doc));
+      return createSystemEvent('Mutation', { query: query.doc(doc).merged(merged) }, async () => {
+        const payload = model.shapeObject(inputShape, mergeDeep(doc, input), query);
+        await model.validateObject(inputShape, payload, query);
+        return this.resolver.resolve(query.$doc(model.shapeObject(docShape, payload, query)));
       });
     });
   }
@@ -112,8 +105,6 @@ module.exports = class QueryResolver {
     const { model, id } = query.toObject();
 
     return this.resolver.match(model).id(id).one({ required: true }).then(async (doc) => {
-      await QueryService.resolveQuery(query);
-
       return createSystemEvent('Mutation', { query: query.doc(doc) }, () => {
         return QueryService.resolveReferentialIntegrity(query).then(() => {
           return this.resolver.resolve(query).then(() => doc);
@@ -186,6 +177,9 @@ module.exports = class QueryResolver {
 
   splice(query) {
     const { model, match, args } = query.toObject();
+    const docShape = model.getShape('update', 'doc');
+    const inputShape = model.getShape('update', 'input');
+    const spliceShape = model.getShape('update', 'splice');
     const [key, from, to] = args;
 
     // Can only splice arrays
@@ -195,18 +189,21 @@ module.exports = class QueryResolver {
 
     return this.resolver.match(model).match(match).one({ required: true }).then(async (doc) => {
       const array = get(doc, key) || [];
-      const paramShape = model.getShape('create', 'spliceTo');
-      const $to = model.shapeObject(paramShape, { [key]: to }, query)[key] || to;
-      const $from = model.shapeObject(paramShape, { [key]: from }, query)[key] || from;
+      const $to = model.shapeObject(spliceShape, { [key]: to }, query)[key] || to;
+      const $from = model.shapeObject(spliceShape, { [key]: from }, query)[key] || from;
       set(doc, key, DataService.spliceEmbeddedArray(array, $from, $to));
 
-      await QueryService.resolveQuery(query);
-
       return createSystemEvent('Mutation', { query: query.method('updateOne').doc(doc).merged(doc) }, async () => {
-        const shape = model.getShape('update');
-        const $doc = model.shapeObject(shape, doc, query);
-        await model.validateObject(shape, $doc, query);
-        return this.resolver.resolve(query.$doc($doc));
+        const payload = model.shapeObject(inputShape, doc, query);
+        await model.validateObject(inputShape, payload, query);
+        return this.resolver.resolve(query.$doc(model.shapeObject(docShape, payload, query)));
+
+        // await model.validateObject(paramShape, doc, query);
+        // return this.resolver.resolve(query.$doc(model.shapeObject(shape, doc, query)));
+
+        // const $doc = model.shapeObject(shape, doc, query);
+        // await model.validateObject(shape, $doc, query);
+        // return this.resolver.resolve(query.$doc($doc));
       });
     });
   }

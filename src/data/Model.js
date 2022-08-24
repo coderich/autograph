@@ -2,6 +2,7 @@ const Stream = require('stream');
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
 const { finalizeResults } = require('./DataService');
+const { eventEmitter } = require('../service/event.service');
 const { map, mapPromise, seek, deseek } = require('../service/app.service');
 
 module.exports = class extends Model {
@@ -89,7 +90,7 @@ module.exports = class extends Model {
       const structures = field.getStructures();
       const { key, name, type, isArray, isEmbedded, modelRef } = field.toObject();
       const [from, to] = serdes === 'serialize' ? [name, key] : [key, name];
-      const actualTo = target === 'input' ? from : to;
+      const actualTo = target === 'input' || target === 'splice' ? from : to;
       const path = paths.concat(actualTo);
       const subCrud = crud === 'update' && isArray ? 'create' : crud; // Due to limitation to update embedded array
       const subShape = isEmbedded ? modelRef.getShape(subCrud, target, path) : null;
@@ -152,9 +153,8 @@ module.exports = class extends Model {
     });
   }
 
-  validateObject(shape, obj, query, root) {
-    // return obj;
-    const { serdes, model } = shape;
+  validateObject(shape, obj, query, root, silent = false) {
+    const { model } = shape;
     const { context, resolver, doc = {}, flags = {} } = query.toObject();
     const { validate = true } = flags;
 
@@ -165,17 +165,20 @@ module.exports = class extends Model {
       root = root || parent;
 
       // Lookup helper functions
-      const docPath = (p, hint) => seek(doc, p, hint); // doc is already serialized; so always a seek
-      const rootPath = (p, hint) => (serdes === 'serialize' ? seek(root, p, hint) : deseek(shape, root, p, hint));
-      const parentPath = (p, hint) => (serdes === 'serialize' ? seek(parent, p, hint) : deseek(shape, parent, p, hint));
+      const docPath = (p, hint) => seek(doc, p, hint);
+      const rootPath = (p, hint) => seek(root, p, hint);
+      const parentPath = (p, hint) => seek(parent, p, hint);
 
-      return Promise.all(shape.map(({ field, to, path, validators, shape: subShape }) => {
-        const value = parent[to]; // It's already been shaped
+      return Promise.all(shape.map(({ field, from, path, validators, shape: subShape }) => {
+        // const value = parent[to]; // It's already been shaped
+        const value = parent[from]; // It hasn't yet been shaped
 
         return Promise.all(validators.map(v => v({ model, field, path, docPath, rootPath, parentPath, startValue: value, value, resolver, context }))).then(() => {
-          return subShape ? this.validateObject(subShape, value, query, root) : Promise.resolve();
+          return subShape ? this.validateObject(subShape, value, query, root, true) : Promise.resolve();
         });
       }));
+    }).then(() => {
+      return silent ? Promise.resolve() : eventEmitter.emit('validate', query);
     });
   }
 };

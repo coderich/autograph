@@ -282,6 +282,11 @@ module.exports = class Query {
     return this;
   }
 
+  result(result) {
+    this.props.result = result;
+    return this;
+  }
+
   clone() {
     const clone = new Query();
     clone.props = { ...this.props };

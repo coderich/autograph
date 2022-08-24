@@ -130,12 +130,12 @@ module.exports = class Pipeline {
 
     // A field cannot hold a reference to itself
     Pipeline.define('selfless', ({ model, field, parent, parentPath, value }) => {
-      if (`${value}` === `${parentPath(model.idKey())}`) throw Boom.badRequest(`${model}.${field} cannot hold a reference to itself`);
+      if (`${value}` === `${parentPath('id')}`) throw Boom.badRequest(`${model}.${field} cannot hold a reference to itself`);
     });
 
     // Once set it cannot be changed
     Pipeline.define('immutable', ({ model, field, docPath, parentPath, path, value }) => {
-      const hint = { id: parentPath(model.idKey()) };
+      const hint = { id: parentPath('id') };
       const oldVal = docPath(path, hint);
       if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw Boom.badRequest(`${model}.${field} is immutable; cannot be changed once set ${oldVal} -> ${value}`);
     });

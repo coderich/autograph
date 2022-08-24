@@ -1,3 +1,4 @@
+const QueryService = require('../query/QueryService');
 const EventEmitter = require('../core/EventEmitter');
 const { ucFirst } = require('./app.service');
 
@@ -15,17 +16,42 @@ const makeEvent = (mixed) => {
   return event;
 };
 
+const makeMiddleware = () => {
+  return (mixed) => {
+    const { query } = mixed;
+    const { model, native, sort, match, batch } = query.toObject();
+
+    return new Promise(async (resolve) => {
+      if (!native) {
+        const whereShape = model.getShape('create', 'where');
+        const $where = batch ? match : await QueryService.resolveWhereClause(query);
+        const $$where = model.shapeObject(whereShape, $where, query);
+        query.match($$where);
+      }
+
+      if (sort) {
+        query.$sort(QueryService.resolveSortBy(query));
+      }
+
+      resolve();
+    });
+  };
+};
+
 //
 exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
   let event = mixed;
+  let middleware = () => Promise.resolve();
   const type = ucFirst(name);
 
-  if (name !== 'Setup' && name !== 'Response') event = makeEvent(mixed);
+  if (name !== 'Setup' && name !== 'Response') {
+    event = makeEvent(mixed);
+    middleware = makeMiddleware();
+  }
 
   return systemEvent.emit('system', { type: `pre${type}`, data: event }).then(async (result) => {
     if (result !== undefined) return result; // Allowing middleware to dictate result
-    if (event.crud !== 'read' && name !== 'Setup' && name !== 'Response') await eventEmitter.emit('validate', event);
-    return thunk();
+    return middleware(mixed).then(thunk);
   }).then((result) => {
     event.result = result;
     if (event.crud === 'create') event.doc = event.query.toObject().doc;
