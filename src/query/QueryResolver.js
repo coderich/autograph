@@ -197,13 +197,6 @@ module.exports = class QueryResolver {
         const payload = model.shapeObject(inputShape, doc, query);
         await model.validateObject(inputShape, payload, query);
         return this.resolver.resolve(query.$doc(model.shapeObject(docShape, payload, query)));
-
-        // await model.validateObject(paramShape, doc, query);
-        // return this.resolver.resolve(query.$doc(model.shapeObject(shape, doc, query)));
-
-        // const $doc = model.shapeObject(shape, doc, query);
-        // await model.validateObject(shape, $doc, query);
-        // return this.resolver.resolve(query.$doc($doc));
       });
     });
   }
