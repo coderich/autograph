@@ -2,15 +2,15 @@
 
 ## v0.10.x
 - Replaced ResultSet -> POJOs
-  - Removed all $ magic field methods (auto populated)
+  - Removed all $field methods (auto populated)
   - Removed .toObject()
+  - $model $save remove $delete $lookup $cursor $pageInfo
 - Removed embedded API completely
 - Removed Directives
   - embedApi -> no replacement
   - enforce -> use pipeline methods
   - resolve -> use graphql resolvers
   - @value -> use @field.instruct directive
-- Removed toId Transform -> use @field(id: '')
 - Removed Model.tform() -> use Model.shapeObject(shape, data)
 - Removed Resolver.toResultSet() -> ? TBD ?
 - Removed Transformer + Rule -> use Pipeline

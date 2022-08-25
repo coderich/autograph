@@ -6,11 +6,12 @@ exports.finalizeResults = (rs, query) => {
 
   return map(exports.paginateResults(rs, query), (doc) => {
     return Object.defineProperties(doc, {
-      $$model: { value: model },
-      $$save: { value: input => resolver.match(model).id(doc.id).save({ ...doc, ...input }) },
-      $$remove: { value: () => resolver.match(model).id(doc.id).remove() },
-      $$delete: { value: () => resolver.match(model).id(doc.id).delete() },
-      $$resolve: { value: (fieldName, args) => model.getFieldByName(fieldName).resolve(resolver, doc, args) },
+      $model: { value: model },
+      $save: { value: input => resolver.match(model).id(doc.id).save({ ...doc, ...input }) },
+      $remove: { value: (...args) => resolver.match(model).id(doc.id).remove(...args) },
+      $delete: { value: (...args) => resolver.match(model).id(doc.id).delete(...args) },
+      $lookup: { value: (fieldName, args) => model.getFieldByName(fieldName).resolve(resolver, doc, args) },
+      // $resolve: { value: (fieldName, args) => model.getFieldByName(fieldName).resolve(resolver, doc, args, true) },
     });
   });
 };
@@ -31,19 +32,19 @@ exports.paginateResults = (rs, query) => {
   const limiter = first || last;
   const sortPaths = keyPaths(sort);
 
-  // Add $$cursor data
+  // Add $cursor data
   map(rs, (doc) => {
     const sortValues = sortPaths.reduce((prv, path) => Object.assign(prv, { [path]: get(doc, path) }), {});
-    Object.defineProperty(doc, '$$cursor', { get() { return Buffer.from(JSON.stringify(sortValues)).toString('base64'); } });
+    Object.defineProperty(doc, '$cursor', { get() { return Buffer.from(JSON.stringify(sortValues)).toString('base64'); } });
   });
 
   // First try to take off the "bookends" ($gte | $lte)
-  if (rs.length && rs[0].$$cursor === after) {
+  if (rs.length && rs[0].$cursor === after) {
     rs.shift();
     hasPreviousPage = true;
   }
 
-  if (rs.length && rs[rs.length - 1].$$cursor === before) {
+  if (rs.length && rs[rs.length - 1].$cursor === before) {
     rs.pop();
     hasNextPage = true;
   }
@@ -64,13 +65,13 @@ exports.paginateResults = (rs, query) => {
     }
   }
 
-  // Add $$pageInfo
+  // Add $pageInfo
   return Object.defineProperties(rs, {
-    $$pageInfo: {
+    $pageInfo: {
       get() {
         return {
-          startCursor: get(rs, '0.$$cursor', ''),
-          endCursor: get(rs, `${rs.length - 1}.$$cursor`, ''),
+          startCursor: get(rs, '0.$cursor', ''),
+          endCursor: get(rs, `${rs.length - 1}.$cursor`, ''),
           hasPreviousPage,
           hasNextPage,
         };

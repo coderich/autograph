@@ -16,7 +16,7 @@ module.exports = class QueryResolver {
     const { args } = query.toObject();
     const [,,, info] = args;
 
-    switch (getGQLReturnType(info.returnType)) {
+    switch (getGQLReturnType(`${info.returnType}`)) {
       case 'array': {
         return new QueryResolver(this.query.clone().method('findMany')).resolve();
       }

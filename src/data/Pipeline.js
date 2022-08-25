@@ -74,7 +74,6 @@ module.exports = class Pipeline {
     Pipeline.define('dedupe', ({ value }) => uniqWith(value, (b, c) => hashObject(b) === hashObject(c)), { itemize: false });
     Pipeline.define('idKey', ({ model, value }) => (value == null ? model.idValue() : value), { ignoreNull: false });
     Pipeline.define('idField', ({ model, field, value }) => field.getIdModel().idValue(value.id || value));
-    // Pipeline.define('idField', ({ model, field, value }) => map(value, v => field.getIdModel().idValue(v.id || v)));
     Pipeline.define('ensureArrayValue', ({ field, value }) => (field.toObject().isArray && !Array.isArray(value) ? [value] : value), { itemize: false });
 
     Pipeline.define('ensureId', ({ resolver, field, value }) => {

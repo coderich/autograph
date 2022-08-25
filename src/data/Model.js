@@ -1,8 +1,8 @@
 const Stream = require('stream');
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
-const { finalizeResults } = require('./DataService');
 const { eventEmitter } = require('../service/event.service');
+const { finalizeResults } = require('./DataService');
 const { map, mapPromise, seek, deseek } = require('../service/app.service');
 
 module.exports = class extends Model {
@@ -100,7 +100,7 @@ module.exports = class extends Model {
         if (struct === 'instructs' && structs.length) instructed = true;
         return prev.concat(structs);
       }, []).filter(Boolean);
-      return { field, path, from, to: actualTo, type, isArray, transformers, validators: structures.validators, shape: subShape };
+      return { instructed, field, path, from, to: actualTo, type, isArray, transformers, validators: structures.validators, shape: subShape };
     });
 
     // Adding useful shape info
@@ -131,7 +131,7 @@ module.exports = class extends Model {
       const rootPath = (p, hint) => (serdes === 'serialize' ? seek(root, p, hint) : deseek(shape, root, p, hint));
       const parentPath = (p, hint) => (serdes === 'serialize' ? seek(parent, p, hint) : deseek(shape, parent, p, hint));
 
-      return shape.reduce((prev, { field, from, to, path, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
+      return shape.reduce((prev, { instructed, field, from, to, path, type, isArray, defaultValue, transformers = [], shape: subShape }) => {
         const startValue = parent[from];
         // transformers = filters.length ? transformers.filter() : transformers;
 
@@ -142,8 +142,8 @@ module.exports = class extends Model {
         }, startValue);
 
         // Determine if key should stay or be removed
-        if (transformedValue === undefined && !Object.prototype.hasOwnProperty.call(parent, from)) return prev;
-        if (subShape && typeof transformedValue !== 'object') return prev;
+        if (!instructed && transformedValue === undefined && !Object.prototype.hasOwnProperty.call(parent, from)) return prev;
+        if (!instructed && subShape && typeof transformedValue !== 'object') return prev;
 
         // Rename key & assign value
         prev[to] = (!subShape || transformedValue == null) ? transformedValue : this.shapeObject(subShape, transformedValue, query, root);

@@ -599,6 +599,11 @@ module.exports = (driver = 'mongo', options = {}) => {
 
 
     describe('Remove', () => {
+      test('Person', async () => {
+        expect(await resolver.match('Person').count()).toBeGreaterThan(0);
+        expect(await resolver.match('Person').where({ name: undefined }).delete()).toEqual([]);
+      });
+
       test('Art', async () => {
         const art = await resolver.match('Art').save({ name: 'bye bye', comments: ['yay'] });
         expect(art).toBeDefined();
@@ -627,7 +632,7 @@ module.exports = (driver = 'mongo', options = {}) => {
     describe('Query (sortBy with Cursors)', () => {
       test('sortBy', async () => {
         const [health, moby] = await resolver.match('Book').sortBy({ name: 'asc' }).first(2);
-        const [healthCursor, mobyCursor] = [health.$$cursor, moby.$$cursor];
+        const [healthCursor, mobyCursor] = [health.$cursor, moby.$cursor];
         expect(healthCursor).toBeDefined();
         expect(mobyCursor).toBeDefined();
         expect(await resolver.match('Book').sortBy({ name: 'asc' }).after(healthCursor).first(1)).toMatchObject([{ id: mobyDick.id, name: 'Moby Dick' }]);

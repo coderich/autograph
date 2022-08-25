@@ -1,8 +1,4 @@
 Release 0.10.3:
-  * Resolver probably doesn't have to finalize mutations since it's derived from Reads
-
-
-
   * Resolver.toResultSet() => How to hydrate results from the outside world?
   * makeExectuableSchema
   * SPITFIRE:

@@ -163,8 +163,8 @@ module.exports = (schema) => {
         [modelName]: fieldResolvers,
         [`${modelName}Connection`]: {
           count: ({ count }) => count(),
-          edges: ({ edges }) => edges().then(rs => rs.map(node => ({ cursor: get(node, '$$cursor'), node }))),
-          pageInfo: ({ pageInfo }) => pageInfo().then(rs => get(rs, '$$pageInfo')),
+          edges: ({ edges }) => edges().then(rs => rs.map(node => ({ cursor: get(node, '$cursor'), node }))),
+          pageInfo: ({ pageInfo }) => pageInfo().then(rs => get(rs, '$pageInfo')),
         },
       });
     }, {
