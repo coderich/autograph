@@ -1,8 +1,8 @@
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
-const GraphQL = require('../src/core/GraphQL');
 const Schema = require('../src/core/Schema');
 const Resolver = require('../src/core/Resolver');
 const gqlSchema = require('./fixtures/schema');
+const GraphQL = require('./GraphQL');
 const stores = require('./stores');
 
 module.exports = async (context = {}) => {

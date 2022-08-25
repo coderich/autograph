@@ -88,14 +88,11 @@ describe('Documents', () => {
     };
 
     validate();
-    expect(schema.makeExecutableSchema()).toBeDefined();
-    validate();
   });
 
   test('complexSchema', () => {
     const schema = new Schema({ typeDefs: complexSchema });
     expect(schema).toBeDefined();
-    expect(schema.makeExecutableSchema()).toBeDefined();
   });
 
   test('extendSchema', () => {
@@ -125,8 +122,6 @@ describe('Documents', () => {
       expect(Person.getField('name').getDirective('field').getArg('transform')).toEqual(['toTitleCase', 'toUpperCase']);
     };
 
-    validate();
-    expect(schema.makeExecutableSchema()).toBeDefined();
     validate();
   });
 });

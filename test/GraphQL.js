@@ -1,4 +1,5 @@
 const { graphql } = require('graphql');
+const { makeExecutableSchema } = require('@graphql-tools/schema');
 
 /**
  * GraphQL.
@@ -10,7 +11,7 @@ const { graphql } = require('graphql');
  */
 module.exports = class GraphQL {
   constructor(schema, resolver) {
-    this.schema = schema.makeExecutableSchema();
+    this.schema = makeExecutableSchema(schema.schema);
     this.contextValue = resolver.getContext();
   }
 

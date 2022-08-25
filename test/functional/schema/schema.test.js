@@ -41,14 +41,10 @@ describe('FNSchema', () => {
   test('AST Base', () => {
     const schema = new ASTSchema({ typeDefs: cloneDeep(baseGraphql) }).initialize();
     validate(schema);
-    expect(schema.makeExecutableSchema()).toBeDefined();
-    validate(schema);
   });
 
   test('Core Base', () => {
     const schema = new CoreSchema({ typeDefs: cloneDeep(baseGraphql) }, stores).initialize();
-    validate(schema);
-    expect(schema.makeExecutableSchema()).toBeDefined();
     validate(schema);
     expect(schema.decorate()).toBeDefined();
     expect(schema.getModel('Person').getField('_id').getName()).toBe('id');
