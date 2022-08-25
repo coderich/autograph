@@ -1,7 +1,7 @@
 const Model = require('../data/Model');
 const Schema = require('../graphql/ast/Schema');
 const { identifyOnDeletes } = require('../service/schema.service');
-const { createSystemEvent } = require('../service/event.service');
+const { eventEmitter } = require('../service/event.service');
 
 // Export class
 module.exports = class extends Schema {
@@ -23,7 +23,7 @@ module.exports = class extends Schema {
   }
 
   setup() {
-    return createSystemEvent('Setup', this, () => {
+    return eventEmitter.emit('setup', this).then(() => {
       const entities = this.models.filter(m => m.isEntity());
 
       // Create model indexes

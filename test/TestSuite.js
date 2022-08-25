@@ -848,6 +848,22 @@ module.exports = (driver = 'mongo', options = {}) => {
             expect(await resolver.raw('Person').findOne({ name: 'richard' })).toBeNull(); // deleted
             expect(await resolver.raw('Person').findOne({ name: 'Christie' })).toBeNull(); // case
             expect(await resolver.raw('Person').findOne({ name: 'christie' })).toMatchObject({ name: 'christie', email_address: 'christie@gmail.com' });
+
+            // Raw -> Match counterparts
+            const matchPerson = await resolver.match('Person').where({ name: 'christie' }).one();
+            const matchPeople = await resolver.match('Person').many();
+
+            // Raw findOne toResultSet
+            const rawPerson = await resolver.raw('Person').findOne({ name: 'christie' });
+            expect(await resolver.toResultSet('Person', rawPerson, 'findOne')).toMatchObject(matchPerson);
+
+            // Raw array toResultSet
+            const rawArray = await resolver.raw('Person').find().then(cursor => cursor.toArray());
+            expect(await resolver.toResultSet('Person', rawArray, 'findMany')).toMatchObject(matchPeople);
+
+            // Raw stream toResultSet
+            const rawStream = await resolver.raw('Person').find().then(cursor => cursor.stream());
+            expect(await resolver.toResultSet('Person', rawStream, 'findMany')).toMatchObject(matchPeople);
             break;
           }
           default: {

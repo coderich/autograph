@@ -170,8 +170,7 @@ module.exports = class extends Model {
       const parentPath = (p, hint) => seek(parent, p, hint);
 
       return Promise.all(shape.map(({ field, from, path, validators, shape: subShape }) => {
-        // const value = parent[to]; // It's already been shaped
-        const value = parent[from]; // It hasn't yet been shaped
+        const value = parent[from]; // It hasn't been shaped yet
 
         return Promise.all(validators.map(v => v({ model, field, path, docPath, rootPath, parentPath, startValue: value, value, resolver, context }))).then(() => {
           return subShape ? this.validateObject(subShape, value, query, root, true) : Promise.resolve();

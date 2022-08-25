@@ -1,11 +1,11 @@
 Release 0.10.3:
-  * Resolver.toResultSet() => How to hydrate results from the outside world?
-  * makeExectuableSchema
   * SPITFIRE:
     - NetworkPlaceTagMultiLang definition
     - MultiLang API resolution vs Resolver
 
 Release 0.10.4:
+  * makeExectuableSchema
+
   *** There is a bug "where: { id: {one,two,three} }" does not work
   * Tests do not clean up Mongo connections
   * You never "validate" the schema anymore like in v0.9

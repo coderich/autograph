@@ -44,7 +44,7 @@ exports.createSystemEvent = (name, mixed = {}, thunk = () => {}) => {
   let middleware = () => Promise.resolve();
   const type = ucFirst(name);
 
-  if (name !== 'Setup' && name !== 'Response') {
+  if (name !== 'Response') {
     event = makeEvent(mixed);
     middleware = makeMiddleware();
   }

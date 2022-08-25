@@ -1,8 +1,10 @@
 const Model = require('../data/Model');
 const DataLoader = require('../data/DataLoader');
 const DataTransaction = require('../data/DataTransaction');
+const Query = require('../query/Query');
 const QueryBuilder = require('../query/QueryBuilder');
 const { finalizeResults } = require('../data/DataService');
+const { createSystemEvent } = require('../service/event.service');
 
 module.exports = class Resolver {
   constructor(schema, context = {}) {
@@ -101,25 +103,13 @@ module.exports = class Resolver {
     return entity;
   }
 
-  // toResultSet(model, data, method) {
-  //   const crud = ['get', 'find', 'count'].indexOf(method) > -1 ? 'read' : method;
-  //   const doc = model.shape(data);
-  //   const result = doc;
-  //   const merged = doc;
-
-  //   return createSystemEvent('Response', {
-  //     model,
-  //     crud,
-  //     method,
-  //     result,
-  //     doc,
-  //     merged,
-  //     resolver: this,
-  //     key: `${method}${model}`,
-  //     context: this.getContext(),
-  //     query: query.doc(result).merged(result),
-  //   }, () => result);
-  // }
+  toResultSet(model, data, method) {
+    model = this.toModel(model);
+    const query = new Query({ model, resolver: this, context: this.context, method });
+    const result = model.deserialize(data, query);
+    const event = { result, query, ...query.doc(result).merged(result).toObject() };
+    return createSystemEvent('Response', event, () => result);
+  }
 
   // DataLoader Proxy Methods
   clear(model) {

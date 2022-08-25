@@ -12,7 +12,6 @@
   - resolve -> use graphql resolvers
   - @value -> use @field.instruct directive
 - Removed Model.tform() -> use Model.shapeObject(shape, data)
-- Removed Resolver.toResultSet() -> ? TBD ?
 - Removed Transformer + Rule -> use Pipeline
   - Removed many pre-defined rules + transformers
   - Moved "validator" to dev dependency -> isEmail
