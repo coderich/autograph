@@ -1,17 +1,17 @@
-Release 0.10.3:
-
-Release 0.10.4:
-  *** There is a bug "where: { id: {one,two,three} }" does not work
-  * Tests do not clean up Mongo connections
-  * You never "validate" the schema anymore like in v0.9
-  * Ability to create/use a custom dataloader (wait times API)
-  * Revamp error handling -> all things to use Boom (including driver) with proper status codes
+Next Release:
   * Determine attribute order when shaping data => this is how we want it saved to db
     - _id
     - fk ids
     - scalars
     - embedded objects
+      * Follow the same rules as above
     - arrays
+
+Next Release:
+  *** There is a bug "where: { id: {one,two,three} }" does not work
+  * Tests do not clean up Mongo connections
+  * Ability to create/use a custom dataloader (wait times API)
+  * Revamp error handling -> all things to use Boom (including driver) with proper status codes
 
   * SchemaDecorator mutates schema passed in constructor => make sure that's OK
   * Splice Embedded Array => make sure it's OK
@@ -20,7 +20,6 @@ Release 0.10.4:
   * Finalize Driver Interface - consider moving out of Autograph into new NPM module
   * Database connection pooling?
   * Resolver.disconnect()
-  * Tests do not clean up open Mongo connection
   * Tests comprehensive enough?
 
   * @field(ref: "???") => Does this work? How to use it? Rename it?
@@ -33,10 +32,6 @@ Release 0.10.4:
     - "castValue" Transformation
   * Do you need proxyDeep?
   * Can you move caching to finalize() instead of initialize()?
-
-  ** Fields with alias (keys) as the same name as other fields do not save properly eg:
-      DataPackage.network: Network @field(key: "networkId") # Collides with networkId field
-      DataPackage.networkId: ID # Legacy attribute so it's still needed
 
   ** Need plugin system
     - Pipeline utilities (validEmail, etc)
@@ -63,12 +58,10 @@ Enhancements:
   * Get a list of references that would be onDelete affected
 
 Todo:
-  * MeteorUser _id is a String (not ID). How to handle?
-    - How about expicit ID definition?
   * Allow Field and Model to be extended (directive fields)
   * Are you able to flatten fields? (ie. firstName, lastName but save to profile.firstName, profile.lastName in DB)
     - Confirmed that you cannot.
-  * Input types are not models and therefor cannot participate in Transformers|Rules
+  * Input types are not models and therefore cannot participate in Pipeline
     - Is this really needed? I guess perhaps when using the DOA directly...
   * Embedded documents (outside of Mongo) do not work!
     - How to handle join-table in SQL?

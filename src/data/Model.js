@@ -73,6 +73,7 @@ module.exports = class extends Model {
     const serdes = crud === 'read' ? 'deserialize' : 'serialize';
     const fields = serdes === 'deserialize' ? this.getSelectFields() : this.getPersistableFields();
     const crudMap = { create: ['constructs'], update: ['restructs'], delete: ['destructs'], remove: ['destructs'] };
+    const sortKeys = ['isIdField', 'isBasicType', 'isEmbedded'];
     const crudKeys = crudMap[crud] || [];
 
     // Define target mapping
@@ -82,10 +83,29 @@ module.exports = class extends Model {
       // input: ['defaultValue', 'castValue', 'ensureArrayValue'],
       where: ['castValue', 'instructs', `$${serdes}rs`],
     };
+
     const structureKeys = targetMap[target] || ['castValue'];
 
-    // Create shape, recursive
-    const shape = fields.map((field) => {
+    // Create sorted shape, recursive
+    const shape = fields.sort((a, b) => {
+      const aObject = a.toObject();
+      const bObject = b.toObject();
+
+      // PK first
+      if (aObject.isPrimaryKeyId) return -1;
+      if (bObject.isPrimaryKeyId) return 1;
+
+      // Arrays last
+      if (aObject.isArray && !bObject.isArray) return 1;
+      if (bObject.isArray && !aObject.isArray) return -1;
+
+      // Now, follow sort keys
+      const aNum = sortKeys.findIndex(key => aObject[key]);
+      const bNum = sortKeys.findIndex(key => bObject[key]);
+      if (aNum < bNum) return -1;
+      if (aNum > bNum) return 1;
+      return 0;
+    }).map((field) => {
       let instructed = false;
       const structures = field.getStructures();
       const { key, name, type, isArray, isEmbedded, modelRef } = field.toObject();

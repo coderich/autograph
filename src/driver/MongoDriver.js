@@ -64,15 +64,12 @@ module.exports = class MongoDriver {
   }
 
   createOne({ model, input, options, flags }) {
+    // console.log(JSON.stringify(input, null, 2));
     return this.query(model, 'insertOne', input, options, flags).then(result => Object.assign(input, { id: result.insertedId }));
   }
 
   updateOne({ model, where, $doc, options, flags }) {
-    const $update = Object.entries($doc).reduce((prev, [key, value]) => {
-      Object.assign(prev.$set, { [key]: value });
-      return prev;
-    }, { $set: {} });
-
+    const $update = { $set: $doc };
     return this.query(model, 'updateOne', where, $update, options, flags).then(() => $doc);
   }
 
