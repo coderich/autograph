@@ -81,10 +81,7 @@ module.exports = class Pipeline {
       const ids = Array.from(new Set(ensureArray(value).map(v => `${v}`)));
 
       return resolver.match(type).where({ id: ids }).count().then((count) => {
-        if (count !== ids.length) {
-          console.log(ids);
-          throw Boom.notFound(`${type} Not Found`);
-        }
+        if (count !== ids.length) throw Boom.notFound(`${type} Not Found`);
       });
     }, { itemize: false });
 
