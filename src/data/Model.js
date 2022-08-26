@@ -3,7 +3,7 @@ const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
 const { eventEmitter } = require('../service/event.service');
 const { finalizeResults } = require('./DataService');
-const { map, mapPromise, seek, deseek } = require('../service/app.service');
+const { map, ensureArray, mapPromise, seek, deseek } = require('../service/app.service');
 
 module.exports = class extends Model {
   constructor(schema, model, driver) {
@@ -179,7 +179,7 @@ module.exports = class extends Model {
 
     if (!validate) return Promise.resolve();
 
-    return mapPromise(obj, (parent) => {
+    return Promise.all(ensureArray(obj).map((parent) => {
       // "root" is the base of the object
       root = root || parent;
 
@@ -195,7 +195,7 @@ module.exports = class extends Model {
           return subShape ? this.validateObject(subShape, value, query, root, true) : Promise.resolve();
         });
       }));
-    }).then(() => {
+    })).then(() => {
       return silent ? Promise.resolve() : eventEmitter.emit('validate', query.toObject());
     });
   }
