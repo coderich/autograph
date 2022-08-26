@@ -20,6 +20,10 @@ describe('QueryService', () => {
     await resolver.match('Chapter').save({ name: 'chapter2', book: book2.id });
   });
 
+  afterAll(() => {
+    return resolver.disconnect('Person');
+  });
+
   describe('resolveWhereClause', () => {
     test('sanity', () => {
       expect(person1).toMatchObject({

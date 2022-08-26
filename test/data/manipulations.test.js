@@ -1,15 +1,19 @@
 const setup = require('../setup');
 
-let resolver;
+let resolver, schema;
 let rawPerson;
 
 describe('DataManipulations', () => {
   beforeAll(async () => {
     // Setup
-    ({ resolver } = await setup());
+    ({ resolver, schema } = await setup());
 
     // Fixtures
     rawPerson = await resolver.raw('Person').insertOne({ name: 'name', network: 'network' }).then(r => Object.assign({ name: 'name' }, { _id: r.insertedId }));
+  });
+
+  afterAll(() => {
+    return schema.disconnect();
   });
 
   test('person', async () => {

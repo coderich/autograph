@@ -2,10 +2,8 @@ const { guidToId } = require('../../src/service/app.service');
 const setup = require('../setup');
 
 // let schema;
-let resolver;
-let graphql;
-let personId;
-let friends;
+let resolver, graphql, schema;
+let personId, friends;
 
 const attrs = `
   id
@@ -30,7 +28,7 @@ const attrs = `
 describe('GraphQL', () => {
   beforeAll(async () => {
     // Setup
-    ({ graphql, resolver } = await setup());
+    ({ graphql, resolver, schema } = await setup());
 
     // Fixtures
     friends = await Promise.all([
@@ -38,6 +36,10 @@ describe('GraphQL', () => {
       resolver.match('Person').save({ name: 'friend2', emailAddress: 'friend2@gmail.com' }),
       resolver.match('Person').save({ name: 'friend3', emailAddress: 'friend3@gmail.com' }),
     ]);
+  });
+
+  afterAll(() => {
+    return schema.disconnect();
   });
 
   test('exec (create)', async () => {

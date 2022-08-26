@@ -7,7 +7,7 @@ const typeDefs = require('../fixtures/driver.graphql');
 const stores = require('../stores');
 
 describe('MongoDriver', () => {
-  let resolver, person, site;
+  let driver, resolver, schema, person, site;
 
   beforeAll(async () => {
     jest.setTimeout(10000);
@@ -21,7 +21,7 @@ describe('MongoDriver', () => {
     const db = mongoClient.db();
 
     // Create core classes
-    const schema = new Schema({ typeDefs }, stores).decorate();
+    schema = new Schema({ typeDefs }, stores).decorate();
     resolver = new Resolver(schema, { network: { id: 'networkId' } });
     driver = new MongoDriver({ uri: stores.default.uri });
     await schema.setup();
@@ -41,6 +41,10 @@ describe('MongoDriver', () => {
       ],
     };
     site = await db.collection('Site').insertOne(siteObj).then(r => Object.assign(siteObj, { _id: r.insertedId }));
+  });
+
+  afterAll(() => {
+    return schema.disconnect();
   });
 
   test('fixtures', () => {

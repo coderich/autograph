@@ -173,7 +173,7 @@ module.exports = class Field extends Node {
     return this.getGQLType();
   }
 
-  initialize() {
+  finalize() {
     this.props = {
       key: this.getKey(),
       name: this.getName(),

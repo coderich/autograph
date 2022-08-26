@@ -13,6 +13,10 @@ describe('EventService', () => {
     query = new Query({ model, resolver });
   });
 
+  afterAll(() => {
+    return schema.disconnect();
+  });
+
   test('createSystemEvent', async () => {
     const cb1 = jest.fn(async (data, next) => {
       await timeout(500);

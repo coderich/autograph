@@ -1,12 +1,12 @@
 const MongoDriver = require('../../src/driver/MongoDriver');
 const setup = require('../setup');
 
-let resolver;
+let resolver, schema;
 
 describe('Performance', () => {
   beforeAll(async () => {
     // Setup
-    ({ resolver } = await setup());
+    ({ resolver, schema } = await setup());
 
     // Fixtures
     const [person1, person2] = await Promise.all([
@@ -16,6 +16,10 @@ describe('Performance', () => {
     ]);
 
     await resolver.match('Person').id(person1.id).save({ friends: [person2.id] });
+  });
+
+  afterAll(() => {
+    return schema.disconnect();
   });
 
   describe('Driver # of calls', () => {

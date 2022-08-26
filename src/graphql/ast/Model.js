@@ -138,8 +138,8 @@ module.exports = class Model extends Node {
     });
   }
 
-  initialize() {
-    this.fields.forEach(field => field.initialize());
+  finalize() {
+    this.fields.forEach(field => field.finalize());
     return this;
   }
 };

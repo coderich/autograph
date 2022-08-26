@@ -90,7 +90,6 @@ module.exports = class Schema extends TypeDefApi {
    */
   initialize() {
     super.initialize(this.schema.typeDefs);
-    this.getModels().forEach(model => model.initialize());
     return this;
   }
 
@@ -119,8 +118,8 @@ module.exports = class Schema extends TypeDefApi {
       },
     });
 
+    this.getModels().forEach(model => model.finalize());
     this.schema.typeDefs = { kind: Kind.DOCUMENT, definitions };
-    // validateSchema(this.schema);
     return this;
   }
 

@@ -23,6 +23,10 @@ describe('Data Performance', () => {
     shape = model.getShape();
   });
 
+  afterAll(() => {
+    return schema.disconnect();
+  });
+
   test('speed test', async () => {
     console.time('map');
     const t1 = data.map(({ my_age: age, name, state, telephone, sections }) => ({

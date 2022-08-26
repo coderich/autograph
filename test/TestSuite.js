@@ -8,7 +8,7 @@ const Resolver = require('../src/core/Resolver');
 const gql = require('./fixtures/schema');
 const stores = require('./stores');
 
-
+let schema;
 let resolver;
 let richard;
 let christie;
@@ -58,11 +58,9 @@ module.exports = (driver = 'mongo', options = {}) => {
       }
 
       // Create core classes
-      const schema = new Schema(gql, stores);
-      if (schema.getServerApiSchema) schema.getServerApiSchema();
-      else schema.decorate();
+      schema = new Schema(gql, stores).decorate();
       resolver = new Resolver(schema, { network: { id: 'networkId' } });
-      await schema.setup();
+      schema.setup();
 
       //
       await timeout(2000);
@@ -70,6 +68,9 @@ module.exports = (driver = 'mongo', options = {}) => {
       await timeout(500);
     });
 
+    afterAll(() => {
+      return schema.disconnect();
+    });
 
     describe('Create', () => {
       test('Person', async () => {

@@ -8,13 +8,11 @@ const stores = require('./stores');
 module.exports = async (context = {}) => {
   jest.setTimeout(10000);
   const mongoServer = await MongoMemoryReplSet.create({ replSet: { storageEngine: 'wiredTiger' } });
-  const uri = mongoServer.getUri();
-  stores.default.uri = uri;
-  const schema = new Schema(gqlSchema, stores);
-  schema.decorate();
+  stores.default.uri = mongoServer.getUri();
+  const schema = new Schema(gqlSchema, stores).decorate();
   const resolver = new Resolver(schema, context);
   context.autograph = { resolver };
   context.network = { id: 'network' };
   const graphql = new GraphQL(schema, resolver);
-  return { graphql, schema, resolver, uri };
+  return { graphql, schema, resolver };
 };

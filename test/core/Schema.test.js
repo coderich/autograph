@@ -24,17 +24,21 @@ describe('CoreSchema', () => {
     expect(building.isEmbedded()).toBe(true);
     const buildingId = building.getField('id');
     expect(buildingId).not.toBeDefined();
+
+    return schema.disconnect();
   });
 
   test('bareSchema', () => {
     const schema = new Schema({ typeDefs: bareSchema }, stores);
     expect(schema).toBeDefined();
     schema.decorate();
+    return schema.disconnect();
   });
 
   test('complexSchema', () => {
     const schema = new Schema({ typeDefs: complexSchema }, stores);
     expect(schema).toBeDefined();
     schema.decorate();
+    return schema.disconnect();
   });
 });

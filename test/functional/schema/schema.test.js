@@ -31,28 +31,33 @@ const validate = (schema) => {
 };
 
 describe('FNSchema', () => {
-  let resolver;
+  let resolver, setupSchema;
 
   beforeAll(async () => {
     // Setup
-    ({ resolver } = await setup());
+    ({ schema: setupSchema, resolver } = await setup());
+  });
+
+  afterAll(async () => {
+    await setupSchema.disconnect();
   });
 
   test('AST Base', () => {
-    const schema = new ASTSchema({ typeDefs: cloneDeep(baseGraphql) }).initialize();
-    validate(schema);
+    const astSchema = new ASTSchema({ typeDefs: cloneDeep(baseGraphql) }).initialize();
+    validate(astSchema);
   });
 
-  test('Core Base', () => {
+  test('Core Base', async () => {
     const schema = new CoreSchema({ typeDefs: cloneDeep(baseGraphql) }, stores).initialize();
     validate(schema);
     expect(schema.decorate()).toBeDefined();
     expect(schema.getModel('Person').getField('_id').getName()).toBe('id');
     expect(schema.getModel('Person').getField('status').getStructures().serializers.length).toBe(1);
     expect(schema.getModel('User').getField('gender').getStructures().validators.length).toBe(1);
+    await schema.disconnect();
   });
 
-  test('getShape', () => {
+  test('getShape', async () => {
     const schema = new CoreSchema(schemaJS, stores).decorate();
     const artModel = schema.getModel('Art');
     expect(artModel).toBeDefined();
@@ -82,5 +87,7 @@ describe('FNSchema', () => {
       name: 'Art1',
       sections: [{ _id: expect.anything(), name: 'section1' }],
     });
+
+    await schema.disconnect();
   });
 });

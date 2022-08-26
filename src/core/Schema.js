@@ -37,10 +37,18 @@ module.exports = class extends Schema {
     });
   }
 
+  disconnect() {
+    return Promise.all(Object.values(this.drivers).map(({ dao }) => dao.disconnect()));
+  }
+
   initialize() {
     super.initialize();
     this.models = super.getModels().map(model => new Model(this, model, this.drivers[model.getDriverName()]));
-    this.models.forEach(model => model.initialize());
+    return this;
+  }
+
+  finalize() {
+    super.finalize();
     this.models.forEach(model => model.referentialIntegrity(identifyOnDeletes(this.models, model)));
     return this;
   }

@@ -1,24 +1,15 @@
 Next Release:
-  * Determine attribute order when shaping data => this is how we want it saved to db
-    - _id
-    - fk ids
-    - scalars
-    - embedded objects
-      * Follow the same rules as above
-    - arrays
+  * Ability to create/use a custom dataloader (wait times API)
+    - or is this an HTTP Driver?
 
 Next Release:
   *** There is a bug "where: { id: {one,two,three} }" does not work
-  * Tests do not clean up Mongo connections
-  * Ability to create/use a custom dataloader (wait times API)
   * Revamp error handling -> all things to use Boom (including driver) with proper status codes
 
   * SchemaDecorator mutates schema passed in constructor => make sure that's OK
   * Splice Embedded Array => make sure it's OK
-  * Can QueryBuilder be re-used => If not, prevent re-use
 
   * Finalize Driver Interface - consider moving out of Autograph into new NPM module
-  * Database connection pooling?
   * Resolver.disconnect()
   * Tests comprehensive enough?
 
@@ -31,7 +22,6 @@ Next Release:
   * It's unclear if where clause needs
     - "castValue" Transformation
   * Do you need proxyDeep?
-  * Can you move caching to finalize() instead of initialize()?
 
   ** Need plugin system
     - Pipeline utilities (validEmail, etc)
@@ -49,7 +39,6 @@ Bugs:
   * Nested embedded object in array cannot delete without doing an explicit $pull operation (race condition)
     - Drivers need concept of push and pull
   * MongoDB cannot-create-namespace-in-multi-document-transaction (collection must first be defined)
-
 
 Enhancements:
   * Create person with books at the same time
