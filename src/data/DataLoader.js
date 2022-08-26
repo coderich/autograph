@@ -42,8 +42,6 @@ module.exports = class DataLoader extends FBDataLoader {
        */
       const whereShape = model.getShape('create', 'where');
 
-      // console.log(Object.entries(batchQueries).map(([key, value]) => ({ [key]: value.length })));
-
       return Promise.all(Object.entries(batchQueries).map(([key, values]) => {
         switch (key) {
           case defaultBatchName: {
@@ -52,7 +50,7 @@ module.exports = class DataLoader extends FBDataLoader {
           default: {
             const keys = Array.from(new Set(values.map(({ where }) => map(where[key], el => `${el}`)).flat()));
             const batchQuery = new Query({ resolver, model, method: 'findMany', crud: 'read' });
-            const batchWhere = model.shapeObject(whereShape, { [key]: keys }, batchQuery); // This will add back instructs etc
+            const batchWhere = model.shapeObject(whereShape, { ...values[0].where, [key]: keys }, batchQuery); // All where's should be the same - this is for idKey on keys etc
 
             return driver.resolve(batchQuery.where(batchWhere).toDriver()).then(data => handleData(data, model, batchQuery)).then((results) => {
               // One-time data transformation on results to make matching back faster (below)

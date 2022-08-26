@@ -95,7 +95,6 @@ module.exports = class extends Model {
       const subCrud = crud === 'update' && isArray ? 'create' : crud; // Due to limitation to update embedded array
       const subShape = isEmbedded ? modelRef.getShape(subCrud, target, path) : null;
       const transformers = structureKeys.reduce((prev, struct) => {
-        if (instructed) return prev;
         const structs = structures[struct];
         if (struct === 'instructs' && structs.length) instructed = true;
         return prev.concat(structs);
