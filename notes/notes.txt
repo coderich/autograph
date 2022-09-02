@@ -1,4 +1,6 @@
 Next Release:
+  * Can you batch in other areas?
+  * Delay 'preQuery' when it's a batch query?
   * Ability to create/use a custom dataloader (wait times API)
     - or is this an HTTP Driver?
 
@@ -19,8 +21,6 @@ Next Release:
     - If @model is omitted, it's a leaf, and embedded but no magic attributes added
   * EventEmitter().setMaxListeners(100) => Is this smelly?
   * Revisit SystemEvent args
-  * It's unclear if where clause needs
-    - "castValue" Transformation
   * Do you need proxyDeep?
 
   ** Need plugin system
