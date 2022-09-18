@@ -180,12 +180,6 @@ exports.keyPaths = (obj = {}, keys = [], path) => {
   return Object.entries(obj).reduce((prev, [key, value]) => {
     const keyPath = path ? `${path}.${key}` : key;
     if (exports.isPlainObject(value) && Object.keys(value).length) return exports.keyPaths(value, prev, keyPath);
-
-    // if (Array.isArray(value)) {
-    //   const arr = value.filter(v => exports.isPlainObject(v));
-    //   if (arr.length) return _.flatten(arr.map(val => exports.keyPaths(val, prev, keyPath)));
-    // }
-
     return prev.concat(keyPath);
   }, keys);
 };

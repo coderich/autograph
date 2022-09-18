@@ -28,6 +28,7 @@ module.exports = {
       network: String @field(instruct: networkID)
       manipulate: String
       sections: [Section!]
+      multiLang: AutoGraphMixed
     }
 
     type Book

@@ -16,6 +16,7 @@ module.exports = (schema) => {
       directive @model(
         id: String # Specify db key (default "id")
         key: String # Specify db table/collection name
+        driver: AutoGraphDriver # External data driver
         createdAt: String # Specify db key (default "createdAt")
         updatedAt: String # Specify db key (default "updatedAt")
         meta: AutoGraphMixed # Custom input "meta" field for mutations
@@ -24,7 +25,6 @@ module.exports = (schema) => {
         gqlScope: AutoGraphMixed # Dictate how GraphQL API behaves
         dalScope: AutoGraphMixed # Dictate how the DAL behaves
         fieldScope: AutoGraphMixed # Dictate how a FIELD may use me
-        driver: AutoGraphDriver # External data driver
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
         namespace: String # Logical grouping of models that can be globbed (useful for authz)
       ) on OBJECT | INTERFACE
@@ -45,12 +45,12 @@ module.exports = (schema) => {
 
         # Pipeline Structure
         validate: [AutoGraphPipelineEnum!]
-        instruct: [AutoGraphPipelineEnum!]
+        construct: [AutoGraphPipelineEnum!]
         restruct: [AutoGraphPipelineEnum!]
         destruct: [AutoGraphPipelineEnum!]
-        construct: [AutoGraphPipelineEnum!]
-        transform: [AutoGraphPipelineEnum!]
+        instruct: [AutoGraphPipelineEnum!]
         normalize: [AutoGraphPipelineEnum!]
+        transform: [AutoGraphPipelineEnum!]
         serialize: [AutoGraphPipelineEnum!]
         deserialize: [AutoGraphPipelineEnum!]
       ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR

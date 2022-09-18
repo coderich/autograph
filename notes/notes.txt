@@ -1,3 +1,6 @@
+Is there a bug: .native().save()?
+Is there a bug: .native().delete()?
+
 Next Release:
   * Can you batch in other areas?
   * Delay 'preQuery' when it's a batch query?

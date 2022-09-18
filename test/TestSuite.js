@@ -74,7 +74,7 @@ module.exports = (driver = 'mongo', options = {}) => {
 
     describe('Create', () => {
       test('Person', async () => {
-        richard = await resolver.match('Person').save({ age: 40, name: 'Richard', status: 'alive', state: 'NJ', emailAddress: 'rich@coderich.com', network: 'network', strip: 'mall' });
+        richard = await resolver.match('Person').save({ age: 40, name: 'Richard', status: 'alive', state: 'NJ', emailAddress: 'rich@coderich.com', network: 'network', strip: 'mall', multiLang: 'lang', 'multiLang.en': 'en', 'multiLang.es': 'es' });
         expect(richard._id).not.toBeDefined(); // eslint-disable-line
         expect(richard.id).toBeDefined();
         expect(richard.name).toBe('Richard');
@@ -89,6 +89,8 @@ module.exports = (driver = 'mongo', options = {}) => {
         // Tricky data stuff
         expect(richard.status).toBe('alive');
         expect(richard.state).toBe('NJ');
+        // expect(richard['multiLang.en']).toBe('en');
+        // expect(richard['multiLang.es']).toBe('es');
         expect(richard.strip).not.toBeDefined(); // DB key should be stripped
         expect(richard.network).toBe('networkId');
         expect(richard.createdAt).toBeTruthy();
