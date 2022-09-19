@@ -28,7 +28,7 @@ module.exports = class QueryBuilder {
     this.after = (cursor) => { this.query.after(cursor); return this; };
     this.meta = (meta) => { this.query.meta(meta); return this; };
     this.flags = (flags) => { this.query.flags(flags); return this; };
-    this.merge = (merge) => { this.query.merge(merge); return this; };
+    this.merge = (merge) => { this.query.merge(unravelObject(merge)); return this; };
     this.batch = (batch) => { this.query.batch(batch); return this; };
     this.transaction = (txn) => { this.query.transaction(txn); return this; };
 

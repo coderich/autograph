@@ -956,5 +956,19 @@ module.exports = (driver = 'mongo', options = {}) => {
         }
       });
     });
+
+
+    describe('$magic methods', () => {
+      test('$lookup', async () => {
+        // Simple lookup
+        const [book] = await christie.$lookup('authored');
+        expect(book).toBeDefined();
+
+        // Where clause lookup
+        const [chapter, nada] = await book.$lookup('chapters', { where: { name: 'chapter1' } });
+        expect(chapter.name).toBe('Chapter1');
+        expect(nada).toBeUndefined();
+      });
+    });
   });
 };

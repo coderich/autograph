@@ -11,7 +11,7 @@ exports.finalizeResults = (rs, query) => {
       $remove: { value: (...args) => resolver.match(model).id(doc.id).remove(...args) },
       $delete: { value: (...args) => resolver.match(model).id(doc.id).delete(...args) },
       $lookup: { value: (fieldName, args) => model.getFieldByName(fieldName).resolve(resolver, doc, args) },
-      // $resolve: { value: (fieldName, args) => model.getFieldByName(fieldName).resolve(resolver, doc, args, true) },
+      // $resolve: { value: (fieldName, args) => model.getFieldByName(fieldName).resolve(resolver, doc, args) },
     });
   });
 };
