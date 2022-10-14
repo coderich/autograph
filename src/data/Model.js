@@ -65,7 +65,9 @@ module.exports = class extends Model {
     }).then(rs => finalizeResults(rs, query));
   }
 
-  getShape(crud = 'read', target = 'doc', paths = []) {
+  getShape(crud = 'read', target = 'doc', paths = [], depth = 0) {
+    if (depth++ > 10) return {}; // Prevent infinite circular references
+
     // Cache check
     const cacheKey = `${crud}:${target}`;
     if (this.shapesCache.has(cacheKey)) return this.shapesCache.get(cacheKey);
@@ -113,7 +115,7 @@ module.exports = class extends Model {
       const actualTo = target === 'input' || target === 'splice' ? from : to;
       const path = paths.concat(actualTo);
       const subCrud = crud === 'update' && isArray ? 'create' : crud; // Due to limitation to update embedded array
-      const subShape = isEmbedded ? modelRef.getShape(subCrud, target, path) : null;
+      const subShape = isEmbedded ? modelRef.getShape(subCrud, target, path, depth) : null;
       const transformers = structureKeys.reduce((prev, struct) => {
         const structs = structures[struct];
         if (struct === 'instructs' && structs.length) instructed = true;

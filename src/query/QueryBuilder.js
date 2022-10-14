@@ -10,7 +10,7 @@ const { unravelObject } = require('../service/app.service');
 */
 module.exports = class QueryBuilder {
   constructor(resolver, model) {
-    this.terminated = false; // Prevent accidental re-use of the QueryBuilder
+    // this.terminated = false; // Prevent accidental re-use of the QueryBuilder
     this.query = new Query({ model, resolver });
 
     // Chainable commands
@@ -58,10 +58,10 @@ module.exports = class QueryBuilder {
   }
 
   execute(cmd, args) {
-    // Do not allow re-use
-    if (this.terminated) return Promise.reject(new Error('This query has already been executed'));
+    // // Do not allow re-use
+    // if (this.terminated) return Promise.reject(new Error('This query has already been executed'));
+    // this.terminated = true;
 
-    this.terminated = true;
     let method, crud, input, flags = {};
     const { id, where } = this.query.toObject();
 
