@@ -107,8 +107,6 @@ module.exports = (schema) => {
       `type Query {
         node(id: ID!): Node
         ${entityModels.map(model => makeReadAPI(model.getName(), model))}
-        ${entityModels.map(model => makeReadAPI(`${model.getName()}Create`, model))}
-        ${entityModels.map(model => makeReadAPI(`${model.getName()}Update`, model))}
       }`,
 
       `type Mutation {
