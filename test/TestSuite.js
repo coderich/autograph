@@ -1,5 +1,3 @@
-// const Neo4j = require('neodb');
-// const Redis = require('redis-mock');
 const { set } = require('lodash');
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { timeout } = require('../src/service/app.service');
