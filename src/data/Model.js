@@ -135,7 +135,7 @@ module.exports = class extends Model {
     return shape;
   }
 
-  shapeObject(shape, obj, query, root) {
+  shapeObject(shape, obj, query, root, base) {
     const { serdes, model } = shape;
     const { context, resolver, doc = {}, flags = {} } = query.toObject();
     const { pipeline } = flags;
@@ -143,8 +143,11 @@ module.exports = class extends Model {
     if (!pipeline) return obj;
     // const filters = pipeline === true ? [] : Object.entries(pipeline).map(([k, v]) => (v === false ? k : null)).filter(Boolean);
 
+    // base is the base model
+    base = base || model;
+
     return map(obj, (parent) => {
-      // "root" is the base of the object
+      // root is the base data object
       root = root || parent;
 
       // Lookup helper functions
@@ -158,7 +161,7 @@ module.exports = class extends Model {
 
         // Transform value
         const transformedValue = transformers.reduce((value, t) => {
-          const v = t({ model, field, path, docPath, rootPath, parentPath, startValue, value, resolver, context });
+          const v = t({ base, model, field, path, docPath, rootPath, parentPath, startValue, value, resolver, context });
           return v === undefined ? value : v;
         }, startValue);
 
@@ -167,22 +170,25 @@ module.exports = class extends Model {
         if (!instructed && subShape && typeof transformedValue !== 'object') return prev;
 
         // Rename key & assign value
-        prev[to] = (!subShape || transformedValue == null) ? transformedValue : this.shapeObject(subShape, transformedValue, query, root);
+        prev[to] = (!subShape || transformedValue == null) ? transformedValue : this.shapeObject(subShape, transformedValue, query, root, base);
 
         return prev;
       }, {});
     });
   }
 
-  validateObject(shape, obj, query, root, silent = false) {
+  validateObject(shape, obj, query, root, base, silent = false) {
     const { model } = shape;
     const { context, resolver, doc = {}, flags = {} } = query.toObject();
     const { validate = true } = flags;
 
     if (!validate) return Promise.resolve();
 
+    // base is the base model
+    base = base || model;
+
     return mapPromise(obj, (parent) => {
-      // "root" is the base of the object
+      // root is the base data object
       root = root || parent;
 
       // Lookup helper functions
@@ -195,10 +201,10 @@ module.exports = class extends Model {
 
         return Promise.all(validators.map((v) => {
           return new Promise((resolve, reject) => {
-            return Promise.resolve(v({ model, field, path, docPath, rootPath, parentPath, startValue: value, value, resolver, context })).then(resolve).catch(reject);
+            return Promise.resolve(v({ base, model, field, path, docPath, rootPath, parentPath, startValue: value, value, resolver, context })).then(resolve).catch(reject);
           });
         })).then(() => {
-          return subShape ? this.validateObject(subShape, value, query, root, true) : Promise.resolve();
+          return subShape ? this.validateObject(subShape, value, query, root, base, true) : Promise.resolve();
         });
       }));
     }).then(() => {
