@@ -29,7 +29,7 @@ const makeMiddleware = () => {
         query.match($$where);
       }
 
-      if (sort) {
+      if (sort && Object.keys(sort).length) {
         query.$sort(QueryService.resolveSortBy(query));
       }
 
