@@ -128,6 +128,6 @@ module.exports = class Schema extends TypeDefApi {
   }
 
   toString() {
-    return print(this.typeDefs);
+    return print(this.schema.typeDefs);
   }
 };
