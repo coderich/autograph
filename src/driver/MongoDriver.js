@@ -6,6 +6,7 @@ const { map, ensureArray, proxyDeep, toKeyObj, globToRegex, proxyPromise, isScal
 module.exports = class MongoDriver {
   constructor(config) {
     this.config = config;
+    this.config.query = this.config.query || {};
     this.connection = this.connect();
     this.getDirectives = () => get(config, 'directives', {});
   }
@@ -48,15 +49,15 @@ module.exports = class MongoDriver {
 
   findMany(query) {
     const { model, options = {}, flags } = query;
-    Object.assign(options, this.config.query || {});
-    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), options, flags).then(cursor => cursor.stream());
+    const $options = { ...this.config.query, ...options };
+    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query), $options, flags).then(cursor => cursor.stream());
   }
 
   count(query) {
     const { model, options = {}, flags } = query;
-    Object.assign(options, this.config.query || {});
+    const $options = { ...this.config.query, ...options };
 
-    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query, true), options, flags).then((cursor) => {
+    return this.query(model, 'aggregate', MongoDriver.aggregateQuery(query, true), $options, flags).then((cursor) => {
       return cursor.next().then((doc) => {
         return doc ? doc.count : 0;
       });
