@@ -86,7 +86,8 @@ module.exports = class QueryResolver {
       return createSystemEvent('Mutation', { query: query.doc(doc).merged(merged) }, async () => {
         const payload = model.shapeObject(inputShape, merged, query);
         await model.validateObject(inputShape, payload, query.payload(payload));
-        return this.resolver.resolve(query.$doc(model.shapeObject(docShape, payload, query)));
+        const $doc = model.shapeObject(docShape, payload, query, undefined, undefined, true);
+        return this.resolver.resolve(query.$doc($doc));
       });
     });
   }

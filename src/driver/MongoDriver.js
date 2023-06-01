@@ -1,6 +1,6 @@
 const Util = require('util');
-const Flat = require('flat');
 const { get } = require('lodash');
+const { unflatten } = require('@coderich/util');
 const { MongoClient, ObjectId } = require('mongodb');
 const { map, ensureArray, proxyDeep, toKeyObj, globToRegex, proxyPromise, isScalarDataType, promiseRetry } = require('../service/app.service');
 
@@ -71,8 +71,8 @@ module.exports = class MongoDriver {
   }
 
   updateOne({ model, where, $doc, options, flags }) {
-    const $update = { $set: Flat.flatten($doc, { safe: true }) };
-    return this.query(model, 'updateOne', where, $update, options, flags).then(() => $doc);
+    const $update = { $set: $doc };
+    return this.query(model, 'updateOne', where, $update, options, flags).then(() => unflatten($doc));
   }
 
   deleteOne({ model, where, options, flags }) {

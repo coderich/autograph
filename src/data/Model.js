@@ -1,4 +1,6 @@
 const Stream = require('stream');
+const { get } = require('lodash');
+const { flatten } = require('@coderich/util');
 const Field = require('./Field');
 const Model = require('../graphql/ast/Model');
 const { eventEmitter } = require('../service/event.service');
@@ -129,13 +131,14 @@ module.exports = class extends Model {
     shape.model = this;
     shape.serdes = serdes;
     shape.target = target;
+    // console.log(shape.modelRef);
 
     // Cache and return
     this.shapesCache.set(cacheKey, shape);
     return shape;
   }
 
-  shapeObject(shape, obj, query, root, base) {
+  shapeObject(shape, obj, query, root, base, toFlat = false) {
     const { serdes, model } = shape;
     const { context, resolver, doc = {}, flags = {} } = query.toObject();
     const { pipeline } = flags;
@@ -170,7 +173,13 @@ module.exports = class extends Model {
         if (!instructed && subShape && typeof transformedValue !== 'object') return prev;
 
         // Rename key & assign value
-        prev[to] = (!subShape || transformedValue == null) ? transformedValue : this.shapeObject(subShape, transformedValue, query, root, base);
+        prev[to] = (!subShape || transformedValue == null) ? transformedValue : this.shapeObject(subShape, transformedValue, query, root, base, toFlat);
+
+        if (toFlat && get(doc, to) && field.getModelRef()) {
+          const val = prev[to];
+          delete prev[to];
+          Object.assign(prev, flatten({ [to]: val }, { safe: true }));
+        }
 
         return prev;
       }, {});
