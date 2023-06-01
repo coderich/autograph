@@ -1,7 +1,7 @@
 {
   "name": "@coderich/autograph",
   "author": "Richard Livolsi (coderich)",
-  "version": "0.10.13",
+  "version": "0.10.14",
   "description": "AutoGraph",
   "keywords": [
     "graphql",
@@ -34,6 +34,7 @@
     "dataloader": "^2.0.0",
     "deepmerge": "^4.2.2",
     "fill-range": "^7.0.1",
+    "flat": "^5.0.2",
     "glob": "^7.1.6",
     "graphql-fields": "^2.0.3",
     "lodash": "^4.17.21",

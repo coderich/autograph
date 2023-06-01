@@ -909,18 +909,13 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
 
       test('update should not clobber unknown attributes', async () => {
-        switch (driver) {
-          case 'mongo': {
-            await resolver.raw('Person').findOneAndUpdate({ _id: christie.id }, { $set: { unknownAttr: 1 } });
-            const person = await resolver.match('Person').id(christie.id).save({ age: 20 });
-            expect(person.age).toBe(20);
-            const dbPerson = await resolver.raw('Person').findOne({ _id: christie.id });
-            expect(dbPerson).toBeDefined();
-            expect(dbPerson.unknownAttr).toBe(1);
-            break;
-          }
-          default: break;
-        }
+        await resolver.raw('Person').findOneAndUpdate({ _id: christie.id }, { $set: { unknownAttr: 1, plain: { name: 'jan', unknown: 'unknown' } } });
+        const person = await resolver.match('Person').id(christie.id).save({ age: 20, plain: { name: 'jane' } });
+        expect(person.age).toBe(20);
+        expect(person.plain).toEqual(expect.objectContaining({ id: expect.anything(), name: 'jane', frozen: 'frozen' }));
+        const dbPerson = await resolver.raw('Person').findOne({ _id: christie.id });
+        expect(dbPerson.unknownAttr).toBe(1);
+        expect(dbPerson.plain).toEqual(expect.objectContaining({ name: 'jane', unknown: 'unknown' }));
       });
 
       test('where clause with one(required) should throw', async () => {

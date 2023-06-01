@@ -28,6 +28,7 @@ module.exports = {
       network: String @field(instruct: networkID)
       manipulate: String
       sections: [Section!]
+      plain: PlainJane2
       multiLang: AutoGraphMixed
     }
 
@@ -127,6 +128,12 @@ module.exports = {
     type PlainJane @model {
       id: ID!
       name: String
+    }
+
+    type PlainJane2 @model(embed: true) {
+      id: ID!
+      name: String
+      frozen: String! @field(default: "frozen", validate: immutable)
     }
   `,
 };
