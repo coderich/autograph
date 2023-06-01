@@ -72,7 +72,7 @@ module.exports = class MongoDriver {
 
   updateOne({ model, where, $doc, options, flags }) {
     const $update = { $set: $doc };
-    return this.query(model, 'updateOne', where, $update, options, flags).then(() => unflatten($doc));
+    return this.query(model, 'updateOne', where, $update, options, flags).then(() => unflatten($doc, { safe: true }));
   }
 
   deleteOne({ model, where, options, flags }) {

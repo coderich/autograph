@@ -178,7 +178,7 @@ module.exports = class extends Model {
         if (toFlat && get(doc, to) && field.getModelRef()) {
           const val = prev[to];
           delete prev[to];
-          Object.assign(prev, flatten({ [to]: val }, { safe: true }));
+          Object.assign(prev, flatten({ [to]: val }, { safe: true, depth: 1 }));
         }
 
         return prev;
