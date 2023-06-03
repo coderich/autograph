@@ -99,25 +99,23 @@ module.exports = class MongoDriver {
   }
 
   transaction(ops) {
-    const promise = async () => {
+    return promiseRetry(() => {
       // Create session and start transaction
-      const session = await this.connection.then(client => client.startSession({ readPreference: { mode: 'primary' } }));
-      session.startTransaction({ readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' } });
-      const close = () => { session.endSession(); };
+      return this.connection.then(client => client.startSession({ readPreference: { mode: 'primary' } })).then((session) => {
+        session.startTransaction({ readConcern: { level: 'snapshot' }, writeConcern: { w: 'majority' } });
+        const close = () => { session.endSession(); };
 
-      // Execute each operation with session
-      return Promise.all(ops.map(op => op.exec({ session }))).then((results) => {
-        results.$commit = () => session.commitTransaction().then(close);
-        results.$rollback = () => session.abortTransaction().then(close);
-        return results;
-      }).catch((e) => {
-        close();
-        throw e;
+        // Execute each operation with session
+        return Promise.all(ops.map(op => op.exec({ session }))).then((results) => {
+          results.$commit = () => session.commitTransaction().then(close);
+          results.$rollback = () => session.abortTransaction().then(close);
+          return results;
+        }).catch((e) => {
+          close();
+          throw e;
+        });
       });
-    };
-
-    // Retry promise conditionally
-    return promiseRetry(promise, 200, 5, e => e.errorLabels && e.errorLabels.indexOf('TransientTransactionError') > -1);
+    }, 200, 5, e => e.errorLabels && e.errorLabels.indexOf('TransientTransactionError') > -1);
   }
 
   static idKey() {
