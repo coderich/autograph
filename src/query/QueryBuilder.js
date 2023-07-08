@@ -63,7 +63,7 @@ module.exports = class QueryBuilder {
     // this.terminated = true;
 
     let method, crud, input, flags = {};
-    const { id, where } = this.query.toObject();
+    const { id, where, native } = this.query.toObject();
 
     switch (cmd) {
       case 'resolve': {
@@ -85,7 +85,7 @@ module.exports = class QueryBuilder {
       }
       case 'save': {
         [input, flags] = args;
-        crud = id || where ? 'update' : 'create';
+        crud = id || where || native ? 'update' : 'create';
         if (crud === 'update') { method = id ? 'updateOne' : 'updateMany'; }
         if (crud === 'create') { method = Array.isArray(input) ? 'createMany' : 'createOne'; }
         break;
@@ -100,7 +100,7 @@ module.exports = class QueryBuilder {
         crud = 'delete';
         [flags] = args;
         if (id) method = 'deleteOne';
-        else if (where) method = 'deleteMany';
+        else if (where || native) method = 'deleteMany';
         else return Promise.reject(new Error('Remove requires an id() or where()'));
         break;
       }
