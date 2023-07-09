@@ -30,7 +30,7 @@ module.exports = class extends Type {
     structures.defaultValue = Pipeline.defaultValue;
     structures.ensureArrayValue = Pipeline.ensureArrayValue;
 
-    if (enumType) structures.validators.push(Pipeline.define(`allow:${type}`, Pipeline.Allow(...enumType.getValue()), { configurable: true }));
+    if (enumType) structures.validators.push(Pipeline.define(`allow${type}`, Pipeline.Allow(...enumType.getValue()), { configurable: true }));
     if (!scalarType) return structures;
 
     return Object.entries(scalarType.getDirectiveArgs('field', {})).reduce((prev, [key, value]) => {
