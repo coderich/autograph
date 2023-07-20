@@ -1,5 +1,3 @@
-const Boom = require('../core/Boom');
-
 module.exports = class Query {
   constructor(props = {}) {
     this.props = {};
@@ -21,7 +19,7 @@ module.exports = class Query {
 
   propCheck(prop, ...checks) {
     checks.forEach((check) => {
-      if (this.props[check]) throw Boom.badRequest(`Cannot use "${prop}" while using "${check}"`);
+      if (this.props[check]) throw new Error(`Cannot use "${prop}" while using "${check}"`);
     });
   }
 
@@ -98,7 +96,7 @@ module.exports = class Query {
 
   skip(skip) {
     this.propCheck('skip', 'id');
-    if (this.isCursorPaging) throw Boom.badRequest('Cannot use "skip" while using Cursor-Style Pagination');
+    if (this.isCursorPaging) throw new Error('Cannot use "skip" while using Cursor-Style Pagination');
     this.isClassicPaging = true;
     this.props.skip = skip;
     return this;
@@ -106,7 +104,7 @@ module.exports = class Query {
 
   limit(limit) {
     this.propCheck('limit', 'id');
-    if (this.isCursorPaging) throw Boom.badRequest('Cannot use "limit" while using Cursor-Style Pagination');
+    if (this.isCursorPaging) throw new Error('Cannot use "limit" while using Cursor-Style Pagination');
     this.isClassicPaging = true;
     this.props.limit = limit;
     return this;
@@ -114,7 +112,7 @@ module.exports = class Query {
 
   first(first) {
     this.propCheck('first', 'id', 'last');
-    if (this.isClassicPaging) throw Boom.badRequest('Cannot use "first" while using Classic-Style Pagination');
+    if (this.isClassicPaging) throw new Error('Cannot use "first" while using Classic-Style Pagination');
     this.isCursorPaging = true;
     this.props.first = first + 2; // Adding 2 for pagination meta info (hasNext hasPrev)
     return this;
@@ -122,7 +120,7 @@ module.exports = class Query {
 
   last(last) {
     this.propCheck('last', 'id', 'first');
-    if (this.isClassicPaging) throw Boom.badRequest('Cannot use "last" while using Classic-Style Pagination');
+    if (this.isClassicPaging) throw new Error('Cannot use "last" while using Classic-Style Pagination');
     this.isCursorPaging = true;
     this.props.last = last + 2; // Adding 2 for pagination meta info (hasNext hasPrev)
     return this;
@@ -130,7 +128,7 @@ module.exports = class Query {
 
   before(before) {
     this.propCheck('before', 'id');
-    if (this.isClassicPaging) throw Boom.badRequest('Cannot use "before" while using Classic-Style Pagination');
+    if (this.isClassicPaging) throw new Error('Cannot use "before" while using Classic-Style Pagination');
     this.isCursorPaging = true;
     this.props.before = before;
     return this;
@@ -138,7 +136,7 @@ module.exports = class Query {
 
   after(after) {
     this.propCheck('after', 'id');
-    if (this.isClassicPaging) throw Boom.badRequest('Cannot use "after" while using Classic-Style Pagination');
+    if (this.isClassicPaging) throw new Error('Cannot use "after" while using Classic-Style Pagination');
     this.isCursorPaging = true;
     this.props.after = after;
     return this;

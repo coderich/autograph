@@ -129,24 +129,24 @@ module.exports = class Pipeline {
 
     // A field cannot hold a reference to itself
     Pipeline.define('selfless', ({ model, field, parent, parentPath, value }) => {
-      if (`${value}` === `${parentPath('id')}`) throw Boom.badRequest(`${model}.${field} cannot hold a reference to itself`);
+      if (`${value}` === `${parentPath('id')}`) throw Boom.badData(`${model}.${field} cannot hold a reference to itself`);
     });
 
     // Once set it cannot be changed
     Pipeline.define('immutable', ({ model, field, docPath, parentPath, path, value }) => {
       const hint = { id: parentPath('id') };
       const oldVal = docPath(path, hint);
-      if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw Boom.badRequest(`${model}.${field} is immutable; cannot be changed once set ${oldVal} -> ${value}`);
+      if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw Boom.badData(`${model}.${field} is immutable; cannot be changed once set ${oldVal} -> ${value}`);
     });
 
     // List of allowed values
     Pipeline.factory('Allow', (...args) => function allow({ model, field, value }) {
-      if (args.indexOf(value) === -1) throw Boom.badRequest(`${model}.${field} allows ${args}; found '${value}'`);
+      if (args.indexOf(value) === -1) throw Boom.badData(`${model}.${field} allows ${args}; found '${value}'`);
     });
 
     // List of disallowed values
     Pipeline.factory('Deny', (...args) => function deny({ model, field, value }) {
-      if (args.indexOf(value) > -1) throw Boom.badRequest(`${model}.${field} denys ${args}; found '${value}'`);
+      if (args.indexOf(value) > -1) throw Boom.badData(`${model}.${field} denys ${args}; found '${value}'`);
     });
 
     // Min/Max range
@@ -157,7 +157,7 @@ module.exports = class Pipeline {
       return function range({ model, field, value }) {
         const num = +value; // Coerce to number if possible
         const test = Number.isNaN(num) ? value.length : num;
-        if (test < min || test > max) throw Boom.badRequest(`${model}.${field} must satisfy range ${min}:${max}; found '${value}'`);
+        if (test < min || test > max) throw Boom.badData(`${model}.${field} must satisfy range ${min}:${max}; found '${value}'`);
       };
     }, { itemize: false });
   }
