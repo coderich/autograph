@@ -76,12 +76,13 @@ module.exports = class Pipeline {
     Pipeline.define('idField', ({ model, field, value }) => field.getIdModel().idValue(value.id || value));
     Pipeline.define('ensureArrayValue', ({ field, value }) => (field.toObject().isArray && !Array.isArray(value) ? [value] : value), { itemize: false });
 
-    Pipeline.define('ensureId', ({ resolver, field, value }) => {
+    Pipeline.define('ensureId', ({ resolver, model, field, value }) => {
+      const path = `${model}.${field}`;
       const { type } = field.toObject();
       const ids = Array.from(new Set(ensureArray(value).map(v => `${v}`)));
 
       return resolver.match(type).where({ id: ids }).count().then((count) => {
-        if (count !== ids.length) throw Boom.notFound(`${type} Not Found`);
+        if (count !== ids.length) throw Boom.notFound(`${type} Not Found`, { path });
       });
     }, { itemize: false });
 
@@ -124,29 +125,34 @@ module.exports = class Pipeline {
 
     // Required fields
     Pipeline.define('required', ({ model, field, value }) => {
-      if (value == null) throw Boom.badRequest(`${model}.${field} is required`);
+      const path = `${model}.${field}`;
+      if (value == null) throw Boom.badRequest(`${path} is required`, { path });
     }, { ignoreNull: false });
 
     // A field cannot hold a reference to itself
     Pipeline.define('selfless', ({ model, field, parent, parentPath, value }) => {
-      if (`${value}` === `${parentPath('id')}`) throw Boom.badData(`${model}.${field} cannot hold a reference to itself`);
+      const path = `${model}.${field}`;
+      if (`${value}` === `${parentPath('id')}`) throw Boom.badData(`${path} cannot hold a reference to itself`, { path });
     });
 
     // Once set it cannot be changed
     Pipeline.define('immutable', ({ model, field, docPath, parentPath, path, value }) => {
+      const $path = `${model}.${field}`;
       const hint = { id: parentPath('id') };
       const oldVal = docPath(path, hint);
-      if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw Boom.badData(`${model}.${field} is immutable; cannot be changed once set ${oldVal} -> ${value}`);
+      if (oldVal !== undefined && value !== undefined && `${hashObject(oldVal)}` !== `${hashObject(value)}`) throw Boom.badData(`${$path} is immutable; cannot be changed once set ${oldVal} -> ${value}`, { path: $path });
     });
 
     // List of allowed values
     Pipeline.factory('Allow', (...args) => function allow({ model, field, value }) {
-      if (args.indexOf(value) === -1) throw Boom.badData(`${model}.${field} allows ${args}; found '${value}'`);
+      const path = `${model}.${field}`;
+      if (args.indexOf(value) === -1) throw Boom.badData(`${path} allows ${args}; found '${value}'`, { path });
     });
 
     // List of disallowed values
     Pipeline.factory('Deny', (...args) => function deny({ model, field, value }) {
-      if (args.indexOf(value) > -1) throw Boom.badData(`${model}.${field} denys ${args}; found '${value}'`);
+      const path = `${model}.${field}`;
+      if (args.indexOf(value) > -1) throw Boom.badData(`${path} denys ${args}; found '${value}'`, { path });
     });
 
     // Min/Max range
@@ -155,9 +161,10 @@ module.exports = class Pipeline {
       if (max == null) max = undefined;
 
       return function range({ model, field, value }) {
+        const path = `${model}.${field}`;
         const num = +value; // Coerce to number if possible
         const test = Number.isNaN(num) ? value.length : num;
-        if (test < min || test > max) throw Boom.badData(`${model}.${field} must satisfy range ${min}:${max}; found '${value}'`);
+        if (test < min || test > max) throw Boom.badData(`${path} must satisfy range ${min}:${max}; found '${value}'`, { path });
       };
     }, { itemize: false });
   }

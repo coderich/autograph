@@ -186,7 +186,8 @@ module.exports = class QueryResolver {
     // Can only splice arrays
     const field = model.getField(key);
     const isArray = field.isArray();
-    if (!isArray) throw Boom.badRequest(`Cannot splice field '${model}.${field}'`);
+    const path = `${model}.${field}`;
+    if (!isArray) throw Boom.badRequest(`Cannot splice field '${path}'`, { path });
 
     return this.resolver.match(model).match(match).one({ required: true }).then(async (doc) => {
       const array = get(doc, key) || [];
