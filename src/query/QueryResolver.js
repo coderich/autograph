@@ -3,7 +3,7 @@ const Boom = require('../core/Boom');
 const QueryService = require('./QueryService');
 const DataService = require('../data/DataService');
 const { createSystemEvent } = require('../service/event.service');
-const { mergeDeep, getGQLReturnType } = require('../service/app.service');
+const { mergeDeep, hashObject, getGQLReturnType } = require('../service/app.service');
 
 module.exports = class QueryResolver {
   constructor(query) {
@@ -76,12 +76,15 @@ module.exports = class QueryResolver {
   }
 
   async updateOne(query) {
-    const { model, match, input } = query.toObject();
+    const { model, match, input, flags } = query.toObject();
     const inputShape = model.getShape('update', 'input');
     const docShape = model.getShape('update', 'doc');
 
     return this.resolver.match(model).match(match).one({ required: true }).then((doc) => {
       const merged = mergeDeep(doc, input);
+
+      // Prevent udpates when no data has changed
+      if (get(flags, 'skipUnchanged') && hashObject(doc) === hashObject(merged)) return doc;
 
       return createSystemEvent('Mutation', { query: query.doc(doc).merged(merged) }, async () => {
         const payload = model.shapeObject(inputShape, merged, query);

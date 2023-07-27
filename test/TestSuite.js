@@ -597,6 +597,12 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Book').id(healthBook.id).pull('bids', 0.25, '9.00')).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', bids: [5.00, 12.50, 11.00, 5.00] });
         expect(await resolver.match('Book').id(healthBook.id).splice('bids', 5.00, 4.99)).toMatchObject({ id: healthBook.id, name: 'Health And Wellness', bids: [4.99, 12.50, 11.00, 4.99] });
       });
+
+      test('Ignore no change of data', async () => {
+        const $richard = await resolver.match('Person').id(richard.id).one();
+        expect(await resolver.match('Person').id(richard.id).flags({ skipUnchanged: true }).save()).toEqual($richard);
+        expect(await resolver.match('Person').id(richard.id).save()).not.toEqual($richard);
+      });
     });
 
 
