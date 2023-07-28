@@ -82,11 +82,17 @@ module.exports = class QueryResolver {
 
     return this.resolver.match(model).match(match).one({ required: true }).then((doc) => {
       const merged = mergeDeep(doc, input);
+      const docHash = hashObject(doc);
+      const skipUnchanged = get(flags, 'skipUnchanged');
 
       // Prevent udpates when no data has changed
-      if (get(flags, 'skipUnchanged') && hashObject(doc) === hashObject(merged)) return doc;
+      if (skipUnchanged && docHash === hashObject(merged)) return doc;
 
       return createSystemEvent('Mutation', { query: query.doc(doc).merged(merged) }, async () => {
+        // Prevent udpates when no data has changed (because merged can be mutated)
+        if (skipUnchanged && docHash === hashObject(merged)) return doc;
+
+        // Process
         const payload = model.shapeObject(inputShape, merged, query);
         await model.validateObject(inputShape, payload, query.payload(payload));
         const $doc = model.shapeObject(docShape, payload, query, undefined, undefined, true);

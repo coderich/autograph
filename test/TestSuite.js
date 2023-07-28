@@ -1,4 +1,5 @@
 const { set } = require('lodash');
+const { flatten } = require('@coderich/util');
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { timeout } = require('../src/service/app.service');
 const Schema = require('../src/core/Schema');
@@ -601,6 +602,9 @@ module.exports = (driver = 'mongo', options = {}) => {
       test('Ignore no change of data', async () => {
         const $richard = await resolver.match('Person').id(richard.id).one();
         expect(await resolver.match('Person').id(richard.id).flags({ skipUnchanged: true }).save()).toEqual($richard);
+        expect(await resolver.match('Person').id(richard.id).flags({ skipUnchanged: true }).save($richard)).toEqual($richard);
+        expect(await resolver.match('Person').id(richard.id).flags({ skipUnchanged: true }).save($richard)).toEqual($richard);
+        expect(await resolver.match('Person').id(richard.id).flags({ skipUnchanged: true }).save(flatten($richard))).toEqual($richard);
         expect(await resolver.match('Person').id(richard.id).save()).not.toEqual($richard);
       });
     });
