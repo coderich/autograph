@@ -31,8 +31,8 @@ module.exports = class extends EventEmitter {
       const { key } = event;
 
       if (ensureArray(keys).indexOf(key) > -1) {
-        await fn(event, next);
         if (numArgs < 2) next();
+        await fn(event, next);
       } else {
         next();
       }
@@ -49,8 +49,8 @@ module.exports = class extends EventEmitter {
       const { key } = event;
 
       if (ensureArray(keys).indexOf(key) > -1) {
-        await fn(event, next);
         if (numArgs < 2) next();
+        await fn(event, next);
       } else {
         next();
       }
@@ -67,8 +67,8 @@ module.exports = class extends EventEmitter {
       const { model } = event;
 
       if (ensureArray(models).indexOf(`${model}`) > -1) {
-        await fn(event, next);
         if (numArgs < 2) next();
+        await fn(event, next);
       } else {
         next();
       }
@@ -85,8 +85,8 @@ module.exports = class extends EventEmitter {
       const { model } = event;
 
       if (ensureArray(models).indexOf(`${model}`) > -1) {
-        await fn(event, next);
         if (numArgs < 2) next();
+        await fn(event, next);
       } else {
         next();
       }
