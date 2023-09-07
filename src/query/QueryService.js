@@ -58,9 +58,9 @@ exports.resolveSortBy = (query) => {
       delete $sort[attr];
       query.joins(Object.assign(join, { as: `_.${field}`, left: true }));
       path = `_.${path}`;
+    } else {
+      set($sort, path, val.toLowerCase() === 'asc' ? 1 : -1);
     }
-
-    set($sort, path, val.toLowerCase() === 'asc' ? 1 : -1);
   });
 
   return $sort;

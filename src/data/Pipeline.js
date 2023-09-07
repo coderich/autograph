@@ -42,22 +42,6 @@ module.exports = class Pipeline {
     return Object.defineProperty(Pipeline, name, { value: (...args) => Object.defineProperty(thunk(...args), 'options', { value: options }) })[name];
   }
 
-  // static wrapper(name, factory, { ignoreNull, itemize }) {
-  //   return Object.defineProperty((args) => {
-  //     if (ignoreNull && args.value == null) return args.value;
-
-  //     if (ignoreNull && itemize) {
-  //       return map(args.value, (val, index) => {
-  //         const v = factory({ ...args, value: val, index });
-  //         return v === undefined ? val : v;
-  //       });
-  //     }
-
-  //     const val = factory(args);
-  //     return val === undefined ? args.value : val;
-  //   }, 'name', { value: name });
-  // }
-
   static createPresets() {
     // Built-In Javascript String Transformers
     const jsStringTransformers = ['toLowerCase', 'toUpperCase', 'toString', 'trim', 'trimEnd', 'trimStart'];

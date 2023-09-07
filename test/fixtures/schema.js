@@ -49,6 +49,7 @@ module.exports = {
       @index(name: "uix_chapter", type: unique, on: [name, book])
     {
       name: String! @field(key: "chapter_name" transform: toTitleCase)
+      temp: String # Trying to sort by this to test a bug
       book: Book! @field(onDelete: restrict)
       pages: [Page] @link(by: chapter)
     }
