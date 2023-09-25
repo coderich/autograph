@@ -27,7 +27,7 @@ describe('QueryService', () => {
   describe('resolveWhereClause', () => {
     test('sanity', () => {
       expect(person1).toMatchObject({
-        name: 'Person1',
+        name: 'person1',
         emailAddress: 'person1@gmail.com',
       });
     });

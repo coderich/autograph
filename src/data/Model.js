@@ -82,9 +82,9 @@ module.exports = class extends Model {
 
     // Define target mapping
     const targetMap = {
-      doc: ['defaultValue', 'castValue', 'ensureArrayValue', 'normalizers', 'instructs', ...crudKeys, `$${serdes}rs`, `${serdes}rs`, 'transforms'],
+      doc: [], // Do nothing...
+      // doc: ['defaultValue', 'castValue', 'ensureArrayValue', 'normalizers', 'instructs', ...crudKeys, `$${serdes}rs`, `${serdes}rs`, 'transforms'],
       input: ['defaultValue', 'castValue', 'ensureArrayValue', 'normalizers', 'instructs', ...crudKeys, `$${serdes}rs`, `${serdes}rs`, 'transforms'],
-      // input: ['defaultValue', 'castValue', 'ensureArrayValue'],
       where: ['castValue', 'instructs', `$${serdes}rs`],
     };
 

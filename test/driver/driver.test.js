@@ -94,7 +94,7 @@ describe('MongoDriver', () => {
   describe('create', () => {
     test('person', async () => {
       const newPerson = await resolver.match('Person').save({ name: 'suzy', age: 30, emailAddress: 'thesuz@gmail.com' });
-      expect(newPerson).toMatchObject({ id: expect.anything(), name: 'Suzy', age: 30 });
+      expect(newPerson).toMatchObject({ id: expect.anything(), name: 'suzy', age: 30 });
     });
   });
 });

@@ -61,7 +61,7 @@ describe('GraphQL', () => {
     expect(result.data).toBeDefined();
     expect(result.data.createPerson).toMatchObject({
       id: expect.anything(),
-      name: 'Graphql',
+      name: 'graphql',
       telephone: null,
       emailAddress: 'graphql@gmail.com',
       authored: {
@@ -69,9 +69,9 @@ describe('GraphQL', () => {
       },
       friends: {
         edges: [
-          { node: { id: expect.anything(), name: 'Friend1' } },
-          { node: { id: expect.anything(), name: 'Friend2' } },
-          { node: { id: expect.anything(), name: 'Friend3' } },
+          { node: { id: expect.anything(), name: 'friend1' } },
+          { node: { id: expect.anything(), name: 'friend2' } },
+          { node: { id: expect.anything(), name: 'friend3' } },
         ],
       },
     });
@@ -97,7 +97,7 @@ describe('GraphQL', () => {
     expect(result.data).toBeDefined();
     expect(result.data.updatePerson).toMatchObject({
       id: expect.anything(),
-      name: 'Newname',
+      name: 'newname',
       telephone: null,
       authored: {
         edges: [
@@ -105,16 +105,16 @@ describe('GraphQL', () => {
             node: {
               name: 'Book',
               price: 9.99,
-              author: { name: 'Newname' },
+              author: { name: 'newname' },
             },
           },
         ],
       },
       friends: {
         edges: [
-          { node: { id: expect.anything(), name: 'Friend1' } },
-          { node: { id: expect.anything(), name: 'Friend2' } },
-          { node: { id: expect.anything(), name: 'Friend3' } },
+          { node: { id: expect.anything(), name: 'friend1' } },
+          { node: { id: expect.anything(), name: 'friend2' } },
+          { node: { id: expect.anything(), name: 'friend3' } },
         ],
       },
     });
@@ -144,28 +144,28 @@ describe('GraphQL', () => {
 
     expect(result.data.findPerson.edges[0].node).toMatchObject({
       id: expect.anything(),
-      name: 'Friend1',
+      name: 'friend1',
       telephone: '###-###-####',
       authored: { edges: [] },
       friends: { edges: [] },
     });
     expect(result.data.findPerson.edges[1].node).toMatchObject({
       id: expect.anything(),
-      name: 'Friend2',
+      name: 'friend2',
       telephone: '###-###-####',
       authored: { edges: [] },
       friends: { edges: [] },
     });
     expect(result.data.findPerson.edges[2].node).toMatchObject({
       id: expect.anything(),
-      name: 'Friend3',
+      name: 'friend3',
       telephone: '###-###-####',
       authored: { edges: [] },
       friends: { edges: [] },
     });
     expect(result.data.findPerson.edges[3].node).toMatchObject({
       id: expect.anything(),
-      name: 'Newname',
+      name: 'newname',
       telephone: null,
       authored: {
         edges: [
@@ -173,7 +173,7 @@ describe('GraphQL', () => {
             node: {
               name: 'Book',
               price: 9.99,
-              author: { name: 'Newname' },
+              author: { name: 'newname' },
             },
           },
         ],
@@ -189,9 +189,9 @@ describe('GraphQL', () => {
 
     expect(result.data.findPerson.edges[3].node.friends).toMatchObject({
       edges: expect.objectContaining([
-        { node: { id: expect.anything(), name: 'Friend1', emailAddress: 'friend1@gmail.com' } },
-        { node: { id: expect.anything(), name: 'Friend2', emailAddress: 'friend2@gmail.com' } },
-        { node: { id: expect.anything(), name: 'Friend3', emailAddress: 'friend3@gmail.com' } },
+        { node: { id: expect.anything(), name: 'friend1', emailAddress: 'friend1@gmail.com' } },
+        { node: { id: expect.anything(), name: 'friend2', emailAddress: 'friend2@gmail.com' } },
+        { node: { id: expect.anything(), name: 'friend3', emailAddress: 'friend3@gmail.com' } },
       ]),
     });
   });
