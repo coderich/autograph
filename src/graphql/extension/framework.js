@@ -27,6 +27,12 @@ module.exports = (schema) => {
         fieldScope: AutoGraphMixed # Dictate how a FIELD may use me
         authz: AutoGraphAuthzEnum # Access level used for authorization (default: private)
         namespace: String # Logical grouping of models that can be globbed (useful for authz)
+
+        # FOR TRANSITION TO NEW VERSION
+        crud: AutoGraphMixed # CRUD API
+        scope: AutoGraphMixed #
+        source: AutoGraphMixed # Data source (default: "default")
+        decorate: AutoGraphMixed # Decorator (default: "default")
       ) on OBJECT | INTERFACE
 
       directive @field(
@@ -53,6 +59,10 @@ module.exports = (schema) => {
         transform: [AutoGraphPipelineEnum!]
         serialize: [AutoGraphPipelineEnum!]
         deserialize: [AutoGraphPipelineEnum!]
+
+        # FOR TRANSITION TO NEW VERSION
+        crud: AutoGraphMixed # CRUD API
+        finalize: [AutoGraphPipelineEnum!]
       ) on FIELD_DEFINITION | INPUT_FIELD_DEFINITION | SCALAR
 
       directive @link(
