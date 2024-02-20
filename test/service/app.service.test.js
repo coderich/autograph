@@ -71,8 +71,40 @@ describe('AppService', () => {
   test('hashObject', () => {
     const o1 = { a: 'hello', b: 'ball' };
     const o2 = { b: 'ball', a: 'hello' };
+    const query1 = {
+      cmd: 'resolve',
+      method: 'count',
+      native: { categories: new ObjectID('5e0807d30e52c16c7e7aad74') },
+      where: { categories: new ObjectID('5e0807d30e52c16c7e7aad74') },
+      search: undefined,
+      sort: undefined,
+      skip: undefined,
+      limit: undefined,
+      before: undefined,
+      after: undefined,
+      first: undefined,
+      last: undefined,
+      options: {},
+    };
+    const query2 = {
+      cmd: 'resolve',
+      method: 'count',
+      native: { categories: new ObjectID('5e0807d30e52c16c7e7aad70') },
+      where: { categories: new ObjectID('5e0807d30e52c16c7e7aad70') },
+      search: undefined,
+      sort: undefined,
+      skip: undefined,
+      limit: undefined,
+      before: undefined,
+      after: undefined,
+      first: undefined,
+      last: undefined,
+      options: {},
+    };
+
     expect(AppService.hashObject(o1)).toEqual(AppService.hashObject(o2));
     expect(AppService.hashObject(doc)).toEqual(AppService.hashObject(doc2));
+    expect(AppService.hashObject(query1)).not.toEqual(AppService.hashObject(query2));
   });
 
   test('uniq', () => {

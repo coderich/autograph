@@ -40,7 +40,7 @@ exports.isIdValue = value => exports.isScalarValue(value) || value instanceof Ob
 exports.mergeDeep = (...args) => DeepMerge.all(args, { isMergeableObject: obj => (exports.isPlainObject(obj) || Array.isArray(obj)), arrayMerge: smartMerge });
 exports.uniq = arr => [...new Set(arr.map(a => `${a}`))];
 exports.timeout = ms => new Promise(res => setTimeout(res, ms));
-exports.hashObject = obj => ObjectHash(obj, { respectType: false, respectFunctionNames: false, respectFunctionProperties: false, unorderedArrays: true, ignoreUnknown: true, replacer: r => (r instanceof ObjectId ? `${r}` : r) });
+exports.hashObject = obj => ObjectHash(obj, { respectType: false, respectFunctionNames: false, respectFunctionProperties: false, unorderedArrays: true, ignoreUnknown: true, replacer: r => (ObjectId.isValid(r) ? `${r}` : r) });
 exports.globToRegex = (glob, options = {}) => PicoMatch.makeRe(glob, { ...options, expandRange: (a, b) => `(${FillRange(a, b, { toRegex: true })})` });
 exports.globToRegexp = (glob, options = {}) => PicoMatch.toRegex(exports.globToRegex(glob, options));
 exports.toGUID = (model, id) => Buffer.from(`${model},${`${id}`}`).toString('base64');
