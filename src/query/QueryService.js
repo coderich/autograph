@@ -44,6 +44,7 @@ exports.resolveSortBy = (query) => {
   const { model, sort = {} } = query.toObject();
   const shape = model.getShape('create', 'sortBy');
   const $sort = model.shapeObject(shape, sort, query);
+  const deletions = [];
 
   // Because normalize casts the value (sometimes to an array) need special handling
   keyPaths($sort).forEach((path) => {
@@ -55,13 +56,16 @@ exports.resolveSortBy = (query) => {
 
     // If you need to sort by something that's in another FK document
     if (join) {
-      delete $sort[attr];
+      deletions.push(attr); // Keep track of what to delete
       query.joins(Object.assign(join, { as: `_.${field}`, left: true }));
       path = `_.${path}`;
-    } else {
-      set($sort, path, val.toLowerCase() === 'asc' ? 1 : -1);
     }
+
+    set($sort, path, val.toLowerCase() === 'asc' ? 1 : -1);
   });
+
+  // Delete the sorts on the "base" collection because you're sorting by _.path.to.it (above)
+  deletions.forEach(attr => delete $sort[attr]);
 
   return $sort;
 };
