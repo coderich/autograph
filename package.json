@@ -1,7 +1,7 @@
 {
   "name": "@coderich/autograph",
   "author": "Richard Livolsi (coderich)",
-  "version": "0.10.33",
+  "version": "0.10.34",
   "description": "AutoGraph",
   "keywords": [
     "graphql",
@@ -30,7 +30,7 @@
     "ratchet": "ratchet"
   },
   "dependencies": {
-    "@coderich/util": "0.1.13",
+    "@coderich/util": "1.0.4",
     "@hapi/boom": "^9.1.0",
     "dataloader": "^2.0.0",
     "deepmerge": "^4.2.2",
