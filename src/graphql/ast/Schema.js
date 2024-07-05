@@ -71,7 +71,7 @@ module.exports = class Schema extends TypeDefApi {
    */
   mergeSchemaFromFiles(globPattern, options) {
     return Glob(globPattern, options).then((files) => {
-      return Promise.all(files.map((file) => {
+      return Promise.all(files.sort().map((file) => {
         return new Promise((res) => {
           if (file.endsWith('.js')) res(require(file)); // eslint-disable-line global-require,import/no-dynamic-require
           else res(FS.readFileSync(file, 'utf8'));

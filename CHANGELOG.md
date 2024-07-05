@@ -1,7 +1,8 @@
 # CHANGELOG
 
 ## v0.11.x
-- Node 16.20.2
+- Node 18.12.1
+- Engine >=16.20.0
 - Updated deps for vulnerabilities
 
 ## v0.10.x
