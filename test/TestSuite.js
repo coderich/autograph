@@ -1,6 +1,5 @@
 const { set } = require('lodash');
 const { flatten } = require('@coderich/util');
-const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { timeout } = require('../src/service/app.service');
 const Schema = require('../src/core/Schema');
 const Resolver = require('../src/core/Resolver');
@@ -50,9 +49,6 @@ module.exports = (driver = 'mongo', options = {}) => {
       if (driver === 'mongo') {
         if (options.transactions === false) {
           set(stores.default, 'directives.transactions', false);
-        } else {
-          const mongoServer = await MongoMemoryReplSet.create({ replSet: { storageEngine: 'wiredTiger' } });
-          stores.default.uri = mongoServer.getUri();
         }
       }
 

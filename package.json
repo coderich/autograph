@@ -1,7 +1,7 @@
 {
   "name": "@coderich/autograph",
   "author": "Richard Livolsi (coderich)",
-  "version": "0.11.2",
+  "version": "0.11.3",
   "description": "AutoGraph",
   "keywords": [
     "graphql",
@@ -19,7 +19,7 @@
     "index.js"
   ],
   "engines": {
-    "node": ">=14.17.0"
+    "node": ">=16.20.0"
   },
   "scripts": {
     "start": "APP_ROOT_PATH=$(pwd) node ./test/server",
@@ -46,7 +46,7 @@
     "@coderich/ratchet": "^1.5.8",
     "@graphql-tools/schema": "^9.0.1",
     "graphql": "^15.5.0",
-    "mongodb-memory-server": "^8.7.2",
+    "mongodb-memory-server": "8.13.0",
     "validator": "^13.7.0"
   },
   "peerDependencies": {

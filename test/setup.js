@@ -9,6 +9,7 @@ module.exports = async (context = {}) => {
   jest.setTimeout(10000);
   const mongoServer = await MongoMemoryReplSet.create({ replSet: { storageEngine: 'wiredTiger' } });
   stores.default.uri = mongoServer.getUri();
+  stores.mongo.uri = mongoServer.getUri();
   const schema = new Schema(gqlSchema, stores).decorate();
   const resolver = new Resolver(schema, context);
   context.autograph = { resolver };
