@@ -1,7 +1,7 @@
 {
   "name": "@coderich/autograph",
   "author": "Richard Livolsi (coderich)",
-  "version": "0.10.34",
+  "version": "0.11.2",
   "description": "AutoGraph",
   "keywords": [
     "graphql",
@@ -30,15 +30,15 @@
     "ratchet": "ratchet"
   },
   "dependencies": {
-    "@coderich/util": "1.0.4",
+    "@coderich/util": "1.0.5",
     "@hapi/boom": "^9.1.0",
     "dataloader": "^2.0.0",
     "deepmerge": "^4.2.2",
     "fill-range": "^7.0.1",
-    "glob": "^7.1.6",
+    "glob": "^9.3.5",
     "graphql-fields": "^2.0.3",
     "lodash": "^4.17.21",
-    "mongodb": "4.10.0",
+    "mongodb": "4.17.0",
     "object-hash": "^3.0.0",
     "picomatch": "^2.1.1"
   },

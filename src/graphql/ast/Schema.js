@@ -70,18 +70,14 @@ module.exports = class Schema extends TypeDefApi {
    * Asynchronously load files from a given glob pattern and merge each schema
    */
   mergeSchemaFromFiles(globPattern, options) {
-    return new Promise((resolve, reject) => {
-      Glob(globPattern, options, (err, files) => {
-        if (err) return reject(err);
-
-        return Promise.all(files.map((file) => {
-          return new Promise((res) => {
-            if (file.endsWith('.js')) res(require(file)); // eslint-disable-line global-require,import/no-dynamic-require
-            else res(FS.readFileSync(file, 'utf8'));
-          }).then(schema => this.mergeSchema(schema, options));
-        })).then(() => resolve(this)).catch(e => reject(e));
-      });
-    });
+    return Glob(globPattern, options).then((files) => {
+      return Promise.all(files.map((file) => {
+        return new Promise((res) => {
+          if (file.endsWith('.js')) res(require(file)); // eslint-disable-line global-require,import/no-dynamic-require
+          else res(FS.readFileSync(file, 'utf8'));
+        }).then(schema => this.mergeSchema(schema, options));
+      }));
+    }).then(() => this);
   }
 
   /**

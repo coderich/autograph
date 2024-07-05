@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v0.11.x
+- Node 16.20.2
+- Updated deps for vulnerabilities
+
 ## v0.10.x
 - Replaced ResultSet -> POJOs
   - Removed all $field methods (auto populated)
