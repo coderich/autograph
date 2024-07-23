@@ -1,5 +1,5 @@
 const { get } = require('lodash');
-const { ObjectID } = require('mongodb');
+const { ObjectId } = require('mongodb');
 const AppService = require('../../src/service/app.service');
 
 const obj1 = { name: 'name1', friends: ['a', 'b', 'c'] };
@@ -45,7 +45,7 @@ describe('AppService', () => {
   });
 
   test('isPlainObject', () => {
-    expect(AppService.isPlainObject(ObjectID('abclghalnohe'))).toBe(false);
+    expect(AppService.isPlainObject(new ObjectId())).toBe(false);
     expect(AppService.isPlainObject([])).toBe(false);
     expect(AppService.isPlainObject({})).toBe(true);
   });
@@ -74,8 +74,8 @@ describe('AppService', () => {
     const query1 = {
       cmd: 'resolve',
       method: 'count',
-      native: { categories: new ObjectID('5e0807d30e52c16c7e7aad74') },
-      where: { categories: new ObjectID('5e0807d30e52c16c7e7aad74') },
+      native: { categories: new ObjectId('5e0807d30e52c16c7e7aad74') },
+      where: { categories: new ObjectId('5e0807d30e52c16c7e7aad74') },
       search: undefined,
       sort: undefined,
       skip: undefined,
@@ -89,8 +89,8 @@ describe('AppService', () => {
     const query2 = {
       cmd: 'resolve',
       method: 'count',
-      native: { categories: new ObjectID('5e0807d30e52c16c7e7aad70') },
-      where: { categories: new ObjectID('5e0807d30e52c16c7e7aad70') },
+      native: { categories: new ObjectId('5e0807d30e52c16c7e7aad70') },
+      where: { categories: new ObjectId('5e0807d30e52c16c7e7aad70') },
       search: undefined,
       sort: undefined,
       skip: undefined,

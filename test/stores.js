@@ -4,14 +4,14 @@ module.exports = {
   default: {
     Driver: new Driver('Mongo'),
     uri: 'mongodb://localhost/autograph',
-    options: { useNewUrlParser: true, tlsInsecure: true, useUnifiedTopology: true },
+    options: { tlsInsecure: true },
     directives: { version: 4 },
   },
   // Duplicating default for testing
   mongo: {
     Driver: new Driver('Mongo'),
     uri: 'mongodb://localhost/autograph',
-    options: { useNewUrlParser: true, tlsInsecure: true, useUnifiedTopology: true },
+    options: { tlsInsecure: true },
     query: { collation: { locale: 'en', strength: 2 } },
     directives: { version: 4 },
   },

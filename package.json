@@ -38,7 +38,7 @@
     "glob": "^9.3.5",
     "graphql-fields": "^2.0.3",
     "lodash": "^4.17.21",
-    "mongodb": "4.17.0",
+    "mongodb": "6.8.0",
     "object-hash": "^3.0.0",
     "picomatch": "^2.1.1"
   },
@@ -46,7 +46,7 @@
     "@coderich/ratchet": "^1.5.8",
     "@graphql-tools/schema": "^9.0.1",
     "graphql": "^15.5.0",
-    "mongodb-memory-server": "8.13.0",
+    "mongodb-memory-server": "10.0.0",
     "validator": "^13.7.0"
   },
   "peerDependencies": {

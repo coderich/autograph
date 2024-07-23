@@ -66,7 +66,6 @@ module.exports = class MongoDriver {
   }
 
   createOne({ model, input, options, flags }) {
-    // console.log(JSON.stringify(input, null, 2));
     return this.query(model, 'insertOne', input, options, flags).then(result => Object.assign(input, { id: result.insertedId }));
   }
 
@@ -126,7 +125,7 @@ module.exports = class MongoDriver {
     if (value instanceof ObjectId) return value;
 
     try {
-      const id = ObjectId(value);
+      const id = new ObjectId(value);
       return id;
     } catch (e) {
       return value;
@@ -140,7 +139,6 @@ module.exports = class MongoDriver {
         if (typeof value === 'function') return value.bind(target);
         const $value = map(value, v => (typeof v === 'string' ? globToRegex(v, { nocase: true, regex: true }) : v));
         if (Array.isArray($value)) {
-          // console.log(Util.inspect({ value, $value }, { depth: null, showHidden: false, colors: true }));
           return { $in: $value };
         }
         return $value;
