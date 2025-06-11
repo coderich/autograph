@@ -1,5 +1,4 @@
 const { set } = require('lodash');
-const { ObjectId } = require('mongodb');
 const { flatten } = require('@coderich/util');
 const { timeout } = require('../src/service/app.service');
 const Schema = require('../src/core/Schema');
@@ -71,7 +70,7 @@ module.exports = (driver = 'mongo', options = {}) => {
     describe('Create', () => {
       test('Person', async () => {
         richard = await resolver.match('Person').save({ age: 40, name: 'Richard', status: 'alive', state: 'NJ', emailAddress: 'rich@coderich.com', network: 'network', strip: 'mall', multiLang: 'lang', 'multiLang.en': 'en', 'multiLang.es': 'es' });
-        expect(richard._id).not.toBeDefined(); // eslint-disable-line
+        expect(richard._id).not.toBeDefined();
         expect(richard.id).toBeDefined();
         expect(richard.name).toBe('Richard');
         expect(richard.telephone).toBe('###-###-####'); // Default value
@@ -180,7 +179,6 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
     });
 
-
     describe('Get', () => {
       test('Person', async () => {
         expect(await resolver.match('Person').one()).toBeDefined();
@@ -231,7 +229,6 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Library').id('no-such-id').one()).toBeNull();
       });
     });
-
 
     describe('Find', () => {
       test('Person', async () => {
@@ -348,7 +345,6 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
     });
 
-
     describe('Count (find)', () => {
       test('Person', async () => {
         expect(await resolver.match('Person').count()).toBe(2);
@@ -395,7 +391,6 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Library').count()).toBe(1);
       });
     });
-
 
     describe('Data Validation', () => {
       test('Person', async () => {
@@ -483,7 +478,6 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
     });
 
-
     describe('Data Normalization', () => {
       test('uniq', async () => {
         richard = await resolver.match('Person').id(richard.id).save({ name: 'richard', friends: [christie.id, christie.id, christie.id], telephone: 1234567890 });
@@ -492,7 +486,6 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(richard.friends).toEqual([christie.id]);
       });
     });
-
 
     describe('Find (Deep)', () => {
       test('Person', async () => {
@@ -555,7 +548,6 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
     });
 
-
     describe('Update', () => {
       test('Person', async () => {
         const updated = await resolver.match('Person').id(richard.id).save({ name: 'Rich' });
@@ -606,7 +598,6 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
     });
 
-
     describe('Remove', () => {
       test('Person', async () => {
         expect(await resolver.match('Person').count()).toBeGreaterThan(0);
@@ -623,7 +614,6 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
     });
 
-
     describe('Query (sortBy sliced results)', () => {
       test('sortBy', async () => {
         expect(await resolver.match('Book').sortBy({ name: 'asc' }).one()).toMatchObject({ id: healthBook.id, name: 'Health And Wellness' });
@@ -636,7 +626,6 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Book').sortBy({ name: 'asc' }).last(2)).toMatchObject([{ id: healthBook.id, name: 'Health And Wellness' }, { id: mobyDick.id, name: 'Moby Dick' }]);
       });
     });
-
 
     describe('Query (sortBy with Cursors)', () => {
       test('sortBy', async () => {
@@ -655,7 +644,6 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
     });
 
-
     describe('Query (sortBy deep)', () => {
       test('sortBy', async () => {
         expect(await resolver.match('Person').sortBy({ authored: { name: 'asc' } }).many()).toMatchObject([{ name: 'Christie' }, { name: 'Richard' }]);
@@ -671,7 +659,6 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
     });
 
-
     // describe('Query (find & sortBy deep)', () => {
     //   test('whereSortBy', async () => {
     //     expect(await resolver.match('Person').where({ 'authored.name': '*' }).sortBy({ authored: { chapters: { name: 'asc', temp: 'asc' } } }).many()).toMatchObject([{ id: christie.id }, { id: richard.id }]);
@@ -680,7 +667,6 @@ module.exports = (driver = 'mongo', options = {}) => {
     //     expect(await resolver.match('Person').where({ 'authored.chapters.pages.verbage': 'the end.' }).sortBy({ authored: { chapters: { name: 'desc' } } }).many()).toMatchObject([{ id: christie.id }]);
     //   });
     // });
-
 
     describe('Transactions (auto)', () => {
       test('multi-update', async () => {
@@ -702,7 +688,6 @@ module.exports = (driver = 'mongo', options = {}) => {
         expect(await resolver.match('Art').many()).toMatchObject([{ bids: [109.99] }, { bids: [109.99] }]);
       });
     });
-
 
     if (options.transactions !== false) {
       describe('Transactions (manual)', () => {
@@ -795,7 +780,6 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
     }
 
-
     describe('Referential Integrity', () => {
       test('remove', async () => {
         await expect(resolver.match('Person').remove()).rejects.toThrow(/remove requires/gi);
@@ -820,7 +804,6 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
     });
 
-
     describe('Native Queries', () => {
       test('get', async () => {
         switch (driver) {
@@ -841,7 +824,6 @@ module.exports = (driver = 'mongo', options = {}) => {
         }
       });
     });
-
 
     describe('Raw Queries', () => {
       test('get', async () => {
@@ -875,7 +857,6 @@ module.exports = (driver = 'mongo', options = {}) => {
         }
       });
     });
-
 
     describe('Bug Fixes', () => {
       test('embedded arrays', async () => {
@@ -931,7 +912,6 @@ module.exports = (driver = 'mongo', options = {}) => {
       });
     });
 
-
     describe('Case [In]sensitive Sort', () => {
       test('get', async () => {
         // Create documents for sorting purpose (no transformation on name)
@@ -951,7 +931,6 @@ module.exports = (driver = 'mongo', options = {}) => {
         }
       });
     });
-
 
     describe('$magic methods', () => {
       test('$lookup', async () => {

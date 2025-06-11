@@ -127,7 +127,7 @@ module.exports = class MongoDriver {
     try {
       const id = new ObjectId(value);
       return id;
-    } catch (e) {
+    } catch {
       return value;
     }
   }

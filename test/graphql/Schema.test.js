@@ -1,5 +1,8 @@
+const FS = require('fs');
+const Path = require('path');
 const Schema = require('../../src/graphql/ast/Schema');
-const complexSchema = require('../fixtures/complex.graphql');
+
+const complexSchema = FS.readFileSync(Path.resolve(__dirname, '../fixtures/complex.graphql'), 'utf-8');
 
 const typeDefs = `
   scalar Mixed

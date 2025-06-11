@@ -1,3 +1,5 @@
+/* eslint-disable comma-dangle */
+
 module.exports = [
   {
     from: 'dataId',

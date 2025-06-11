@@ -1,11 +1,14 @@
+const FS = require('fs');
+const Path = require('path');
 const { cloneDeep } = require('lodash');
 const Query = require('../../../src/query/Query');
 const ASTSchema = require('../../../src/graphql/ast/Schema');
 const CoreSchema = require('../../../src/core/Schema');
-const schemaJS = require('./../../fixtures/schema');
-const baseGraphql = require('./base.graphql');
+const schemaJS = require('../../fixtures/schema');
 const stores = require('../../stores');
 const setup = require('../../setup');
+
+const baseGraphql = FS.readFileSync(Path.resolve(__dirname, './base.graphql'), 'utf-8');
 
 const validate = (schema) => {
   // Models

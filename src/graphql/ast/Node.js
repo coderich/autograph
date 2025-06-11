@@ -268,7 +268,6 @@ module.exports = class Node {
     return Boolean(this.getDirectiveArg('field', 'resolve'));
   }
 
-
   // Create
   isCreatable() {
     return Boolean(this.getDALScope().toLowerCase().indexOf('c') > -1);

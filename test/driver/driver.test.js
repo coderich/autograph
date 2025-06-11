@@ -1,13 +1,16 @@
+const FS = require('fs');
+const Path = require('path');
 const { MongoMemoryReplSet } = require('mongodb-memory-server');
 const { MongoClient } = require('mongodb');
 const MongoDriver = require('../../src/driver/MongoDriver');
 const Schema = require('../../src/core/Schema');
 const Resolver = require('../../src/core/Resolver');
-const typeDefs = require('../fixtures/driver.graphql');
 const stores = require('../stores');
 
+const typeDefs = FS.readFileSync(Path.resolve(__dirname, '../fixtures/driver.graphql'), 'utf-8');
+
 describe('MongoDriver', () => {
-  let driver, resolver, schema, person, site;
+  let resolver, schema, person, site;
 
   beforeAll(async () => {
     jest.setTimeout(10000);
@@ -23,7 +26,7 @@ describe('MongoDriver', () => {
     // Create core classes
     schema = new Schema({ typeDefs }, stores).decorate();
     resolver = new Resolver(schema, { network: { id: 'networkId' } });
-    driver = new MongoDriver({ uri: stores.default.uri });
+    new MongoDriver({ uri: stores.default.uri });
     await schema.setup();
 
     // Fixtures
@@ -64,7 +67,7 @@ describe('MongoDriver', () => {
       };
 
       // Resolver
-      const res = await resolver.match('Person').id(person._id).one(); // eslint-disable-line
+      const res = await resolver.match('Person').id(person._id).one();
       expect(res).toMatchObject(toMatchObject);
     });
 
@@ -86,7 +89,7 @@ describe('MongoDriver', () => {
       };
 
       // Resolver
-      const res = await resolver.match('Site').id(site._id).one(); // eslint-disable-line
+      const res = await resolver.match('Site').id(site._id).one();
       expect(res).toMatchObject(toMatchObject);
     });
   });

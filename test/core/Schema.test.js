@@ -1,8 +1,11 @@
+const FS = require('fs');
+const Path = require('path');
 const Schema = require('../../src/core/Schema');
 const stores = require('../stores');
-const simpleSchema = require('../fixtures/simple.graphql');
-const bareSchema = require('../fixtures/bare.graphql');
-const complexSchema = require('../fixtures/complex.graphql');
+
+const simpleSchema = FS.readFileSync(Path.resolve(__dirname, '../fixtures/simple.graphql'), 'utf-8');
+const bareSchema = FS.readFileSync(Path.resolve(__dirname, '../fixtures/bare.graphql'), 'utf-8');
+const complexSchema = FS.readFileSync(Path.resolve(__dirname, '../fixtures/complex.graphql'), 'utf-8');
 
 describe('CoreSchema', () => {
   test('simpleSchema', () => {

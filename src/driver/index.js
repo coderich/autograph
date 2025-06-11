@@ -1,4 +1,3 @@
-/* eslint-disable global-require */
 module.exports = class Driver {
   constructor(name) {
     switch (name) {

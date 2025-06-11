@@ -1,4 +1,4 @@
-const timeout = ms => new Promise(res => setTimeout(res, ms));
+const timeout = ms => new Promise((res) => { setTimeout(res, ms); });
 
 class DataResolver {
   constructor(data, resolver) {

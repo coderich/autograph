@@ -1,3 +1,5 @@
+/* eslint-disable comma-dangle */
+
 module.exports = {
   _id: 0,
   id: '$_id',
@@ -31,7 +33,7 @@ module.exports = {
   validation: {
     status: '$validation.status',
     errors: {
-      '$map': {
+      $map: {
         input: '$validation.errors',
         as: 'embedded',
         in: {
@@ -47,14 +49,14 @@ module.exports = {
       }
     },
     validators: {
-      '$map': {
+      $map: {
         input: '$validation.validators',
         as: 'embedded',
         in: {
           target: '$$embedded.target',
           status: '$$embedded.status',
           errors: {
-            '$map': {
+            $map: {
               input: '$$embedded.errors',
               as: 'embedded',
               in: {
@@ -109,14 +111,14 @@ module.exports = {
       endDate: '$contact.hours.endDate',
       type: '$contact.hours.type',
       custom: {
-        '$map': {
+        $map: {
           input: '$contact.hours.custom',
           as: 'embedded',
           in: {
             day: '$$embedded.day',
             status: '$$embedded.status',
             hours: {
-              '$map': {
+              $map: {
                 input: '$$embedded.hours',
                 as: 'embedded',
                 in: {
@@ -136,7 +138,7 @@ module.exports = {
       updatedAt: '$contact.hours.updatedAt'
     },
     exceptionHours: {
-      '$map': {
+      $map: {
         input: '$contact.exceptionHours',
         as: 'embedded',
         in: {
@@ -146,14 +148,14 @@ module.exports = {
           endDate: '$$embedded.endDate',
           type: '$$embedded.type',
           custom: {
-            '$map': {
+            $map: {
               input: '$$embedded.custom',
               as: 'embedded',
               in: {
                 day: '$$embedded.day',
                 status: '$$embedded.status',
                 hours: {
-                  '$map': {
+                  $map: {
                     input: '$$embedded.hours',
                     as: 'embedded',
                     in: {
@@ -177,7 +179,7 @@ module.exports = {
   },
   timezone: 1,
   actionLinks: {
-    '$map': {
+    $map: {
       input: '$actionLinks',
       as: 'embedded',
       in: {
@@ -204,7 +206,7 @@ module.exports = {
     }
   },
   tags: {
-    '$map': {
+    $map: {
       input: '$tags',
       as: 'embedded',
       in: {
@@ -291,7 +293,7 @@ module.exports = {
     perimeter: {
       shape: '$geoLocation.perimeter.shape',
       points: {
-        '$map': {
+        $map: {
           input: '$geoLocation.perimeter.points',
           as: 'embedded',
           in: { lat: '$$embedded.lat', lng: '$$embedded.lng' }
@@ -330,7 +332,7 @@ module.exports = {
     perimeter: {
       shape: '$indoorLocation.perimeter.shape',
       points: {
-        '$map': {
+        $map: {
           input: '$indoorLocation.perimeter.points',
           as: 'embedded',
           in: {

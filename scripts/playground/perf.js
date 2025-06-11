@@ -1,13 +1,12 @@
-const Schema = require('../../src/core/Schema');
-const Query = require('../../src/query/Query');
-const ResultSet = require('../../src/data/ResultSet');
-const gqlSchema = require('../../test/fixtures/schema');
-const stores = require('../../test/stores');
+// const Schema = require('../../src/core/Schema');
+// const Query = require('../../src/query/Query');
+// const gqlSchema = require('../../test/fixtures/schema');
+// const stores = require('../../test/stores');
 
 const arr = Array.from(new Array(4000)).map((el, i) => ({ name: `name${i}`, age: `age${i}` }));
 const props = Array.from(new Array(20)).map((el, i) => `prop${i}`);
-const schema = new Schema(gqlSchema, stores);
-const model = schema.getModel('Person');
+// const schema = new Schema(gqlSchema, stores);
+// const model = schema.getModel('Person');
 
 console.time('reduce');
 arr.reduce((prev, curr) => {
@@ -46,11 +45,11 @@ arr.forEach((el) => {
 });
 console.timeEnd('proxy');
 
-console.time('ResultSet');
-arr.forEach((el) => {
-  new ResultSet(new Query({ model }), el);
-});
-console.timeEnd('ResultSet');
+// console.time('ResultSet');
+// arr.forEach((el) => {
+//   new ResultSet(new Query({ model }), el);
+// });
+// console.timeEnd('ResultSet');
 
 // const val = (() => Promise.resolve('1000'))();
 // console.log(val === '1000');

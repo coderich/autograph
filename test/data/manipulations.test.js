@@ -18,13 +18,13 @@ describe('DataManipulations', () => {
 
   test('person', async () => {
     expect(rawPerson).toBeDefined();
-    expect(rawPerson._id).toBeDefined(); // eslint-disable-line no-underscore-dangle
+    expect(rawPerson._id).toBeDefined();
     expect(rawPerson.name).toEqual('name');
     expect(rawPerson.telephone).toBeUndefined();
   });
 
   test('getPerson', async () => {
-    const person = await resolver.match('Person').id(rawPerson._id).one(); // eslint-disable-line no-underscore-dangle
+    const person = await resolver.match('Person').id(rawPerson._id).one();
     expect(person).toBeTruthy();
     expect(person.name).toEqual('Name');
     expect(person.telephone).toEqual('###-###-####');

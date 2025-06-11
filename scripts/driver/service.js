@@ -30,7 +30,6 @@ exports.shapeObject = (shape, obj, context, root) => {
   });
 };
 
-
 exports.map = (mixed, fn) => {
   if (mixed == null) return mixed;
   const isArray = Array.isArray(mixed);

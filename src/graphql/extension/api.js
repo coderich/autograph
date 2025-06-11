@@ -150,7 +150,7 @@ module.exports = (schema) => {
 
       if (model.isEntity() && model.hasGQLScope('s')) {
         prev[`${model.getName()}SubscriptionQuery`] = {
-          __resolveType: root => root.__typename, // eslint-disable-line no-underscore-dangle
+          __resolveType: root => root.__typename,
           ...fieldResolvers,
         };
         prev[`${model.getName()}Create`] = fieldResolvers;
@@ -167,7 +167,7 @@ module.exports = (schema) => {
       });
     }, {
       Node: {
-        __resolveType: (doc, args, context, info) => doc.__typename, // eslint-disable-line no-underscore-dangle
+        __resolveType: (doc, args, context, info) => doc.__typename,
       },
 
       Query: entityModels.reduce((prev, model) => {
@@ -179,7 +179,7 @@ module.exports = (schema) => {
           const model = schema.getModel(modelName);
           return resolver.get(context, model, args, false, info).then((result) => {
             if (result == null) return result;
-            result.__typename = modelName; // eslint-disable-line no-underscore-dangle
+            result.__typename = modelName;
             return result;
           });
         },

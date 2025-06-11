@@ -50,7 +50,7 @@ module.exports = class Schema extends TypeDefApi {
         try {
           const ast = typeof td === 'object' ? td : parse(td);
           return ast.definitions;
-        } catch (e) {
+        } catch {
           return null;
         }
       }), ['loc']).filter(Boolean).flat();
@@ -70,10 +70,10 @@ module.exports = class Schema extends TypeDefApi {
    * Asynchronously load files from a given glob pattern and merge each schema
    */
   mergeSchemaFromFiles(globPattern, options) {
-    return Glob(globPattern, options).then((files) => {
+    return Glob.glob(globPattern, options).then((files) => {
       return Promise.all(files.sort().map((file) => {
         return new Promise((res) => {
-          if (file.endsWith('.js')) res(require(file)); // eslint-disable-line global-require,import/no-dynamic-require
+          if (file.endsWith('.js')) res(require(file));
           else res(FS.readFileSync(file, 'utf8'));
         }).then(schema => this.mergeSchema(schema, options));
       }));
