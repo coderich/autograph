@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v0.12.x
+- Node lts/jod
+- Engine >=22.0.0
+- Updated "smartMerge" to return a new array
+
 ## v0.11.x
 - Node 18.12.1
 - Engine >=16.20.0

@@ -23,6 +23,7 @@ const ObjectHash = require('object-hash');
 
 const smartMerge = (target, source, options) => {
   return source;
+  // return [...source];
   // const [el] = target;
   // if (!el || exports.isScalarValue(el)) return source;
   // return combineMerge(target, source, options);
