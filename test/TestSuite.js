@@ -767,11 +767,11 @@ module.exports = (driver = 'mongo', options = {}) => {
           txn1.match('Person').save([{ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' }]);
           txn2.match('Person').save([{ name: 'person10', emailAddress: 'person10@gmail.com' }, { name: 'person11', emailAddress: 'person11@gmail.com' }]);
 
-          txn1.exec().then((results) => {
+          await txn1.exec().then((results) => {
             const [[person1, person2]] = results;
             expect(person1.name).toBe('Person10');
             expect(person2.name).toBe('Person11');
-            txn1.commit();
+            return txn1.commit();
           });
 
           await timeout(100);
