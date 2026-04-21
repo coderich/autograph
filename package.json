@@ -28,7 +28,7 @@
     "lint": "eslint ./"
   },
   "dependencies": {
-    "@coderich/util": "2.1.5",
+    "@coderich/util": "2.2.1",
     "@hapi/boom": "9.1.4",
     "dataloader": "2.2.3",
     "deepmerge": "4.3.1",
